@@ -18,7 +18,7 @@
 // RCC is configured by arduino by default with SYSCLK = 480MHz, HCLK = 240MHz, PCLK1/PCLK2 = 120MHz
 
 /* General*/
-void UltraSoundDrv_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, const uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq) {
+void UltraSoundDrv_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq) {
     #ifndef ARDUINO_GIGA
         #error Only Arduino Giga R1 is supported
     #endif
@@ -57,15 +57,15 @@ void UltraSoundDrv_Delay_us(uint32_t delay_value) {
 }
 
 /* ADC */
-void UltraSoundDrv_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, const uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq) {
+void UltraSoundDrv_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq) {
     #ifndef ARDUINO_GIGA
         #error Only Arduino Giga R1 is supported
     #endif
 
+    ADC_InitPeriph(ADC, adc_pins, adc_pin_num, tim_trigger);
     if (ADC_GetSettings(ADC)->tim_trigger) {
         TIMER_ADCtrigger_SetFreq(trigger_freq);
     }
-    ADC_InitPeriph(ADC, adc_pins, adc_pin_num, tim_trigger);
 }
 
 void UltraSoundDrv_ADC_Enable(ADC_TypeDef* ADC) {
