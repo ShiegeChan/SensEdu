@@ -15,9 +15,9 @@ TIMER_ERROR TIMER_GetError(void) {
     return error;
 }
 
-void TIMER_Init(uint32_t trigger_freq) {
+void TIMER_Init(void) {
     tim2_init();
-    tim1_init(trigger_freq);
+    tim1_init();
 }
 
 // check if it works as intended with oscilloscope
@@ -34,14 +34,7 @@ void TIMER_ADCtrigger_Enable(void) {
     SET_BIT(TIM1->CR1, TIM_CR1_CEN);
 }
 
-// check if it works as intended with oscilloscope
-void tim1_init(uint32_t freq) {
-    // Enable clock on TIM1 from APB2
-    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM1EN);
-
-    // frequency settings
-    WRITE_REG(TIM1->PSC, 12U-1U); // 0.1us step (10MHz as reference)
-
+void TIMER_ADCtrigger_SetFreq(uint32_t freq) {
     int32_t freq_diff = 2147483647; // max int32 value
     uint8_t closest_freq_index = 0;
     for (uint8_t i = 0; i < sizeof(allowed_freqs)/sizeof(allowed_freqs[0]); i++) {
@@ -55,6 +48,16 @@ void tim1_init(uint32_t freq) {
 
     sampling_rate = allowed_freqs[closest_freq_index];
     WRITE_REG(TIM1->ARR, (freq_reference/sampling_rate));
+}
+
+// check if it works as intended with oscilloscope
+void tim1_init() {
+    // Enable clock on TIM1 from APB2
+    SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM1EN);
+
+    // frequency settings
+    WRITE_REG(TIM1->PSC, 24U-1U); // 0.1us step (10MHz as reference)
+    TIMER_ADCtrigger_SetFreq(allowed_freqs[0]); // default max freq
 
     // update event is trigger output
     MODIFY_REG(TIM1->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
@@ -65,7 +68,7 @@ void tim2_init() {
     SET_BIT(RCC->APB1LENR, RCC_APB1LENR_TIM2EN);
 
     // prescaler
-    WRITE_REG(TIM2->PSC, 120U-1U); // default arduino PCLK1/PCLK2 = 120MHz
+    WRITE_REG(TIM2->PSC, 240U-1U); // timer clock = 240MHz
 
     // timer turns off after one cycle
     SET_BIT(TIM2->CR1, TIM_CR1_OPM);

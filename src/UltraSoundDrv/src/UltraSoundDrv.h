@@ -32,12 +32,12 @@ typedef enum {
 
 
 ULTRASOUND_DRV_ERROR UltraSoundDrv_GetError(void);
-void UltraSoundDrv_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq);
+void UltraSoundDrv_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, const uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq);
 
-void UltraSoundDrv_TIMER_Init(uint32_t trigger_freq);
+void UltraSoundDrv_TIMER_Init();
 void UltraSoundDrv_Delay_us(uint32_t delay_value);
 
-void UltraSoundDrv_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, uint8_t tim_trigger);
+void UltraSoundDrv_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, const uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq);
 void UltraSoundDrv_ADC_Enable(ADC_TypeDef* ADC);
 void UltraSoundDrv_ADC_Disable(ADC_TypeDef* ADC);
 void UltraSoundDrv_ADC_Start(ADC_TypeDef* ADC);

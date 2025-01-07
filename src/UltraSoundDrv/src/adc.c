@@ -36,7 +36,7 @@ ADC_ERROR ADC_GetError(void) {
     return error;
 }
 
-void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint8_t tim_trigger) {
+void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, const uint8_t adc_pin_num, uint8_t tim_trigger) {
     if (ADC != ADC1 && ADC != ADC2) {
         error = ADC_ERROR_WRONG_ADC; // you can only use ADC1 or ADC2
         return;
@@ -157,7 +157,7 @@ void configure_pll2(void) {
     SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
 }
 
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint8_t tim_trigger) {
+void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, const uint8_t adc_pin_num, uint8_t tim_trigger) {
 
     if (READ_BIT(ADC->CR, ADC_CR_ADCAL | ADC_CR_JADSTART | ADC_CR_ADSTART | ADC_CR_ADSTP | ADC_CR_ADDIS | ADC_CR_ADEN)) {
         error = ADC_ERROR_ADC_CONFIG_VOLTAGE_REGULATOR;

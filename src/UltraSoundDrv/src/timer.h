@@ -12,8 +12,9 @@ typedef enum {
 } TIMER_ERROR;
 
 TIMER_ERROR TIMER_GetError(void);
-void TIMER_Init(uint32_t trigger_freq);
+void TIMER_Init(void);
 void TIMER_Delay_us(uint32_t delay_value);
+void TIMER_ADCtrigger_SetFreq(uint32_t freq);
 void TIMER_ADCtrigger_Enable(void);
 
 
