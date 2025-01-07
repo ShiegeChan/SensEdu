@@ -31,3 +31,6 @@ packages/
 
 # ignore working directory
 wk/
+
+# personal ignores
+samples/
