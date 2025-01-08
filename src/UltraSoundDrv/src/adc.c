@@ -180,22 +180,22 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint
     // set overrun mode (overwrite data)
     SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
 
-    // if max 500kS/sec, then max 2000ns available for conversion
-
-    // sample time (2.5 cycles) + 7.5 cycles (from 16bit res) -> total TCONV = 11 cycles -> 25MHz clock (40ns): 440ns
-    MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP12, 0b001 << ADC_SMPR2_SMP12_Pos); // 12 channel
-
-    // oversampling ratio (x2) -> 440ns * 2 = 880ns per conversion per channel
-    MODIFY_REG(ADC->CFGR2, ADC_CFGR2_OVSR, (2U-1U) << ADC_CFGR2_OVSR_Pos); // global for all channels // 2U-1U (temp disable)
-    SET_BIT(ADC->CFGR2, ADC_CFGR2_ROVSE);
-
     // select channels
     MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ1, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
     for (uint8_t i = 0; i < adc_pin_num; i++) {
         channel adc_channel = get_adc_channel(arduino_pins[i], ADC);
         SET_BIT(ADC->PCSEL, adc_channel.preselection);
         select_adc_channel(ADC, adc_channel.number, i+1U);
+
+        // sample time (2.5 cycles) + 7.5 cycles (from 16bit res) -> total TCONV = 11 cycles -> 25MHz clock (40ns): 440ns
+        set_adc_channel_sample_time(ADC, 0b001, adc_channel.number);
     }
+
+    // if max 500kS/sec, then max 2000ns available for conversion
+    // oversampling ratio (x2) -> 440ns * 2 = 880ns per conversion per channel
+    MODIFY_REG(ADC->CFGR2, ADC_CFGR2_OVSR, (2U-1U) << ADC_CFGR2_OVSR_Pos); // global for all channels // 2U-1U (temp disable)
+    SET_BIT(ADC->CFGR2, ADC_CFGR2_ROVSE);
+    MODIFY_REG(ADC->CFGR2, ADC_CFGR2_OVSS, 0b0001 << ADC_CFGR2_OVSS_Pos); // account for x2 oversampling with 1bit right shift for data register
     
     // set trigger if needed
     if (tim_trigger) {
@@ -206,6 +206,9 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint
         CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); 
 
     } else {
+        // disable hardware trigger
+        MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos);
+
         // set continuous mode
         SET_BIT(ADC->CFGR, ADC_CFGR_CONT);
     }
@@ -358,6 +361,74 @@ void select_adc_channel(ADC_TypeDef* ADC, uint8_t channel_num, uint8_t rank) {
     }
 }
 
+void set_adc_channel_sample_time(ADC_TypeDef* ADC, uint8_t sample_time, uint8_t channel_num) {
+    switch(channel_num) {
+        case 0U:
+            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP0, sample_time << ADC_SMPR1_SMP0_Pos);
+            break;
+        case 1U:
+            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP1, sample_time << ADC_SMPR1_SMP1_Pos);
+            break;
+        case 2U:
+            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP2, sample_time << ADC_SMPR1_SMP2_Pos);
+            break;
+        case 3U:
+            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP3, sample_time << ADC_SMPR1_SMP3_Pos);
+            break;
+        case 4U:
+            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP4, sample_time << ADC_SMPR1_SMP4_Pos);
+            break;
+        case 5U:
+            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP5, sample_time << ADC_SMPR1_SMP5_Pos);
+            break;
+        case 6U:
+            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP6, sample_time << ADC_SMPR1_SMP6_Pos);
+            break;
+        case 7U:
+            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP7, sample_time << ADC_SMPR1_SMP7_Pos);
+            break;
+        case 8U:
+            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP8, sample_time << ADC_SMPR1_SMP8_Pos);
+            break;
+        case 9U:
+            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP9, sample_time << ADC_SMPR1_SMP9_Pos);
+            break;
+        case 10U:
+            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP10, sample_time << ADC_SMPR2_SMP10_Pos);
+            break;
+        case 11U:
+            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP11, sample_time << ADC_SMPR2_SMP11_Pos);
+            break;
+        case 12U:
+            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP12, sample_time << ADC_SMPR2_SMP12_Pos);
+            break;
+        case 13U:
+            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP13, sample_time << ADC_SMPR2_SMP13_Pos);
+            break;
+        case 14U:
+            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP14, sample_time << ADC_SMPR2_SMP14_Pos);
+            break;
+        case 15U:
+            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP15, sample_time << ADC_SMPR2_SMP15_Pos);
+            break;
+        case 16U:
+            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP16, sample_time << ADC_SMPR2_SMP16_Pos);
+            break;
+        case 17U:
+            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP17, sample_time << ADC_SMPR2_SMP17_Pos);
+            break;
+        case 18U:
+            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP18, sample_time << ADC_SMPR2_SMP18_Pos);
+            break;
+        case 19U:
+            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP19, sample_time << ADC_SMPR2_SMP19_Pos);
+            break;
+        default:
+            error = ADC_ERROR_SAMPLE_TIME_SETTING;
+            break;
+    }
+}
+
 void ADC_IRQHandler(void) {
     if (READ_BIT(ADC1->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC1->ISR, ADC_ISR_EOC);
@@ -369,4 +440,3 @@ void ADC_IRQHandler(void) {
         ADC2_Settings.eoc_flag = 0;
     }
 }
-
