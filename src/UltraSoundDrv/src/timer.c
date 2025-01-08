@@ -50,7 +50,6 @@ void TIMER_ADCtrigger_SetFreq(uint32_t freq) {
     WRITE_REG(TIM1->ARR, (freq_reference/sampling_rate));
 }
 
-// check if it works as intended with oscilloscope
 void tim1_init() {
     // Enable clock on TIM1 from APB2
     SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM1EN);
