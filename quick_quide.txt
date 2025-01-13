@@ -1,0 +1,22 @@
+Open the MATLAB script "plot_microphones_data.m". 
+Before reprogramming Arduino code and uploading it, in matlab command window type: "arduino=[]". This command will clean the buffers. 
+
+Open Arduino script "dev_arduino.ino". 
+Make sure Arduino port is selected and same value in both of the scripts. 
+
+To plot only the distance data coming from the Arduino, in Arduino script set: 
+#define LOCAL_XCORR     true    
+#define XCORR_DEBUG     false 
+
+and in MATLAB script set   
+PLOT_DISTANCE = true;
+PLOT_DETAILED_DATA = false; 
+
+
+To plot all the data (distance, raw, after filtering, after cross-correlation) in Arduino script set:
+#define LOCAL_XCORR     true    
+#define XCORR_DEBUG     true 
+
+and in MATLAB script set: 
+PLOT_DISTANCE = true;
+PLOT_DETAILED_DATA = true; 
