@@ -153,7 +153,7 @@ void configure_pll2(void) {
     SET_BIT(RCC->CR, RCC_CR_PLL2ON);
 
     // turn on buses
-    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);  //Enable ADC 1 and 2 and DMA1
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk);  //Enable ADC 1 and 2
     SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
 }
 
@@ -179,6 +179,9 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint
 
     // set overrun mode (overwrite data)
     SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
+
+    // data management
+    MODIFY_REG(ADC->CFGR, ADC_CFGR_DMNGT, 0b01 << ADC_CFGR_DMNGT_Pos);
 
     // select channels
     MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ1, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
@@ -221,7 +224,7 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint
 
     // interrupts
     SET_BIT(ADC->IER, ADC_IER_EOCIE);
-    NVIC_SetPriority(ADC_IRQn, 1);
+    NVIC_SetPriority(ADC_IRQn, 2);
     NVIC_EnableIRQ(ADC_IRQn);
 }
 

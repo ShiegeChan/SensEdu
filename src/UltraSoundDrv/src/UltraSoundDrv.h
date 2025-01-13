@@ -27,7 +27,8 @@ extern "C" {
 typedef enum {
     ULTRASOUND_DRV_NO_ERRORS = 0x0000,
     ULTRASOUND_DRV_ERROR_TIMER = 0x1000,
-    ULTRASOUND_DRV_ERROR_ADC = 0x2000
+    ULTRASOUND_DRV_ERROR_ADC = 0x2000,
+    ULTRASOUND_DRV_ERROR_DMA = 0x3000
 } ULTRASOUND_DRV_ERROR;
 
 
@@ -42,8 +43,12 @@ void UltraSoundDrv_ADC_Enable(ADC_TypeDef* ADC);
 void UltraSoundDrv_ADC_Disable(ADC_TypeDef* ADC);
 void UltraSoundDrv_ADC_Start(ADC_TypeDef* ADC);
 uint16_t* UltraSoundDrv_ADC_Read(ADC_TypeDef* ADC);
-
 uint8_t get_msg();
+
+void UltraSoundDrv_DMA_Init(uint32_t* memory0_address);
+void UltraSoundDrv_DMA_Enable(void);
+int8_t UltraSoundDrv_DMA_GetTransferStatus(void);
+void UltraSoundDrv_DMA_SetTransferStatus(uint8_t new_status);
 
 #ifdef __cplusplus
 }
