@@ -1,4 +1,4 @@
-%% plot_microphones_data.m
+%% main.m
 % reads config data and then ADC mics meassurements from Arduino
 clear;
 close all;
@@ -9,13 +9,13 @@ ARDUINO_PORT = 'COM9';
 ARDUINO_BAUDRATE = 115200;
 
 MIC_NUM = 3;
-ITERATIONS = 1000; % >= PLOT_FIX_X_AXIS_NUM !
+ITERATIONS = 500; % >= PLOT_FIX_X_AXIS_NUM !
 
 VARIANCE_TEST = false;
 
 PLOT_DISTANCE = true;
-PLOT_DETAILED_DATA = false;
-PLOT_LIMIT = 5; % in meters
+PLOT_DETAILED_DATA = true; % make sure to change this in .ino code as well
+PLOT_LIMIT = 1.2; % in meters
 PLOT_FIX_X_AXIS = false; % fix x axis to certain amount of measurements
 PLOT_FIX_X_AXIS_NUM = 200; % multiple of 10!
 PLOT_TIME_AXIS = false; % replace measurements with time in x axis
@@ -39,10 +39,10 @@ time_axis = zeros(1,ITERATIONS);
 tic;
 
 for it = 1:ITERATIONS
-    if VARIANCE_TEST
+    if VARIANCE_TEST == true
         if (mod(it,100) == 0)
             fprintf("Please change position\n");
-            pause(3);
+            pause(5);
         end
     end
 
@@ -50,7 +50,7 @@ for it = 1:ITERATIONS
     write(arduino, 'r', "char"); % trigger arduino measurement
     time_axis(it) = toc;
 
-    if PLOT_DETAILED_DATA
+    if PLOT_DETAILED_DATA == true
         details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, data_length, 3);
     end
     dist_vector = read_mcu_xcorr(arduino, MIC_NUM);
@@ -60,9 +60,9 @@ for it = 1:ITERATIONS
     end
     
     % Data plotting
-    if PLOT_DISTANCE
+    if PLOT_DISTANCE==true
         subplot_x_size = 1;
-        if PLOT_DETAILED_DATA
+        if PLOT_DETAILED_DATA == true
             subplot_x_size = 4;
             plot_details(details_matrix, MIC_NUM, 4);
         end
@@ -75,7 +75,7 @@ end
 arduino = [];
 
 % save measurements
-file_name = sprintf('%s_%s.mat', "Measurements/measurements_mcu_xcorr", datetime("now"));
+file_name = sprintf('%s_%s.mat', "measurements_mcu_xcorr", datetime("now"));
 file_name = strrep(file_name, ' ', '_');
 file_name = strrep(file_name, ':', '-');
 save(file_name, "dist_matrix", "time_axis");
