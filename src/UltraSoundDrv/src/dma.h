@@ -17,7 +17,7 @@ typedef enum {
 DMA_ERROR DMA_GetError(void);
 uint8_t DMA_GetTransferStatus(void);
 void DMA_SetTransferStatus(uint8_t new_status);
-void DMA_InitPeriph(uint32_t* memory0_address);
+void DMA_InitPeriph(uint16_t* memory0_address);
 void DMA_EnablePeriph(void);
 void DMA_DisablePeriph(void);
 

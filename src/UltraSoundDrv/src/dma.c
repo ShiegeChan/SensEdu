@@ -13,7 +13,7 @@ static uint8_t transfer_status = 0;
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
-void dma_init(uint32_t memory0_address);
+void dma_init(uint16_t* memory0_address);
 void dmamux_init(void);
 
 
@@ -32,8 +32,8 @@ void DMA_SetTransferStatus(uint8_t new_status) {
     transfer_status = new_status;
 }
 
-void DMA_InitPeriph(uint32_t* memory0_address) {
-    dma_init((uint32_t)memory0_address);
+void DMA_InitPeriph(uint16_t* memory0_address) {
+    dma_init(memory0_address);
     dmamux_init();
 }
 
@@ -62,7 +62,7 @@ void DMA_DisablePeriph(void) {
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
-void dma_init(uint32_t memory0_address) {
+void dma_init(uint16_t* memory0_address) {
     
     if (READ_BIT(DMA1_Stream0->CR, DMA_SxCR_EN)) {
         error = DMA_ERROR_ENABLED_BEFORE_INIT;
@@ -79,11 +79,11 @@ void dma_init(uint32_t memory0_address) {
     MODIFY_REG(DMA1_Stream0->CR, DMA_SxCR_PSIZE, 0b01 << DMA_SxCR_PSIZE_Pos); // peripheral 0b01
 
     // Address incrementation
-    CLEAR_BIT(DMA1_Stream0->CR, DMA_SxCR_MINC); // memory
+    SET_BIT(DMA1_Stream0->CR, DMA_SxCR_MINC); // memory
     CLEAR_BIT(DMA1_Stream0->CR, DMA_SxCR_PINC); // peripheral
 
     // Circular mode
-    CLEAR_BIT(DMA1_Stream0->CR, DMA_SxCR_CIRC); // ON
+    SET_BIT(DMA1_Stream0->CR, DMA_SxCR_CIRC); // ON
 
     // Data transfer direction
     MODIFY_REG(DMA1_Stream0->CR, DMA_SxCR_DIR, 0b00 << DMA_SxCR_DIR_Pos); // peripheral -> memory
@@ -96,19 +96,20 @@ void dma_init(uint32_t memory0_address) {
     NVIC_EnableIRQ(DMA1_Stream0_IRQn);
 
     // Number of data items to transfer
-    MODIFY_REG(DMA1_Stream0->NDTR, DMA_SxNDT, (1U) << DMA_SxNDT_Pos);
+    MODIFY_REG(DMA1_Stream0->NDTR, DMA_SxNDT, (10U) << DMA_SxNDT_Pos);
     
     // Peripheral data register address
     //MODIFY_REG(DMA1_Stream0->PAR, DMA_SxPAR_PA, (ADC1_BASE + 0x40UL));
-    WRITE_REG(DMA1_Stream0->PAR, (uint32_t)&(ADC1->DR));
+    //WRITE_REG(DMA1_Stream0->PAR, (uint32_t)&(ADC1->DR));
+    WRITE_REG(DMA1_Stream0->PAR, 0x40022040);
     //MODIFY_REG(DMA1_Stream0->PAR, DMA_SxPAR_PA, &(ADC1->DR) << DMA_SxPAR_PA_Pos); // is it right??
     //MODIFY_REG(DMA1_Stream0->PAR, DMA_SxPAR_PA, (uint32_t)&ADC1->DR); // is it right??
 
     // Memory data register address
-    WRITE_REG(DMA1_Stream0->M0AR, memory0_address); // is it right??
+    WRITE_REG(DMA1_Stream0->M0AR, (uint32_t)memory0_address); // is it right??
 
     CLEAR_BIT(DMA1_Stream0->FCR, DMA_SxFCR_DMDIS); // fifo disable
-
+    
     //HAL_ADC_Start_DMA();
 }
 

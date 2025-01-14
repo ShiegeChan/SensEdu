@@ -20,10 +20,10 @@
 void check_board();
 
 /* General*/
-void UltraSoundDrv_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq) {
+void UltraSoundDrv_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode, uint32_t trigger_freq) {
     check_board();
     UltraSoundDrv_TIMER_Init();
-    UltraSoundDrv_ADC_Init(ADC, adc_pins, adc_pin_num, tim_trigger, trigger_freq);
+    UltraSoundDrv_ADC_Init(ADC, adc_pins, adc_pin_num, mode, trigger_freq);
 }
 
 ULTRASOUND_DRV_ERROR UltraSoundDrv_GetError(void) {
@@ -61,17 +61,17 @@ void UltraSoundDrv_Delay_us(uint32_t delay_value) {
 }
 
 /* ADC */
-void UltraSoundDrv_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq) {
+void UltraSoundDrv_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode, uint32_t trigger_freq) {
     check_board();
 
-    ADC_InitPeriph(ADC, adc_pins, adc_pin_num, tim_trigger);
-    if (ADC_GetSettings(ADC)->tim_trigger) {
+    ADC_InitPeriph(ADC, adc_pins, adc_pin_num, mode);
+    if (ADC_GetSettings(ADC)->mode == ULTRASOUND_DRV_ADC_MODE_CONT_TIM_TRIGGERED) {
         TIMER_ADCtrigger_SetFreq(trigger_freq);
     }
 }
 
 void UltraSoundDrv_ADC_Enable(ADC_TypeDef* ADC) {
-    if (ADC_GetSettings(ADC)->tim_trigger) {
+    if (ADC_GetSettings(ADC)->mode == ULTRASOUND_DRV_ADC_MODE_CONT_TIM_TRIGGERED) {
         TIMER_ADCtrigger_Enable();
     }
 
@@ -95,7 +95,7 @@ uint8_t get_msg() {
 }
 
 /* DMA */
-void UltraSoundDrv_DMA_Init(uint32_t* memory0_address) {
+void UltraSoundDrv_DMA_Init(uint16_t* memory0_address) {
     DMA_InitPeriph(memory0_address);
 }
 
@@ -103,7 +103,7 @@ void UltraSoundDrv_DMA_Enable(void) {
     DMA_EnablePeriph();
 }
 
-int8_t UltraSoundDrv_DMA_GetTransferStatus(void) {
+uint8_t UltraSoundDrv_DMA_GetTransferStatus(void) {
     return DMA_GetTransferStatus();
 }
 void UltraSoundDrv_DMA_SetTransferStatus(uint8_t new_status) {
