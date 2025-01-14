@@ -18,6 +18,7 @@ uint16_t memory4adc[memory4adc_size];
 
 uint8_t pins[1] = {A0};
 int counter = 0;
+volatile uint8_t flag = 0;
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
@@ -33,6 +34,7 @@ void setup() {
     UltraSoundDrv_Init(ADC1, pins, 1, ULTRASOUND_DRV_ADC_MODE_CONT, 1000);
     UltraSoundDrv_ADC_Enable(ADC1);
 
+    SCB_InvalidateDCache_by_Addr((uint8_t*)flag, 4);
     SCB_InvalidateDCache_by_Addr((uint16_t*)memory4adc, memory4adc_size * 2);
     //AttachADC_DMA(ADC1DMA, memory4adc_size, (uint16_t *)memory4adc, DMAS4);
     UltraSoundDrv_DMA_Init((uint16_t*)memory4adc);
@@ -41,6 +43,8 @@ void setup() {
 
     // start ADC conversions
     UltraSoundDrv_ADC_Start(ADC1);
+
+    Serial.println("started adc");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -50,12 +54,11 @@ void loop() {
     // CPU does something
 
     // DMA in parallel
-    //if (UltraSoundDrv_DMA_GetTransferStatus()) {
-    if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF4)) {
+    if (flag) {
+    //if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF4)) {
         Serial.println("we are in");
         //set_statuss(false);
         // enter transfer complete interrupt flag
-        //UltraSoundDrv_DMA_SetTransferStatus(0);
         for (int i = 0; i < memory4adc_size; i++) {
             Serial.print("ADC1 value ");
             Serial.print(i);
@@ -64,6 +67,8 @@ void loop() {
         };
 
         //recaptureADCvalues(ADC1DMA);
+
+        UltraSoundDrv_DMA_SetTransferStatus(0);
 
         UltraSoundDrv_ADC_Start(ADC1);
         UltraSoundDrv_DMA_Enable();
@@ -84,4 +89,18 @@ void loop() {
 
     //ADC_DMA.AttachedStream.DMASt->CR |= 1 << 0;  //Enable the DMA stream
     //SCB_InvalidateDCache_by_Addr(ADC_DMA.BufferAddress, ADC_DMA.StreamSize * 2);
+}
+
+extern "C" void DMA1_Stream4_IRQHandler(void) {
+    //Serial.println("entered interrupt");
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF4)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF4);
+        //Serial.println("hello");
+        flag = 1;
+    }
+
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF4)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF4);
+        //error = DMA_ERROR_INTERRUPT_TRANSFER_ERROR;
+    }
 }

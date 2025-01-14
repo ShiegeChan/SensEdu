@@ -95,11 +95,11 @@ void dma_init(uint16_t* memory0_address) {
     MODIFY_REG(DMA1_Stream4->CR, DMA_SxCR_DIR, 0b00 << DMA_SxCR_DIR_Pos); // peripheral -> memory
 
     // Enable Interrupts
-    //SET_BIT(DMA1_Stream4->CR, DMA_SxCR_TCIE); // transfer complete
+    SET_BIT(DMA1_Stream4->CR, DMA_SxCR_TCIE); // transfer complete
     //SET_BIT(DMA1_Stream4->CR, DMA_SxCR_TEIE); // transfer error
     //SET_BIT(DMA1_Stream4->CR, DMA_SxCR_DMEIE); // direct mode error
-    //NVIC_SetPriority(DMA1_Stream4_IRQn, 1);
-    //NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+    NVIC_SetPriority(DMA1_Stream4_IRQn, 3);
+    NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 
     // Number of data items to transfer
     MODIFY_REG(DMA1_Stream4->NDTR, DMA_SxNDT, (10U) << DMA_SxNDT_Pos);
@@ -124,6 +124,7 @@ void dmamux_init(void) {
     MODIFY_REG(DMAMUX1_Channel4->CCR, DMAMUX_CxCR_DMAREQ_ID, (9U) << DMAMUX_CxCR_DMAREQ_ID_Pos); // ADC1 mapping LL_DMAMUX1_REQ_ADC1
 }
 
+/*
 void DMA1_Stream4_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF4)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF4);
@@ -134,4 +135,5 @@ void DMA1_Stream4_IRQHandler(void) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF4);
         error = DMA_ERROR_INTERRUPT_TRANSFER_ERROR;
     }
-}
+}*/
+
