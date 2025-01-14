@@ -1,6 +1,7 @@
 #include "UltraSoundDrv.h"
 #include "timer.h"
 #include "adc.h"
+#include "dma.h"
 
 
 #include "stm32h7xx_hal.h"

@@ -38,11 +38,17 @@ void DMA_InitPeriph(uint16_t* memory0_address) {
 }
 
 void DMA_EnablePeriph(void) {
+    
+    //delete this
+    SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF4);
+    SET_BIT(DMA1->HIFCR, DMA_HIFCR_CHTIF4);
+    SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF4);
+
     if (READ_REG(DMA1->LISR) | READ_REG(DMA1->HISR)) {
         error = DMA_ERROR_INTERRUPTS_NOT_CLEARED;
     }
 
-    SET_BIT(DMA1_Stream0->CR, DMA_SxCR_EN);
+    SET_BIT(DMA1_Stream4->CR, DMA_SxCR_EN);
 }
 
 void DMA_DisablePeriph(void) {
@@ -64,7 +70,7 @@ void DMA_DisablePeriph(void) {
 /* -------------------------------------------------------------------------- */
 void dma_init(uint16_t* memory0_address) {
     
-    if (READ_BIT(DMA1_Stream0->CR, DMA_SxCR_EN)) {
+    if (READ_BIT(DMA1_Stream4->CR, DMA_SxCR_EN)) {
         error = DMA_ERROR_ENABLED_BEFORE_INIT;
     }
 
@@ -72,60 +78,60 @@ void dma_init(uint16_t* memory0_address) {
     SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);  // DMA1 Clock
 
     // Priority
-    MODIFY_REG(DMA1_Stream0->CR, DMA_SxCR_PL, 0b10 << DMA_SxCR_PL_Pos); // High Priority
+    MODIFY_REG(DMA1_Stream4->CR, DMA_SxCR_PL, 0b10 << DMA_SxCR_PL_Pos); // High Priority
 
     // Half-word (16bit) data sizes
-    MODIFY_REG(DMA1_Stream0->CR, DMA_SxCR_MSIZE, 0b01 << DMA_SxCR_MSIZE_Pos); // memory 0b01
-    MODIFY_REG(DMA1_Stream0->CR, DMA_SxCR_PSIZE, 0b01 << DMA_SxCR_PSIZE_Pos); // peripheral 0b01
+    MODIFY_REG(DMA1_Stream4->CR, DMA_SxCR_MSIZE, 0b01 << DMA_SxCR_MSIZE_Pos); // memory 0b01
+    MODIFY_REG(DMA1_Stream4->CR, DMA_SxCR_PSIZE, 0b01 << DMA_SxCR_PSIZE_Pos); // peripheral 0b01
 
     // Address incrementation
-    SET_BIT(DMA1_Stream0->CR, DMA_SxCR_MINC); // memory
-    CLEAR_BIT(DMA1_Stream0->CR, DMA_SxCR_PINC); // peripheral
+    SET_BIT(DMA1_Stream4->CR, DMA_SxCR_MINC); // memory
+    CLEAR_BIT(DMA1_Stream4->CR, DMA_SxCR_PINC); // peripheral
 
     // Circular mode
-    SET_BIT(DMA1_Stream0->CR, DMA_SxCR_CIRC); // ON
+    SET_BIT(DMA1_Stream4->CR, DMA_SxCR_CIRC); // ON
 
     // Data transfer direction
-    MODIFY_REG(DMA1_Stream0->CR, DMA_SxCR_DIR, 0b00 << DMA_SxCR_DIR_Pos); // peripheral -> memory
+    MODIFY_REG(DMA1_Stream4->CR, DMA_SxCR_DIR, 0b00 << DMA_SxCR_DIR_Pos); // peripheral -> memory
 
     // Enable Interrupts
-    SET_BIT(DMA1_Stream0->CR, DMA_SxCR_TCIE); // transfer complete
-    SET_BIT(DMA1_Stream0->CR, DMA_SxCR_TEIE); // transfer error
-    //SET_BIT(DMA1_Stream0->CR, DMA_SxCR_DMEIE); // direct mode error
-    NVIC_SetPriority(DMA1_Stream0_IRQn, 1);
-    NVIC_EnableIRQ(DMA1_Stream0_IRQn);
+    //SET_BIT(DMA1_Stream4->CR, DMA_SxCR_TCIE); // transfer complete
+    //SET_BIT(DMA1_Stream4->CR, DMA_SxCR_TEIE); // transfer error
+    //SET_BIT(DMA1_Stream4->CR, DMA_SxCR_DMEIE); // direct mode error
+    //NVIC_SetPriority(DMA1_Stream4_IRQn, 1);
+    //NVIC_EnableIRQ(DMA1_Stream4_IRQn);
 
     // Number of data items to transfer
-    MODIFY_REG(DMA1_Stream0->NDTR, DMA_SxNDT, (10U) << DMA_SxNDT_Pos);
+    MODIFY_REG(DMA1_Stream4->NDTR, DMA_SxNDT, (10U) << DMA_SxNDT_Pos);
     
     // Peripheral data register address
-    //MODIFY_REG(DMA1_Stream0->PAR, DMA_SxPAR_PA, (ADC1_BASE + 0x40UL));
-    //WRITE_REG(DMA1_Stream0->PAR, (uint32_t)&(ADC1->DR));
-    WRITE_REG(DMA1_Stream0->PAR, 0x40022040);
-    //MODIFY_REG(DMA1_Stream0->PAR, DMA_SxPAR_PA, &(ADC1->DR) << DMA_SxPAR_PA_Pos); // is it right??
-    //MODIFY_REG(DMA1_Stream0->PAR, DMA_SxPAR_PA, (uint32_t)&ADC1->DR); // is it right??
+    //MODIFY_REG(DMA1_Stream4->PAR, DMA_SxPAR_PA, (ADC1_BASE + 0x40UL));
+    //WRITE_REG(DMA1_Stream4->PAR, (uint32_t)&(ADC1->DR));
+    WRITE_REG(DMA1_Stream4->PAR, 0x40022040);
+    //MODIFY_REG(DMA1_Stream4->PAR, DMA_SxPAR_PA, &(ADC1->DR) << DMA_SxPAR_PA_Pos); // is it right??
+    //MODIFY_REG(DMA1_Stream4->PAR, DMA_SxPAR_PA, (uint32_t)&ADC1->DR); // is it right??
 
     // Memory data register address
-    WRITE_REG(DMA1_Stream0->M0AR, (uint32_t)memory0_address); // is it right??
+    WRITE_REG(DMA1_Stream4->M0AR, (uint32_t)memory0_address); // is it right??
 
-    CLEAR_BIT(DMA1_Stream0->FCR, DMA_SxFCR_DMDIS); // fifo disable
+    CLEAR_BIT(DMA1_Stream4->FCR, DMA_SxFCR_DMDIS); // fifo disable
     
     //HAL_ADC_Start_DMA();
 }
 
 void dmamux_init(void) {
     // DMAMUX1 request ID
-    MODIFY_REG(DMAMUX1_Channel0->CCR, DMAMUX_CxCR_DMAREQ_ID, (9U) << DMAMUX_CxCR_DMAREQ_ID_Pos); // ADC1 mapping LL_DMAMUX1_REQ_ADC1
+    MODIFY_REG(DMAMUX1_Channel4->CCR, DMAMUX_CxCR_DMAREQ_ID, (9U) << DMAMUX_CxCR_DMAREQ_ID_Pos); // ADC1 mapping LL_DMAMUX1_REQ_ADC1
 }
 
-void DMA1_Stream0_IRQHandler(void) {
-    if (READ_BIT(DMA1->LISR, DMA_LISR_TCIF0)) {
-        SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTCIF0);
+void DMA1_Stream4_IRQHandler(void) {
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF4)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF4);
         transfer_status = 1;
     }
 
-    if (READ_BIT(DMA1->LISR, DMA_LISR_TEIF0)) {
-        SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTEIF0);
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF4)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF4);
         error = DMA_ERROR_INTERRUPT_TRANSFER_ERROR;
     }
 }
