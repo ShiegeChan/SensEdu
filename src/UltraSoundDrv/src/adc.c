@@ -92,8 +92,8 @@ uint16_t* ADC_ReadSingleSequence(ADC_TypeDef* ADC) {
     ADC_Settings* settings = ADC_GetSettings(ADC);
 
     for (uint8_t i = 0; i < settings->conv_length; i++) {
-        settings->eoc_flag = 1;
-        while(settings->eoc_flag);
+        settings->eoc_flag = 0;
+        while(!settings->eoc_flag);
         settings->sequence_data[i] = READ_REG(ADC->DR);
     }
     
@@ -229,7 +229,7 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, ULTR
     while(READ_BIT(ADC->CR, ADC_CR_ADCAL)); // wait for calibration
 
     // interrupts
-    //SET_BIT(ADC->IER, ADC_IER_EOCIE);
+    SET_BIT(ADC->IER, ADC_IER_EOCIE);
     NVIC_SetPriority(ADC_IRQn, 2);
     NVIC_EnableIRQ(ADC_IRQn);
 }
@@ -441,11 +441,11 @@ void set_adc_channel_sample_time(ADC_TypeDef* ADC, uint8_t sample_time, uint8_t 
 void ADC_IRQHandler(void) {
     if (READ_BIT(ADC1->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC1->ISR, ADC_ISR_EOC);
-        ADC1_Settings.eoc_flag = 0;
+        ADC1_Settings.eoc_flag = 1;
     }
     
     if (READ_BIT(ADC2->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC2->ISR, ADC_ISR_EOC);
-        ADC2_Settings.eoc_flag = 0;
+        ADC2_Settings.eoc_flag = 1;
     }
 }

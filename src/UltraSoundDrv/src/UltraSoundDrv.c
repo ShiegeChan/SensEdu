@@ -100,15 +100,15 @@ void UltraSoundDrv_DMA_Init(uint16_t* memory0_address) {
     DMA_InitPeriph(memory0_address);
 }
 
-void UltraSoundDrv_DMA_Enable(void) {
-    DMA_EnablePeriph();
+void UltraSoundDrv_DMA_Enable(uint16_t* mem_address, const uint16_t mem_size) {
+    DMA_EnablePeriph(mem_address, mem_size);
 }
 
 uint8_t UltraSoundDrv_DMA_GetTransferStatus(void) {
     return DMA_GetTransferStatus();
 }
-void UltraSoundDrv_DMA_SetTransferStatus(uint8_t new_status) {
-    DMA_SetTransferStatus(new_status);
+void UltraSoundDrv_DMA_ClearTransferStatus() {
+    DMA_ClearTransferStatus();
 }
 
 /* local */

@@ -53,9 +53,9 @@ uint16_t* UltraSoundDrv_ADC_Read(ADC_TypeDef* ADC);
 uint8_t get_msg();
 
 void UltraSoundDrv_DMA_Init(uint16_t* memory0_address);
-void UltraSoundDrv_DMA_Enable(void);
+void UltraSoundDrv_DMA_Enable(uint16_t* mem_address, const uint16_t mem_size);
 uint8_t UltraSoundDrv_DMA_GetTransferStatus(void);
-void UltraSoundDrv_DMA_SetTransferStatus(uint8_t new_status);
+void UltraSoundDrv_DMA_ClearTransferStatus(void);
 
 #ifdef __cplusplus
 }

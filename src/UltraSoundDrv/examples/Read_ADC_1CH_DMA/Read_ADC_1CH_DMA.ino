@@ -1,24 +1,21 @@
-#include "STMSpeeduino.h"
-#include "src/UltraSoundDrv/src/UltraSoundDrv.h"
+#include "UltraSoundDrv.h"
+//#include "src/UltraSoundDrv/src/UltraSoundDrv.h"
 
-#include "stm32h7xx_hal.h"
-#include "stm32h7xx_hal_adc.h"
-#include "stm32h747xx.h"
-#include "stm32h7xx_ll_tim.h"
-#include "stm32h7xx_ll_bus.h"
-#include "stm32h7xx_ll_system.h"
-#include "stm32h7xx_ll_utils.h"
-#include "stm32h7xx_ll_gpio.h"
-#include "stm32h7xx_ll_exti.h"
-#include "stm32h7xx_ll_cortex.h"
-#include "stm32h7xx_ll_rcc.h"
+uint32_t lib_error = 0;
+uint32_t cntr = 0;
 
-const uint16_t memory4adc_size = 10;
-uint16_t memory4adc[memory4adc_size];
+/* -------------------------------------------------------------------------- */
+/*                                  Settings                                  */
+/* -------------------------------------------------------------------------- */
+ADC_TypeDef* adc = ADC1;
+const uint8_t adc_pin_num = 1;
+uint8_t adc_pins[adc_pin_num] = {A0};
 
-uint8_t pins[1] = {A0};
-int counter = 0;
-volatile uint8_t flag = 0;
+// must be:
+// 1. multiple of 32 words (64 half-words) to ensure cache coherence
+// 2. properly aligned
+const uint16_t memory4adc_size = 64;
+__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
@@ -30,21 +27,24 @@ void setup() {
     while (!Serial) {
         delay(1);
     }
+    Serial.println("Started Initialization...");
 
-    UltraSoundDrv_Init(ADC1, pins, 1, ULTRASOUND_DRV_ADC_MODE_CONT, 1000);
-    UltraSoundDrv_ADC_Enable(ADC1);
+    UltraSoundDrv_Init(adc, adc_pins, adc_pin_num, ULTRASOUND_DRV_ADC_MODE_CONT, 1000); // continuos mode for ADC
+    UltraSoundDrv_ADC_Enable(adc);
 
-    SCB_InvalidateDCache_by_Addr((uint8_t*)flag, 4);
-    SCB_InvalidateDCache_by_Addr((uint16_t*)memory4adc, memory4adc_size * 2);
-    //AttachADC_DMA(ADC1DMA, memory4adc_size, (uint16_t *)memory4adc, DMAS4);
-    UltraSoundDrv_DMA_Init((uint16_t*)memory4adc);
-    UltraSoundDrv_DMA_Enable();
+    UltraSoundDrv_DMA_Init((uint16_t*)memory4adc); 
+    UltraSoundDrv_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
+
+    UltraSoundDrv_ADC_Start(adc);
+
+    lib_error = UltraSoundDrv_GetError();
+    while (lib_error != 0) {
+        delay(1000);
+        Serial.print("Error: 0x");
+        Serial.println(lib_error, HEX);
+    }
+
     Serial.println("Setup is successful.");
-
-    // start ADC conversions
-    UltraSoundDrv_ADC_Start(ADC1);
-
-    Serial.println("started adc");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -52,55 +52,32 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 void loop() {
     // CPU does something
+    cntr += 1;
+    Serial.println(cntr);
+    
+    // DMA in background
 
-    // DMA in parallel
-    if (flag) {
-    //if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF4)) {
-        Serial.println("we are in");
-        //set_statuss(false);
-        // enter transfer complete interrupt flag
+    // Print transfered Data if available
+    if (UltraSoundDrv_DMA_GetTransferStatus()) {
+        Serial.println("------");
         for (int i = 0; i < memory4adc_size; i++) {
-            Serial.print("ADC1 value ");
+            Serial.print("ADC value ");
             Serial.print(i);
             Serial.print(": ");
             Serial.println(memory4adc[i]);
         };
 
-        //recaptureADCvalues(ADC1DMA);
-
-        UltraSoundDrv_DMA_SetTransferStatus(0);
-
-        UltraSoundDrv_ADC_Start(ADC1);
-        UltraSoundDrv_DMA_Enable();
-        SCB_InvalidateDCache_by_Addr((uint16_t *)memory4adc, memory4adc_size * 2);
+        // restart ADC
+        UltraSoundDrv_DMA_ClearTransferStatus();
+        UltraSoundDrv_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
+        UltraSoundDrv_ADC_Start(adc);
     }
 
-
-    
-    static uint32_t lib_error = UltraSoundDrv_GetError();
+    // check errors
+    lib_error = UltraSoundDrv_GetError();
     while (lib_error != 0) {
         delay(1000);
         Serial.print("Error: 0x");
         Serial.println(lib_error, HEX);
-    }
-
-    //ADC_Start(ADC1);
-    //SET_BIT(DMA1->HIFCR, ADC_DMA.AttachedStream.DMA_CHT | ADC_DMA.AttachedStream.DMA_CTC);  //Clear the transfer flags
-
-    //ADC_DMA.AttachedStream.DMASt->CR |= 1 << 0;  //Enable the DMA stream
-    //SCB_InvalidateDCache_by_Addr(ADC_DMA.BufferAddress, ADC_DMA.StreamSize * 2);
-}
-
-extern "C" void DMA1_Stream4_IRQHandler(void) {
-    //Serial.println("entered interrupt");
-    if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF4)) {
-        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF4);
-        //Serial.println("hello");
-        flag = 1;
-    }
-
-    if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF4)) {
-        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF4);
-        //error = DMA_ERROR_INTERRUPT_TRANSFER_ERROR;
     }
 }
