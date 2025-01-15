@@ -1,3 +1,8 @@
+/////////////////////////////////////////////////////////////////// general arduino + matlab info //////////////////////////////////
+To access arduino through matlab, Serial Monitor MUST NOT be open in arduino ide. Otherwise, the error will occur in MATLAB and the program won't run. 
+
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Open the MATLAB script "plot_microphones_data.m". 
 Before reprogramming Arduino code and uploading it, in matlab command window type: "arduino=[]". This command will clean the buffers. 
