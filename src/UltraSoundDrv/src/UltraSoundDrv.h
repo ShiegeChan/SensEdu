@@ -27,23 +27,35 @@ extern "C" {
 typedef enum {
     ULTRASOUND_DRV_NO_ERRORS = 0x0000,
     ULTRASOUND_DRV_ERROR_TIMER = 0x1000,
-    ULTRASOUND_DRV_ERROR_ADC = 0x2000
+    ULTRASOUND_DRV_ERROR_ADC = 0x2000,
+    ULTRASOUND_DRV_ERROR_DMA = 0x3000
 } ULTRASOUND_DRV_ERROR;
+
+typedef enum {
+    ULTRASOUND_DRV_ADC_MODE_ONE_SHOT = 0x01,
+    ULTRASOUND_DRV_ADC_MODE_CONT = 0x02,
+    ULTRASOUND_DRV_ADC_MODE_CONT_TIM_TRIGGERED = 0x03
+} ULTRASOUND_DRV_ADC_MODE;
+
 
 
 ULTRASOUND_DRV_ERROR UltraSoundDrv_GetError(void);
-void UltraSoundDrv_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq);
+void UltraSoundDrv_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode, uint32_t trigger_freq);
 
 void UltraSoundDrv_TIMER_Init();
 void UltraSoundDrv_Delay_us(uint32_t delay_value);
 
-void UltraSoundDrv_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, uint8_t tim_trigger, uint32_t trigger_freq);
+void UltraSoundDrv_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode, uint32_t trigger_freq);
 void UltraSoundDrv_ADC_Enable(ADC_TypeDef* ADC);
 void UltraSoundDrv_ADC_Disable(ADC_TypeDef* ADC);
 void UltraSoundDrv_ADC_Start(ADC_TypeDef* ADC);
 uint16_t* UltraSoundDrv_ADC_Read(ADC_TypeDef* ADC);
-
 uint8_t get_msg();
+
+void UltraSoundDrv_DMA_Init(uint16_t* memory0_address);
+void UltraSoundDrv_DMA_Enable(uint16_t* mem_address, const uint16_t mem_size);
+uint8_t UltraSoundDrv_DMA_GetTransferStatus(void);
+void UltraSoundDrv_DMA_ClearTransferStatus(void);
 
 #ifdef __cplusplus
 }

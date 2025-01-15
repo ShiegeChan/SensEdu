@@ -17,15 +17,15 @@ static uint8_t adc_flag = 0;
 
 uint8_t adc_msg = 0;
 
-ADC_Settings ADC1_Settings;
-ADC_Settings ADC2_Settings;
+ADC_Settings ADC1_Settings = {0, 0, ULTRASOUND_DRV_ADC_MODE_ONE_SHOT, 0, 0};
+ADC_Settings ADC2_Settings = {0, 0, ULTRASOUND_DRV_ADC_MODE_ONE_SHOT, 0, 0};
 
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
 void configure_pll2(void);
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint8_t tim_trigger);
+void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode);
 channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC);
 
 
@@ -36,7 +36,7 @@ ADC_ERROR ADC_GetError(void) {
     return error;
 }
 
-void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint8_t tim_trigger) {
+void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode) {
     if (ADC != ADC1 && ADC != ADC2) {
         error = ADC_ERROR_WRONG_ADC; // you can only use ADC1 or ADC2
         return;
@@ -45,10 +45,10 @@ void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num
     ADC_GetSettings(ADC)->conv_length = adc_pin_num;
     ADC_GetSettings(ADC)->adc_pins = arduino_pins;
     ADC_GetSettings(ADC)->eoc_flag = 0;
-    ADC_GetSettings(ADC)->tim_trigger = tim_trigger;
+    ADC_GetSettings(ADC)->mode = mode;
 
     configure_pll2();
-    adc_init(ADC, arduino_pins, adc_pin_num, tim_trigger);
+    adc_init(ADC, arduino_pins, adc_pin_num, mode);
 
     // End of conversion of a regular group EOC EOCIE
 }
@@ -59,7 +59,7 @@ void ADC_EnablePeriph(ADC_TypeDef* ADC) {
     
     // enable ADC
     SET_BIT(ADC->CR, ADC_CR_ADEN);
-    while(READ_BIT(ADC->ISR, ADC_ISR_ADRDY));
+    while(!READ_BIT(ADC->ISR, ADC_ISR_ADRDY));
 
     // check if ready to start
     if ((!READ_BIT(ADC->CR, ADC_CR_ADEN) | READ_BIT(ADC->CR, ADC_CR_ADDIS))) {
@@ -83,6 +83,8 @@ void ADC_DisablePeriph(ADC_TypeDef* ADC) {
 }
 
 void ADC_StartConversion(ADC_TypeDef* ADC) {
+    //while (!READ_REG(ADC->ISR & ADC_ISR_ADRDY));
+
     SET_BIT(ADC->CR, ADC_CR_ADSTART);
 }
 
@@ -90,8 +92,8 @@ uint16_t* ADC_ReadSingleSequence(ADC_TypeDef* ADC) {
     ADC_Settings* settings = ADC_GetSettings(ADC);
 
     for (uint8_t i = 0; i < settings->conv_length; i++) {
-        settings->eoc_flag = 1;
-        while(settings->eoc_flag);
+        settings->eoc_flag = 0;
+        while(!settings->eoc_flag);
         settings->sequence_data[i] = READ_REG(ADC->DR);
     }
     
@@ -153,11 +155,11 @@ void configure_pll2(void) {
     SET_BIT(RCC->CR, RCC_CR_PLL2ON);
 
     // turn on buses
-    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);  //Enable ADC 1 and 2 and DMA1
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);  //Enable ADC 1 and 2
     SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
 }
 
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint8_t tim_trigger) {
+void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode) {
 
     if (READ_BIT(ADC->CR, ADC_CR_ADCAL | ADC_CR_JADSTART | ADC_CR_ADSTART | ADC_CR_ADSTP | ADC_CR_ADDIS | ADC_CR_ADEN)) {
         error = ADC_ERROR_ADC_CONFIG_VOLTAGE_REGULATOR;
@@ -180,6 +182,9 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint
     // set overrun mode (overwrite data)
     SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
 
+    // data management
+    MODIFY_REG(ADC->CFGR, ADC_CFGR_DMNGT, 0b01 << ADC_CFGR_DMNGT_Pos); // circular DMA mode
+
     // select channels
     MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ1, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
     for (uint8_t i = 0; i < adc_pin_num; i++) {
@@ -197,20 +202,24 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint
     SET_BIT(ADC->CFGR2, ADC_CFGR2_ROVSE);
     MODIFY_REG(ADC->CFGR2, ADC_CFGR2_OVSS, 0b0001 << ADC_CFGR2_OVSS_Pos); // account for x2 oversampling with 1bit right shift for data register
     
-    // set trigger if needed
-    if (tim_trigger) {
-        MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b01 << ADC_CFGR_EXTEN_Pos); // enable trigger on rising edge
-        MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTSEL, 0b01001 << ADC_CFGR_EXTSEL_Pos); // adc_ext_trg9 from a datasheet (Timer #1)
-
-        // set single conversion mode
-        CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); 
-
-    } else {
-        // disable hardware trigger
-        MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos);
-
-        // set continuous mode
-        SET_BIT(ADC->CFGR, ADC_CFGR_CONT);
+    // set operation mode
+    switch (mode) {
+        case ULTRASOUND_DRV_ADC_MODE_CONT_TIM_TRIGGERED:
+            MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b01 << ADC_CFGR_EXTEN_Pos); // enable trigger on rising edge
+            MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTSEL, 0b01001 << ADC_CFGR_EXTSEL_Pos); // adc_ext_trg9 from a datasheet (Timer #1)
+            CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); // set single conversion mode
+            break;
+        case ULTRASOUND_DRV_ADC_MODE_CONT:
+            MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos); // disable hardware trigger
+            SET_BIT(ADC->CFGR, ADC_CFGR_CONT); // set continuous mode
+            break;
+        case ULTRASOUND_DRV_ADC_MODE_ONE_SHOT:
+            MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos); // disable hardware trigger
+            CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); // set single conv mode
+            break;
+        default:
+            error = ADC_ERROR_WRONG_MODE;
+            break;
     }
 
     // calibration
@@ -221,7 +230,7 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, uint
 
     // interrupts
     SET_BIT(ADC->IER, ADC_IER_EOCIE);
-    NVIC_SetPriority(ADC_IRQn, 1);
+    NVIC_SetPriority(ADC_IRQn, 2);
     NVIC_EnableIRQ(ADC_IRQn);
 }
 
@@ -432,11 +441,11 @@ void set_adc_channel_sample_time(ADC_TypeDef* ADC, uint8_t sample_time, uint8_t 
 void ADC_IRQHandler(void) {
     if (READ_BIT(ADC1->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC1->ISR, ADC_ISR_EOC);
-        ADC1_Settings.eoc_flag = 0;
+        ADC1_Settings.eoc_flag = 1;
     }
     
     if (READ_BIT(ADC2->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC2->ISR, ADC_ISR_EOC);
-        ADC2_Settings.eoc_flag = 0;
+        ADC2_Settings.eoc_flag = 1;
     }
 }
