@@ -5,18 +5,19 @@
 
 // RCC is configured by arduino by default with SYSCLK = 480MHz, HCLK = 240MHz, PCLK1/PCLK2 = 120MHz
 
+static volatile SENSEDU_ERROR error = SENSEDU_NO_ERRORS;
+
 void check_board();
 
 /* General*/
-void SensEdu_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq) {
+void SensEdu_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq, SENSEDU_ADC_DMA adc_dma) {
     check_board();
     SensEdu_TIMER_Init();
-    SensEdu_ADC_Init(ADC, adc_pins, adc_pin_num, mode, trigger_freq);
+    SensEdu_ADC_Init(ADC, adc_pins, adc_pin_num, mode, trigger_freq, adc_dma);
 }
 
 SENSEDU_ERROR SensEdu_GetError(void) {
-    SENSEDU_ERROR error = SENSEDU_NO_ERRORS;
-
+    
     error |= TIMER_GetError();
     if (error) {
         error |= SENSEDU_ERROR_TIMER;
@@ -49,10 +50,10 @@ void SensEdu_Delay_us(uint32_t delay_value) {
 }
 
 /* ADC */
-void SensEdu_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq) {
+void SensEdu_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq, SENSEDU_ADC_DMA adc_dma) {
     check_board();
 
-    ADC_InitPeriph(ADC, adc_pins, adc_pin_num, mode);
+    ADC_InitPeriph(ADC, adc_pins, adc_pin_num, mode, adc_dma);
     if (ADC_GetSettings(ADC)->mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
         TIMER_ADCtrigger_SetFreq(trigger_freq);
     }
@@ -83,8 +84,8 @@ uint8_t get_msg() {
 }
 
 /* DMA */
-void SensEdu_DMA_Init(uint16_t* memory0_address) {
-    DMA_InitPeriph(memory0_address);
+void SensEdu_DMA_Init(uint16_t* mem_address, const uint16_t mem_size) {
+    DMA_InitPeriph(mem_address, mem_size);
 }
 
 void SensEdu_DMA_Enable(uint16_t* mem_address, const uint16_t mem_size) {

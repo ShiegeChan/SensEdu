@@ -25,7 +25,7 @@ ADC_Settings ADC2_Settings = {0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, 0};
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
 void configure_pll2(void);
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode);
+void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, SENSEDU_ADC_DMA adc_dma);
 channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC);
 
 
@@ -36,7 +36,7 @@ ADC_ERROR ADC_GetError(void) {
     return error;
 }
 
-void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode) {
+void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, SENSEDU_ADC_DMA adc_dma) {
     if (ADC != ADC1 && ADC != ADC2) {
         error = ADC_ERROR_WRONG_ADC; // you can only use ADC1 or ADC2
         return;
@@ -48,7 +48,7 @@ void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num
     ADC_GetSettings(ADC)->mode = mode;
 
     configure_pll2();
-    adc_init(ADC, arduino_pins, adc_pin_num, mode);
+    adc_init(ADC, arduino_pins, adc_pin_num, mode, adc_dma);
 
     // End of conversion of a regular group EOC EOCIE
 }
@@ -83,8 +83,6 @@ void ADC_DisablePeriph(ADC_TypeDef* ADC) {
 }
 
 void ADC_StartConversion(ADC_TypeDef* ADC) {
-    //while (!READ_REG(ADC->ISR & ADC_ISR_ADRDY));
-
     SET_BIT(ADC->CR, ADC_CR_ADSTART);
 }
 
@@ -159,7 +157,7 @@ void configure_pll2(void) {
     SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
 }
 
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode) {
+void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, SENSEDU_ADC_DMA adc_dma) {
 
     if (READ_BIT(ADC->CR, ADC_CR_ADCAL | ADC_CR_JADSTART | ADC_CR_ADSTART | ADC_CR_ADSTP | ADC_CR_ADDIS | ADC_CR_ADEN)) {
         error = ADC_ERROR_ADC_CONFIG_VOLTAGE_REGULATOR;
@@ -183,7 +181,14 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
     SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
 
     // data management
-    MODIFY_REG(ADC->CFGR, ADC_CFGR_DMNGT, 0b00 << ADC_CFGR_DMNGT_Pos); // circular DMA mode
+    if (adc_dma == SENSEDU_ADC_DMA_CONNECT) {
+        MODIFY_REG(ADC->CFGR, ADC_CFGR_DMNGT, 0b01 << ADC_CFGR_DMNGT_Pos); // circular DMA mode
+    } else if (adc_dma == SENSEDU_ADC_DMA_DISCONNECT) {
+        MODIFY_REG(ADC->CFGR, ADC_CFGR_DMNGT, 0b00 << ADC_CFGR_DMNGT_Pos); // data stored in DR only
+    } else {
+        error = ADC_ERROR_WRONG_DATA_MANAGEMENT_MODE;
+    }
+    
 
     // select channels
     MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ1, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
@@ -218,7 +223,7 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
             CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); // set single conv mode
             break;
         default:
-            error = ADC_ERROR_WRONG_MODE;
+            error = ADC_ERROR_WRONG_OPERATION_MODE;
             break;
     }
 

@@ -9,8 +9,8 @@ static volatile uint8_t transfer_status = 0;
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
-void dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address);
-void dmamux_init(void);
+void dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size);
+void dmamux_init(DMAMUX_Channel_TypeDef* dmamux_ch);
 void dma_clear_status_flags(void);
 
 
@@ -29,15 +29,15 @@ void DMA_ClearTransferStatus(void) {
     transfer_status = 0;
 }
 
-void DMA_InitPeriph(uint16_t* memory0_address) {
-    dma_init(DMA1_Stream4, DMA1_Stream4_IRQn, (uint32_t)&(ADC1->DR), (uint32_t)memory0_address);
-    dmamux_init();
+void DMA_InitPeriph(uint16_t* mem_address, const uint16_t mem_size) {
+    dma_init(DMA1_Stream6, DMA1_Stream6_IRQn, (uint32_t)&(ADC1->DR), (uint32_t)mem_address, mem_size);
+    dmamux_init(DMAMUX1_Channel6);
 }
 
 void DMA_EnablePeriph(uint16_t* mem_address, const uint16_t mem_size) {
     // check if the size is the multiple of D-Cache line size (32 words)
     // 16bit - half words -> x2 multiplication
-    if (mem_size % (__SCB_DCACHE_LINE_SIZE << 1)) {
+    if ((mem_size % (__SCB_DCACHE_LINE_SIZE << 1)) != 0) {
         error = DMA_ERROR_MEMORY_WRONG_SIZE;
     }
 
@@ -46,12 +46,12 @@ void DMA_EnablePeriph(uint16_t* mem_address, const uint16_t mem_size) {
     SCB_InvalidateDCache_by_Addr(mem_address, mem_size << 1);
 
     dma_clear_status_flags();
-    SET_BIT(DMA1_Stream4->CR, DMA_SxCR_EN);
+    SET_BIT(DMA1_Stream6->CR, DMA_SxCR_EN);
 }
 
 void DMA_DisablePeriph(void) {
-    CLEAR_BIT(DMA1_Stream4->CR, DMA_SxCR_EN);
-    while(READ_BIT(DMA1_Stream4->CR, DMA_SxCR_EN));
+    CLEAR_BIT(DMA1_Stream6->CR, DMA_SxCR_EN);
+    while(READ_BIT(DMA1_Stream6->CR, DMA_SxCR_EN));
     dma_clear_status_flags();
 }
 
@@ -59,7 +59,7 @@ void DMA_DisablePeriph(void) {
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
-void dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address) {
+void dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size) {
     
     if (READ_BIT(dma_stream->CR, DMA_SxCR_EN)) {
         error = DMA_ERROR_ENABLED_BEFORE_INIT;
@@ -92,7 +92,7 @@ void dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph
     NVIC_EnableIRQ(dma_irq);
 
     // Number of data items to transfer
-    MODIFY_REG(dma_stream->NDTR, DMA_SxNDT, (64U) << DMA_SxNDT_Pos);
+    MODIFY_REG(dma_stream->NDTR, DMA_SxNDT, (mem_size) << DMA_SxNDT_Pos);
     
     // Peripheral data register address
     WRITE_REG(dma_stream->PAR, periph_address);
@@ -101,29 +101,29 @@ void dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph
     WRITE_REG(dma_stream->M0AR, mem_address);
 }
 
-void dmamux_init(void) {
+void dmamux_init(DMAMUX_Channel_TypeDef* dmamux_ch) {
     // DMAMUX1 request ID - ADC1
-    MODIFY_REG(DMAMUX1_Channel4->CCR, DMAMUX_CxCR_DMAREQ_ID, (9U) << DMAMUX_CxCR_DMAREQ_ID_Pos); 
+    MODIFY_REG(dmamux_ch->CCR, DMAMUX_CxCR_DMAREQ_ID, (9U) << DMAMUX_CxCR_DMAREQ_ID_Pos); 
 }
 
 void dma_clear_status_flags(void) {
-    SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF4);
-    SET_BIT(DMA1->HIFCR, DMA_HIFCR_CHTIF4);
-    SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF4);
+    SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);
+    SET_BIT(DMA1->HIFCR, DMA_HIFCR_CHTIF6);
+    SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF6);
 
-    if (READ_REG(DMA1->LISR) | READ_REG(DMA1->HISR)) {
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6 | DMA_HISR_HTIF6 | DMA_HISR_TEIF6 | DMA_HISR_DMEIF6 | DMA_HISR_FEIF6)) {
         error = DMA_ERROR_INTERRUPTS_NOT_CLEARED;
     }
 }
 
-void DMA1_Stream4_IRQHandler(void) {
-    if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF4)) {
-        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF4);
+void DMA1_Stream6_IRQHandler(void) {
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);
         transfer_status = 1;
     }
 
-    if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF4)) {
-        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF4);
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF6)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF6);
         error = DMA_ERROR_INTERRUPT_TRANSFER_ERROR;
     }
 }

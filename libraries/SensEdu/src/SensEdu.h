@@ -37,22 +37,27 @@ typedef enum {
     SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED = 0x03
 } SENSEDU_ADC_MODE;
 
+typedef enum {
+    SENSEDU_ADC_DMA_CONNECT = 0x01,
+    SENSEDU_ADC_DMA_DISCONNECT = 0x02
+} SENSEDU_ADC_DMA;
+
 
 
 SENSEDU_ERROR SensEdu_GetError(void);
-void SensEdu_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq);
+void SensEdu_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq, SENSEDU_ADC_DMA adc_dma);
 
 void SensEdu_TIMER_Init();
 void SensEdu_Delay_us(uint32_t delay_value);
 
-void SensEdu_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq);
+void SensEdu_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq, SENSEDU_ADC_DMA adc_dma);
 void SensEdu_ADC_Enable(ADC_TypeDef* ADC);
 void SensEdu_ADC_Disable(ADC_TypeDef* ADC);
 void SensEdu_ADC_Start(ADC_TypeDef* ADC);
 uint16_t* SensEdu_ADC_Read(ADC_TypeDef* ADC);
 uint8_t get_msg();
 
-void SensEdu_DMA_Init(uint16_t* memory0_address);
+void SensEdu_DMA_Init(uint16_t* mem_address, const uint16_t mem_size);
 void SensEdu_DMA_Enable(uint16_t* mem_address, const uint16_t mem_size);
 uint8_t SensEdu_DMA_GetTransferStatus(void);
 void SensEdu_DMA_ClearTransferStatus(void);

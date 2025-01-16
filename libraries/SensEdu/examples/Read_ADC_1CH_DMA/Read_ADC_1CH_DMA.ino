@@ -13,7 +13,7 @@ uint8_t adc_pins[adc_pin_num] = {A0};
 // must be:
 // 1. multiple of 32 words (64 half-words) to ensure cache coherence
 // 2. properly aligned
-const uint16_t memory4adc_size = 64;
+const uint16_t memory4adc_size = 128;
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
 
 /* -------------------------------------------------------------------------- */
@@ -28,10 +28,10 @@ void setup() {
     }
     Serial.println("Started Initialization...");
 
-    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000); // continuos mode for ADC
+    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000, SENSEDU_ADC_DMA_CONNECT); // continuos mode for ADC
     SensEdu_ADC_Enable(adc);
 
-    SensEdu_DMA_Init((uint16_t*)memory4adc); 
+    SensEdu_DMA_Init((uint16_t*)memory4adc, memory4adc_size); 
     SensEdu_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
 
     SensEdu_ADC_Start(adc);

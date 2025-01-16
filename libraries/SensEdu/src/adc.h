@@ -17,7 +17,8 @@ typedef enum {
     ADC_ERROR_PICKED_WRONG_CHANNEL = 0x06,
     ADC_ERROR_WRONG_SEQUENCE = 0x07,
     ADC_ERROR_SAMPLE_TIME_SETTING = 0x08,
-    ADC_ERROR_WRONG_MODE = 0x09
+    ADC_ERROR_WRONG_OPERATION_MODE = 0x09,
+    ADC_ERROR_WRONG_DATA_MANAGEMENT_MODE = 0x0A
 } ADC_ERROR;
 
 typedef struct {
@@ -29,7 +30,7 @@ typedef struct {
 } ADC_Settings;
 
 ADC_ERROR ADC_GetError(void);
-void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode);
+void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, SENSEDU_ADC_DMA adc_dma);
 void ADC_EnablePeriph(ADC_TypeDef* ADC);
 void ADC_DisablePeriph(ADC_TypeDef* ADC);
 void ADC_StartConversion(ADC_TypeDef* ADC);
