@@ -1,4 +1,4 @@
-#include "src/CMSIS_DSP/src/CMSIS_DSP.h"
+#include "CMSIS_DSP.h"
 
 // Works on new versions of libraries:
 // 1. Arduino Giga 4.2.1

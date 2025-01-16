@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "UltraSoundDrv.h"
+#include "SensEdu.h"
 
 typedef enum {
     TIMER_ERROR_NO_ERRORS = 0x00

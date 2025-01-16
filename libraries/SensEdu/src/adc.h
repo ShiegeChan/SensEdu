@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#include "UltraSoundDrv.h"
+#include "SensEdu.h"
 
 typedef enum {
     ADC_ERROR_NO_ERRORS = 0x00,
@@ -23,13 +23,13 @@ typedef enum {
 typedef struct {
     uint8_t* adc_pins;
     volatile uint8_t eoc_flag;
-    ULTRASOUND_DRV_ADC_MODE mode;
+    SENSEDU_ADC_MODE mode;
     uint8_t conv_length;
     uint16_t sequence_data[16];
 } ADC_Settings;
 
 ADC_ERROR ADC_GetError(void);
-void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode);
+void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode);
 void ADC_EnablePeriph(ADC_TypeDef* ADC);
 void ADC_DisablePeriph(ADC_TypeDef* ADC);
 void ADC_StartConversion(ADC_TypeDef* ADC);

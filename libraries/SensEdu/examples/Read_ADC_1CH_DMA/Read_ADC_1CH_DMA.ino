@@ -1,5 +1,4 @@
-#include "UltraSoundDrv.h"
-//#include "src/UltraSoundDrv/src/UltraSoundDrv.h"
+#include "SensEdu.h"
 
 uint32_t lib_error = 0;
 uint32_t cntr = 0;
@@ -29,15 +28,15 @@ void setup() {
     }
     Serial.println("Started Initialization...");
 
-    UltraSoundDrv_Init(adc, adc_pins, adc_pin_num, ULTRASOUND_DRV_ADC_MODE_CONT, 1000); // continuos mode for ADC
-    UltraSoundDrv_ADC_Enable(adc);
+    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000); // continuos mode for ADC
+    SensEdu_ADC_Enable(adc);
 
-    UltraSoundDrv_DMA_Init((uint16_t*)memory4adc); 
-    UltraSoundDrv_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
+    SensEdu_DMA_Init((uint16_t*)memory4adc); 
+    SensEdu_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
 
-    UltraSoundDrv_ADC_Start(adc);
+    SensEdu_ADC_Start(adc);
 
-    lib_error = UltraSoundDrv_GetError();
+    lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);
         Serial.print("Error: 0x");
@@ -58,7 +57,7 @@ void loop() {
     // DMA in background
 
     // Print transfered Data if available
-    if (UltraSoundDrv_DMA_GetTransferStatus()) {
+    if (SensEdu_DMA_GetTransferStatus()) {
         Serial.println("------");
         for (int i = 0; i < memory4adc_size; i++) {
             Serial.print("ADC value ");
@@ -68,13 +67,13 @@ void loop() {
         };
 
         // restart ADC
-        UltraSoundDrv_DMA_ClearTransferStatus();
-        UltraSoundDrv_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
-        UltraSoundDrv_ADC_Start(adc);
+        SensEdu_DMA_ClearTransferStatus();
+        SensEdu_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
+        SensEdu_ADC_Start(adc);
     }
 
     // check errors
-    lib_error = UltraSoundDrv_GetError();
+    lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);
         Serial.print("Error: 0x");

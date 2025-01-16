@@ -1,5 +1,4 @@
-#include "UltraSoundDrv.h"
-//#include "src/UltraSoundDrv/src/UltraSoundDrv.h"
+#include "SensEdu.h"
 
 uint32_t lib_error = 0;
 
@@ -7,8 +6,8 @@ uint32_t lib_error = 0;
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 ADC_TypeDef* adc = ADC1;
-const uint8_t adc_pin_num = 3;
-uint8_t adc_pins[adc_pin_num] = {A0, A1, A2};
+const uint8_t adc_pin_num = 1;
+uint8_t adc_pins[adc_pin_num] = {A0};
 
 uint8_t led = D2; // test with any digital pin (e.g. D2) or led (LED_BUILTIN)
 
@@ -23,11 +22,11 @@ void setup() {
     }
     Serial.println("Started Initialization...");
     
-    UltraSoundDrv_Init(adc, adc_pins, adc_pin_num, true, 1000); // 1000kS/sec
-    UltraSoundDrv_ADC_Enable(adc);
-    UltraSoundDrv_ADC_Start(adc);
+    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000); // timer triggering is off and frequency is ignored
+    SensEdu_ADC_Enable(adc);
+    SensEdu_ADC_Start(adc);
 
-    lib_error = UltraSoundDrv_GetError();
+    lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);
         Serial.print("Error: 0x");
@@ -44,20 +43,13 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    uint16_t* temp = UltraSoundDrv_ADC_Read(adc);
-
-    // serial prints slow down CPU and cause wrong sample rate (not following timer settings)
-    Serial.println("-------");
-    for (uint8_t i = 0; i < adc_pin_num; i++) {
-        Serial.print("Value CH");
-        Serial.print(i);
-        Serial.print(": ");
-        Serial.println(temp[i]);
-    }
+    uint16_t* temp = SensEdu_ADC_Read(adc);
+    Serial.println(temp[0]);
 
     if (digitalRead(led) == HIGH) {
         digitalWrite(led, LOW);
     } else {
         digitalWrite(led, HIGH);
     }
+
 }

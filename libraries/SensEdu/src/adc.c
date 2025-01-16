@@ -17,15 +17,15 @@ static uint8_t adc_flag = 0;
 
 uint8_t adc_msg = 0;
 
-ADC_Settings ADC1_Settings = {0, 0, ULTRASOUND_DRV_ADC_MODE_ONE_SHOT, 0, 0};
-ADC_Settings ADC2_Settings = {0, 0, ULTRASOUND_DRV_ADC_MODE_ONE_SHOT, 0, 0};
+ADC_Settings ADC1_Settings = {0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, 0};
+ADC_Settings ADC2_Settings = {0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, 0};
 
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
 void configure_pll2(void);
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode);
+void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode);
 channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC);
 
 
@@ -36,7 +36,7 @@ ADC_ERROR ADC_GetError(void) {
     return error;
 }
 
-void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode) {
+void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode) {
     if (ADC != ADC1 && ADC != ADC2) {
         error = ADC_ERROR_WRONG_ADC; // you can only use ADC1 or ADC2
         return;
@@ -93,7 +93,7 @@ uint16_t* ADC_ReadSingleSequence(ADC_TypeDef* ADC) {
 
     for (uint8_t i = 0; i < settings->conv_length; i++) {
         settings->eoc_flag = 0;
-        while(!settings->eoc_flag);
+        while(!(settings->eoc_flag));
         settings->sequence_data[i] = READ_REG(ADC->DR);
     }
     
@@ -159,7 +159,7 @@ void configure_pll2(void) {
     SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
 }
 
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, ULTRASOUND_DRV_ADC_MODE mode) {
+void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode) {
 
     if (READ_BIT(ADC->CR, ADC_CR_ADCAL | ADC_CR_JADSTART | ADC_CR_ADSTART | ADC_CR_ADSTP | ADC_CR_ADDIS | ADC_CR_ADEN)) {
         error = ADC_ERROR_ADC_CONFIG_VOLTAGE_REGULATOR;
@@ -183,7 +183,7 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, ULTR
     SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
 
     // data management
-    MODIFY_REG(ADC->CFGR, ADC_CFGR_DMNGT, 0b01 << ADC_CFGR_DMNGT_Pos); // circular DMA mode
+    MODIFY_REG(ADC->CFGR, ADC_CFGR_DMNGT, 0b00 << ADC_CFGR_DMNGT_Pos); // circular DMA mode
 
     // select channels
     MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ1, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
@@ -204,16 +204,16 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, ULTR
     
     // set operation mode
     switch (mode) {
-        case ULTRASOUND_DRV_ADC_MODE_CONT_TIM_TRIGGERED:
+        case SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED:
             MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b01 << ADC_CFGR_EXTEN_Pos); // enable trigger on rising edge
             MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTSEL, 0b01001 << ADC_CFGR_EXTSEL_Pos); // adc_ext_trg9 from a datasheet (Timer #1)
             CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); // set single conversion mode
             break;
-        case ULTRASOUND_DRV_ADC_MODE_CONT:
+        case SENSEDU_ADC_MODE_CONT:
             MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos); // disable hardware trigger
             SET_BIT(ADC->CFGR, ADC_CFGR_CONT); // set continuous mode
             break;
-        case ULTRASOUND_DRV_ADC_MODE_ONE_SHOT:
+        case SENSEDU_ADC_MODE_ONE_SHOT:
             MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos); // disable hardware trigger
             CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); // set single conv mode
             break;

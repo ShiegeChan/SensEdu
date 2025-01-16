@@ -1,5 +1,4 @@
-#include "UltraSoundDrv.h"
-//#include "src/UltraSoundDrv/src/UltraSoundDrv.h"
+#include "SensEdu.h"
 
 uint32_t lib_error = 0;
 
@@ -23,11 +22,11 @@ void setup() {
     }
     Serial.println("Started Initialization...");
     
-    UltraSoundDrv_Init(adc, adc_pins, adc_pin_num, false, 1000); // timer triggering is off and frequency is ignored
-    UltraSoundDrv_ADC_Enable(adc);
-    UltraSoundDrv_ADC_Start(adc);
+    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED, 1000); // 1000kS/sec
+    SensEdu_ADC_Enable(adc);
+    SensEdu_ADC_Start(adc);
 
-    lib_error = UltraSoundDrv_GetError();
+    lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);
         Serial.print("Error: 0x");
@@ -44,7 +43,7 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    uint16_t* temp = UltraSoundDrv_ADC_Read(adc);
+    uint16_t* temp = SensEdu_ADC_Read(adc);
     Serial.println(temp[0]);
 
     if (digitalRead(led) == HIGH) {

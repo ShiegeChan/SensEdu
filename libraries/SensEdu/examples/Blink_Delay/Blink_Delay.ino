@@ -1,5 +1,4 @@
-#include "UltraSoundDrv.h"
-//#include "src/UltraSoundDrv/src/UltraSoundDrv.h"
+#include "SensEdu.h"
 
 uint32_t lib_error = 0;
 uint8_t led = LED_BUILTIN; // test with any digital pin (e.g. D2) or led (LED_BUILTIN)
@@ -15,9 +14,9 @@ void setup() {
         delay(1);
     }
 
-    UltraSoundDrv_TIMER_Init();
+    SensEdu_TIMER_Init();
 
-    lib_error = UltraSoundDrv_GetError();
+    lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);
         Serial.print("Error: 0x");
@@ -36,9 +35,9 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 
 void loop() {
-    UltraSoundDrv_Delay_us(500000);
+    SensEdu_Delay_us(500000);
     digitalWrite(led, HIGH);
-    UltraSoundDrv_Delay_us(500000);
+    SensEdu_Delay_us(500000);
     digitalWrite(led, LOW);
 }
 
