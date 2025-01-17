@@ -1,13 +1,11 @@
-#include "CMSIS_DSP.h"
-
 // Works on new versions of libraries:
 // 1. Arduino Giga 4.2.1
 // 2. AdvancedAnalog 1.5.0
 // 3. STMSpeeduino 0.2.1
-
-
+#include "SensEdu.h"
+#include "CMSIS_DSP.h"
 #include <Arduino_AdvancedAnalog.h>
-#include "STMSpeeduino.h"
+
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
@@ -18,7 +16,7 @@
 
 // make this reconfig too
 #define LOCAL_XCORR     true    // doing xcorr on the microcontroller
-#define XCORR_DEBUG     true   // sending only distance w/o other data
+#define XCORR_DEBUG     true    // sending only distance w/o other data
 
 // Arduino Giga has 3 ADCs -> up to 3 microphones simultaneously
 // More - ADC channels 1-16
@@ -43,7 +41,7 @@
 #define DAC_SAMPLES_PER_CH	64    	// samples in each buffer (one sine wave)
 #define DAC_QUEUE_DEPTH 	128     // queue depth. twice the buffer for one wave pending
 
-#define STORE_BUF_SIZE 		2400    // 2400 for 1 measurement per second. 
+#define STORE_BUF_SIZE 		2048    // 2400 for 1 measurement per second. 
                             		// only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)
 
 #define FILTER_KERNEL_LENGTH    33                     // length of the coefficient buffer AT
@@ -109,9 +107,9 @@ typedef struct {
 
 	AdvancedDAC dac = NULL;
 
-	uint16_t mic1_values[STORE_BUF_SIZE];
-	uint16_t mic2_values[STORE_BUF_SIZE];
-	uint16_t mic3_values[STORE_BUF_SIZE];
+	__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t mic1_values[STORE_BUF_SIZE];
+	__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t mic2_values[STORE_BUF_SIZE];
+	__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t mic3_values[STORE_BUF_SIZE];
 
     float xcorr_buffer[STORE_BUF_SIZE]; // use same buffer for several functions for memory saving
 
@@ -306,9 +304,15 @@ void setup() {
     }
     
     // be careful with adc -> mic mapping
-    ADCBegin(ADC3, MIC1_PIN, ADC_RESOLUTION, ADC_DIFF, ADC_CLK_FREQ, ADC_SAMPLE_TIME, ADC_SAMPLE_NUM);
-    ADCBegin(ADC2, MIC2_PIN, ADC_RESOLUTION, ADC_DIFF, ADC_CLK_FREQ, ADC_SAMPLE_TIME, ADC_SAMPLE_NUM);
-    ADCBegin(ADC1, MIC3_PIN, ADC_RESOLUTION, ADC_DIFF, ADC_CLK_FREQ, ADC_SAMPLE_TIME, ADC_SAMPLE_NUM);
+    const uint8_t adc_pin_num = 1;
+    uint8_t adc_pins[adc_pin_num] = {MIC3_PIN};
+    SensEdu_Init(ADC1, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000);
+    SensEdu_DMA_Init((uint16_t*)main_obj_ptr->mic3_values); 
+    SensEdu_DMA_Enable((uint16_t*)main_obj_ptr->mic3_values, STORE_BUF_SIZE);
+    SensEdu_ADC_Start(ADC1);
+    //ADCBegin(ADC3, MIC1_PIN, ADC_RESOLUTION, ADC_DIFF, ADC_CLK_FREQ, ADC_SAMPLE_TIME, ADC_SAMPLE_NUM);
+    //ADCBegin(ADC2, MIC2_PIN, ADC_RESOLUTION, ADC_DIFF, ADC_CLK_FREQ, ADC_SAMPLE_TIME, ADC_SAMPLE_NUM);
+    //ADCBegin(ADC1, MIC3_PIN, ADC_RESOLUTION, ADC_DIFF, ADC_CLK_FREQ, ADC_SAMPLE_TIME, ADC_SAMPLE_NUM);
 
     // initializing the filter
     arm_fir_init_f32(&Fir_filt, FILTER_TAP_NUM, (float32_t *)&filter_taps[0], &firState[0], FILTER_BLOCK_LENGTH); 
@@ -344,12 +348,15 @@ void loop() {
     delayMicroseconds(dac_execution_delay);
 
     // Read data from mics 1-3 simultaneously
+
+
+
     // be careful with adc -> mic mapping
-    for (uint32_t i = 0; i < STORE_BUF_SIZE; i++) {
-        main_obj_ptr->mic1_values[i] = CatchADCValue(ADC3);
-        main_obj_ptr->mic2_values[i] = CatchADCValue(ADC2);
-        main_obj_ptr->mic3_values[i] = CatchADCValue(ADC1);
-    }
+    //for (uint32_t i = 0; i < STORE_BUF_SIZE; i++) {
+        //main_obj_ptr->mic1_values[i] = CatchADCValue(ADC3);
+        //main_obj_ptr->mic2_values[i] = CatchADCValue(ADC2);
+        //main_obj_ptr->mic3_values[i] = CatchADCValue(ADC1);
+    //}
 
 	// Send full dataset to computing device (eg. matlab)
     if (!LOCAL_XCORR) {

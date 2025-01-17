@@ -12,7 +12,7 @@
 #define DAC_RESOLUTION    	AN_RESOLUTION_12        // 12bit
 #define DAC_SAMPLE_RATE    	DAC_SINE_FREQ * 64      // ~2MHz
 #define DAC_SAMPLES_PER_CH	sine_lut_size    	    // samples in each buffer (one sine wave)
-#define DAC_QUEUE_DEPTH 	64                      // queue depth
+#define DAC_QUEUE_DEPTH 	11                      // queue depth
 AdvancedDAC dac0(DAC_PIN);
 
 /* ADC */
@@ -36,7 +36,7 @@ void setup() {
 
     dac0.begin(DAC_RESOLUTION, DAC_SAMPLE_RATE, DAC_SAMPLES_PER_CH, DAC_QUEUE_DEPTH);
 
-    SensEdu_Init(adc, mic_pins, mic_num, SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED, 250000, SENSEDU_ADC_DMA_CONNECT); // continuos mode for ADC
+    SensEdu_Init(adc, mic_pins, mic_num, SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED, 250000, SENSEDU_ADC_DMA_CONNECT); // 250kS/sec
     SensEdu_ADC_Enable(adc);
 
     SensEdu_DMA_Init((uint16_t*)mic_data, mic_data_size);
@@ -54,12 +54,12 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-
-    // Measurement is initiated by signal from computing device
+    
+    // Measurement is initiated by the signal from computing device
     static char serial_buf = 0;
     
     while (1) {
-        while (Serial.available() == 0);    // Wait for a signal
+        while (Serial.available() == 0); // Wait for a signal
         serial_buf = Serial.read();
 
         if (serial_buf == 't') {
@@ -70,7 +70,8 @@ void loop() {
 
     // start dac->adc sequence
     dac_output_sinewave(dac0); // ~44us execution
-    delayMicroseconds(277); // calculated dealy for x10 64sine cycles with an oscilloscope [us] (RECALCULATE!!!!)
+    dac_output_zero(dac0);
+    delayMicroseconds(275); // calculated dealy for x10 64sine cycles with an oscilloscope [us]
     SensEdu_DMA_Enable((uint16_t*)mic_data, mic_data_size);
     SensEdu_ADC_Start(adc);
     

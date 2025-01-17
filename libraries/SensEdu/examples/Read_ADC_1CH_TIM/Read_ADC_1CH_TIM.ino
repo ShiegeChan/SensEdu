@@ -22,7 +22,7 @@ void setup() {
     }
     Serial.println("Started Initialization...");
     
-    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED, 1000); // 1000kS/sec
+    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED, 1000, SENSEDU_ADC_DMA_DISCONNECT); // 1000kS/sec
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
 

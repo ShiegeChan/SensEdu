@@ -22,7 +22,7 @@ void setup() {
     }
     Serial.println("Started Initialization...");
     
-    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000); // timer triggering is off and frequency is ignored
+    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000, SENSEDU_ADC_DMA_DISCONNECT); // timer triggering is off and frequency is ignored
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
 
