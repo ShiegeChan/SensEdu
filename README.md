@@ -38,12 +38,12 @@
 ## Preview
 
 <p align="center" style="margin:0">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/UltraSoundDistanceMeasurements.png?updatedAt=1737387654907" width="33%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/xcorr.png?updatedAt=1737389110433" width="33%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/WiFi_comms.png?updatedAt=1737389110433" width="33%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/ChirpSignalGen.png?updatedAt=1737389611634" width="33%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="33%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="33%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/UltraSoundDistanceMeasurements.png?updatedAt=1737387654907" width="49%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/xcorr.png?updatedAt=1737389110433" width="49%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/WiFi_comms.png?updatedAt=1737390371732" width="49%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/ChirpSignalGen.png?updatedAt=1737389611634" width="49%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="49%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="49%">
 </p>
 
 ## Installation
