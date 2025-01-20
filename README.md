@@ -2,8 +2,9 @@
   <img src="https://ik.imagekit.io/vladysor/EduSense/SensEdu.png?updatedAt=1737384924374">
 </p>
 
-<h3><p align="center">SensEdu</p></h3>
-<p align="center">RADAR and Communication Development Shield for Arduino Giga R1</p>
+<b>
+<p align="center">RADAR and Communication Development Shield for Arduino GIGA R1</p>
+</b>
 
 <p align="center">
   <a href="https://github.com/ShiegeChan/Edusense/releases/">
@@ -37,14 +38,12 @@
 ## Preview
 
 <p align="center" style="margin:0">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/UltraSoundDistanceMeasurements.png?updatedAt=1737387654907" width="33%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/xcorr.png?updatedAt=1737389110433" width="33%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/WiFi_comms.png?updatedAt=1737389110433" width="33%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/ChirpSignalGen.png?updatedAt=1737389611634" width="33%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="33%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="33%">
 </p>
 
 ## Installation
