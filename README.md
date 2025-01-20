@@ -1,8 +1,64 @@
-# Edusense
-Software for educational examples for RADAR and Communication. 
+<center>
 
-This repository includes the Arduino files for the control of the ADC and the DAC of the Arduino giga based educational demoboard. The signal frequency is 32 kHz, the lockup table is running at a sampling frequency of 32000*64 = 2.048 MHz equals a sampling time of of 0.488 µs.
+# SenseEdu
+</center>
 
-The Matlab file (main.m) starts the data transfer to the computer and creates the figures for raw data and signal processing of the ADC-data.
+<p align="center">
+  <img src="https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcT9mBt6NCXBNUTfPjyjcINFlrcDXehs5gil4uktcC5i3xdGHvy6pCmzIMMOEhCAqR2e5UhG9JoOBvkckGPj-y_a4glVeRU5oc66gr6f01cBu3_Rv5kCrIpG&usqp=CAE" width="250" height="250">
+</p>
 
-Enjoy ;-)
+<p align="center">RADAR and Communication Development Shield for Arduino Giga R1</p>
+
+<p align="center">
+  <a href="https://github.com/ShiegeChan/Edusense/releases/">
+    <img src="https://img.shields.io/github/v/release/ShiegeChan/Edusense?include_prereleases" alt="latest release" />
+  </a>
+  <a href="https://github.com/ShiegeChan/Edusense/commits/main">
+    <img src="https://img.shields.io/github/last-commit/ShiegeChan/Edusense" alt="latest commit" />
+  </a>
+</p>
+
+<b>
+<p align="center">
+	<a href="https://github.com/ShiegeChan/Edusense/releases">Download</a> · 
+	<a href="https://github.com/ShiegeChan/Edusense/releases">Getting Started</a> · 
+	<a href="https://github.com/ShiegeChan/Edusense/releases">Example Projects</a> · 
+	<a href="https://github.com/ShiegeChan/Edusense/releases">Documentation</a> · 
+	<a href="https://github.com/ShiegeChan/Edusense/releases">Contribution</a>
+</p>
+</b>
+
+## Features
+
+* **Custom Shield Design** developed for the <a href="https://docs.arduino.cc/hardware/giga-r1-wifi/?queryID=undefined">Arduino GIGA R1 WiFi</a> or compatible boards with a similar form factor, such as the <a href="https://www.infineon.com/cms/en/product/promopages/AURIX-microcontroller-boards/low-cost-arduino-kits/AURIX-TC275-Schieldbuddy-/">AURIX TC275 Schieldbuddy</a>. This shield extends the board's capabilities with various sensors, specifically for communication development purposes:
+  * **4x Infineon MEMS microphones** with extended capabilities into the ultrasonic range, for both receiving and sending ultrasonic pulses. Its ultrasonic receiving characteristic allows for unique detection of ultrasonic frequencies between 20-100 kHz (<a href="https://www.infineon.com/dgdl/Infineon-MEMS_IM70A135UT-ProductBrief-v01_00-EN.pdf?fileId=8ac78c8c7ddc01d7017e4d7af9084967">datasheet</a>).
+  * **1x Infineon Barometric Air Pressure Sensor** measures both pressure and temperature, making it ideal for indoor and outdoor navigation, weather stations, drones, and more (<a href="https://www.infineon.com/dgdl/Infineon-DPS310-DataSheet-v01_02-EN.pdf?fileId=5546d462576f34750157750826c42242">datasheet</a>).
+  * **2x Ultrasonic Transducers** with center frequency at ~32kHz (<a href="https://www.farnell.com/datasheets/4413630.pdf?_gl=1*1fltz5c*_gcl_au*MTQwMTY3ODgxOC4xNzI2NDc2MDYw">datasheet</a>).
+* **Low-Level Library "SensEdu"** designed for the GIGA R1, this library serves as a basic abstraction layer for the MCU's peripherals and provides default configurations for all sensors. It is implemented at the register level with the help of <a href="https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf">STM32H747 Reference Manual</a> to ensure simplicity and expandability. Extensive examples are included to demonstrate library functionality.
+* **Firmware for example projects** showcase how to use multiple sensors to achieve goals such as ultrasonic distance measurements, FSK-modulated ultrasonic communication, FMCR radar measurements, and more.
+* **MATLAB scripts** enable visualization, analysis and processing of data transferred from the MCU to a PC via USB or WiFi.
+
+## Preview
+
+<p align="center" style="margin:0">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
+   <img src="https://ik.imagekit.io/vladysor/EduSense/Screenshot%202024-11-19%20094834.png" width="24%">
+</p>
+
+## Installation
+
+how to install
+
+## Project start
+
+how to program
+
+## Support
+
+fix bugs, new features
