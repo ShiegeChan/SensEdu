@@ -1,12 +1,8 @@
-<center>
-
-# SenseEdu
-</center>
-
 <p align="center">
-  <img src="https://encrypted-tbn1.gstatic.com/shopping?q=tbn:ANd9GcT9mBt6NCXBNUTfPjyjcINFlrcDXehs5gil4uktcC5i3xdGHvy6pCmzIMMOEhCAqR2e5UhG9JoOBvkckGPj-y_a4glVeRU5oc66gr6f01cBu3_Rv5kCrIpG&usqp=CAE" width="250" height="250">
+  <img src="https://ik.imagekit.io/vladysor/EduSense/SensEdu.png?updatedAt=1737384924374">
 </p>
 
+<h3><p align="center">SensEdu</p></h3>
 <p align="center">RADAR and Communication Development Shield for Arduino Giga R1</p>
 
 <p align="center">
