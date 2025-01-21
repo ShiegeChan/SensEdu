@@ -18,6 +18,8 @@ extern "C" {
 #include "stm32h7xx_ll_rcc.h"
 #include "stm32h7xx_ll_pwr.h"
 
+#include "dac.h"
+
 // redefine pure analog pins
 #define A8 (86u)
 #define A9 (87u)
