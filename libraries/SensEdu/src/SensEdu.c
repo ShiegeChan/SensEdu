@@ -36,6 +36,12 @@ SENSEDU_ERROR SensEdu_GetError(void) {
         return error;
     }
 
+    error |= DAC_GetError();
+    if (error) {
+        error |= SENSEDU_ERROR_DAC;
+        return error;
+    }
+
     return error;
 }
 
