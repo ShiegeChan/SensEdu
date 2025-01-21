@@ -7,7 +7,7 @@
 #define DAC_PIN          	A12
 #define DAC_SINE_FREQ     	32000                   // 32kHz
 #define DAC_RESOLUTION    	AN_RESOLUTION_12        // 12bit
-#define DAC_SAMPLE_RATE    	DAC_SINE_FREQ * 64       // 64kHz
+#define DAC_SAMPLE_RATE    	DAC_SINE_FREQ * 64      // ~2MHz
 #define DAC_SAMPLES_PER_CH	sine_lut_size    	    // samples in each buffer (one sine wave)
 #define DAC_QUEUE_DEPTH 	10                      // queue depth
 
@@ -40,10 +40,10 @@ void loop() {
     for (uint16_t i = 0; i < dac_cycle_num; i++) {
         dac_output_sinewave(dac0);
     }
-    dac_output_zero(dac0);
-    
+    //dac_output_zero(dac0);
+
     // do something
-    delay(1000);
+    delay(100);
 }
 
 /* -------------------------------------------------------------------------- */

@@ -12,7 +12,7 @@
 #define DAC_RESOLUTION    	AN_RESOLUTION_12        // 12bit
 #define DAC_SAMPLE_RATE    	DAC_SINE_FREQ * 64      // ~2MHz
 #define DAC_SAMPLES_PER_CH	sine_lut_size    	    // samples in each buffer (one sine wave)
-#define DAC_QUEUE_DEPTH 	11                      // queue depth
+#define DAC_QUEUE_DEPTH 	3                       // queue depth
 AdvancedDAC dac0(DAC_PIN);
 
 /* ADC */
@@ -70,7 +70,7 @@ void loop() {
 
     // start dac->adc sequence
     dac_output_sinewave(dac0); // ~44us execution
-    dac_output_zero(dac0);
+    //dac_output_zero(dac0);
     delayMicroseconds(275); // calculated dealy for x10 64sine cycles with an oscilloscope [us]
     SensEdu_DMA_Enable((uint16_t*)mic_data, mic_data_size);
     SensEdu_ADC_Start(adc);
