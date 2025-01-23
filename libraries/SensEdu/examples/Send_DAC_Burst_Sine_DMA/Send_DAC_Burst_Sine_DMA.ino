@@ -1,17 +1,11 @@
-#include <Arduino_AdvancedAnalog.h>
+#include <SensEdu.h>
+
+uint32_t lib_error = 0;
+uint32_t cntr = 0;
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
-
-#define DAC_PIN          	A12
-#define DAC_SINE_FREQ     	32000                   // 32kHz
-#define DAC_RESOLUTION    	AN_RESOLUTION_12        // 12bit
-#define DAC_SAMPLE_RATE    	DAC_SINE_FREQ * 64      // ~2MHz
-#define DAC_SAMPLES_PER_CH	sine_lut_size    	    // samples in each buffer (one sine wave)
-#define DAC_QUEUE_DEPTH 	10                      // queue depth
-
-AdvancedDAC dac0(DAC_PIN);
 
 // how many LUT repeats for one DAC transfer
 const uint16_t dac_cycle_num = 10;
@@ -30,43 +24,48 @@ const size_t sine_lut_size = sizeof(sine_lut) / sizeof(sine_lut[0]);
 /* -------------------------------------------------------------------------- */
 void setup() {
     Serial.begin(115200);
-    dac0.begin(DAC_RESOLUTION, DAC_SAMPLE_RATE, DAC_SAMPLES_PER_CH, DAC_QUEUE_DEPTH);
+    while (!Serial);
+
+    SensEdu_TIMER_Init();
+
+    DAC_InitPeriph();
+    DAC_EnablePeriph();
+
+    TIMER_DACtrigger_SetFreq(32000*64);
+    
+    DMA_DACInitPeriph((uint16_t*)sine_lut, sine_lut_size); 
+    DMA_DACEnablePeriph((uint16_t*)sine_lut, sine_lut_size);
+
+    TIMER_DACtrigger_Enable();
+
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        delay(1000);
+        Serial.print("Error: 0x");
+        Serial.println(lib_error, HEX);
+    }
+
+    Serial.println("Setup is successful.");
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    for (uint16_t i = 0; i < dac_cycle_num; i++) {
-        dac_output_sinewave(dac0);
-    }
-    //dac_output_zero(dac0);
 
-    // do something
-    delay(100);
+    // CPU does something
+    cntr += 1;
+    Serial.println(cntr);
+
+    // check errors
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        delay(1000);
+        Serial.print("Error: 0x");
+        Serial.println(lib_error, HEX);
+    }
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
-void dac_output_sinewave(AdvancedDAC& dac_out) {
-    while(!(dac_out.available()));
-
-    SampleBuffer buf = dac_out.dequeue();
-    for (size_t i = 0; i < buf.size(); i++) {
-        buf[i] = sine_lut[i];
-    }
-
-    dac_out.write(buf);
-}
-
-void dac_output_zero(AdvancedDAC& dac_out) {
-    while(!(dac_out.available()));
-
-    SampleBuffer buf = dac_out.dequeue();
-    for (size_t i = 0; i < buf.size(); i++) {
-        buf[i] = 0;
-    }
-
-    dac_out.write(buf);
-}

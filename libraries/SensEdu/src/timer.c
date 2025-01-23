@@ -132,9 +132,9 @@ void tim4_init() {
     // update event is trigger output
     MODIFY_REG(TIM4->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
     
-    SET_BIT(TIM4->DIER, TIM_DIER_UIE); // update event
-    NVIC_SetPriority(TIM4_IRQn, 3);
-    NVIC_EnableIRQ(TIM4_IRQn);
+    //SET_BIT(TIM4->DIER, TIM_DIER_UIE); // update event
+    //NVIC_SetPriority(TIM4_IRQn, 3);
+    //NVIC_EnableIRQ(TIM4_IRQn);
 }
 
 /* -------------------------------------------------------------------------- */

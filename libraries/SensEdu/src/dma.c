@@ -1,4 +1,5 @@
 #include "dma.h"
+#include "dac.h"
 
 typedef struct {
     uint32_t clear_flags;
@@ -13,6 +14,8 @@ static DMA_Flags dma_ch7_flags = {(DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIF
 
 static volatile DMA_ERROR error = DMA_ERROR_NO_ERRORS;
 static volatile uint8_t transfer_status = 0;
+static volatile uint16_t dac_transfer_cnt = 0;
+static uint16_t dac_transfer_arr = 10;
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
@@ -70,6 +73,12 @@ void DMA_ADCDisablePeriph(void) {
     CLEAR_BIT(DMA1_Stream6->CR, DMA_SxCR_EN);
     while(READ_BIT(DMA1_Stream6->CR, DMA_SxCR_EN));
     dma_clear_status_flags(dma_ch6_flags);
+}
+
+void DMA_DACDisablePeriph(void) {
+    CLEAR_BIT(DMA1_Stream7->CR, DMA_SxCR_EN);
+    while(READ_BIT(DMA1_Stream7->CR, DMA_SxCR_EN));
+    dma_clear_status_flags(dma_ch7_flags);
 }
 
 
@@ -145,10 +154,10 @@ void dac_dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t pe
     MODIFY_REG(dma_stream->CR, DMA_SxCR_DIR, 0b01 << DMA_SxCR_DIR_Pos); // memory -> peripheral
 
     // Enable Interrupts
-    //SET_BIT(dma_stream->CR, DMA_SxCR_TCIE); // transfer complete
-    //SET_BIT(dma_stream->CR, DMA_SxCR_TEIE); // transfer error
-    //NVIC_SetPriority(dma_irq, 3);
-    //NVIC_EnableIRQ(dma_irq);
+    SET_BIT(dma_stream->CR, DMA_SxCR_TCIE); // transfer complete
+    SET_BIT(dma_stream->CR, DMA_SxCR_TEIE); // transfer error
+    NVIC_SetPriority(dma_irq, 3);
+    NVIC_EnableIRQ(dma_irq);
 
     // Number of data items to transfer
     MODIFY_REG(dma_stream->NDTR, DMA_SxNDT, (mem_size) << DMA_SxNDT_Pos);
@@ -178,6 +187,21 @@ void DMA1_Stream6_IRQHandler(void) {
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF6);
-        error = DMA_ERROR_INTERRUPT_TRANSFER_ERROR;
+        error = DMA_ERROR_ADC_INTERRUPT_TRANSFER_ERROR;
+    }
+}
+
+void DMA1_Stream7_IRQHandler(void) {
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF7)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF7);
+        dac_transfer_cnt++;
+        if (dac_transfer_cnt == dac_transfer_arr) {
+            DAC_DisablePeriph();
+        }
+    }
+
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF7)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF7);
+        error = DMA_ERROR_DAC_INTERRUPT_TRANSFER_ERROR;
     }
 }
