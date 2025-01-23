@@ -1,5 +1,12 @@
 #include "timer.h"
 
+/* -------------------------------------------------------------------------- */
+/*                                  Variables                                 */
+/* -------------------------------------------------------------------------- */
+
+#define TIM_FREQ        240000000
+#define DAC_PRESC_FREQ  120000000
+
 static const uint32_t freq_reference = 10000000;
 static const uint32_t allowed_freqs[] = {10000000, 5000000, 2500000, 2000000, 1250000, 1000000, 625000, 500000,
     312500, 250000, 156250, 125000, 80000, 78125, 62500, 40000, 31250, 20000, 16000, 15625, 
@@ -10,14 +17,25 @@ static TIMER_ERROR error = TIMER_ERROR_NO_ERRORS;
 static volatile uint8_t delay_flag = 0;
 
 
+/* -------------------------------------------------------------------------- */
+/*                                Declarations                                */
+/* -------------------------------------------------------------------------- */
+void tim1_init(void);
+void tim2_init(void);
+void tim3_init(void);
+
+/* -------------------------------------------------------------------------- */
+/*                              Public Functions                              */
+/* -------------------------------------------------------------------------- */
 
 TIMER_ERROR TIMER_GetError(void) {
     return error;
 }
 
 void TIMER_Init(void) {
-    tim2_init();
-    tim1_init();
+    tim3_init();
+    //tim2_init();
+    //tim1_init();
 }
 
 // check if it works as intended with oscilloscope
@@ -31,6 +49,7 @@ void TIMER_Delay_us(uint32_t delay_value) {
 }
 
 void TIMER_ADCtrigger_Enable(void) {
+    WRITE_REG(TIM1->CNT, 0U);
     SET_BIT(TIM1->CR1, TIM_CR1_CEN);
 }
 
@@ -50,7 +69,31 @@ void TIMER_ADCtrigger_SetFreq(uint32_t freq) {
     WRITE_REG(TIM1->ARR, (freq_reference/sampling_rate));
 }
 
-void tim1_init() {
+void TIMER_DACtrigger_Enable(void) {
+    WRITE_REG(TIM3->CNT, 0U);
+    SET_BIT(TIM3->CR1, TIM_CR1_CEN);
+}
+
+void TIMER_DACtrigger_Disable(void) {
+    CLEAR_BIT(TIM3->CR1, TIM_CR1_CEN);
+}
+
+void TIMER_DACtrigger_SetFreq(uint32_t freq) {
+    if (freq < 0 || freq > (DAC_PRESC_FREQ/2)) {
+        // minimum ARR is 1
+        error = TIMER_ERROR_TIM3_BAD_SET_FREQUENCY;
+        return;
+    }
+    float periodf = DAC_PRESC_FREQ/freq;
+    uint32_t period = (uint32_t)lroundf(periodf);
+    WRITE_REG(TIM3->ARR, period - 1U);
+}
+
+
+/* -------------------------------------------------------------------------- */
+/*                              Private Functions                             */
+/* -------------------------------------------------------------------------- */
+void tim1_init(void) {
     // Enable clock on TIM1 from APB2
     SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM1EN);
 
@@ -74,15 +117,40 @@ void tim2_init() {
 
     // interrupts
     SET_BIT(TIM2->DIER, TIM_DIER_UIE); // update event
-    NVIC_SetPriority(TIM2_IRQn, 2);
+    NVIC_SetPriority(TIM2_IRQn, 4);
     NVIC_EnableIRQ(TIM2_IRQn);
 }
 
+void tim3_init() {
+    // Clock
+    SET_BIT(RCC->APB1LENR, RCC_APB1LENR_TIM3EN);
+
+    // Frequency settings
+    WRITE_REG(TIM3->PSC, (TIM_FREQ/DAC_PRESC_FREQ) - 1U);
+    WRITE_REG(TIM3->ARR, 120U - 1U);
+
+    // update event is trigger output
+    MODIFY_REG(TIM3->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
+    
+    SET_BIT(TIM3->DIER, TIM_DIER_UIE); // update event
+    NVIC_SetPriority(TIM3_IRQn, 3);
+    NVIC_EnableIRQ(TIM3_IRQn);
+    
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 Interrupts                                 */
+/* -------------------------------------------------------------------------- */
+
 void TIM2_IRQHandler(void) { 
-    //Check what type of event occurred
-    if (READ_BIT(TIM2->SR, TIM_SR_UIF))
-    {
+    if (READ_BIT(TIM2->SR, TIM_SR_UIF)) {
         CLEAR_BIT(TIM2->SR, TIM_SR_UIF);
         delay_flag = 0;
+    }
+}
+
+void TIM3_IRQHandler(void) {
+    if (READ_BIT(TIM3->SR, TIM_SR_UIF)) {
+        CLEAR_BIT(TIM3->SR, TIM_SR_UIF);
     }
 }
