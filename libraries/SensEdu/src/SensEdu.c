@@ -63,6 +63,10 @@ void SensEdu_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, 
     if (ADC_GetSettings(ADC)->mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
         TIMER_ADCtrigger_SetFreq(trigger_freq);
     }
+
+    if (ADC_GetSettings(ADC)->dma_mode == SENSEDU_ADC_DMA_CONNECT && ADC == ADC1) {
+        //DMA_ADC1Init(); TODO: fix it here with passing memory and size
+    }
 }
 
 void SensEdu_ADC_Enable(ADC_TypeDef* ADC) {
@@ -74,10 +78,14 @@ void SensEdu_ADC_Enable(ADC_TypeDef* ADC) {
 }
 
 void SensEdu_ADC_Disable(ADC_TypeDef* ADC) {
+    // TODO: disable here DMA
     ADC_DisablePeriph(ADC);
 }
 
 void SensEdu_ADC_Start(ADC_TypeDef* ADC) {
+    if (ADC_GetSettings(ADC)->dma_mode == SENSEDU_ADC_DMA_CONNECT && ADC == ADC1) {
+        DMA_ADC1Enable();
+    }
     ADC_StartConversion(ADC);
 }
 

@@ -29,10 +29,8 @@ void setup() {
     Serial.println("Started Initialization...");
 
     SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000, SENSEDU_ADC_DMA_CONNECT); // continuos mode for ADC
+    DMA_ADC1Init((uint16_t*)memory4adc, memory4adc_size); // it shouldn't be here, instead in SensEdu
     SensEdu_ADC_Enable(adc);
-
-    SensEdu_DMA_Init((uint16_t*)memory4adc, memory4adc_size); 
-    SensEdu_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
 
     SensEdu_ADC_Start(adc);
 
@@ -57,7 +55,7 @@ void loop() {
     // DMA in background
 
     // Print transfered Data if available
-    if (SensEdu_DMA_GetTransferStatus()) {
+    if (SensEdu_DMA_GetADC1TransferStatus()) {
         Serial.println("------");
         for (int i = 0; i < memory4adc_size; i++) {
             Serial.print("ADC value ");
@@ -67,8 +65,7 @@ void loop() {
         };
 
         // restart ADC
-        SensEdu_DMA_ClearTransferStatus();
-        SensEdu_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
+        SensEdu_DMA_ClearADC1TransferStatus();
         SensEdu_ADC_Start(adc);
     }
 

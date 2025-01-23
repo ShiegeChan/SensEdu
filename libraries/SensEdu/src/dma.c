@@ -1,91 +1,106 @@
 #include "dma.h"
 #include "dac.h"
 
+/* -------------------------------------------------------------------------- */
+/*                                   Structs                                  */
+/* -------------------------------------------------------------------------- */
 typedef struct {
     uint32_t clear_flags;
     uint32_t flags
 } DMA_Flags;
 
+
 /* -------------------------------------------------------------------------- */
 /*                                  Variables                                 */
 /* -------------------------------------------------------------------------- */
+static DMA_Flags dma_ch4_flags = {(DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4), (DMA_HISR_TCIF4 | DMA_HISR_HTIF4 | DMA_HISR_TEIF4 | DMA_HISR_DMEIF4 | DMA_HISR_FEIF4)};
+static DMA_Flags dma_ch5_flags = {(DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5 | DMA_HIFCR_CTEIF5), (DMA_HISR_TCIF5 | DMA_HISR_HTIF5 | DMA_HISR_TEIF5 | DMA_HISR_DMEIF5 | DMA_HISR_FEIF5)};
 static DMA_Flags dma_ch6_flags = {(DMA_HIFCR_CTCIF6 | DMA_HIFCR_CHTIF6 | DMA_HIFCR_CTEIF6), (DMA_HISR_TCIF6 | DMA_HISR_HTIF6 | DMA_HISR_TEIF6 | DMA_HISR_DMEIF6 | DMA_HISR_FEIF6)};
 static DMA_Flags dma_ch7_flags = {(DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIFCR_CTEIF7), (DMA_HISR_TCIF7 | DMA_HISR_HTIF7 | DMA_HISR_TEIF7 | DMA_HISR_DMEIF7 | DMA_HISR_FEIF7)};
 
 static volatile DMA_ERROR error = DMA_ERROR_NO_ERRORS;
-static volatile uint8_t transfer_status = 0;
-static volatile uint16_t dac_transfer_cnt = 0;
-static uint16_t dac_transfer_arr = 10;
+static volatile uint8_t adc1_transfer_status = 0;       // flag for adc finished transfer
+static volatile uint16_t dac_transfer_cnt = 0;          // current written wave cycle to dac
+static uint16_t dac_transfer_arr = 10;                  // how many cycles is written to dac
+static uint16_t* adc1_memory_address = 0x0000;
+static uint16_t adc1_memory_size = 0;
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
-void adc_dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size);
+void dma_adc1_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size);
+void dma_dac1_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size);
+
 void dma_clear_status_flags(DMA_Flags dma_flags);
+void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags flags);
 
 
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
+uint8_t SensEdu_DMA_GetADC1TransferStatus(void) {
+    return adc1_transfer_status;
+}
+
+void SensEdu_DMA_ClearADC1TransferStatus(void) {
+    adc1_transfer_status = 0;
+}
+
 DMA_ERROR DMA_GetError(void) {
     return error;
 }
 
-uint8_t DMA_GetTransferStatus(void) {
-    return transfer_status;
-}
+void DMA_ADC1Init(uint16_t* mem_address, const uint16_t mem_size) {
+    adc1_memory_address = mem_address;
+    adc1_memory_size = mem_size;
 
-void DMA_ClearTransferStatus(void) {
-    transfer_status = 0;
-}
-
-void DMA_ADCInitPeriph(uint16_t* mem_address, const uint16_t mem_size) {
-    adc_dma_init(DMA1_Stream6, DMA1_Stream6_IRQn, (uint32_t)&(ADC1->DR), (uint32_t)mem_address, mem_size);
+    dma_adc1_init(DMA1_Stream6, DMA1_Stream6_IRQn, (uint32_t)&(ADC1->DR), (uint32_t)mem_address, mem_size);
     MODIFY_REG(DMAMUX1_Channel6->CCR, DMAMUX_CxCR_DMAREQ_ID, (9U) << DMAMUX_CxCR_DMAREQ_ID_Pos); 
 }
 
-void DMA_DACInitPeriph(uint16_t* mem_address, const uint16_t mem_size) {
-    dac_dma_init(DMA1_Stream7, DMA1_Stream7_IRQn, (uint32_t)&(DAC1->DHR12R1), (uint32_t)mem_address, mem_size);
+void DMA_DAC1Init(uint16_t* mem_address, const uint16_t mem_size) {
+    dma_dac1_init(DMA1_Stream7, DMA1_Stream7_IRQn, (uint32_t)&(DAC1->DHR12R1), (uint32_t)mem_address, mem_size);
     MODIFY_REG(DMAMUX1_Channel7->CCR, DMAMUX_CxCR_DMAREQ_ID, (67U) << DMAMUX_CxCR_DMAREQ_ID_Pos); 
 }
 
-void DMA_ADCEnablePeriph(uint16_t* mem_address, const uint16_t mem_size) {
+void DMA_ADC1Enable(void) {
+    if (adc1_memory_address == 0x0000 || adc1_memory_size < 1) {
+        error = DMA_ERROR_ADC1_ENABLE_BEFORE_INIT;
+    }
+
     // check if the size is the multiple of D-Cache line size (32 words)
     // 16bit - half words -> x2 multiplication
-    if ((mem_size % (__SCB_DCACHE_LINE_SIZE << 1)) != 0) {
+    if ((adc1_memory_size % (__SCB_DCACHE_LINE_SIZE << 1)) != 0) {
         error = DMA_ERROR_MEMORY_WRONG_SIZE;
+        return;
     }
 
     // cache must be invalidated before reading transferred data
     // second argument in bytes
-    SCB_InvalidateDCache_by_Addr(mem_address, mem_size << 1);
+    SCB_InvalidateDCache_by_Addr(adc1_memory_address, adc1_memory_size << 1);
 
     dma_clear_status_flags(dma_ch6_flags);
     SET_BIT(DMA1_Stream6->CR, DMA_SxCR_EN);
 }
 
-void DMA_DACEnablePeriph(uint16_t* mem_address, const uint16_t mem_size) {
+void DMA_DAC1Enable(void) {
     dma_clear_status_flags(dma_ch7_flags);
     SET_BIT(DMA1_Stream7->CR, DMA_SxCR_EN);
 }
 
-void DMA_ADCDisablePeriph(void) {
-    CLEAR_BIT(DMA1_Stream6->CR, DMA_SxCR_EN);
-    while(READ_BIT(DMA1_Stream6->CR, DMA_SxCR_EN));
-    dma_clear_status_flags(dma_ch6_flags);
+void DMA_ADC1Disable(void) {
+    dma_disable(DMA1_Stream6, dma_ch6_flags);
 }
 
-void DMA_DACDisablePeriph(void) {
-    CLEAR_BIT(DMA1_Stream7->CR, DMA_SxCR_EN);
-    while(READ_BIT(DMA1_Stream7->CR, DMA_SxCR_EN));
-    dma_clear_status_flags(dma_ch7_flags);
+void DMA_DAC1Disable(void) {
+    dma_disable(DMA1_Stream7, dma_ch7_flags);
 }
 
 
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
-void adc_dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size) {
+void dma_adc1_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size) {
     
     if (READ_BIT(dma_stream->CR, DMA_SxCR_EN)) {
         error = DMA_ERROR_ENABLED_BEFORE_INIT;
@@ -127,7 +142,7 @@ void adc_dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t pe
     WRITE_REG(dma_stream->M0AR, mem_address);
 }
 
-void dac_dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size) {
+void dma_dac1_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size) {
     
     if (READ_BIT(dma_stream->CR, DMA_SxCR_EN)) {
         error = DMA_ERROR_ENABLED_BEFORE_INIT;
@@ -169,8 +184,6 @@ void dac_dma_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, uint32_t pe
     WRITE_REG(dma_stream->M0AR, mem_address);
 }
 
-
-
 void dma_clear_status_flags(DMA_Flags dma_flags) {
     SET_BIT(DMA1->HIFCR, dma_flags.clear_flags);
 
@@ -179,10 +192,20 @@ void dma_clear_status_flags(DMA_Flags dma_flags) {
     }
 }
 
+void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags flags) {
+    CLEAR_BIT(dma_stream->CR, DMA_SxCR_EN);
+    while(READ_BIT(dma_stream->CR, DMA_SxCR_EN));
+    dma_clear_status_flags(flags);
+}
+
+
+/* -------------------------------------------------------------------------- */
+/*                                 Interrupts                                 */
+/* -------------------------------------------------------------------------- */
 void DMA1_Stream6_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);
-        transfer_status = 1;
+        adc1_transfer_status = 1;
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF6)) {
@@ -196,7 +219,8 @@ void DMA1_Stream7_IRQHandler(void) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF7);
         dac_transfer_cnt++;
         if (dac_transfer_cnt == dac_transfer_arr) {
-            DAC_DisablePeriph();
+            dac_transfer_cnt = 0;
+            SensEdu_DAC_Disable(DAC1);
         }
     }
 

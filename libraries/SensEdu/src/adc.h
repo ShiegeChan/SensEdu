@@ -25,6 +25,7 @@ typedef struct {
     uint8_t* adc_pins;
     volatile uint8_t eoc_flag;
     SENSEDU_ADC_MODE mode;
+    SENSEDU_ADC_DMA dma_mode;
     uint8_t conv_length;
     uint16_t sequence_data[16];
 } ADC_Settings;

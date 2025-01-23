@@ -28,14 +28,13 @@ void setup() {
 
     SensEdu_TIMER_Init();
 
-    DAC_InitPeriph();
-    DAC_EnablePeriph();
+    SensEdu_DAC_Settings dac1_settings = {DAC1, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
+    SENSEDU_DAC_MODE_BURST_WAVE, 10};
+
+    SensEdu_DAC_Init(&dac1_settings);
+    SensEdu_DAC_Enable(DAC1);
 
     TIMER_DACtrigger_SetFreq(32000*64);
-    
-    DMA_DACInitPeriph((uint16_t*)sine_lut, sine_lut_size); 
-    DMA_DACEnablePeriph((uint16_t*)sine_lut, sine_lut_size);
-
     TIMER_DACtrigger_Enable();
 
     lib_error = SensEdu_GetError();

@@ -17,8 +17,8 @@ static uint8_t adc_flag = 0;
 
 uint8_t adc_msg = 0;
 
-ADC_Settings ADC1_Settings = {0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, 0};
-ADC_Settings ADC2_Settings = {0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, 0};
+ADC_Settings ADC1_Settings = {0, 0, SENSEDU_ADC_MODE_ONE_SHOT, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
+ADC_Settings ADC2_Settings = {0, 0, SENSEDU_ADC_MODE_ONE_SHOT, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
 
 
 /* -------------------------------------------------------------------------- */
@@ -46,6 +46,7 @@ void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num
     ADC_GetSettings(ADC)->adc_pins = arduino_pins;
     ADC_GetSettings(ADC)->eoc_flag = 0;
     ADC_GetSettings(ADC)->mode = mode;
+    ADC_GetSettings(ADC)->dma_mode = adc_dma;
 
     configure_pll2();
     adc_init(ADC, arduino_pins, adc_pin_num, mode, adc_dma);
