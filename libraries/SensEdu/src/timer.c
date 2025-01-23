@@ -22,7 +22,7 @@ static volatile uint8_t delay_flag = 0;
 /* -------------------------------------------------------------------------- */
 void tim1_init(void);
 void tim2_init(void);
-void tim3_init(void);
+void tim4_init(void);
 
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
@@ -33,8 +33,8 @@ TIMER_ERROR TIMER_GetError(void) {
 }
 
 void TIMER_Init(void) {
-    tim3_init();
-    //tim2_init();
+    tim4_init();
+    tim2_init();
     //tim1_init();
 }
 
@@ -70,23 +70,23 @@ void TIMER_ADCtrigger_SetFreq(uint32_t freq) {
 }
 
 void TIMER_DACtrigger_Enable(void) {
-    WRITE_REG(TIM3->CNT, 0U);
-    SET_BIT(TIM3->CR1, TIM_CR1_CEN);
+    WRITE_REG(TIM4->CNT, 0U);
+    SET_BIT(TIM4->CR1, TIM_CR1_CEN);
 }
 
 void TIMER_DACtrigger_Disable(void) {
-    CLEAR_BIT(TIM3->CR1, TIM_CR1_CEN);
+    CLEAR_BIT(TIM4->CR1, TIM_CR1_CEN);
 }
 
 void TIMER_DACtrigger_SetFreq(uint32_t freq) {
     if (freq < 0 || freq > (DAC_PRESC_FREQ/2)) {
         // minimum ARR is 1
-        error = TIMER_ERROR_TIM3_BAD_SET_FREQUENCY;
+        error = TIMER_ERROR_TIM4_BAD_SET_FREQUENCY;
         return;
     }
     float periodf = DAC_PRESC_FREQ/freq;
     uint32_t period = (uint32_t)lroundf(periodf);
-    WRITE_REG(TIM3->ARR, period - 1U);
+    WRITE_REG(TIM4->ARR, period - 1U);
 }
 
 
@@ -121,20 +121,20 @@ void tim2_init() {
     NVIC_EnableIRQ(TIM2_IRQn);
 }
 
-void tim3_init() {
+void tim4_init() {
     // Clock
-    SET_BIT(RCC->APB1LENR, RCC_APB1LENR_TIM3EN);
+    SET_BIT(RCC->APB1LENR, RCC_APB1LENR_TIM4EN);
 
     // Frequency settings
-    WRITE_REG(TIM3->PSC, (TIM_FREQ/DAC_PRESC_FREQ) - 1U);
-    WRITE_REG(TIM3->ARR, 120U - 1U);
+    WRITE_REG(TIM4->PSC, (TIM_FREQ/DAC_PRESC_FREQ) - 1U);
+    WRITE_REG(TIM4->ARR, 120U - 1U);
 
     // update event is trigger output
-    MODIFY_REG(TIM3->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
+    MODIFY_REG(TIM4->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
     
-    SET_BIT(TIM3->DIER, TIM_DIER_UIE); // update event
-    NVIC_SetPriority(TIM3_IRQn, 3);
-    NVIC_EnableIRQ(TIM3_IRQn);
+    SET_BIT(TIM4->DIER, TIM_DIER_UIE); // update event
+    NVIC_SetPriority(TIM4_IRQn, 3);
+    NVIC_EnableIRQ(TIM4_IRQn);
     
 }
 
@@ -149,8 +149,8 @@ void TIM2_IRQHandler(void) {
     }
 }
 
-void TIM3_IRQHandler(void) {
-    if (READ_BIT(TIM3->SR, TIM_SR_UIF)) {
-        CLEAR_BIT(TIM3->SR, TIM_SR_UIF);
+void TIM4_IRQHandler(void) {
+    if (READ_BIT(TIM4->SR, TIM_SR_UIF)) {
+        CLEAR_BIT(TIM4->SR, TIM_SR_UIF);
     }
 }

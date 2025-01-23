@@ -19,6 +19,7 @@ extern "C" {
 #include "stm32h7xx_ll_pwr.h"
 
 #include "dac.h"
+#include "timer.h"
 
 // redefine pure analog pins
 #define A8 (86u)

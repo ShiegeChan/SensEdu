@@ -1,4 +1,5 @@
 #include "dac.h"
+#include "timer.h"
 
 /* -------------------------------------------------------------------------- */
 /*                                   Structs                                  */
@@ -36,7 +37,9 @@ void DAC_DisablePeriph(void) {
 }
 
 void DAC_TriggerOutput(void) {
-    SET_BIT(DAC1->SWTRIGR, DAC_SWTRIGR_SWTRIG1); // Software Trigger
+    //SET_BIT(DAC1->SWTRIGR, DAC_SWTRIGR_SWTRIG1); // Software Trigger
+
+    TIMER_DACtrigger_Enable();
 }
 
 void DAC_WriteData(uint16_t data) {
@@ -55,17 +58,23 @@ void dac_init(void) {
 
     if (READ_BIT(DAC1->CR, DAC_CR_EN1 | DAC_CR_CEN1)) {
         error = DAC_ERROR_ENABLED_BEFORE_INIT;
+        return;
     }
+
+    // GPIO
+    MODIFY_REG(GPIOA->MODER, GPIO_MODER_MODE4, (0b11) << GPIO_MODER_MODE4_Pos);
 
     // Clock
     SET_BIT(RCC->APB1LENR, RCC_APB1LENR_DAC12EN);
 
+    /*
     // DMA
     SET_BIT(DAC1->CR, DAC_CR_DMAUDRIE1); // Enable DMA Underrun Interrupt
     SET_BIT(DAC1->CR, DAC_CR_DMAEN1); // Enable DMA
+    */
 
     // Trigger
-    MODIFY_REG(DAC1->CR, DAC_CR_TSEL1, (0b0000) << DAC_CR_TSEL1_Pos); // Software Trigger
+    MODIFY_REG(DAC1->CR, DAC_CR_TSEL1, (3U) << DAC_CR_TSEL1_Pos); // dac_chx_trg3 -> tim4_trgo
     SET_BIT(DAC1->CR, DAC_CR_TEN1); // Enable Trigger
 
     // Channel Mode

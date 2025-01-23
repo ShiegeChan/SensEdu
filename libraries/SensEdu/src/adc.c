@@ -443,6 +443,10 @@ void set_adc_channel_sample_time(ADC_TypeDef* ADC, uint8_t sample_time, uint8_t 
     }
 }
 
+
+/* -------------------------------------------------------------------------- */
+/*                                 Interrupts                                 */
+/* -------------------------------------------------------------------------- */
 void ADC_IRQHandler(void) {
     if (READ_BIT(ADC1->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC1->ISR, ADC_ISR_EOC);
