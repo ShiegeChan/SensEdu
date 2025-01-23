@@ -35,7 +35,7 @@ TIMER_ERROR TIMER_GetError(void) {
 void TIMER_Init(void) {
     tim4_init();
     tim2_init();
-    //tim1_init();
+    tim1_init();
 }
 
 // check if it works as intended with oscilloscope
@@ -84,7 +84,7 @@ void TIMER_DACtrigger_SetFreq(uint32_t freq) {
         error = TIMER_ERROR_TIM4_BAD_SET_FREQUENCY;
         return;
     }
-    float periodf = DAC_PRESC_FREQ/freq;
+    float periodf = (float)DAC_PRESC_FREQ/freq;
     uint32_t period = (uint32_t)lroundf(periodf);
     WRITE_REG(TIM4->ARR, period - 1U);
 }
@@ -135,7 +135,6 @@ void tim4_init() {
     SET_BIT(TIM4->DIER, TIM_DIER_UIE); // update event
     NVIC_SetPriority(TIM4_IRQn, 3);
     NVIC_EnableIRQ(TIM4_IRQn);
-    
 }
 
 /* -------------------------------------------------------------------------- */

@@ -67,11 +67,9 @@ void dac_init(void) {
     // Clock
     SET_BIT(RCC->APB1LENR, RCC_APB1LENR_DAC12EN);
 
-    /*
     // DMA
     SET_BIT(DAC1->CR, DAC_CR_DMAUDRIE1); // Enable DMA Underrun Interrupt
     SET_BIT(DAC1->CR, DAC_CR_DMAEN1); // Enable DMA
-    */
 
     // Trigger
     MODIFY_REG(DAC1->CR, DAC_CR_TSEL1, (3U) << DAC_CR_TSEL1_Pos); // dac_chx_trg3 -> tim4_trgo

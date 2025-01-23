@@ -20,6 +20,7 @@ extern "C" {
 
 #include "dac.h"
 #include "timer.h"
+#include "dma.h"
 
 // redefine pure analog pins
 #define A8 (86u)

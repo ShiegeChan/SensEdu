@@ -1,5 +1,7 @@
 #include <SensEdu.h>
 
+uint32_t lib_error = 0;
+
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
@@ -21,22 +23,41 @@ const size_t sine_lut_size = sizeof(sine_lut) / sizeof(sine_lut[0]);
 /* -------------------------------------------------------------------------- */
 void setup() {
     Serial.begin(115200);
+    while (!Serial);
+
+    SensEdu_TIMER_Init();
 
     DAC_InitPeriph();
     DAC_EnablePeriph();
+
+    TIMER_DACtrigger_SetFreq(32000*64);
+    
+    DMA_DACInitPeriph((uint16_t*)sine_lut, sine_lut_size); 
+    DMA_DACEnablePeriph((uint16_t*)sine_lut, sine_lut_size);
+
+    TIMER_DACtrigger_Enable();
+
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        delay(1000);
+        Serial.print("Error: 0x");
+        Serial.println(lib_error, HEX);
+    }
+
+    Serial.println("Setup is successful.");
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    for (uint16_t i = 0; i < sine_lut_size; i++) {
-        DAC_WriteData(sine_lut[i]);
-        DAC_TriggerOutput();
-        Serial.println("Wave sent!");
+    // check errors
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        delay(1000);
+        Serial.print("Error: 0x");
+        Serial.println(lib_error, HEX);
     }
-
-    delay(100);
 }
 
 /* -------------------------------------------------------------------------- */

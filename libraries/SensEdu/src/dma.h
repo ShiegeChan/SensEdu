@@ -18,9 +18,12 @@ typedef enum {
 DMA_ERROR DMA_GetError(void);
 uint8_t DMA_GetTransferStatus(void);
 void DMA_ClearTransferStatus(void);
-void DMA_InitPeriph(uint16_t* mem_address, const uint16_t mem_size);
-void DMA_EnablePeriph(uint16_t* mem_address, const uint16_t mem_size);
-void DMA_DisablePeriph(void);
+void DMA_ADCInitPeriph(uint16_t* mem_address, const uint16_t mem_size);
+void DMA_ADCEnablePeriph(uint16_t* mem_address, const uint16_t mem_size);
+void DMA_ADCDisablePeriph(void);
+void DMA_DACInitPeriph(uint16_t* mem_address, const uint16_t mem_size);
+void DMA_DACEnablePeriph(uint16_t* mem_address, const uint16_t mem_size);
+
 
 #ifdef __cplusplus
 }

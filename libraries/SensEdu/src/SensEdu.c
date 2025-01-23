@@ -91,11 +91,11 @@ uint8_t get_msg() {
 
 /* DMA */
 void SensEdu_DMA_Init(uint16_t* mem_address, const uint16_t mem_size) {
-    DMA_InitPeriph(mem_address, mem_size);
+    DMA_ADCInitPeriph(mem_address, mem_size);
 }
 
 void SensEdu_DMA_Enable(uint16_t* mem_address, const uint16_t mem_size) {
-    DMA_EnablePeriph(mem_address, mem_size);
+    DMA_ADCEnablePeriph(mem_address, mem_size);
 }
 
 uint8_t SensEdu_DMA_GetTransferStatus(void) {
