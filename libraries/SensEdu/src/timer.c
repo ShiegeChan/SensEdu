@@ -108,7 +108,7 @@ void tim1_adc1_init(void) {
 
     // Frequency settings
     WRITE_REG(TIM1->PSC, 24U-1U); // 0.1us step (10MHz as reference)
-    TIMER_ADCtrigger_SetFreq(allowed_freqs[0]); // default max freq
+    TIMER_ADC1SetFreq(allowed_freqs[0]); // default max freq
 
     // update event is trigger output
     MODIFY_REG(TIM1->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);

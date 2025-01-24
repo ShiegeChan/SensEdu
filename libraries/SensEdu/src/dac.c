@@ -18,7 +18,7 @@ static volatile uint16_t dac_transfer_cnt = 0;  // current written wave cycle to
 /* -------------------------------------------------------------------------- */
 void dac_init(DAC_TypeDef* dac);
 SensEdu_DAC_Settings* get_settings(DAC_TypeDef* dac);
-DAC_ERROR check_settings(SensEdu_DAC_Settings* settings);
+static DAC_ERROR check_settings(SensEdu_DAC_Settings* settings);
 
 
 /* -------------------------------------------------------------------------- */
@@ -121,7 +121,7 @@ SensEdu_DAC_Settings* get_settings(DAC_TypeDef* dac) {
     }
 }
 
-DAC_ERROR check_settings(SensEdu_DAC_Settings* settings) {
+static DAC_ERROR check_settings(SensEdu_DAC_Settings* settings) {
     if (settings->dac != DAC1 && settings->dac != DAC2) {
         return DAC_ERROR_INIT_FAILED;
     } else if (settings->mem_address == 0x0000) {

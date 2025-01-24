@@ -20,14 +20,7 @@ typedef enum {
 } SENSEDU_ERROR;
 
 SENSEDU_ERROR SensEdu_GetError(void);
-void SensEdu_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq, SENSEDU_ADC_DMA adc_dma);
 
-void SensEdu_ADC_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq, SENSEDU_ADC_DMA adc_dma);
-void SensEdu_ADC_Enable(ADC_TypeDef* ADC);
-void SensEdu_ADC_Disable(ADC_TypeDef* ADC);
-void SensEdu_ADC_Start(ADC_TypeDef* ADC);
-uint16_t* SensEdu_ADC_Read(ADC_TypeDef* ADC);
-uint8_t get_msg();
 
 #ifdef __cplusplus
 }

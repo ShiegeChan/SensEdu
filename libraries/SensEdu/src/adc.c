@@ -8,53 +8,77 @@ typedef struct {
     uint32_t preselection;
 } channel;
 
+typedef struct {
+    volatile uint8_t eoc_flag;  // End of Conversion flags
+    uint16_t sequence_data[16]; // software polling data storage
+} adc_data;
+
 
 /* -------------------------------------------------------------------------- */
 /*                                  Variables                                 */
 /* -------------------------------------------------------------------------- */
 static ADC_ERROR error = ADC_ERROR_NO_ERRORS;
-static uint8_t adc_flag = 0;
 
-uint8_t adc_msg = 0;
+static SensEdu_ADC_Settings ADC1_Settings = {ADC1, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
+static SensEdu_ADC_Settings ADC2_Settings = {ADC2, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
 
-ADC_Settings ADC1_Settings = {0, 0, SENSEDU_ADC_MODE_ONE_SHOT, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
-ADC_Settings ADC2_Settings = {0, 0, SENSEDU_ADC_MODE_ONE_SHOT, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
+static adc_data adc1_data;
+static adc_data adc2_data;
 
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
+SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* ADC);
+adc_data* get_adc_data(ADC_TypeDef* ADC);
+static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings);
 void configure_pll2(void);
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, SENSEDU_ADC_DMA adc_dma);
+void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_CONVMODE mode, SENSEDU_ADC_DMA adc_dma);
 channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC);
 
 
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
-ADC_ERROR ADC_GetError(void) {
-    return error;
-}
+void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings) {
 
-void ADC_InitPeriph(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, SENSEDU_ADC_DMA adc_dma) {
-    if (ADC != ADC1 && ADC != ADC2) {
-        error = ADC_ERROR_WRONG_ADC; // you can only use ADC1 or ADC2
-        return;
+    // Sanity checks
+    error = check_settings(adc_settings);
+
+    // Store settings locally
+    SensEdu_ADC_Settings* settings = get_adc_settings(adc_settings->adc);
+    *settings = *adc_settings;
+
+    // Init flags and storage
+    get_adc_data(adc_settings->adc)->eoc_flag = 0;
+
+    // Init TIMER, Clock and ADC
+    TIMER_ADC1Init();
+    configure_pll2();
+    adc_init(adc_settings->adc, adc_settings->pins, adc_settings->pin_num, 
+        adc_settings->conv_mode, adc_settings->dma_mode);
+
+    // timer setttings if in timer triggered mode
+    if (adc_settings->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
+        TIMER_ADC1SetFreq(adc_settings->sampling_freq);
     }
 
-    ADC_GetSettings(ADC)->conv_length = adc_pin_num;
-    ADC_GetSettings(ADC)->adc_pins = arduino_pins;
-    ADC_GetSettings(ADC)->eoc_flag = 0;
-    ADC_GetSettings(ADC)->mode = mode;
-    ADC_GetSettings(ADC)->dma_mode = adc_dma;
-
-    configure_pll2();
-    adc_init(ADC, arduino_pins, adc_pin_num, mode, adc_dma);
-
-    // End of conversion of a regular group EOC EOCIE
+    // dma settings if in dma mode
+    if (adc_settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
+        if (adc_settings->adc == ADC1) {
+            DMA_ADC1Init(adc_settings->mem_address, adc_settings->mem_size);
+        } else {
+            //DMA_ADC2Init();
+        }
+    }
 }
 
-void ADC_EnablePeriph(ADC_TypeDef* ADC) {
+void SensEdu_ADC_Enable(ADC_TypeDef* ADC) {
+    // enable timer if in timer triggered mode
+    if (get_adc_settings(ADC)->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
+        TIMER_ADC1Enable();
+    }
+
     // clear ready bit
     SET_BIT(ADC->ISR, ADC_ISR_ADRDY);
     
@@ -68,7 +92,7 @@ void ADC_EnablePeriph(ADC_TypeDef* ADC) {
     }
 }
 
-void ADC_DisablePeriph(ADC_TypeDef* ADC) {
+void SensEdu_ADC_Disable(ADC_TypeDef* ADC) {
     // check if conversion is ongoing
     if (READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
         SET_BIT(ADC->CR, ADC_CR_ADSTP); // stop conversion
@@ -81,38 +105,83 @@ void ADC_DisablePeriph(ADC_TypeDef* ADC) {
 
     SET_BIT(ADC->CR, ADC_CR_ADDIS);
     while(READ_BIT(ADC->CR, ADC_CR_ADEN));
+
+    // disable DMA
+    if (get_adc_settings(ADC)->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
+        TIMER_ADC1Disable();
+    }
 }
 
-void ADC_StartConversion(ADC_TypeDef* ADC) {
+void SensEdu_ADC_Start(ADC_TypeDef* ADC) {
+    // enable DMA
+    if (get_adc_settings(ADC)->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
+        DMA_ADC1Enable();
+    }
+
+    // start conversions
     SET_BIT(ADC->CR, ADC_CR_ADSTART);
 }
 
-uint16_t* ADC_ReadSingleSequence(ADC_TypeDef* ADC) {
-    ADC_Settings* settings = ADC_GetSettings(ADC);
+// Software Polling (slow alternative to DMA transfers)
+uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC) {
+    SensEdu_ADC_Settings* settings = get_adc_settings(ADC);
+    adc_data* data = get_adc_data(ADC);
 
-    for (uint8_t i = 0; i < settings->conv_length; i++) {
-        settings->eoc_flag = 0;
-        while(!(settings->eoc_flag));
-        settings->sequence_data[i] = READ_REG(ADC->DR);
+    for (uint8_t i = 0; i < settings->pin_num; i++) {
+        data->eoc_flag = 0;
+        while(!(data->eoc_flag));
+        data->sequence_data[i] = READ_REG(ADC->DR);
     }
     
-    return settings->sequence_data;
+    return data->sequence_data;
 }
 
-ADC_Settings* ADC_GetSettings(ADC_TypeDef* ADC) {
-    if (ADC = ADC1) {
-        return &ADC1_Settings;
-    } else {
-        return &ADC2_Settings;
-    }
+ADC_ERROR ADC_GetError(void) {
+    return error;
 }
 
 
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
-uint8_t get_adc_msg() {
-    return adc_msg;
+SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* ADC) {
+    if (ADC == ADC1) {
+        return &ADC1_Settings;
+    } else if (ADC == ADC2) {
+        return &ADC2_Settings;
+    }
+}
+
+adc_data* get_adc_data(ADC_TypeDef* ADC) {
+    if (ADC == ADC1) {
+        return &adc1_data;
+    } else if (ADC == ADC2) {
+        return &adc2_data;
+    }
+}
+
+static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings) {
+    if (settings->adc != ADC1 && settings->adc != ADC2) {
+        return ADC_ERROR_WRONG_ADC; // you can only use ADC1 or ADC2
+    } 
+
+    if (settings->pin_num < 1) {
+        return ADC_ERROR_WRONG_INIT_SETTINGS_PARAMETERS;
+    } 
+
+    if (settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
+        if (settings->mem_address == 0x0000 || settings->mem_size == 0) {
+            return ADC_ERROR_WRONG_INIT_SETTINGS_PARAMETERS;
+        }
+    }
+
+    if (settings->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
+        if (settings->sampling_freq < 1000) {
+            return ADC_ERROR_BAD_SAMPLING_FREQ;
+        }
+    } 
+
+    return ADC_ERROR_NO_ERRORS;
 }
 
 void configure_pll2(void) {
@@ -158,7 +227,7 @@ void configure_pll2(void) {
     SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
 }
 
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, SENSEDU_ADC_DMA adc_dma) {
+void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_CONVMODE mode, SENSEDU_ADC_DMA adc_dma) {
 
     if (READ_BIT(ADC->CR, ADC_CR_ADCAL | ADC_CR_JADSTART | ADC_CR_ADSTART | ADC_CR_ADSTP | ADC_CR_ADDIS | ADC_CR_ADEN)) {
         error = ADC_ERROR_ADC_CONFIG_VOLTAGE_REGULATOR;
@@ -451,11 +520,11 @@ void set_adc_channel_sample_time(ADC_TypeDef* ADC, uint8_t sample_time, uint8_t 
 void ADC_IRQHandler(void) {
     if (READ_BIT(ADC1->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC1->ISR, ADC_ISR_EOC);
-        ADC1_Settings.eoc_flag = 1;
+        adc1_data.eoc_flag = 1;
     }
     
     if (READ_BIT(ADC2->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC2->ISR, ADC_ISR_EOC);
-        ADC2_Settings.eoc_flag = 1;
+        adc2_data.eoc_flag = 1;
     }
 }

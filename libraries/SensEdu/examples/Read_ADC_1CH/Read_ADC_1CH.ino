@@ -8,7 +8,16 @@ uint32_t lib_error = 0;
 ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 1;
 uint8_t adc_pins[adc_pin_num] = {A0};
-
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = adc_pins,
+    .pin_num = adc_pin_num,
+    .conv_mode = SENSEDU_ADC_MODE_CONT,
+    .sampling_freq = 0,
+    .dma_mode = SENSEDU_ADC_DMA_DISCONNECT,
+    .mem_address = 0x0000,
+    .mem_size = 0
+};
 uint8_t led = D2; // test with any digital pin (e.g. D2) or led (LED_BUILTIN)
 
 /* -------------------------------------------------------------------------- */
@@ -22,7 +31,7 @@ void setup() {
     }
     Serial.println("Started Initialization...");
     
-    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000, SENSEDU_ADC_DMA_DISCONNECT); // timer triggering is off and frequency is ignored
+    SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
 
@@ -43,7 +52,7 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    uint16_t* temp = SensEdu_ADC_Read(adc);
+    uint16_t* temp = SensEdu_ADC_ReadSingleSequence(adc);
     Serial.println(temp[0]);
 
     if (digitalRead(led) == HIGH) {
