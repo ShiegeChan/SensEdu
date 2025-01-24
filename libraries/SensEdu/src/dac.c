@@ -50,21 +50,16 @@ void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings) {
 
 void SensEdu_DAC_Enable(DAC_TypeDef* dac) {
     DMA_DAC1Enable();
+
     SET_BIT(dac->CR, DAC_CR_EN1);
-    if (dac == DAC1) {
-        //DMA_DAC1Enable();
-    } else if (dac == DAC2) {
-        //DMA_DAC2Enable();
-    }
+    while(!READ_BIT(dac->CR, DAC_CR_EN1));
 }
 
 void SensEdu_DAC_Disable(DAC_TypeDef* dac) {
     CLEAR_BIT(dac->CR, DAC_CR_EN1);
-    if (dac == DAC1) {
-        DMA_DAC1Disable();
-    } else if (dac == DAC2) {
-        //DMA_DAC2Disable();
-    }
+    while(READ_BIT(dac->CR, DAC_CR_EN1));
+
+    DMA_DAC1Disable();
 }
 
 DAC_ERROR DAC_GetError(void) {
@@ -127,6 +122,9 @@ DAC_ERROR check_settings(SensEdu_DAC_Settings* settings) {
         return DAC_ERROR_INIT_FAILED;
     } else if (settings->mem_address == 0) {
         return DAC_ERROR_INIT_FAILED;
+    } else if (settings->wave_mode == SENSEDU_DAC_MODE_BURST_WAVE && settings->burst_num < 1) {
+        settings->burst_num = 1; // be careful not to stuck in interrupt
+        return DAC_ERROR_INIT_FAILED;
     }
 
     return DAC_ERROR_NO_ERRORS;
@@ -150,24 +148,12 @@ void DAC_IRQHandler(void) {
 // TODO: make it flexible for all DACs
 // maybe rewrite to be only for ch1 for speed
 void DAC_TransferCompleteDMAinterrupt(DAC_TypeDef* dac) {
-    /*
-    switch (get_settings(dac)->wave_mode) {
-        case SENSEDU_DAC_MODE_CONTINUOUS_WAVE:
-            // do nothing
-            break;
-        case SENSEDU_DAC_MODE_SINGLE_WAVE:
-            SensEdu_DAC_Disable(DAC1);
-            break;
-        case SENSEDU_DAC_MODE_BURST_WAVE:
-            dac_transfer_cnt++;
-            if (dac_transfer_cnt == get_settings(dac)->burst_num) {
-                dac_transfer_cnt = 0;
-                SensEdu_DAC_Disable(DAC1);
-            }
-            break;
-        default:
-            error = DAC_ERROR_WRONG_MODE;
+    if (get_settings(dac)->wave_mode == SENSEDU_DAC_MODE_BURST_WAVE) {
+        dac_transfer_cnt++;
+        if (dac_transfer_cnt == get_settings(dac)->burst_num) {
+            dac_transfer_cnt = 0;
+        } else {
+            SensEdu_DAC_Enable(DAC1);
+        }
     }
-    */
-    SensEdu_DAC_Disable(DAC1);
 }

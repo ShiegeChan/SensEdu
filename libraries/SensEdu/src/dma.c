@@ -12,10 +12,10 @@ typedef struct {
 /* -------------------------------------------------------------------------- */
 /*                                  Variables                                 */
 /* -------------------------------------------------------------------------- */
-static DMA_Flags dma_ch4_flags = {(DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4), (DMA_HISR_TCIF4 | DMA_HISR_HTIF4 | DMA_HISR_TEIF4 | DMA_HISR_DMEIF4 | DMA_HISR_FEIF4)};
-static DMA_Flags dma_ch5_flags = {(DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5 | DMA_HIFCR_CTEIF5), (DMA_HISR_TCIF5 | DMA_HISR_HTIF5 | DMA_HISR_TEIF5 | DMA_HISR_DMEIF5 | DMA_HISR_FEIF5)};
-static DMA_Flags dma_ch6_flags = {(DMA_HIFCR_CTCIF6 | DMA_HIFCR_CHTIF6 | DMA_HIFCR_CTEIF6), (DMA_HISR_TCIF6 | DMA_HISR_HTIF6 | DMA_HISR_TEIF6 | DMA_HISR_DMEIF6 | DMA_HISR_FEIF6)};
-static DMA_Flags dma_ch7_flags = {(DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIFCR_CTEIF7), (DMA_HISR_TCIF7 | DMA_HISR_HTIF7 | DMA_HISR_TEIF7 | DMA_HISR_DMEIF7 | DMA_HISR_FEIF7)};
+static DMA_Flags dma_ch4_flags = {(DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4), (DMA_HISR_TCIF4 | DMA_HISR_HTIF4 | DMA_HISR_TEIF4 | DMA_HISR_DMEIF4)};
+static DMA_Flags dma_ch5_flags = {(DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5 | DMA_HIFCR_CTEIF5), (DMA_HISR_TCIF5 | DMA_HISR_HTIF5 | DMA_HISR_TEIF5 | DMA_HISR_DMEIF5)};
+static DMA_Flags dma_ch6_flags = {(DMA_HIFCR_CTCIF6 | DMA_HIFCR_CHTIF6 | DMA_HIFCR_CTEIF6), (DMA_HISR_TCIF6 | DMA_HISR_HTIF6 | DMA_HISR_TEIF6 | DMA_HISR_DMEIF6)};
+static DMA_Flags dma_ch7_flags = {(DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIFCR_CTEIF7), (DMA_HISR_TCIF7 | DMA_HISR_HTIF7 | DMA_HISR_TEIF7 | DMA_HISR_DMEIF7)};
 
 static volatile DMA_ERROR error = DMA_ERROR_NO_ERRORS;
 static volatile uint8_t adc1_transfer_status = 0;       // flag for adc finished transfer
@@ -84,10 +84,11 @@ void DMA_ADC1Enable(void) {
 }
 
 void DMA_DAC1Enable(void) {
-    if (!READ_BIT(DMA1_Stream7->CR, DMA_SxCR_EN)) {
-        dma_clear_status_flags(dma_ch7_flags);
+    if (READ_BIT(DMA1_Stream7->CR, DMA_SxCR_EN)) {
+        error = DMA_ERROR_ENABLED_BEFORE_ENABLE;
     } 
 
+    dma_clear_status_flags(dma_ch7_flags);
     SET_BIT(DMA1_Stream7->CR, DMA_SxCR_EN);
 }
 
@@ -190,24 +191,23 @@ void dma_dac1_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq,
 
     // Memory data register address
     WRITE_REG(dma_stream->M0AR, mem_address);
+
+    // Disable FIFO
+    CLEAR_BIT(dma_stream->FCR, DMA_SxFCR_DMDIS);  
 }
 
 void dma_clear_status_flags(DMA_Flags dma_flags) {
     SET_BIT(DMA1->HIFCR, dma_flags.clear_flags);
 
-    // wait till flags are clean
-    for (uint16_t i = 0; i < 10000; i++) {
-        if (!READ_BIT(DMA1->HISR, dma_flags.flags)) {
-            return;
-        }
-    }
-
-    //error = DMA_ERROR_INTERRUPTS_NOT_CLEARED;
+    if (READ_BIT(DMA1->HISR, dma_flags.flags)) {
+        error = DMA_ERROR_INTERRUPTS_NOT_CLEARED;
+    }    
 }
 
 void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags flags) {
     CLEAR_BIT(dma_stream->CR, DMA_SxCR_EN);
     while(READ_BIT(dma_stream->CR, DMA_SxCR_EN));
+
     dma_clear_status_flags(flags);
 }
 
@@ -231,7 +231,6 @@ void DMA1_Stream7_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF7)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF7);
         DAC_TransferCompleteDMAinterrupt(DAC1);
-        
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF7)) {

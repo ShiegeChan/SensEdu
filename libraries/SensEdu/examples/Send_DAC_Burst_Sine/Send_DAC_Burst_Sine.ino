@@ -7,7 +7,7 @@ uint32_t lib_error = 0;
 /* -------------------------------------------------------------------------- */
 
 // how many LUT repeats for one DAC transfer
-const uint16_t dac_cycle_num = 10;
+const uint16_t dac_cycle_num = 5;
 
 // DAC transfered symbols
 const uint16_t sine_lut[] = {
@@ -23,14 +23,16 @@ const size_t sine_lut_size = sizeof(sine_lut) / sizeof(sine_lut[0]);
 /* -------------------------------------------------------------------------- */
 void setup() {
     Serial.begin(115200);
-    while (!Serial);
 
     SensEdu_TIMER_Init();
 
-    DAC_InitPeriph();
-    DAC_EnablePeriph();
+    // TODO: rewrite it to show argument names
+    SensEdu_DAC_Settings dac1_settings = {DAC1, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
+        SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num};
 
-    TIMER_DACtrigger_SetFreq(32*64);
+    SensEdu_DAC_Init(&dac1_settings);
+
+    TIMER_DACtrigger_SetFreq(32000*64);
     TIMER_DACtrigger_Enable();
 
     lib_error = SensEdu_GetError();
@@ -47,15 +49,8 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    //Serial.println(TIM4->CNT);
 
-    for (uint16_t j = 0; j < dac_cycle_num; j++) {
-        for (uint16_t i = 0; i < sine_lut_size; i++) {
-            DAC_WriteData(sine_lut[i]);
-            SensEdu_Delay_us(1000);
-        }
-    }
-    Serial.println("Wave sent!");
+    SensEdu_DAC_Enable(DAC1);
     
     // check errors
     lib_error = SensEdu_GetError();
@@ -65,10 +60,5 @@ void loop() {
         Serial.println(lib_error, HEX);
     }
 
-    // burst pause
     delay(100);
 }
-
-/* -------------------------------------------------------------------------- */
-/*                                  Functions                                 */
-/* -------------------------------------------------------------------------- */
