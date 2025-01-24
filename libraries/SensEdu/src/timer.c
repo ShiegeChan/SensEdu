@@ -5,7 +5,7 @@
 /* -------------------------------------------------------------------------- */
 
 #define TIM_FREQ        240000000
-#define DAC_PRESC_FREQ  120000000
+#define DAC_PRESC_FREQ  120000000       // Desired freq after prescaler for DAC
 
 static const uint32_t freq_reference = 10000000;
 static const uint32_t allowed_freqs[] = {10000000, 5000000, 2500000, 2000000, 1250000, 1000000, 625000, 500000,
@@ -20,40 +20,58 @@ static volatile uint8_t delay_flag = 0;
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
-void tim1_init(void);
-void tim2_init(void);
-void tim4_init(void);
+void tim1_adc1_init(void);
+void tim2_delay_init(void);
+void tim4_dac1_init(void);
 
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
 
-TIMER_ERROR TIMER_GetError(void) {
-    return error;
+void SensEdu_TIMER_DelayInit(void) {
+    tim2_delay_init();
 }
 
-void TIMER_Init(void) {
-    tim4_init();
-    tim2_init();
-    tim1_init();
-}
-
-// check if it works as intended with oscilloscope
-void TIMER_Delay_us(uint32_t delay_value) {
+void SensEdu_TIMER_Delay_us(uint32_t delay_value) {
     delay_flag = 1;
-
-    WRITE_REG(TIM2->CNT, 0U);
     WRITE_REG(TIM2->ARR, delay_value);
+    WRITE_REG(TIM2->CNT, 0U);
     SET_BIT(TIM2->CR1, TIM_CR1_CEN);
     while(delay_flag == 1);
 }
 
-void TIMER_ADCtrigger_Enable(void) {
+TIMER_ERROR TIMER_GetError(void) {
+    return error;
+}
+
+void TIMER_ADC1Init(void) {
+    tim1_adc1_init();
+}
+
+void TIMER_DAC1Init(uint32_t freq) {
+    tim4_dac1_init();
+    TIMER_DAC1SetFreq(freq);
+}
+
+void TIMER_ADC1Enable(void) {
     WRITE_REG(TIM1->CNT, 0U);
     SET_BIT(TIM1->CR1, TIM_CR1_CEN);
 }
 
-void TIMER_ADCtrigger_SetFreq(uint32_t freq) {
+void TIMER_DAC1Enable(void) {
+    WRITE_REG(TIM4->CNT, 0U);
+    SET_BIT(TIM4->CR1, TIM_CR1_CEN);
+}
+
+void TIMER_ADC1Disable(void) {
+    CLEAR_BIT(TIM1->CR1, TIM_CR1_CEN);
+}
+
+void TIMER_DAC1Disable(void) {
+    CLEAR_BIT(TIM4->CR1, TIM_CR1_CEN);
+}
+
+void TIMER_ADC1SetFreq(uint32_t freq) {
     int32_t freq_diff = 2147483647; // max int32 value
     uint8_t closest_freq_index = 0;
     for (uint8_t i = 0; i < sizeof(allowed_freqs)/sizeof(allowed_freqs[0]); i++) {
@@ -69,16 +87,7 @@ void TIMER_ADCtrigger_SetFreq(uint32_t freq) {
     WRITE_REG(TIM1->ARR, (freq_reference/sampling_rate));
 }
 
-void TIMER_DACtrigger_Enable(void) {
-    WRITE_REG(TIM4->CNT, 0U);
-    SET_BIT(TIM4->CR1, TIM_CR1_CEN);
-}
-
-void TIMER_DACtrigger_Disable(void) {
-    CLEAR_BIT(TIM4->CR1, TIM_CR1_CEN);
-}
-
-void TIMER_DACtrigger_SetFreq(uint32_t freq) {
+void TIMER_DAC1SetFreq(uint32_t freq) {
     if (freq < 0 || freq > (DAC_PRESC_FREQ/2)) {
         // minimum ARR is 1
         error = TIMER_ERROR_TIM4_BAD_SET_FREQUENCY;
@@ -93,11 +102,11 @@ void TIMER_DACtrigger_SetFreq(uint32_t freq) {
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
-void tim1_init(void) {
-    // Enable clock on TIM1 from APB2
+void tim1_adc1_init(void) {
+    // Clock
     SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM1EN);
 
-    // frequency settings
+    // Frequency settings
     WRITE_REG(TIM1->PSC, 24U-1U); // 0.1us step (10MHz as reference)
     TIMER_ADCtrigger_SetFreq(allowed_freqs[0]); // default max freq
 
@@ -105,11 +114,11 @@ void tim1_init(void) {
     MODIFY_REG(TIM1->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
 }
 
-void tim2_init() {
-    // Enable clock on TIM2 from APB1
+void tim2_delay_init() {
+    // Clock
     SET_BIT(RCC->APB1LENR, RCC_APB1LENR_TIM2EN);
 
-    // prescaler
+    // Frequency settings
     WRITE_REG(TIM2->PSC, 240U-1U); // timer clock = 240MHz
 
     // timer turns off after one cycle
@@ -121,7 +130,7 @@ void tim2_init() {
     NVIC_EnableIRQ(TIM2_IRQn);
 }
 
-void tim4_init() {
+void tim4_dac1_init() {
     // Clock
     SET_BIT(RCC->APB1LENR, RCC_APB1LENR_TIM4EN);
 
@@ -131,10 +140,6 @@ void tim4_init() {
 
     // update event is trigger output
     MODIFY_REG(TIM4->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
-    
-    //SET_BIT(TIM4->DIER, TIM_DIER_UIE); // update event
-    //NVIC_SetPriority(TIM4_IRQn, 3);
-    //NVIC_EnableIRQ(TIM4_IRQn);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -145,11 +150,5 @@ void TIM2_IRQHandler(void) {
     if (READ_BIT(TIM2->SR, TIM_SR_UIF)) {
         CLEAR_BIT(TIM2->SR, TIM_SR_UIF);
         delay_flag = 0;
-    }
-}
-
-void TIM4_IRQHandler(void) {
-    if (READ_BIT(TIM4->SR, TIM_SR_UIF)) {
-        CLEAR_BIT(TIM4->SR, TIM_SR_UIF);
     }
 }

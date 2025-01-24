@@ -9,7 +9,8 @@ void check_board();
 /* General*/
 void SensEdu_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq, SENSEDU_ADC_DMA adc_dma) {
     check_board();
-    SensEdu_TIMER_Init();
+    TIMER_ADC1Init();
+    SensEdu_TIMER_DelayInit();
     SensEdu_ADC_Init(ADC, adc_pins, adc_pin_num, mode, trigger_freq, adc_dma);
 }
 
@@ -40,16 +41,6 @@ SENSEDU_ERROR SensEdu_GetError(void) {
     }
 
     return error;
-}
-
-/* Timer */
-void SensEdu_TIMER_Init(void) {
-    check_board();
-    TIMER_Init();
-}
-
-void SensEdu_Delay_us(uint32_t delay_value) {
-    TIMER_Delay_us(delay_value);
 }
 
 /* ADC */
@@ -92,22 +83,6 @@ uint16_t* SensEdu_ADC_Read(ADC_TypeDef* ADC) {
 
 uint8_t get_msg() {
     return get_adc_msg();
-}
-
-/* DMA */
-void SensEdu_DMA_Init(uint16_t* mem_address, const uint16_t mem_size) {
-    DMA_ADCInitPeriph(mem_address, mem_size);
-}
-
-void SensEdu_DMA_Enable(uint16_t* mem_address, const uint16_t mem_size) {
-    DMA_ADCEnablePeriph(mem_address, mem_size);
-}
-
-uint8_t SensEdu_DMA_GetTransferStatus(void) {
-    return DMA_GetTransferStatus();
-}
-void SensEdu_DMA_ClearTransferStatus() {
-    DMA_ClearTransferStatus();
 }
 
 /* local */

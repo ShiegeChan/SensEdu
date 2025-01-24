@@ -12,14 +12,18 @@ typedef enum {
     TIMER_ERROR_TIM4_BAD_SET_FREQUENCY = 0x01
 } TIMER_ERROR;
 
+void SensEdu_TIMER_DelayInit(void);
+void SensEdu_TIMER_Delay_us(uint32_t delay_value);
+
 TIMER_ERROR TIMER_GetError(void);
-void TIMER_Init(void);
-void TIMER_Delay_us(uint32_t delay_value);
-void TIMER_ADCtrigger_SetFreq(uint32_t freq);
-void TIMER_ADCtrigger_Enable(void);
-void TIMER_DACtrigger_Enable(void);
-void TIMER_DACtrigger_Disable(void);
-void TIMER_DACtrigger_SetFreq(uint32_t freq);
+void TIMER_ADC1Init(void);
+void TIMER_DAC1Init(uint32_t freq);
+void TIMER_ADC1Enable(void);
+void TIMER_DAC1Enable(void);
+void TIMER_ADC1Disable(void);
+void TIMER_DAC1Disable(void);
+void TIMER_ADC1SetFreq(uint32_t freq);
+void TIMER_DAC1SetFreq(uint32_t freq);
 
 
 #ifdef __cplusplus

@@ -24,16 +24,11 @@ const size_t sine_lut_size = sizeof(sine_lut) / sizeof(sine_lut[0]);
 void setup() {
     Serial.begin(115200);
 
-    SensEdu_TIMER_Init();
-
     // TODO: rewrite it to show argument names
     SensEdu_DAC_Settings dac1_settings = {DAC1, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
         SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num};
 
     SensEdu_DAC_Init(&dac1_settings);
-
-    TIMER_DACtrigger_SetFreq(32000*64);
-    TIMER_DACtrigger_Enable();
 
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {

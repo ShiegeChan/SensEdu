@@ -11,7 +11,7 @@ static SensEdu_DAC_Settings dac1_settings = {DAC1, 1000000, 0x0000, 0,
     SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
 static SensEdu_DAC_Settings dac2_settings = {DAC2, 1000000, 0x0000, 0, 
     SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
-static volatile uint16_t dac_transfer_cnt = 0;          // current written wave cycle to dac
+static volatile uint16_t dac_transfer_cnt = 0;  // current written wave cycle to dac
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
@@ -24,8 +24,8 @@ DAC_ERROR check_settings(SensEdu_DAC_Settings* settings);
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
-// TODO: add timer here too
 void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings) {
+    // Storing settings
     if (dac_settings->dac == DAC1) {
         dac1_settings = *dac_settings;
     } else if (dac_settings->dac == DAC2) {
@@ -35,17 +35,23 @@ void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings) {
         return;
     }
 
+    // Sanity checks
     if (check_settings(dac_settings) != DAC_ERROR_NO_ERRORS) {
         error = DAC_ERROR_INIT_FAILED;
         return;
     }
 
+    // Timer + DAC + DMA
+    TIMER_DAC1Init(dac_settings->sampling_freq);
     dac_init(dac_settings->dac);
     if (dac_settings->dac == DAC1) {
         DMA_DAC1Init(dac_settings->mem_address, dac_settings->mem_size, dac_settings->wave_mode);
     } else if (dac_settings->dac == DAC2) {
         //DMA_DAC2Init(mem_address, mem_size);
     }
+
+    // Enable Timer (it always runs even if dac/dma is off)
+    TIMER_DAC1Enable();
 }
 
 void SensEdu_DAC_Enable(DAC_TypeDef* dac) {
