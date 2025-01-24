@@ -11,6 +11,7 @@ static SensEdu_DAC_Settings dac1_settings = {DAC1, 1000000, 0x0000, 0,
     SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
 static SensEdu_DAC_Settings dac2_settings = {DAC2, 1000000, 0x0000, 0, 
     SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
+static volatile uint16_t dac_transfer_cnt = 0;          // current written wave cycle to dac
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
@@ -41,31 +42,29 @@ void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings) {
 
     dac_init(dac_settings->dac);
     if (dac_settings->dac == DAC1) {
-        DMA_DAC1Init(dac_settings->mem_address, dac_settings->mem_size);
+        DMA_DAC1Init(dac_settings->mem_address, dac_settings->mem_size, dac_settings->wave_mode);
     } else if (dac_settings->dac == DAC2) {
         //DMA_DAC2Init(mem_address, mem_size);
     }
 }
 
 void SensEdu_DAC_Enable(DAC_TypeDef* dac) {
+    DMA_DAC1Enable();
     SET_BIT(dac->CR, DAC_CR_EN1);
     if (dac == DAC1) {
-        DMA_DAC1Enable();
+        //DMA_DAC1Enable();
     } else if (dac == DAC2) {
         //DMA_DAC2Enable();
     }
 }
 
 void SensEdu_DAC_Disable(DAC_TypeDef* dac) {
+    CLEAR_BIT(dac->CR, DAC_CR_EN1);
     if (dac == DAC1) {
         DMA_DAC1Disable();
-        //DAC1->DHR12R1 = 0U; TODO: investigate the end of dac waves, do they need extra zero?
     } else if (dac == DAC2) {
         //DMA_DAC2Disable();
-        //DAC2->DHR12R1 = 0U;
     }
-
-    CLEAR_BIT(dac->CR, DAC_CR_EN1);
 }
 
 DAC_ERROR DAC_GetError(void) {
@@ -133,7 +132,6 @@ DAC_ERROR check_settings(SensEdu_DAC_Settings* settings) {
     return DAC_ERROR_NO_ERRORS;
 }
 
-
 /* -------------------------------------------------------------------------- */
 /*                                 Interrupts                                 */
 /* -------------------------------------------------------------------------- */
@@ -147,4 +145,29 @@ void DAC_IRQHandler(void) {
         SET_BIT(DAC2->SR, DAC_SR_DMAUDR1);
         error = DAC_ERROR_DMA_UNDERRUN;
     }
+}
+
+// TODO: make it flexible for all DACs
+// maybe rewrite to be only for ch1 for speed
+void DAC_TransferCompleteDMAinterrupt(DAC_TypeDef* dac) {
+    /*
+    switch (get_settings(dac)->wave_mode) {
+        case SENSEDU_DAC_MODE_CONTINUOUS_WAVE:
+            // do nothing
+            break;
+        case SENSEDU_DAC_MODE_SINGLE_WAVE:
+            SensEdu_DAC_Disable(DAC1);
+            break;
+        case SENSEDU_DAC_MODE_BURST_WAVE:
+            dac_transfer_cnt++;
+            if (dac_transfer_cnt == get_settings(dac)->burst_num) {
+                dac_transfer_cnt = 0;
+                SensEdu_DAC_Disable(DAC1);
+            }
+            break;
+        default:
+            error = DAC_ERROR_WRONG_MODE;
+    }
+    */
+    SensEdu_DAC_Disable(DAC1);
 }

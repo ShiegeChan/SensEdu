@@ -5,14 +5,15 @@
 extern "C" {
 #endif
 
-#include "SensEdu.h"
+#include "libs.h"
 
 typedef enum {
     DAC_ERROR_NO_ERRORS = 0x00,
     DAC_ERROR_INIT_FAILED = 0x01,
     DAC_ERROR_WRONG_CHANNEL = 0x02,
     DAC_ERROR_DMA_UNDERRUN = 0x03,
-    DAC_ERROR_ENABLED_BEFORE_INIT = 0x04
+    DAC_ERROR_ENABLED_BEFORE_INIT = 0x04,
+    DAC_ERROR_WRONG_MODE = 0x05
 } DAC_ERROR;
 
 typedef enum {
@@ -37,6 +38,8 @@ void SensEdu_DAC_Disable(DAC_TypeDef* dac);
 DAC_ERROR DAC_GetError(void);
 void DAC_WriteDataManually(DAC_TypeDef* dac, uint16_t data);
 uint16_t DAC_ReadCurrentOutputData(DAC_TypeDef* dac);
+
+void DAC_TransferCompleteDMAinterrupt(DAC_TypeDef* dac);
 
 
 #ifdef __cplusplus

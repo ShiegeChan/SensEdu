@@ -5,28 +5,11 @@
 extern "C" {
 #endif
 
-#include <Arduino.h>
-
-#include "stm32h747xx.h"
-#include "stm32h7xx_ll_tim.h"
-#include "stm32h7xx_ll_bus.h"
-#include "stm32h7xx_ll_system.h"
-#include "stm32h7xx_ll_utils.h"
-#include "stm32h7xx_ll_gpio.h"
-#include "stm32h7xx_ll_exti.h"
-#include "stm32h7xx_ll_cortex.h"
-#include "stm32h7xx_ll_rcc.h"
-#include "stm32h7xx_ll_pwr.h"
-
+#include "libs.h"
+#include "adc.h"
 #include "dac.h"
 #include "timer.h"
 #include "dma.h"
-
-// redefine pure analog pins
-#define A8 (86u)
-#define A9 (87u)
-#define A10 (88u)
-#define A11 (89u)
 
 typedef enum {
     SENSEDU_NO_ERRORS = 0x0000,
@@ -35,19 +18,6 @@ typedef enum {
     SENSEDU_ERROR_DMA = 0x3000,
     SENSEDU_ERROR_DAC = 0x4000
 } SENSEDU_ERROR;
-
-typedef enum {
-    SENSEDU_ADC_MODE_ONE_SHOT = 0x01,
-    SENSEDU_ADC_MODE_CONT = 0x02,
-    SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED = 0x03
-} SENSEDU_ADC_MODE;
-
-typedef enum {
-    SENSEDU_ADC_DMA_CONNECT = 0x01,
-    SENSEDU_ADC_DMA_DISCONNECT = 0x02
-} SENSEDU_ADC_DMA;
-
-
 
 SENSEDU_ERROR SensEdu_GetError(void);
 void SensEdu_Init(ADC_TypeDef* ADC, uint8_t* adc_pins, uint8_t adc_pin_num, SENSEDU_ADC_MODE mode, uint32_t trigger_freq, SENSEDU_ADC_DMA adc_dma);

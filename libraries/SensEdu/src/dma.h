@@ -5,7 +5,8 @@
 extern "C" {
 #endif
 
-#include "SensEdu.h"
+#include "libs.h"
+#include "dac.h"
 
 typedef enum {
     DMA_ERROR_NO_ERRORS = 0x00,
@@ -22,7 +23,7 @@ void SensEdu_DMA_ClearADC1TransferStatus(void);
 
 DMA_ERROR DMA_GetError(void);
 void DMA_ADC1Init(uint16_t* mem_address, const uint16_t mem_size);
-void DMA_DAC1Init(uint16_t* mem_address, const uint16_t mem_size);
+void DMA_DAC1Init(uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MODE wave_mode);
 void DMA_ADC1Enable(void);
 void DMA_DAC1Enable(void);
 void DMA_ADC1Disable(void);

@@ -1,7 +1,4 @@
 #include "SensEdu.h"
-#include "timer.h"
-#include "adc.h"
-#include "dma.h"
 
 // RCC is configured by arduino by default with SYSCLK = 480MHz, HCLK = 240MHz, PCLK1/PCLK2 = 120MHz
 
