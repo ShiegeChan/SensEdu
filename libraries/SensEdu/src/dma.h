@@ -16,11 +16,14 @@ typedef enum {
     DMA_ERROR_ADC_INTERRUPT_TRANSFER_ERROR = 0x04,
     DMA_ERROR_DAC_INTERRUPT_TRANSFER_ERROR = 0x05,
     DMA_ERROR_MEMORY_WRONG_SIZE = 0x06,
-    DMA_ERROR_ENABLED_BEFORE_ENABLE = 0x07
+    DMA_ERROR_ENABLED_BEFORE_ENABLE = 0x07,
+    DMA_ERROR_WRONG_INPUT_VALUES = 0x08
 } DMA_ERROR;
 
 uint8_t SensEdu_DMA_GetADC1TransferStatus(void);
+uint8_t SensEdu_DMA_GetADC2TransferStatus(void);
 void SensEdu_DMA_ClearADC1TransferStatus(void);
+void SensEdu_DMA_ClearADC2TransferStatus(void);
 
 DMA_ERROR DMA_GetError(void);
 void DMA_ADC1Init(uint16_t* mem_address, const uint16_t mem_size);

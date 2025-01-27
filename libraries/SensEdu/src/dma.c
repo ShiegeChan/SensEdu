@@ -5,8 +5,14 @@
 /* -------------------------------------------------------------------------- */
 typedef struct {
     uint32_t clear_flags;
-    uint32_t flags
+    uint32_t flags;
 } DMA_Flags;
+
+typedef struct {
+    volatile uint8_t transfer_status;
+    uint16_t* memory_address;
+    uint16_t memory_size;
+} adc;
 
 
 /* -------------------------------------------------------------------------- */
@@ -18,9 +24,11 @@ static DMA_Flags dma_ch6_flags = {(DMA_HIFCR_CTCIF6 | DMA_HIFCR_CHTIF6 | DMA_HIF
 static DMA_Flags dma_ch7_flags = {(DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIFCR_CTEIF7), (DMA_HISR_TCIF7 | DMA_HISR_HTIF7 | DMA_HISR_TEIF7 | DMA_HISR_DMEIF7)};
 
 static volatile DMA_ERROR error = DMA_ERROR_NO_ERRORS;
-static volatile uint8_t adc1_transfer_status = 0;       // flag for adc finished transfer
-static uint16_t* adc1_memory_address = 0x0000;
-static uint16_t adc1_memory_size = 0;
+
+static adc adc1 = {0, (uint16_t*)0x0000, 0};
+static adc adc2 = {0, (uint16_t*)0x0000, 0};
+static adc adc3 = {0, (uint16_t*)0x0000, 0};
+
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
@@ -38,11 +46,11 @@ void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags flags);
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
 uint8_t SensEdu_DMA_GetADC1TransferStatus(void) {
-    return adc1_transfer_status;
+    return adc1.transfer_status;
 }
 
 void SensEdu_DMA_ClearADC1TransferStatus(void) {
-    adc1_transfer_status = 0;
+    adc1.transfer_status = 0;
 }
 
 DMA_ERROR DMA_GetError(void) {
@@ -50,8 +58,8 @@ DMA_ERROR DMA_GetError(void) {
 }
 
 void DMA_ADC1Init(uint16_t* mem_address, const uint16_t mem_size) {
-    adc1_memory_address = mem_address;
-    adc1_memory_size = mem_size;
+    adc1.memory_address = mem_address;
+    adc1.memory_size = mem_size;
 
     dma_adc1_init(DMA1_Stream6, DMA1_Stream6_IRQn, (uint32_t)&(ADC1->DR), (uint32_t)mem_address, mem_size);
     MODIFY_REG(DMAMUX1_Channel6->CCR, DMAMUX_CxCR_DMAREQ_ID, (9U) << DMAMUX_CxCR_DMAREQ_ID_Pos); 
@@ -64,20 +72,19 @@ void DMA_DAC1Init(uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MO
 }
 
 void DMA_ADC1Enable(void) {
-    if (adc1_memory_address == 0x0000 || adc1_memory_size < 1) {
-        error = DMA_ERROR_ADC1_ENABLE_BEFORE_INIT;
+    if (adc1.memory_address == 0x0000 || adc1.memory_size < 1) {
+        error = DMA_ERROR_WRONG_INPUT_VALUES;
     }
 
     // check if the size is the multiple of D-Cache line size (32 words)
     // 16bit - half words -> x2 multiplication
-    if ((adc1_memory_size % (__SCB_DCACHE_LINE_SIZE << 1)) != 0) {
+    if ((adc1.memory_size % (__SCB_DCACHE_LINE_SIZE << 1)) != 0) {
         error = DMA_ERROR_MEMORY_WRONG_SIZE;
         return;
     }
 
     // cache must be invalidated before reading transferred data
-    // second argument in bytes
-    SCB_InvalidateDCache_by_Addr(adc1_memory_address, adc1_memory_size << 1);
+    // second argument in bytes    SCB_InvalidateDCache_by_Addr(adc1.memory_address, adc1.memory_size << 1);
 
     dma_clear_status_flags(dma_ch6_flags);
     SET_BIT(DMA1_Stream6->CR, DMA_SxCR_EN);
@@ -218,7 +225,7 @@ void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags flags) {
 void DMA1_Stream6_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);
-        adc1_transfer_status = 1;
+        adc1.transfer_status = 1;
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF6)) {
