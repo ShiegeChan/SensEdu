@@ -84,7 +84,8 @@ void DMA_ADC1Enable(void) {
     }
 
     // cache must be invalidated before reading transferred data
-    // second argument in bytes    SCB_InvalidateDCache_by_Addr(adc1.memory_address, adc1.memory_size << 1);
+    // second argument in bytes
+    SCB_InvalidateDCache_by_Addr(adc1.memory_address, adc1.memory_size << 1);
 
     dma_clear_status_flags(dma_ch6_flags);
     SET_BIT(DMA1_Stream6->CR, DMA_SxCR_EN);
