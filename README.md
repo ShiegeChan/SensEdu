@@ -25,6 +25,7 @@
 </p>
 </b>
 
+
 ## Features
 
 * **Custom Shield Design** developed for the <a href="https://docs.arduino.cc/hardware/giga-r1-wifi/?queryID=undefined">Arduino GIGA R1 WiFi</a> or compatible boards with a similar form factor, such as the <a href="https://www.infineon.com/cms/en/product/promopages/AURIX-microcontroller-boards/low-cost-arduino-kits/AURIX-TC275-Schieldbuddy-/">AURIX TC275 Schieldbuddy</a>. This shield extends the board's capabilities with various sensors, specifically for communication development purposes:
@@ -35,25 +36,54 @@
 * **Firmware for example projects** showcase how to use multiple sensors to achieve goals such as ultrasonic distance measurements, FSK-modulated ultrasonic communication, FMCR radar measurements, and more.
 * **MATLAB scripts** enable visualization, analysis and processing of data transferred from the MCU to a PC via USB or WiFi.
 
+
 ## Preview
 
 <p align="center" style="margin:0">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/UltraSoundDistanceMeasurements.png?updatedAt=1737387654907" width="49%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/xcorr.png?updatedAt=1737389110433" width="49%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/WiFi_comms.png?updatedAt=1737390371732" width="49%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/ChirpSignalGen.png?updatedAt=1737389611634" width="49%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="49%">
-   <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/EduSense/UltraSoundDistanceMeasurements.png?updatedAt=1737387654907" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/EduSense/xcorr.png?updatedAt=1737389110433" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/EduSense/WiFi_comms.png?updatedAt=1737390371732" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/EduSense/ChirpSignalGen.png?updatedAt=1737389611634" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="49%">
 </p>
+
 
 ## Installation
 
-how to install
+Go to <a href="https://github.com/ShiegeChan/Edusense/releases">Download</a> and install the latest release version. Put *libraries* folder into `C:\Users\your_username\Documents\Arduino\`.
+*Projects* folder could be put anywhere.
 
-## Project start
+Open <a href="https://www.arduino.cc/en/software">Arduino IDE</a> and install *Arduino Giga R1 board package* via boards manager.
 
-how to program
+<p align="left" style="margin:0">
+  <img src="https://ik.imagekit.io/vladysor/EduSense/installation_guide.gif?updatedAt=1737981447785">
+</p>
+<p align="left" style="margin:0">
+  <img src="https://ik.imagekit.io/vladysor/EduSense/boards_manager.png?updatedAt=1737981687217" width="50%">
+</p>
+
+
+## Starting a Project
+
+To get started, you can explore the hardware interface by following the examples provided in the SensEdu library (`Arduino\libraries\SensEdu\examples\`). A detailed description of all functions can be found in the <a href="https://github.com/ShiegeChan/Edusense/releases">Documentation</a> under the "SensEdu Library" section.
+
+In the `projects/` directory, you will find several complete projects designed for this board, including:
+* **Ultrasnoic Distance Measurements** *(in progress)*
+* **Ultrasonic FSK Communication** *(coming soon)*
+* **Chirp Radio Wave Generation** *(coming soon)*
+* **Weather Station** *(coming soon)*
+* **WiFi MATLAB Communication** *(coming soon)*
+
+Detailed explanations for each project are available in the "Projects" section of the <a href="https://github.com/ShiegeChan/Edusense/releases">Documentation</a>.
+
 
 ## Support
 
-fix bugs, new features
+If you would like to contribute, please open a pull request!
+You can also suggest improvements or check already opened <a href="https://github.com/ShiegeChan/Edusense/issues">issues</a> to help fix bugs or add new features.
+
+
+## License
+
+* [**GPL-3.0 license**](https://github.com/ShiegeChan/Edusense/blob/main/LICENSE)
