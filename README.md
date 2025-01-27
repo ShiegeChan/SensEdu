@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://ik.imagekit.io/vladysor/EduSense/SensEdu.png?updatedAt=1737384924374">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/SensEdu.png?updatedAt=1737991670936">
 </p>
 
 <b>
@@ -7,21 +7,21 @@
 </b>
 
 <p align="center">
-  <a href="https://github.com/ShiegeChan/Edusense/releases/">
+  <a href="https://github.com/ShiegeChan/SensEdu/releases/">
     <img src="https://img.shields.io/github/v/release/ShiegeChan/Edusense?include_prereleases" alt="latest release" />
   </a>
-  <a href="https://github.com/ShiegeChan/Edusense/commits/main">
+  <a href="https://github.com/ShiegeChan/SensEdu/commits/main">
     <img src="https://img.shields.io/github/last-commit/ShiegeChan/Edusense" alt="latest commit" />
   </a>
 </p>
 
 <b>
 <p align="center">
-	<a href="https://github.com/ShiegeChan/Edusense/releases">Download</a> · 
-	<a href="https://github.com/ShiegeChan/Edusense/releases">Getting Started</a> · 
-	<a href="https://github.com/ShiegeChan/Edusense/releases">Example Projects</a> · 
-	<a href="https://github.com/ShiegeChan/Edusense/releases">Documentation</a> · 
-	<a href="https://github.com/ShiegeChan/Edusense/releases">Contribution</a>
+	<a href="https://github.com/ShiegeChan/SensEdu/releases">Download</a> · 
+	<a href="https://github.com/ShiegeChan/SensEdu/releases">Getting Started</a> · 
+	<a href="https://github.com/ShiegeChan/SensEdu/releases">Example Projects</a> · 
+	<a href="https://github.com/ShiegeChan/SensEdu/releases">Documentation</a> · 
+	<a href="https://github.com/ShiegeChan/SensEdu/releases">Contribution</a>
 </p>
 </b>
 
@@ -40,50 +40,50 @@
 ## Preview
 
 <p align="center" style="margin:0">
-  <img src="https://ik.imagekit.io/vladysor/EduSense/UltraSoundDistanceMeasurements.png?updatedAt=1737387654907" width="49%">
-  <img src="https://ik.imagekit.io/vladysor/EduSense/xcorr.png?updatedAt=1737389110433" width="49%">
-  <img src="https://ik.imagekit.io/vladysor/EduSense/WiFi_comms.png?updatedAt=1737390371732" width="49%">
-  <img src="https://ik.imagekit.io/vladysor/EduSense/ChirpSignalGen.png?updatedAt=1737389611634" width="49%">
-  <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="49%">
-  <img src="https://ik.imagekit.io/vladysor/EduSense/placeholder.png?updatedAt=1737389517404" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/UltraSoundDistanceMeasurements.png?updatedAt=1737991669929" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/xcorr.png?updatedAt=1737991668627" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/WiFi_comms.png?updatedAt=1737991665342" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/ChirpSignalGen.png?updatedAt=1737991666448" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/placeholder.png?updatedAt=1737991667556" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/placeholder.png?updatedAt=1737991667556" width="49%">
 </p>
 
 
 ## Installation
 
-1. Download the latest release version from the <a href="https://github.com/ShiegeChan/Edusense/releases">Download page</a>.
+1. Download the latest release version from the <a href="https://github.com/ShiegeChan/SensEdu/releases">Download page</a>.
 2. Extract the downloaded files and place the **libraries** folder into: `C:\Users\your_username\Documents\Arduino\`.
-3. The *projects* folder can be placed anywhere in your system.
+3. The **projects** folder can be placed anywhere in your system.
 4. Open the <a href="https://www.arduino.cc/en/software">Arduino IDE</a> and install **Arduino Giga R1 board package** via the Boards Manager.
 
 <p align="left" style="margin:0">
-  <img src="https://ik.imagekit.io/vladysor/EduSense/installation_guide.gif?updatedAt=1737981447785">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/installation_guide.gif?updatedAt=1737991664227">
 </p>
 <p align="left" style="margin:0">
-  <img src="https://ik.imagekit.io/vladysor/EduSense/boards_manager.png?updatedAt=1737981687217" width="50%">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/boards_manager.png?updatedAt=1737991662410" width="50%">
 </p>
 
 
 ## Starting a Project
 
-To get started, you can explore the hardware interface by following the examples provided in the SensEdu library (`Arduino\libraries\SensEdu\examples\`). A detailed description of all functions can be found in the <a href="https://github.com/ShiegeChan/Edusense/releases">Documentation</a> under the "SensEdu Library" section.
+To get started, you can explore the hardware interface by following the examples provided in the SensEdu library (`Arduino\libraries\SensEdu\examples\`). A detailed description of all functions can be found in the <a href="https://github.com/ShiegeChan/SensEdu/releases">Documentation</a> under the "SensEdu Library" section.
 
 In the `projects/` directory, you will find several complete projects designed for this board, including:
-* **Ultrasnoic Distance Measurements** *(in progress)*
+* **Ultrasonic Distance Measurements** *(in progress)*
 * **Ultrasonic FSK Communication** *(coming soon)*
 * **Chirp Radio Wave Generation** *(coming soon)*
 * **Weather Station** *(coming soon)*
 * **WiFi MATLAB Communication** *(coming soon)*
 
-Detailed explanations for each project are available in the "Projects" section of the <a href="https://github.com/ShiegeChan/Edusense/releases">Documentation</a>.
+Detailed explanations for each project are available in the "Projects" section of the <a href="https://github.com/ShiegeChan/SensEdu/releases">Documentation</a>.
 
 
 ## Support
 
 If you would like to contribute, please open a pull request!
-You can also suggest improvements or check already opened <a href="https://github.com/ShiegeChan/Edusense/issues">issues</a> to help fix bugs or add new features.
+You can also suggest improvements or check already opened <a href="https://github.com/ShiegeChan/SensEdu/issues">issues</a> to help fix bugs or add new features.
 
 
 ## License
 
-* [**GPL-3.0 license**](https://github.com/ShiegeChan/Edusense/blob/main/LICENSE)
+* [**GPL-3.0 license**](https://github.com/ShiegeChan/SensEdu/blob/main/LICENSE)
