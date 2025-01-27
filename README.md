@@ -51,10 +51,10 @@
 
 ## Installation
 
-Go to <a href="https://github.com/ShiegeChan/Edusense/releases">Download</a> and install the latest release version. Put *libraries* folder into `C:\Users\your_username\Documents\Arduino\`.
-*Projects* folder could be put anywhere.
-
-Open <a href="https://www.arduino.cc/en/software">Arduino IDE</a> and install *Arduino Giga R1 board package* via boards manager.
+1. Download the latest release version from the <a href="https://github.com/ShiegeChan/Edusense/releases">Download page</a>.
+2. Extract the downloaded files and place the **libraries** folder into: `C:\Users\your_username\Documents\Arduino\`.
+3. The *projects* folder can be placed anywhere in your system.
+4. Open the <a href="https://www.arduino.cc/en/software">Arduino IDE</a> and install **Arduino Giga R1 board package** via the Boards Manager.
 
 <p align="left" style="margin:0">
   <img src="https://ik.imagekit.io/vladysor/EduSense/installation_guide.gif?updatedAt=1737981447785">
