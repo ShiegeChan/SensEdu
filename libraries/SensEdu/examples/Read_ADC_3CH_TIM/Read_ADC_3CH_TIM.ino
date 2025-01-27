@@ -8,7 +8,18 @@ uint32_t lib_error = 0;
 ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 3;
 uint8_t adc_pins[adc_pin_num] = {A0, A1, A2};
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = adc_pins,
+    .pin_num = adc_pin_num,
 
+    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
+    .sampling_freq = 250000,
+    
+    .dma_mode = SENSEDU_ADC_DMA_DISCONNECT,
+    .mem_address = 0x0000,
+    .mem_size = 0
+};
 uint8_t led = D2; // test with any digital pin (e.g. D2) or led (LED_BUILTIN)
 
 /* -------------------------------------------------------------------------- */
@@ -22,7 +33,7 @@ void setup() {
     }
     Serial.println("Started Initialization...");
     
-    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED, 1000, SENSEDU_ADC_DMA_DISCONNECT); // 1000kS/sec
+    SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
 
@@ -43,7 +54,7 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    uint16_t* temp = SensEdu_ADC_Read(adc);
+    uint16_t* temp = SensEdu_ADC_ReadSingleSequence(adc);
 
     // serial prints slow down CPU and cause wrong sample rate (not following timer settings)
     Serial.println("-------");

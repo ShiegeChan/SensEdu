@@ -14,7 +14,7 @@ void setup() {
         delay(1);
     }
 
-    SensEdu_TIMER_Init();
+    SensEdu_TIMER_DelayInit();
 
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -35,9 +35,9 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 
 void loop() {
-    SensEdu_Delay_us(500000);
+    SensEdu_TIMER_Delay_us(500000);
     digitalWrite(led, HIGH);
-    SensEdu_Delay_us(500000);
+    SensEdu_TIMER_Delay_us(500000);
     digitalWrite(led, LOW);
 }
 

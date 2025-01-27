@@ -1,5 +1,4 @@
 #include "SensEdu.h"
-#include <Arduino_AdvancedAnalog.h>
 #include "SineLUT.h"
 
 /* -------------------------------------------------------------------------- */
@@ -7,21 +6,32 @@
 /* -------------------------------------------------------------------------- */
 
 /* DAC */
-#define DAC_PIN          	A12
-#define DAC_SINE_FREQ     	32000                   // 32kHz
-#define DAC_RESOLUTION    	AN_RESOLUTION_12        // 12bit
-#define DAC_SAMPLE_RATE    	DAC_SINE_FREQ * 64      // ~2MHz
-#define DAC_SAMPLES_PER_CH	sine_lut_size    	    // samples in each buffer (one sine wave)
-#define DAC_QUEUE_DEPTH 	3                       // queue depth
-AdvancedDAC dac0(DAC_PIN);
+// lut settings are in SineLUT.h
+#define DAC_SINE_FREQ     	32000                           // 32kHz
+#define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
+
+SensEdu_DAC_Settings dac1_settings = {DAC1, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
+    SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num};
 
 /* ADC */
+const uint16_t mic_data_size = 64*32; // must be multiple of 64 for 16bit
+__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t mic_data[mic_data_size]; // cache aligned
+
 ADC_TypeDef* adc = ADC1;
 const uint8_t mic_num = 1;
 uint8_t mic_pins[mic_num] = {A1};
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = mic_pins,
+    .pin_num = mic_num,
 
-const uint16_t mic_data_size = 64*32; // must be multiple of 64 for 16bit
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t mic_data[mic_data_size]; // cache aligned
+    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
+    .sampling_freq = 250000,
+    
+    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .mem_address = (uint16_t*)mic_data,
+    .mem_size = mic_data_size
+};
 
 /* errors */
 uint32_t lib_error = 0;
@@ -34,12 +44,10 @@ void setup() {
 
     Serial.begin(115200);
 
-    dac0.begin(DAC_RESOLUTION, DAC_SAMPLE_RATE, DAC_SAMPLES_PER_CH, DAC_QUEUE_DEPTH);
+    SensEdu_DAC_Init(&dac1_settings);
 
-    SensEdu_Init(adc, mic_pins, mic_num, SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED, 250000, SENSEDU_ADC_DMA_CONNECT); // 250kS/sec
+    SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
-
-    SensEdu_DMA_Init((uint16_t*)mic_data, mic_data_size);
 
     pinMode(error_led, OUTPUT);
     digitalWrite(error_led, HIGH);
@@ -69,15 +77,12 @@ void loop() {
     }
 
     // start dac->adc sequence
-    dac_output_sinewave(dac0); // ~44us execution
-    //dac_output_zero(dac0);
-    delayMicroseconds(275); // calculated dealy for x10 64sine cycles with an oscilloscope [us]
-    SensEdu_DMA_Enable((uint16_t*)mic_data, mic_data_size);
+    SensEdu_DAC_Enable(DAC1);
     SensEdu_ADC_Start(adc);
     
     // wait for the data and send it
-    while(!SensEdu_DMA_GetTransferStatus());
-    SensEdu_DMA_ClearTransferStatus();
+    while(!SensEdu_DMA_GetADC1TransferStatus());
+    SensEdu_DMA_ClearADC1TransferStatus();
     serial_send_array((const uint8_t *) & mic_data, mic_data_size << 1);
 
     // check errors
@@ -92,9 +97,6 @@ void loop() {
 /* -------------------------------------------------------------------------- */
 void handle_error() {
     // serial is taken by matlab, use LED as indication
-    //Serial.print("Error: 0x");
-    //Serial.println(lib_error, HEX);
-
     digitalWrite(error_led, LOW);
 }
 
