@@ -89,7 +89,7 @@ void loop() {
     // DMA in background
 
     // Print transfered Data if available
-    if (SensEdu_DMA_GetADC1TransferStatus()) {
+    if (SensEdu_DMA_GetADCTransferStatus(ADC1)) {
         Serial.print("---- ");
         Serial.print("ADC1 ");
         Serial.println("----");
@@ -111,14 +111,11 @@ void loop() {
         };
 
         // restart ADC1
-        SensEdu_DMA_ClearADC1TransferStatus();
+        SensEdu_DMA_ClearADCTransferStatus(ADC1);
         SensEdu_ADC_Start(ADC1);
     }
 
-    // TODO: make dma.c flexible, where you pass ADC1 ADC2 ADC3 as argument
-    // and then it automatically initializes/sets/gets values based on internal typedef structure
-    // that would automatically assign streams etc based on ADC1/2/3
-    if (SensEdu_DMA_GetADC2TransferStatus()) {
+    if (SensEdu_DMA_GetADCTransferStatus(ADC2)) {
         Serial.print("---- ");
         Serial.print("ADC2 ");
         Serial.println("----");
@@ -140,7 +137,7 @@ void loop() {
         };
 
         // restart ADC2
-        SensEdu_DMA_ClearADC2TransferStatus();
+        SensEdu_DMA_ClearADCTransferStatus(ADC2);
         SensEdu_ADC_Start(ADC2);
     }
 

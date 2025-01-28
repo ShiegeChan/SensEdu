@@ -25,6 +25,8 @@ static SensEdu_ADC_Settings ADC2_Settings = {ADC2, 0, 0, SENSEDU_ADC_MODE_ONE_SH
 static adc_data adc1_data;
 static adc_data adc2_data;
 
+static uint16_t pll_configured = 0;
+
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
@@ -54,7 +56,9 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings) {
 
     // Init TIMER, Clock and ADC
     TIMER_ADC1Init();
-    configure_pll2();
+    if (!pll_configured) {
+        configure_pll2();
+    }
     adc_init(adc_settings->adc, adc_settings->pins, adc_settings->pin_num, 
         adc_settings->conv_mode, adc_settings->dma_mode);
 
@@ -65,11 +69,7 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings) {
 
     // dma settings if in dma mode
     if (adc_settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
-        if (adc_settings->adc == ADC1) {
-            DMA_ADC1Init(adc_settings->mem_address, adc_settings->mem_size);
-        } else {
-            //DMA_ADC2Init();
-        }
+        DMA_ADCInit(adc_settings->adc, adc_settings->mem_address, adc_settings->mem_size);
     }
 }
 
@@ -115,7 +115,7 @@ void SensEdu_ADC_Disable(ADC_TypeDef* ADC) {
 void SensEdu_ADC_Start(ADC_TypeDef* ADC) {
     // enable DMA
     if (get_adc_settings(ADC)->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
-        DMA_ADC1Enable();
+        DMA_ADCEnable(ADC);
     }
 
     // start conversions
@@ -225,6 +225,9 @@ void configure_pll2(void) {
     // turn on buses
     SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);  //Enable ADC 1 and 2
     SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
+
+    // flag
+    pll_configured = 1;
 }
 
 void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_CONVMODE mode, SENSEDU_ADC_DMA adc_dma) {
@@ -259,7 +262,6 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
         error = ADC_ERROR_WRONG_DATA_MANAGEMENT_MODE;
     }
     
-
     // select channels
     MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ1, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
     for (uint8_t i = 0; i < adc_pin_num; i++) {
