@@ -24,7 +24,7 @@ uint8_t SensEdu_DMA_GetADCTransferStatus(ADC_TypeDef* adc);
 void SensEdu_DMA_ClearADCTransferStatus(ADC_TypeDef* adc);
 
 DMA_ERROR DMA_GetError(void);
-void DMA_ADC1Init(uint16_t* mem_address, const uint16_t mem_size);
+void DMA_ADCInit(ADC_TypeDef* adc, uint16_t* mem_address, const uint16_t mem_size);
 void DMA_DAC1Init(uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MODE wave_mode);
 void DMA_ADC1Enable(void);
 void DMA_DAC1Enable(void);
