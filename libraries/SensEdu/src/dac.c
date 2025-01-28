@@ -7,11 +7,14 @@
 /*                                  Variables                                 */
 /* -------------------------------------------------------------------------- */
 static volatile DAC_ERROR error = DAC_ERROR_NO_ERRORS;
+
 static SensEdu_DAC_Settings dac1_settings = {DAC1, 1000000, 0x0000, 0, 
     SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
 static SensEdu_DAC_Settings dac2_settings = {DAC2, 1000000, 0x0000, 0, 
     SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
+
 static volatile uint16_t dac_transfer_cnt = 0;  // current written wave cycle to dac
+static volatile uint8_t dac_burst_complete = 0;
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
@@ -66,6 +69,14 @@ void SensEdu_DAC_Disable(DAC_TypeDef* dac) {
     while(READ_BIT(dac->CR, DAC_CR_EN1));
 
     DMA_DAC1Disable();
+}
+
+uint8_t SensEdu_DAC_GetBurstCompleteFlag(void) {
+    return dac_burst_complete;
+}
+
+void SensEdu_DAC_ClearBurstCompleteFlag(void) {
+    dac_burst_complete = 0;
 }
 
 DAC_ERROR DAC_GetError(void) {
@@ -158,6 +169,7 @@ void DAC_TransferCompleteDMAinterrupt(DAC_TypeDef* dac) {
         dac_transfer_cnt++;
         if (dac_transfer_cnt == get_settings(dac)->burst_num) {
             dac_transfer_cnt = 0;
+            dac_burst_complete = 1;
         } else {
             SensEdu_DAC_Enable(DAC1);
         }

@@ -78,11 +78,13 @@ void loop() {
 
     // start dac->adc sequence
     SensEdu_DAC_Enable(DAC1);
+    while(!SensEdu_DAC_GetBurstCompleteFlag());
+    SensEdu_DAC_ClearBurstCompleteFlag();
     SensEdu_ADC_Start(adc);
     
     // wait for the data and send it
-    while(!SensEdu_DMA_GetADC1TransferStatus());
-    SensEdu_DMA_ClearADC1TransferStatus();
+    while(!SensEdu_DMA_GetADCTransferStatus(ADC1));
+    SensEdu_DMA_ClearADCTransferStatus(ADC1);
     serial_send_array((const uint8_t *) & mic_data, mic_data_size << 1);
 
     // check errors

@@ -34,6 +34,9 @@ end
 arduino = [];
 
 % save measurements
+if ~exist("Measurements", 'dir')
+    mkdir("Measurements");
+end
 file_name = sprintf('Measurements/%s_%s.mat', "measurements", datetime("now"));
 file_name = strrep(file_name, ' ', '_');
 file_name = strrep(file_name, ':', '-');

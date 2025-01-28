@@ -35,6 +35,9 @@ void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings);
 void SensEdu_DAC_Enable(DAC_TypeDef* dac);
 void SensEdu_DAC_Disable(DAC_TypeDef* dac);
 
+uint8_t SensEdu_DAC_GetBurstCompleteFlag(void);
+void SensEdu_DAC_ClearBurstCompleteFlag(void);
+
 DAC_ERROR DAC_GetError(void);
 void DAC_WriteDataManually(DAC_TypeDef* dac, uint16_t data);
 uint16_t DAC_ReadCurrentOutputData(DAC_TypeDef* dac);
