@@ -66,7 +66,7 @@ void loop() {
     // DMA in background
 
     // Print transfered Data if available
-    if (SensEdu_DMA_GetADC1TransferStatus()) {
+    if (SensEdu_DMA_GetADCTransferStatus(ADC1)) {
         Serial.println("------");
         for (int i = 0; i < memory4adc_size; i++) {
             Serial.print("ADC value ");
@@ -76,7 +76,7 @@ void loop() {
         };
 
         // restart ADC
-        SensEdu_DMA_ClearADC1TransferStatus();
+        SensEdu_DMA_ClearADCTransferStatus(ADC1);
         SensEdu_ADC_Start(adc);
     }
 
