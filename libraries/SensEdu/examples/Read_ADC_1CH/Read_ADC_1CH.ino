@@ -12,8 +12,10 @@ SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,
     .pin_num = adc_pin_num,
+
     .conv_mode = SENSEDU_ADC_MODE_CONT,
     .sampling_freq = 0,
+    
     .dma_mode = SENSEDU_ADC_DMA_DISCONNECT,
     .mem_address = 0x0000,
     .mem_size = 0
@@ -60,5 +62,4 @@ void loop() {
     } else {
         digitalWrite(led, HIGH);
     }
-
 }

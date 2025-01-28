@@ -6,15 +6,28 @@ uint32_t cntr = 0;
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
-ADC_TypeDef* adc = ADC1;
-const uint8_t adc_pin_num = 1;
-uint8_t adc_pins[adc_pin_num] = {A0};
 
 // must be:
 // 1. multiple of 32 words (64 half-words) to ensure cache coherence
 // 2. properly aligned
 const uint16_t memory4adc_size = 128;
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
+
+ADC_TypeDef* adc = ADC1;
+const uint8_t adc_pin_num = 1;
+uint8_t adc_pins[adc_pin_num] = {A0};
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = adc_pins,
+    .pin_num = adc_pin_num,
+
+    .conv_mode = SENSEDU_ADC_MODE_CONT,
+    .sampling_freq = 0,
+    
+    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .mem_address = (uint16_t*)memory4adc,
+    .mem_size = memory4adc_size
+};
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
@@ -28,10 +41,8 @@ void setup() {
     }
     Serial.println("Started Initialization...");
 
-    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000, SENSEDU_ADC_DMA_CONNECT); // continuos mode for ADC
-    DMA_ADC1Init((uint16_t*)memory4adc, memory4adc_size); // it shouldn't be here, instead in SensEdu
+    SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
-
     SensEdu_ADC_Start(adc);
 
     lib_error = SensEdu_GetError();
@@ -55,7 +66,7 @@ void loop() {
     // DMA in background
 
     // Print transfered Data if available
-    if (SensEdu_DMA_GetADC1TransferStatus()) {
+    if (SensEdu_DMA_GetADCTransferStatus(ADC1)) {
         Serial.println("------");
         for (int i = 0; i < memory4adc_size; i++) {
             Serial.print("ADC value ");
@@ -65,7 +76,7 @@ void loop() {
         };
 
         // restart ADC
-        SensEdu_DMA_ClearADC1TransferStatus();
+        SensEdu_DMA_ClearADCTransferStatus(ADC1);
         SensEdu_ADC_Start(adc);
     }
 
