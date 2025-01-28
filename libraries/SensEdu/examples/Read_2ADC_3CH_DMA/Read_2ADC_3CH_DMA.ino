@@ -8,8 +8,8 @@ uint32_t cntr = 0;
 /* -------------------------------------------------------------------------- */
 const uint8_t adc1_pin_num = 3;
 const uint8_t adc2_pin_num = 3;
-uint8_t adc1_pins[adc_pin_num] = {A0, A1, A2}; 
-uint8_t adc2_pins[adc_pin_num] = {A4, A5, A6};
+uint8_t adc1_pins[adc1_pin_num] = {A0, A1, A2}; 
+uint8_t adc2_pins[adc2_pin_num] = {A4, A5, A6};
 
 // must be:
 // 1. multiple of 32 words (64 half-words) to ensure cache coherence
