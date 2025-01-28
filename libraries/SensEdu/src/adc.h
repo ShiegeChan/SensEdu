@@ -59,6 +59,8 @@ void SensEdu_ADC_Disable(ADC_TypeDef* ADC);
 void SensEdu_ADC_Start(ADC_TypeDef* ADC);
 uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC);
 
+void SensEdu_ADC_ShortA4toA9(void);
+
 ADC_ERROR ADC_GetError(void);
 
 

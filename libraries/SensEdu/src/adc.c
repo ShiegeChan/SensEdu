@@ -136,6 +136,16 @@ uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC) {
     return data->sequence_data;
 }
 
+// Early versions of the board are using 
+// A9 - PC3_C - ADC3_INP1
+// as microphone input
+//
+// if you want to use ADC1 or ADC2 for this microphone,
+// you could short PC3 (A4) to PC3_C (A9)
+void SensEdu_ADC_ShortA4toA9(void) {
+    CLEAR_BIT(SYSCFG->PMCR, SYSCFG_PMCR_PC3SO);
+}
+
 ADC_ERROR ADC_GetError(void) {
     return error;
 }
