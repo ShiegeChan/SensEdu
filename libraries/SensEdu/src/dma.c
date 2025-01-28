@@ -14,6 +14,7 @@ typedef struct {
     uint16_t memory_size;
     uint32_t adc_reg_address;
     DMA_Stream_TypeDef* dma_stream;
+    DMA_Flags* dma_stream_flags;
     IRQn_Type dma_irq;
     DMAMUX_Channel_TypeDef* dmamux_ch;
     uint8_t dmamux_periph_id;
@@ -30,8 +31,10 @@ static DMA_Flags dma_ch7_flags = {(DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIF
 
 static volatile DMA_ERROR error = DMA_ERROR_NO_ERRORS;
 
-static adc_config adc1_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC1->DR), DMA1_Stream6, DMA1_Stream6_IRQn, DMAMUX1_Channel6, (9U)};
-static adc_config adc2_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC2->DR)};
+static adc_config adc1_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC1->DR), DMA1_Stream6, 
+    &dma_ch6_flags, DMA1_Stream6_IRQn, DMAMUX1_Channel6, (9U)};
+static adc_config adc2_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC2->DR), DMA1_Stream5,
+    &dma_ch5_flags, DMA1_Stream5_IRQn, DMAMUX1_Channel5, (10U)};
 static adc_config adc3_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC3->DR)};
 
 
@@ -42,8 +45,8 @@ void dma_adc_init(adc_config* config);
 void dma_dac1_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, 
     uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size, SENSEDU_DAC_MODE wave_mode);
 
-void dma_clear_status_flags(DMA_Flags dma_flags);
-void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags flags);
+void dma_clear_status_flags(DMA_Flags* dma_flags);
+void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags* flags);
 adc_config* get_adc_config(ADC_TypeDef* adc);
 
 
@@ -77,24 +80,26 @@ void DMA_DAC1Init(uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MO
     MODIFY_REG(DMAMUX1_Channel7->CCR, DMAMUX_CxCR_DMAREQ_ID, (67U) << DMAMUX_CxCR_DMAREQ_ID_Pos); 
 }
 
-void DMA_ADC1Enable(void) {
-    if (adc1_config.memory_address == 0x0000 || adc1_config.memory_size < 1) {
+void DMA_ADCEnable(ADC_TypeDef* adc) {
+    adc_config* config = get_adc_config(adc);
+
+    if (config->memory_address == 0x0000 || config->memory_size < 1) {
         error = DMA_ERROR_ADC_WRONG_INPUT;
     }
 
     // check if the size is the multiple of D-Cache line size (32 words)
     // 16bit - half words -> x2 multiplication
-    if ((adc1_config.memory_size % (__SCB_DCACHE_LINE_SIZE << 1)) != 0) {
+    if ((config->memory_size % (__SCB_DCACHE_LINE_SIZE << 1)) != 0) {
         error = DMA_ERROR_MEMORY_WRONG_SIZE;
         return;
     }
 
     // cache must be invalidated before reading transferred data
     // second argument in bytes
-    SCB_InvalidateDCache_by_Addr(adc1_config.memory_address, adc1_config.memory_size << 1);
+    SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
 
-    dma_clear_status_flags(dma_ch6_flags);
-    SET_BIT(DMA1_Stream6->CR, DMA_SxCR_EN);
+    dma_clear_status_flags(config->dma_stream_flags);
+    SET_BIT(config->dma_stream->CR, DMA_SxCR_EN);
 }
 
 void DMA_DAC1Enable(void) {
@@ -102,16 +107,17 @@ void DMA_DAC1Enable(void) {
         error = DMA_ERROR_ENABLED_BEFORE_ENABLE;
     } 
 
-    dma_clear_status_flags(dma_ch7_flags);
+    dma_clear_status_flags(&dma_ch7_flags);
     SET_BIT(DMA1_Stream7->CR, DMA_SxCR_EN);
 }
 
-void DMA_ADC1Disable(void) {
-    dma_disable(DMA1_Stream6, dma_ch6_flags);
+void DMA_ADCDisable(ADC_TypeDef* adc) {
+    adc_config* config = get_adc_config(adc);
+    dma_disable(config->dma_stream, config->dma_stream_flags);
 }
 
 void DMA_DAC1Disable(void) {
-    dma_disable(DMA1_Stream7, dma_ch7_flags);
+    dma_disable(DMA1_Stream7, &dma_ch7_flags);
 }
 
 
@@ -224,15 +230,15 @@ void dma_dac1_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq,
     CLEAR_BIT(dma_stream->FCR, DMA_SxFCR_DMDIS);  
 }
 
-void dma_clear_status_flags(DMA_Flags dma_flags) {
-    SET_BIT(DMA1->HIFCR, dma_flags.clear_flags);
+void dma_clear_status_flags(DMA_Flags* dma_flags) {
+    SET_BIT(DMA1->HIFCR, dma_flags->clear_flags);
 
-    if (READ_BIT(DMA1->HISR, dma_flags.flags)) {
+    if (READ_BIT(DMA1->HISR, dma_flags->flags)) {
         error = DMA_ERROR_INTERRUPTS_NOT_CLEARED;
     }    
 }
 
-void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags flags) {
+void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags* flags) {
     CLEAR_BIT(dma_stream->CR, DMA_SxCR_EN);
     while(READ_BIT(dma_stream->CR, DMA_SxCR_EN));
 
@@ -243,6 +249,18 @@ void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags flags) {
 /* -------------------------------------------------------------------------- */
 /*                                 Interrupts                                 */
 /* -------------------------------------------------------------------------- */
+void DMA1_Stream5_IRQHandler(void) {
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF5)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF5);
+        adc2_config.transfer_status = 1;
+    }
+
+    if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF5)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF5);
+        error = DMA_ERROR_ADC_INTERRUPT_TRANSFER_ERROR;
+    }
+}
+
 void DMA1_Stream6_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);

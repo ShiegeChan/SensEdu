@@ -115,7 +115,7 @@ void SensEdu_ADC_Disable(ADC_TypeDef* ADC) {
 void SensEdu_ADC_Start(ADC_TypeDef* ADC) {
     // enable DMA
     if (get_adc_settings(ADC)->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
-        DMA_ADC1Enable();
+        DMA_ADCEnable(ADC);
     }
 
     // start conversions
@@ -262,7 +262,6 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
         error = ADC_ERROR_WRONG_DATA_MANAGEMENT_MODE;
     }
     
-
     // select channels
     MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ1, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
     for (uint8_t i = 0; i < adc_pin_num; i++) {
