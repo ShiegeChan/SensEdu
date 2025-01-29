@@ -103,7 +103,7 @@ void dac_init(DAC_TypeDef* dac) {
         return;
     }
 
-    // TODO: check if it is needed and change according to DAC channel
+    // TODO: check if it is needed in default arduino config and change according to DAC channel
     // GPIO 
     MODIFY_REG(GPIOA->MODER, GPIO_MODER_MODE4, (0b11) << GPIO_MODER_MODE4_Pos);
 
@@ -162,8 +162,7 @@ void DAC_IRQHandler(void) {
     }
 }
 
-// TODO: make it flexible for all DACs
-// maybe rewrite to be only for ch1 for speed
+// TODO: make it flexible for all DAC channels
 void DAC_TransferCompleteDMAinterrupt(DAC_TypeDef* dac) {
     if (get_settings(dac)->wave_mode == SENSEDU_DAC_MODE_BURST_WAVE) {
         dac_transfer_cnt++;
