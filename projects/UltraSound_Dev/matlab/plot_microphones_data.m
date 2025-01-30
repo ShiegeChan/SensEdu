@@ -7,14 +7,13 @@ clc;
 %% Settings
 ARDUINO_PORT = 'COM9';
 ARDUINO_BAUDRATE = 115200;
-
-MIC_NUM = 3;
-ITERATIONS = 500; % >= PLOT_FIX_X_AXIS_NUM !
+ITERATIONS = 100000; 
+MIC_NUM = 4;
 
 VARIANCE_TEST = false;
 
 PLOT_DISTANCE = true;
-PLOT_DETAILED_DATA = true; % make sure to change this in .ino code as well
+PLOT_DETAILED_DATA = false; % make sure to change this in .ino code as well
 PLOT_LIMIT = 1.2; % in meters
 PLOT_FIX_X_AXIS = false; % fix x axis to certain amount of measurements
 PLOT_FIX_X_AXIS_NUM = 200; % multiple of 10!
@@ -22,38 +21,48 @@ PLOT_TIME_AXIS = false; % replace measurements with time in x axis
 
 %% Arduino Setup + Config
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
+%write(arduino, 'c', "char"); % trigger arduino config
+%serial_rx_data = read(arduino, 4, 'uint8'); % 4 bytes of data length
 
-write(arduino, 'c', "char"); % trigger arduino config
-serial_rx_data = read(arduino, 4, 'uint8'); % 4 bytes of data length
+%data_length = serial_rx_data(1)*2^24 + serial_rx_data(2)*2^16 + serial_rx_data(3)*2^8 + serial_rx_data(4);
+DATA_LENGTH = 64 * 32; 
 
-data_length = serial_rx_data(1)*2^24 + serial_rx_data(2)*2^16 + serial_rx_data(3)*2^8 + serial_rx_data(4);
 
 %% Readings Loop
 
-dist_matrix = zeros(MIC_NUM,ITERATIONS);
+dist_matrix = zeros(MIC_NUM, ITERATIONS);
+
+data_mic1 = zeros(1, ITERATIONS);
+data_mic2 = zeros(1, ITERATIONS);
+data_mic3 = zeros(1, ITERATIONS);
+data_mic4 = zeros(1, ITERATIONS);
 
 x_axis = 1:PLOT_FIX_X_AXIS_NUM;
 x_shift = PLOT_FIX_X_AXIS_NUM/10;
 
-time_axis = zeros(1,ITERATIONS);
+time_axis = zeros(1, ITERATIONS);
+
 tic;
 
 for it = 1:ITERATIONS
-    if VARIANCE_TEST == true
-        if (mod(it,100) == 0)
-            fprintf("Please change position\n");
-            pause(5);
-        end
-    end
+    % if VARIANCE_TEST == true
+    %     if (mod(it,100) == 0)
+    %         fprintf("Please change position\n");
+    %         pause(5);
+    %     end
+    % end
 
     % Data readings
-    write(arduino, 'r', "char"); % trigger arduino measurement
+    write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
 
     if PLOT_DETAILED_DATA == true
-        details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, data_length, 3);
+        details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, DATA_LENGTH, 3);
     end
     dist_vector = read_mcu_xcorr(arduino, MIC_NUM);
+    % [data_mic1, data_mic2] = read_data(arduino, DATA_LENGTH);
+    % [data_mic3, data_mic4] = read_data(arduino, DATA_LENGTH);
+    % plot_raw_mic_data(data_mic1, data_mic2, data_mic3, data_mic4);
 
     for i = 1:MIC_NUM
         dist_matrix(i, it) = dist_vector(i);
@@ -154,3 +163,4 @@ function x_axis = plot_distance(dist_matrix, x_axis, is_x_fixed_axis, x_shift, i
         ylim([0, y_limit]);
     end
 end
+

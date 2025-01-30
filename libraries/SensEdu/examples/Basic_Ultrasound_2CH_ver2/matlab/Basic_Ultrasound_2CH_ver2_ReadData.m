@@ -7,7 +7,7 @@ clc;
 %% Settings
 ARDUINO_PORT = 'COM9';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 10000;
+ITERATIONS = 100000;
 
 ACTIVATE_PLOTS = true;
 
@@ -26,8 +26,9 @@ for it = 1:ITERATIONS
     write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
 
-    data = read_data(arduino, DATA_LENGTH);
-    plot_data(data);
+    data_mic1 = read_data(arduino, DATA_LENGTH);
+    data_mic2 = read_data(arduino, DATA_LENGTH);
+    plot_data(data_mic1, data_mic2);
 end
 
 % set COM port back free
@@ -62,8 +63,16 @@ function data = read_data(arduino, data_length)
     data = double(typecast(uint8(serial_rx_data), 'uint16'));
 end
 
-function plot_data(data)
-    plot(data);
+function plot_data(data_mic1, data_mic2)
+    subplot(2,1,1)
+    plot(data_mic1);
+    ylim([0, 65535]);
+    xlabel("Sample #");
+    ylabel("ADC 16bit value");
+    grid on;
+    
+    subplot(2,1,2)
+    plot(data_mic2);
     ylim([0, 65535]);
     xlabel("Sample #");
     ylabel("ADC 16bit value");
