@@ -1,7 +1,12 @@
 ---
-title: Home
+title: Introduction
 layout: home
+nav_order: 1
+description: "SensEdu is a educational development shield for Arduino GIGA R1 used for RADAR and communications applications."
+permalink: /
 ---
+
+{% include theme-toggle-script.html %}
 
 This is a *bare-minimum* template to create a Jekyll site that uses the [Just the Docs] theme. You can easily set the created site to be published on [GitHub Pages] – the [README] file explains how to do that, along with other details.
 
