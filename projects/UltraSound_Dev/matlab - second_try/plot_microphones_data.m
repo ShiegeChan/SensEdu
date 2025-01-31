@@ -7,7 +7,7 @@ clc;
 %% Settings
 ARDUINO_PORT = 'COM9';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 10000; 
+ITERATIONS = 100000; 
 MIC_NUM = 4;
 
 VARIANCE_TEST = false;
@@ -60,11 +60,12 @@ for it = 1:ITERATIONS
     %     details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, DATA_LENGTH, 3);
     % end
     % dist_vector = read_mcu_xcorr(arduino, MIC_NUM);
-    data_mic1 = read_data(arduino, DATA_LENGTH);
-    data_mic2 = read_data(arduino, DATA_LENGTH);
-    data_mic3 = read_data(arduino, DATA_LENGTH);
-    data_mic4 = read_data(arduino, DATA_LENGTH);
-    plot_raw_mic_data(data_mic1, data_mic2, data_mic3, data_mic4);
+    data_mic1 = read_buff_data(arduino, DATA_LENGTH);
+    data_mic2 = read_buff_data(arduino, DATA_LENGTH);
+    data_mic3 = read_buff_data(arduino, DATA_LENGTH);
+    data_mic4 = read_buff_data(arduino, DATA_LENGTH);
+    %plot_raw_mic_data(data_mic1, data_mic2, data_mic3, data_mic4);
+    plot_scaled_mic_data(data_mic1, data_mic2, data_mic3, data_mic4);
 
     % for i = 1:MIC_NUM
     %     dist_matrix(i, it) = dist_vector(i);
