@@ -9,9 +9,10 @@
 // lut settings are in SineLUT.h
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
-
+#define STORE_BUF_SIZE      64*32
 SensEdu_DAC_Settings dac1_settings = {DAC1, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
     SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num};
+
 
 /* ADC */
 const uint16_t mic_data_size = 64*32*2; // must be multiple of 64 for 16bit
@@ -85,12 +86,14 @@ void loop() {
     // wait for the data and send it
     while(!SensEdu_DMA_GetADCTransferStatus(ADC1));
     SensEdu_DMA_ClearADCTransferStatus(ADC1);
-    serial_send_array((const uint8_t *)  mic_data, mic_data_size);
+    serial_send_array((const uint8_t *)mic_data, sizeof(mic_data), "1");
+    serial_send_array((const uint8_t *)mic_data, sizeof(mic_data), "2");
     // check errors
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         handle_error();
     }
+    delay(100);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -101,13 +104,54 @@ void handle_error() {
     digitalWrite(error_led, LOW);
 }
 
+// make sure the buffer is initialized because it crashes if you access an array element w/o initialization
+void clear_8bit_buf(uint8_t array[], uint32_t size_array){
+    for (uint32_t i = 0; i < size_array; i++){
+        array[i] = 0x00;
+    }
+}
+
 // send serial data in 32 byte chunks
-void serial_send_array(const uint8_t* data, size_t size) {
-    const size_t chunk_size = 32;
-	for (uint32_t i = 0; i < size/chunk_size; i+=2) {
-        Serial.write(data + chunk_size * i, chunk_size);
-	}
-    for (uint32_t i = 1; i < size/chunk_size; i+=2) {
-        Serial.write(data + chunk_size * i, chunk_size);
-	}
+void serial_send_array(const uint8_t* data, size_t size, const char* channel) {
+    const size_t chunk_size = 32; // buffer is 32 bytes, but 32 for 2400 data samples
+    if (channel[0] == '1') {
+        // first extract the data 
+        uint8_t ch1[2*STORE_BUF_SIZE]; 
+        // initialize the buffer
+        clear_8bit_buf(ch1, 2*STORE_BUF_SIZE);
+        uint16_t cnt = 0;
+        for(uint16_t i = 0; i < size; i+=4) {
+            ch1[cnt++] = data[i];
+            ch1[cnt++] = data[i+1];
+        }
+        // send the data in chunks of 32
+        size /= 2;
+        for (uint16_t i = 0; i < size/chunk_size; i++) {
+            Serial.write(ch1 + chunk_size * i, chunk_size);
+        }
+        return;
+    }
+    else if(channel[0] == '2') {
+        // first extract the data 
+        uint16_t cnt = 0;
+        uint8_t ch2[2*STORE_BUF_SIZE]; 
+        clear_8bit_buf(ch2, 2*STORE_BUF_SIZE);
+        for(uint16_t i = 0; i < size; i+=4) {
+            ch2[cnt++] = data[i+2];
+            ch2[cnt++] = data[i+3];
+        }
+        // send the data in chunks of 32
+        size /= 2;
+        for (uint16_t i = 0; i < size/chunk_size; i++) {
+            Serial.write(ch2 + chunk_size * i, chunk_size);
+        }
+        return;
+    }
+    else {
+        // normal data send
+        for (uint16_t i = 0; i < size/chunk_size; i++) {
+            Serial.write(data + chunk_size * i, chunk_size);
+        }
+        return;
+    }   
 }
