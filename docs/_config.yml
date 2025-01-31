@@ -28,9 +28,9 @@ logo: "/assets/images/sensedu-logo.png"
 
 # Aux links for the upper right navigation
 aux_links:
-  "<img id='github-logo' src='/assets/images/github-logo-light.png' alt='GitHub' style='height: 35px;'>": https://github.com/ShiegeChan/SensEdu
-  "<button id='theme-toggle-button' style='background: transparent; border: none; cursor: pointer; padding: 0; margin: 0; display: inline-flex; align-items: center;'><img id='theme-logo' src='/assets/images/sun.png' alt='Theme Toggle' style='height: 30px; width: auto;'></button>": "#"
-
+  "": "#"
+  "": "#"
+  
 # Makes Aux links open in a new tab
 aux_links_new_tab: false
 
@@ -45,7 +45,7 @@ liquid:
 # appears at the bottom of every page's main content
 
 # Back to top link
-back_to_top: true
+back_to_top: false
 back_to_top_text: "Back to top"
 
 footer_content: 'hello there'

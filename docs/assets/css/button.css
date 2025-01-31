@@ -1,0 +1,35 @@
+.button-dark {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    margin: 6px;
+    display: inline-flex; /* inline-block */
+    align-items: center;
+    transition: color 100ms;
+    border-radius: 50%;
+    border: 20px
+}
+
+.button-dark:hover,
+.button-dark:focus {
+  background-color: #3e3a41;
+}
+
+.button-light {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    margin: 6px;
+    display: inline-flex; /* inline-block */
+    align-items: center;
+    transition: color 100ms;
+    border-radius: 50%;
+    border: 20px
+}
+
+.button-light:hover,
+.button-light:focus {
+  background-color: hsl(0, 0%, 95%);
+}
