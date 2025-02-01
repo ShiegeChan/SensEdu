@@ -18,10 +18,10 @@ uint8_t error_led = D86;
 
 // make this reconfig too
 #define LOCAL_XCORR     true    // doing xcorr on the microcontroller
-#define XCORR_DEBUG     false   // sending only distance w/o other data
+#define XCORR_DEBUG     true   // sending only distance w/o other data
 
-#define BAN_DISTANCE	30		// min distance [cm] - how many self reflections cancelled
-#define ACTUAL_SAMPLING_RATE 370000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
+#define BAN_DISTANCE	25		// min distance [cm] - how many self reflections cancelled
+#define ACTUAL_SAMPLING_RATE 100000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
 #define STORE_BUF_SIZE  64 * 32    // 2400 for 1 measurement per second. 
                             	// only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)
 
@@ -135,6 +135,13 @@ void clear_float_buf(float array[], uint32_t size_array){
     }
 }
 
+// make sure the buffer is initialized because it crashes if you access an array element w/o initialization
+void clear_8bit_buf(uint8_t array[], uint32_t size_array){
+    for (uint32_t i = 0; i < size_array; i++){
+        array[i] = 0x00;
+    }
+}
+
 // sent data size to matlab - how many samples we currently have for 1 measurement
 void send_config() {
     // 4bytes for data length
@@ -146,7 +153,6 @@ void send_config() {
 
 // "adc_data_length" should be the size of the wave "rescaled_adc_wave"
 void custom_xcorr(float* xcorr_buf, const uint16_t* dac_wave, uint32_t adc_data_length) {
-
     // delay loop
     for (int32_t m = 0; m < adc_data_length; m++) {
         // sum loop
@@ -163,9 +169,9 @@ void custom_xcorr(float* xcorr_buf, const uint16_t* dac_wave, uint32_t adc_data_
 }
 
 // rescale samples to normalized -1:1 values around zero
-void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* channel, uint16_t adc_data_length) {
+void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* channel, size_t adc_data_length) {
     // 0:65535 -> -1:1
-    /*float sum = 0.0f;
+    /* float sum = 0.0f;
     uint32_t cnt_ch1 = 0;
     uint32_t cnt_ch2 = 0;
     char ch = channel[0];
@@ -190,25 +196,27 @@ void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* 
     for (uint32_t i = 0; i < cnt_ch1; i++) {
         rescaled_adc_wave[i] = rescaled_adc_wave[i] - mean;
     }*/
+    // 0:65535 -> -1:1
     float sum = 0.0f;
     uint32_t cnt = 0;
     char ch = channel[0];
+    clear_float_buf(rescaled_adc_wave, STORE_BUF_SIZE);
     if(ch=='1') {
-        for(uint32_t i = 0; i < adc_data_length; i+=2) {
+        for(uint32_t i = 0; i < 2 * STORE_BUF_SIZE; i+=2) {
             rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
             sum += rescaled_adc_wave[cnt];
             cnt++;
         }
     }
     else if(ch=='2') {
-        for(uint32_t i = 1; i < adc_data_length; i+=2) {
+        for(uint32_t i = 1; i < 2 * STORE_BUF_SIZE; i+=2) {
             rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
             sum += rescaled_adc_wave[cnt];
             cnt++;
         }
     }
     float mean = sum/cnt;
-    for (uint32_t i = 0; i < adc_data_length/2; i++) {
+    for (uint32_t i = 0; i < STORE_BUF_SIZE; i++) {
         rescaled_adc_wave[i] = rescaled_adc_wave[i] - mean;
     }
 }
@@ -229,25 +237,57 @@ void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
 // send serial data in 32 byte chunks
 void serial_send_array(const uint8_t* data, size_t size, const char* channel) {
     const size_t chunk_size = 32; // buffer is 32 bytes, but 32 for 2400 data samples
-    char ch = channel[0];
-    for (uint16_t i = 0; i < size/chunk_size; i++) {
-        if((ch == '1' && i%2 == 0) || (ch == '2' && i%2==1) || (ch == 'b')) {
+    if (channel[0] == '1') {
+        // first extract the data 
+        uint8_t ch1[2*STORE_BUF_SIZE]; 
+        // initialize the buffer
+        clear_8bit_buf(ch1, 2*STORE_BUF_SIZE);
+        uint16_t cnt = 0;
+        for(uint16_t i = 0; i < size; i+=4) {
+            ch1[cnt++] = data[i];
+            ch1[cnt++] = data[i+1];
+        }
+        // send the data in chunks of 32
+        size /= 2;
+        for (uint16_t i = 0; i < size/chunk_size; i++) {
+            Serial.write(ch1 + chunk_size * i, chunk_size);
+        }
+        return;
+    }
+    else if(channel[0] == '2') {
+        // first extract the data 
+        uint16_t cnt = 0;
+        uint8_t ch2[2*STORE_BUF_SIZE]; 
+        clear_8bit_buf(ch2, 2*STORE_BUF_SIZE);
+        for(uint16_t i = 0; i < size; i+=4) {
+            ch2[cnt++] = data[i+2];
+            ch2[cnt++] = data[i+3];
+        }
+        // send the data in chunks of 32
+        size /= 2;
+        for (uint16_t i = 0; i < size/chunk_size; i++) {
+            Serial.write(ch2 + chunk_size * i, chunk_size);
+        }
+        return;
+    }
+    else {
+        // normal data send
+        for (uint16_t i = 0; i < size/chunk_size; i++) {
             Serial.write(data + chunk_size * i, chunk_size);
         }
-    }
+        return;
+    }   
 }
 
 // clean it up in the future, especially with variables
-uint32_t xcorr(float* xcorr_buf, size_t xcorr_buf_size, uint16_t mic_array[], size_t mic_array_size, const char* channel, uint8_t ban_flag) {
-	rescale_adc_wave(xcorr_buf, mic_array, channel, 2*STORE_BUF_SIZE);
+uint32_t xcorr(float* xcorr_buf, size_t xcorr_buf_size, uint16_t* mic_array, size_t mic_array_size, const char* channel, uint8_t ban_flag) {
+	rescale_adc_wave(xcorr_buf, mic_array, channel, mic_array_size);
     if (XCORR_DEBUG)
         serial_send_array((const uint8_t*)mic_array, mic_array_size, channel);
 
 	// remove self reflections from a dataset
 	if (ban_flag == 1) {
 		for (uint32_t i = 0; i < banned_sample_num; i++) {
-			xcorr_buf[i] = 0;
-			xcorr_buf[i] = 0;
 			xcorr_buf[i] = 0;
 		}
 	}
@@ -262,7 +302,7 @@ uint32_t xcorr(float* xcorr_buf, size_t xcorr_buf_size, uint16_t mic_array[], si
 	uint32_t peak_index = 0;
 	float biggest = 0.0f;
 
-	for (uint32_t i = 0; i < xcorr_buf_size; i++) {
+	for (uint32_t i = 0; i < STORE_BUF_SIZE; i++) {
 		if (xcorr_buf[i] > biggest) {
 			biggest = xcorr_buf[i];
 			peak_index = i;
@@ -272,6 +312,7 @@ uint32_t xcorr(float* xcorr_buf, size_t xcorr_buf_size, uint16_t mic_array[], si
 	uint16_t c = 343; // speed in air
 	// (lag_samples * sample_time) * air_speed / 2
 	uint32_t distance = ((peak_index * 1000 * c) / sr) >> 1; // in micrometers
+    //uint32_t distance = 1000000;
     return distance;
 }
 
@@ -339,16 +380,16 @@ void loop() {
     SensEdu_ADC_Start(adc2);
 
     // wait for the data
-    while(!SensEdu_DMA_GetADCTransferStatus(adc1));
-    SensEdu_DMA_ClearADCTransferStatus(adc1);
+    while(!SensEdu_DMA_GetADCTransferStatus(ADC1));
+    SensEdu_DMA_ClearADCTransferStatus(ADC1);
 
-    while(!SensEdu_DMA_GetADCTransferStatus(adc2));
-    SensEdu_DMA_ClearADCTransferStatus(adc2);
+    while(!SensEdu_DMA_GetADCTransferStatus(ADC2));
+    SensEdu_DMA_ClearADCTransferStatus(ADC2);
 
     if(!LOCAL_XCORR) {
         // just send the data bunch of bits first both channels from adc1 and then both channels from adc2
-        serial_send_array((const uint8_t *) &adc1_data, adc1_data_size << 1, "b");
-        serial_send_array((const uint8_t *) &adc2_data, adc2_data_size << 1, "b");
+        serial_send_array((const uint8_t *)adc1_data, sizeof(adc1_data), "a");
+        serial_send_array((const uint8_t *)adc2_data, sizeof(adc2_data), "a");
         return;
     }
 
@@ -369,5 +410,4 @@ void loop() {
     while (lib_error != 0) {
         handle_error();
     }
-
 }

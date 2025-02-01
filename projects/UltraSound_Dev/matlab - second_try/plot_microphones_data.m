@@ -56,30 +56,30 @@ for it = 1:ITERATIONS
     write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
 
-    % if PLOT_DETAILED_DATA == true
-    %     details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, DATA_LENGTH, 3);
-    % end
-    % dist_vector = read_mcu_xcorr(arduino, MIC_NUM);
-    data_mic1 = read_buff_data(arduino, DATA_LENGTH);
-    data_mic2 = read_buff_data(arduino, DATA_LENGTH);
-    data_mic3 = read_buff_data(arduino, DATA_LENGTH);
-    data_mic4 = read_buff_data(arduino, DATA_LENGTH);
+    if PLOT_DETAILED_DATA == true
+        details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, DATA_LENGTH, 3);
+    end
+    dist_vector = read_mcu_xcorr(arduino, MIC_NUM);
+    % data_mic1 = read_buff_data(arduino, DATA_LENGTH);
+    % data_mic2 = read_buff_data(arduino, DATA_LENGTH);
+    % data_mic3 = read_buff_data(arduino, DATA_LENGTH);
+    % data_mic4 = read_buff_data(arduino, DATA_LENGTH);
     %plot_raw_mic_data(data_mic1, data_mic2, data_mic3, data_mic4);
-    plot_scaled_mic_data(data_mic1, data_mic2, data_mic3, data_mic4);
+    %plot_scaled_mic_data(data_mic1, data_mic2, data_mic3, data_mic4);
 
-    % for i = 1:MIC_NUM
-    %     dist_matrix(i, it) = dist_vector(i);
-    % end
-    % 
-    % % Data plotting
-    % if PLOT_DISTANCE==true
-    %     subplot_x_size = 1;
-    %     if PLOT_DETAILED_DATA == true
-    %         subplot_x_size = 4;
-    %         plot_details(details_matrix, MIC_NUM, 4);
-    %     end
-    %     x_axis = plot_distance(dist_matrix, x_axis, PLOT_FIX_X_AXIS, x_shift, PLOT_TIME_AXIS, time_axis, PLOT_LIMIT, MIC_NUM, it, subplot_x_size);
-    % end
+    for i = 1:MIC_NUM
+        dist_matrix(i, it) = dist_vector(i);
+    end
+
+    % Data plotting
+    if PLOT_DISTANCE==true
+        subplot_x_size = 1;
+        if PLOT_DETAILED_DATA == true
+            subplot_x_size = 4;   
+            plot_details(details_matrix, MIC_NUM, 4);
+        end
+        x_axis = plot_distance(dist_matrix, x_axis, PLOT_FIX_X_AXIS, x_shift, PLOT_TIME_AXIS, time_axis, PLOT_LIMIT, MIC_NUM, it, subplot_x_size);
+    end
 
 end
 

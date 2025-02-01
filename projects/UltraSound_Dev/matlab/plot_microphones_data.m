@@ -7,13 +7,13 @@ clc;
 %% Settings
 ARDUINO_PORT = 'COM9';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 100000; 
+ITERATIONS = 10000; 
 MIC_NUM = 4;
 
 VARIANCE_TEST = false;
 
 PLOT_DISTANCE = true;
-PLOT_DETAILED_DATA = false; % make sure to change this in .ino code as well
+PLOT_DETAILED_DATA = true; % make sure to change this in .ino code as well
 PLOT_LIMIT = 1.2; % in meters
 PLOT_FIX_X_AXIS = false; % fix x axis to certain amount of measurements
 PLOT_FIX_X_AXIS_NUM = 200; % multiple of 10!
