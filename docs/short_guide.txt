@@ -1,0 +1,16 @@
+0. get admin rights
+
+1. install https://jekyllrb.com/docs/installation/windows/
+
+2. run in cmd:
+	bundle install
+
+3. build website in cmd:
+	bundle exec jekyll serve
+
+	add param:
+		-livereload
+	if you want to update it automatically when you edit the code
+
+4. enter url in your browser:
+	localhost:4000

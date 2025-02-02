@@ -1,4 +1,4 @@
-title: SensEdu
+title: SensEdu Shield
 description: SensEdu development shield
 theme: just-the-docs
 
@@ -24,7 +24,7 @@ permalink: pretty
 heading_anchors: true
 
 # logo
-logo: "/assets/images/sensedu-logo.png"
+# logo: "/assets/images/sensedu-logo.png"
 
 # Aux links for the upper right navigation
 aux_links:
@@ -48,7 +48,7 @@ liquid:
 back_to_top: false
 back_to_top_text: "Back to top"
 
-footer_content: 'hello there'
+footer_content: 'Distributed under the GPL-3 License © 2024-2025 SensEdu Development Team'
 
 # Footer "Edit this page on GitHub" link text
 gh_edit_link: true # show or hide edit this page link

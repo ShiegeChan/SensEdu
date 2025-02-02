@@ -1,0 +1,26 @@
+.header-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    margin: 6px;
+    display: inline-flex; /* inline-block */
+    align-items: center;
+    transition: color 100ms;
+    border-radius: 50%;
+    border: 20px;
+
+    &.hb_light {
+        &:hover,
+        &:focus {
+            background-color: hsl(0, 0%, 95%);
+        }
+    }
+
+    &.hb_dark {
+        &:hover,
+        &:focus {
+            background-color: #3e3a41;
+        }
+    }
+}
