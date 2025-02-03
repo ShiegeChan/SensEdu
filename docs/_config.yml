@@ -2,8 +2,8 @@ title: SensEdu Shield
 description: SensEdu development shield
 theme: just-the-docs
 
-baseurl: "/SensEdu"
-url: "https://shiegechan.github.io"
+# baseurl: "/docs"
+url: "https://shiegechan.github.io/SensEdu"
 repository: ShiegeChan/SensEdu
 
 # remove .html from links
