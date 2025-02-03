@@ -5,31 +5,28 @@ theme: just-the-docs
 url: "https://shiegechan.github.io/SensEdu"
 repository: ShiegeChan/SensEdu
 
-just_the_docs:
-  custom_css:
-  - /assets/css/custom.css
-
-head_scripts:
-  - /assets/js/theme-toggle.js
-
-styles:
-  - /assets/css/extra.scss
-  - /assets/css/custom.css
-
-
 # remove .html from links
 permalink: pretty
 
 # Enable or disable heading anchors (links to sections)
 heading_anchors: true
 
+# jekyll plugins
+plugins:
+- jekyll-seo-tag
+- jekyll-github-metadata
+- jekyll-include-cache
+- jekyll-sitemap
+- jekyll-remote-theme
+- jekyll-feed
+
 # logo
 # logo: "/assets/images/sensedu-logo.png"
 
 # Aux links for the upper right navigation
-aux_links:
-  "": "#"
-  "": "#"
+#aux_links:
+  #"": "#"
+  #"": "#"
   
 # Makes Aux links open in a new tab
 aux_links_new_tab: false
@@ -59,7 +56,7 @@ gh_edit_source: docs # the source that your files originate from
 gh_edit_view_mode: "tree" # "tree" or "edit" if you want the user to jump into the editor immediately
 
 # Color scheme currently only supports "dark", "light"/nil (default), or a custom scheme that you define
-color_scheme: dark
+color_scheme: custom
 
 # Callout boxes like warning, note etc
 callouts_level: quiet # or loud
@@ -78,13 +75,6 @@ callouts:
   warning:
     title: Warning
     color: red
-
-# jekyll plugins
-plugins:
-- jekyll-seo-tag
-- jekyll-github-metadata
-- jekyll-include-cache
-- jekyll-sitemap
 
 # Kramdown Markdown parser
 kramdown:

@@ -2,14 +2,16 @@
     background: transparent;
     border: none;
     cursor: pointer;
-    padding: 6px;
-    margin: 6px;
+    padding: 4px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+    margin-left: 0px !important;
+    margin-right: 0px !important;
     display: inline-flex; /* inline-block */
     align-items: center;
-    transition: color 100ms;
-    border-radius: 50%;
-    border: 20px;
-
+    border-radius: 50% !important;
+    border: 0 !important;
+    
     &.hb_light {
         &:hover,
         &:focus {
