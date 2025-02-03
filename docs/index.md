@@ -16,7 +16,7 @@ Welcome to the SensEdu documentation!
 SensEdu is an educational project designed to simplify entry into RADAR and communications research.
 {: .fw-500}
 
-Based on the [STM32H747] Microcontroller and runs on the [Arduino GIGA R1 WiFi] development Board, providing fan industry-standard embedded development experience while remaining beginner-friendly. SensEdu is perfect for students looking for a smooth introduction to this field, offering an easy-to-understand yet highly modifiable software and hardware environment. 
+Based on the [STM32H747] Microcontroller and runs on the [Arduino GIGA R1 WiFi] development Board, providing industry-standard embedded development experience while remaining beginner-friendly. SensEdu is perfect for students looking for a smooth introduction to this field, offering an easy-to-understand yet highly modifiable software and hardware environment. 
 
 This project is completely open source and comes with quick support from the development team.
 
@@ -24,7 +24,7 @@ This project is completely open source and comes with quick support from the dev
 SensEdu is still in its early development stages.
 The core functionality is available, but many additional features are in progress. If you like the project, consider [contributing]({% link Contributing/index.md %}). Any input from both experienced developers and beginners is highly appreciated!
 
-## Features:
+## Features
 {: .fw-500}
 
 SensEdu includes:
@@ -50,7 +50,7 @@ The project is divided into three main parts:
 
 Each part is thoroughly documented in this wiki, allowing you to modify both software and hardware using the provided examples.
 
-## Acknowledgments:
+## Acknowledgments
 {: .fw-500}
 
 SensEdu was made possible thanks to these freely available tools:
