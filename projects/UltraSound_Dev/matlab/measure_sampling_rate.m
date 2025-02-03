@@ -15,18 +15,15 @@ close all;
 %clc;
 
 %% Settings
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM9';
 ARDUINO_BAUDRATE = 115200;
 
 ITERATION_NUM = 50;
 FREQUENCY = 1000; % 1kHz
 
-MEASUREED_MIC = 1;
+MEASUREED_MIC = 4;
 
 FILE_NAME = 'Sampling_Rate';
-
-SAMPLING_FREQUENCY = 353e3; % recalculate if you change firmware! [S/sec]
-                            % and change the filterDesigner coeffs
 
 AIR_SOUND_SPEED = 343; % [m/sec]
 
@@ -34,11 +31,7 @@ PLOT_RAW_INPUT_DATA = true;
 
 %% Arduino Setup + Config
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
-
-write(arduino, 'c', "char"); % trigger arduino config
-serial_rx_data = read(arduino, 4, 'uint8'); % 4 bytes of data length
-
-data_length = serial_rx_data(1)*2^24 + serial_rx_data(2)*2^16 + serial_rx_data(3)*2^8 + serial_rx_data(4);
+data_length = 64*32;
 
 %% Readings Loop
 
@@ -51,11 +44,12 @@ for i = 1:ITERATION_NUM
     end
 
     % Data readings
-    write(arduino, 'r', "char"); % trigger arduino measurement
-    [mic1_data, mic2_data, mic3_data] = read_16bit_serial_measurements(arduino, data_length);
-    mic_matrix = [mic1_data, mic2_data, mic3_data];
-    
-    data = mic_matrix(:, MEASUREED_MIC);
+    write(arduino, 't', "char"); % trigger arduino measurement
+    details_matrix = read_mcu_xcorr_details(arduino, MEASUREED_MIC, data_length, 3);
+    % Reading distance directly from the mcu 
+    dist_vector = read_mcu_xcorr(arduino, MEASUREED_MIC);
+
+    data = details_matrix(1,:);
 
     % Data processing
     data = adc2voltage(data);

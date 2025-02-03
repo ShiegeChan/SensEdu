@@ -21,10 +21,6 @@ PLOT_TIME_AXIS = false; % replace measurements with time in x axis
 
 %% Arduino Setup + Config
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
-%write(arduino, 'c', "char"); % trigger arduino config
-%serial_rx_data = read(arduino, 4, 'uint8'); % 4 bytes of data length
-
-%data_length = serial_rx_data(1)*2^24 + serial_rx_data(2)*2^16 + serial_rx_data(3)*2^8 + serial_rx_data(4);
 DATA_LENGTH = 64 * 32; 
 
 
@@ -55,17 +51,15 @@ for it = 1:ITERATIONS
     % Data readings
     write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
-
+    
+    % Detailed data: raw microphone data | scaled and removed self
+    % reflection | xcorr result
     if PLOT_DETAILED_DATA == true
         details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, DATA_LENGTH, 3);
     end
+    
+    % Reading distance directly from the mcu 
     dist_vector = read_mcu_xcorr(arduino, MIC_NUM);
-    % data_mic1 = read_buff_data(arduino, DATA_LENGTH);
-    % data_mic2 = read_buff_data(arduino, DATA_LENGTH);
-    % data_mic3 = read_buff_data(arduino, DATA_LENGTH);
-    % data_mic4 = read_buff_data(arduino, DATA_LENGTH);
-    %plot_raw_mic_data(data_mic1, data_mic2, data_mic3, data_mic4);
-    %plot_scaled_mic_data(data_mic1, data_mic2, data_mic3, data_mic4);
 
     for i = 1:MIC_NUM
         dist_matrix(i, it) = dist_vector(i);
@@ -111,8 +105,10 @@ function plot_details(details_matrix, mic_num, subplot_x_size)
 
             if j == 1
                 title("Raw Microphone Data")
+                ylim([0 65535]);
             elseif j == 2
                 title("Remapped Data on MCU")
+                ylim([-1 1]);
             elseif j == 3
                 title("XCORR results on MCU")
             end

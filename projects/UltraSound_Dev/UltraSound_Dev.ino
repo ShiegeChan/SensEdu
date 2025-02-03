@@ -21,8 +21,8 @@ uint8_t error_led = D86;
 #define XCORR_DEBUG     true   // sending only distance w/o other data
 
 #define BAN_DISTANCE	25		// min distance [cm] - how many self reflections cancelled
-#define ACTUAL_SAMPLING_RATE 100000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
-#define STORE_BUF_SIZE  64 * 32    // 2400 for 1 measurement per second. 
+#define ACTUAL_SAMPLING_RATE 244000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
+#define STORE_BUF_SIZE  64 * 32   // 2400 for 1 measurement per second. 
                             	// only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)
 
 /********************************** ADC ***************************************/
@@ -43,7 +43,6 @@ const uint16_t adc2_data_size = STORE_BUF_SIZE * adc2_mic_num;
 const uint16_t adc_data_size = STORE_BUF_SIZE * (adc1_mic_num + adc2_mic_num);
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc1_data[adc1_data_size];
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc2_data[adc2_data_size];
-//__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc_data[adc_data_size];
 
 
 SensEdu_ADC_Settings adc1_settings = {
@@ -171,32 +170,6 @@ void custom_xcorr(float* xcorr_buf, const uint16_t* dac_wave, uint32_t adc_data_
 // rescale samples to normalized -1:1 values around zero
 void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* channel, size_t adc_data_length) {
     // 0:65535 -> -1:1
-    /* float sum = 0.0f;
-    uint32_t cnt_ch1 = 0;
-    uint32_t cnt_ch2 = 0;
-    char ch = channel[0];
-    for (uint32_t i = 0; i < adc_data_length; i++) {
-        if(ch == '1' && i%2==0) {
-            rescaled_adc_wave[cnt_ch1] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
-            sum += rescaled_adc_wave[cnt_ch1];
-            cnt_ch1++;
-        } 
-        else if(ch == '2' && i%2==1) {
-            rescaled_adc_wave[cnt_ch2] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
-            sum += rescaled_adc_wave[cnt_ch2];
-            cnt_ch2++;
-        }
-        
-    }
-
-    //filter_32kHz_wave(rescaled_adc_wave, adc_data_length);
-
-    // also center it around zero (remove it after filtering which would remove DC component)
-    float mean = sum/cnt_ch1;
-    for (uint32_t i = 0; i < cnt_ch1; i++) {
-        rescaled_adc_wave[i] = rescaled_adc_wave[i] - mean;
-    }*/
-    // 0:65535 -> -1:1
     float sum = 0.0f;
     uint32_t cnt = 0;
     char ch = channel[0];
@@ -215,10 +188,14 @@ void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* 
             cnt++;
         }
     }
-    float mean = sum/cnt;
-    for (uint32_t i = 0; i < STORE_BUF_SIZE; i++) {
-        rescaled_adc_wave[i] = rescaled_adc_wave[i] - mean;
-    }
+    //float mean = sum/cnt;
+    //for (uint32_t i = 0; i < STORE_BUF_SIZE; i++) {
+    //    rescaled_adc_wave[i] = rescaled_adc_wave[i] - mean;
+    //}
+    // TODO:
+    // 1. find out the real sampling rate and adjust the dac so the xcorr works well  - done
+    // 2. make filtering work correctly
+    filter_32kHz_wave(rescaled_adc_wave, STORE_BUF_SIZE);
 }
 
 // filter the wave around 32kHz
@@ -231,7 +208,6 @@ void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
         // perform the filter operation for the current block
         arm_fir_f32(&Fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
     }
-    
 }
 
 // send serial data in 32 byte chunks
@@ -239,7 +215,7 @@ void serial_send_array(const uint8_t* data, size_t size, const char* channel) {
     const size_t chunk_size = 32; // buffer is 32 bytes, but 32 for 2400 data samples
     if (channel[0] == '1') {
         // first extract the data 
-        uint8_t ch1[2*STORE_BUF_SIZE]; 
+        static uint8_t ch1[2*STORE_BUF_SIZE]; 
         // initialize the buffer
         clear_8bit_buf(ch1, 2*STORE_BUF_SIZE);
         uint16_t cnt = 0;
@@ -257,7 +233,7 @@ void serial_send_array(const uint8_t* data, size_t size, const char* channel) {
     else if(channel[0] == '2') {
         // first extract the data 
         uint16_t cnt = 0;
-        uint8_t ch2[2*STORE_BUF_SIZE]; 
+        static uint8_t ch2[2*STORE_BUF_SIZE]; 
         clear_8bit_buf(ch2, 2*STORE_BUF_SIZE);
         for(uint16_t i = 0; i < size; i+=4) {
             ch2[cnt++] = data[i+2];
@@ -388,8 +364,8 @@ void loop() {
 
     if(!LOCAL_XCORR) {
         // just send the data bunch of bits first both channels from adc1 and then both channels from adc2
-        serial_send_array((const uint8_t *)adc1_data, sizeof(adc1_data), "a");
-        serial_send_array((const uint8_t *)adc2_data, sizeof(adc2_data), "a");
+        serial_send_array((const uint8_t *)adc1_data, sizeof(adc1_data), "b");
+        serial_send_array((const uint8_t *)adc2_data, sizeof(adc2_data), "b");
         return;
     }
 
