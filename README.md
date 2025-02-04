@@ -44,8 +44,6 @@
   <img src="https://ik.imagekit.io/vladysor/SensEdu/xcorr.png?updatedAt=1737991668627" width="49%">
   <img src="https://ik.imagekit.io/vladysor/SensEdu/WiFi_comms.png?updatedAt=1737991665342" width="49%">
   <img src="https://ik.imagekit.io/vladysor/SensEdu/ChirpSignalGen.png?updatedAt=1737991666448" width="49%">
-  <img src="https://ik.imagekit.io/vladysor/SensEdu/placeholder.png?updatedAt=1737991667556" width="49%">
-  <img src="https://ik.imagekit.io/vladysor/SensEdu/placeholder.png?updatedAt=1737991667556" width="49%">
 </p>
 
 
