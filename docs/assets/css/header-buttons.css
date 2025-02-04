@@ -1,0 +1,28 @@
+.header-button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+    margin-left: 0px !important;
+    margin-right: 0px !important;
+    display: inline-flex; /* inline-block */
+    align-items: center;
+    border-radius: 50% !important;
+    border: 0 !important;
+    
+    &.hb_light {
+        &:hover,
+        &:focus {
+            background-color: hsl(0, 0%, 95%);
+        }
+    }
+
+    &.hb_dark {
+        &:hover,
+        &:focus {
+            background-color: #3e3a41;
+        }
+    }
+}
