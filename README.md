@@ -87,7 +87,7 @@ During installtion you will be asked which components to install, press `Enter` 
 3. Install gems with `bundle install` command.
 4. Boot the website with `bundle exec jekyll serve`.
 You can put optional `--livereload` parameter to automatically reload the website if you make some changes to styles/text etc.
-5. Go to the page `localhost:4000` in your browser to see the website.
+5. Go to the page `localhost:4000/SensEdu` in your browser to see the website.
 
 #### Notes:
 * You can use <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" target="_blank">basic writing and formatting syntax</a> and <a href="https://just-the-docs.com/" target="_blank">Just the Docs page</a> as the reference for documentation syntax.
