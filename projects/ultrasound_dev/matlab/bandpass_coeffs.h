@@ -1,10 +1,5 @@
-// bandpass filter taps around 32kHz frequency in order to clean up the signal and 
-// remove audible sound disturbances
 // Bandpass Filter Coefficients (Fs = 244.0 kHz, 30.0-34.0 kHz)
-
-#define FILTER_TAP_NUM 64
-
-static float32_t filter_taps[FILTER_TAP_NUM] = {
+const float32_t filterCoefficients[64] = {
     -0.01207375f, -0.23739562f, -0.03413152f, 0.00433452f,
     0.04550176f, 0.04848888f, 0.01996812f, -0.00398824f,
     0.00521910f, 0.03281364f, 0.02892323f, -0.04054260f,
@@ -20,5 +15,5 @@ static float32_t filter_taps[FILTER_TAP_NUM] = {
     0.15944923f, -0.07062615f, -0.17877670f, -0.14148592f,
     -0.04054260f, 0.02892323f, 0.03281364f, 0.00521910f,
     -0.00398824f, 0.01996812f, 0.04848888f, 0.04550176f,
-    0.00433452f, -0.03413152f, -0.23739562f,-0.01207375f
+    0.00433452f, -0.03413152f, -0.23739562f,     -0.01207375f
 };
