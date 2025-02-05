@@ -7,9 +7,8 @@ clc;
 %% Settings
 ARDUINO_PORT = 'COM9';
 ARDUINO_BAUDRATE = 115200;
-
-MIC_NUM = 3;
-ITERATIONS = 500; % >= PLOT_FIX_X_AXIS_NUM !
+ITERATIONS = 500; 
+MIC_NUM = 4;
 
 VARIANCE_TEST = false;
 
@@ -22,48 +21,55 @@ PLOT_TIME_AXIS = false; % replace measurements with time in x axis
 
 %% Arduino Setup + Config
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
+DATA_LENGTH = 64 * 32; 
 
-write(arduino, 'c', "char"); % trigger arduino config
-serial_rx_data = read(arduino, 4, 'uint8'); % 4 bytes of data length
-
-data_length = serial_rx_data(1)*2^24 + serial_rx_data(2)*2^16 + serial_rx_data(3)*2^8 + serial_rx_data(4);
 
 %% Readings Loop
 
-dist_matrix = zeros(MIC_NUM,ITERATIONS);
+dist_matrix = zeros(MIC_NUM, ITERATIONS);
+
+data_mic1 = zeros(1, ITERATIONS);
+data_mic2 = zeros(1, ITERATIONS);
+data_mic3 = zeros(1, ITERATIONS);
+data_mic4 = zeros(1, ITERATIONS);
 
 x_axis = 1:PLOT_FIX_X_AXIS_NUM;
 x_shift = PLOT_FIX_X_AXIS_NUM/10;
 
-time_axis = zeros(1,ITERATIONS);
+time_axis = zeros(1, ITERATIONS);
+
 tic;
 
 for it = 1:ITERATIONS
-    if VARIANCE_TEST == true
-        if (mod(it,100) == 0)
-            fprintf("Please change position\n");
-            pause(5);
-        end
-    end
+    % if VARIANCE_TEST == true
+    %     if (mod(it,100) == 0)
+    %         fprintf("Please change position\n");
+    %         pause(5);
+    %     end
+    % end
 
     % Data readings
-    write(arduino, 'r', "char"); % trigger arduino measurement
+    write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
-
+    
+    % Detailed data: raw microphone data | scaled and removed self
+    % reflection | xcorr result
     if PLOT_DETAILED_DATA == true
-        details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, data_length, 3);
+        details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, DATA_LENGTH, 3);
     end
+    
+    % Reading distance directly from the mcu 
     dist_vector = read_mcu_xcorr(arduino, MIC_NUM);
 
     for i = 1:MIC_NUM
         dist_matrix(i, it) = dist_vector(i);
     end
-    
+
     % Data plotting
     if PLOT_DISTANCE==true
         subplot_x_size = 1;
         if PLOT_DETAILED_DATA == true
-            subplot_x_size = 4;
+            subplot_x_size = 4;   
             plot_details(details_matrix, MIC_NUM, 4);
         end
         x_axis = plot_distance(dist_matrix, x_axis, PLOT_FIX_X_AXIS, x_shift, PLOT_TIME_AXIS, time_axis, PLOT_LIMIT, MIC_NUM, it, subplot_x_size);
@@ -99,8 +105,10 @@ function plot_details(details_matrix, mic_num, subplot_x_size)
 
             if j == 1
                 title("Raw Microphone Data")
+                ylim([0 65535]);
             elseif j == 2
                 title("Remapped Data on MCU")
+                ylim([-1 1]);
             elseif j == 3
                 title("XCORR results on MCU")
             end
@@ -154,3 +162,4 @@ function x_axis = plot_distance(dist_matrix, x_axis, is_x_fixed_axis, x_shift, i
         ylim([0, y_limit]);
     end
 end
+

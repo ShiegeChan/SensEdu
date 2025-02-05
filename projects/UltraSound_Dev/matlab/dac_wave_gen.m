@@ -1,7 +1,7 @@
 % with that script you can generate wave for xcorr algorithm
 % dac wave gen
  f = 32e3; % wave freq
- fs = 370e3; % adc sampling rate
+ fs = 244e3; % adc sampling rate
 
  t = 0:(0.000000001):0.000315;
  ts = 0:(1/fs):0.000315;
