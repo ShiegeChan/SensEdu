@@ -31,7 +31,7 @@ uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint1
 			peak_index = i;
 		}
 	}
-	uint16_t sr = 244; // kS/sec  sample rate
+	uint16_t sr = ACTUAL_SAMPLING_RATE/1000; // kS/sec  sample rate
 	uint16_t c = 343; // speed in air
 	// (lag_samples * sample_time) * air_speed / 2
 	uint32_t distance = ((peak_index * 1000 * c) / sr) >> 1; // in micrometers
