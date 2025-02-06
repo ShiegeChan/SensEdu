@@ -78,6 +78,8 @@ void DMA_DAC1Init(uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MO
     dma_dac1_init(DMA1_Stream7, DMA1_Stream7_IRQn, 
         (uint32_t)&(DAC1->DHR12R1), (uint32_t)mem_address, mem_size, wave_mode);
     MODIFY_REG(DMAMUX1_Channel7->CCR, DMAMUX_CxCR_DMAREQ_ID, (67U) << DMAMUX_CxCR_DMAREQ_ID_Pos); 
+
+    SCB_CleanDCache_by_Addr(mem_address, mem_size << 1);
 }
 
 void DMA_ADCEnable(ADC_TypeDef* adc) {
