@@ -35,14 +35,22 @@ The exact sampling rate is very important for exact measurement acquisition. Mak
 
 ### About the Sampling Rate
 
-In this project, the ADC sampling rate is set to 250 kHz. However, the measured sampling rate slightly differs from this value. To measure the real sampling rate, a MATLAB script "measure_sampling_rate.m" is provided. This value is defined as a constant parameter "ACTUAL_SAMPLING_RATE". 
+In this project, the ADC sampling rate is set to 250 kHz. However, the measured sampling rate slightly differs from this value. To measure the real sampling rate, a MATLAB script "measure_sampling_rate.m" is provided. This value is defined as a preprocessor macro "ACTUAL_SAMPLING_RATE". 
+
+As for the DAC sampling rate, it is caluclated as frequency of the wave that is sent - in our case 32 kHz sine wave multiplied by the number of samples that the wave has for one cycle. 
 
 
+To generate the measurements, first burst sine signal with 32 kHz frequency is sent through DAC1. The sine wave is stored in a lookup table (LUT) as an uint16_t array. 
 
+After the burst is sent, ADC starts to collect the data microphones are receiving. The raw data is represented with 16bit values corresponding to the changes in pressure received by microphones. 
+
+### How is the distance computed
+
+The main difference between the audible sound and ultrasound is the frequency range. Other characteristics are the same. Therefore, we know that the sound travels through the air with constant speed of about 343 m/s. Since the speed is constant, the distance can be calculated using the simple formula 
+
+Therefore, the time is what we need to compute the distance. The time is computed as a time-of-flight (TOF) of the reflected DAC signal from the object. To compute the TOF, the cross-correlation method is used. 
 
 ## Receiving the Data
-
-
 
 
 
