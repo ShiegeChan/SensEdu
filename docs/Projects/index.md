@@ -1,6 +1,7 @@
 ---
 title: Projects
 layout: default
+math: mathjax
 nav_order: 5
 permalink: /projects/
 ---
@@ -52,6 +53,14 @@ Therefore, the time is what we need to compute the distance. The time is compute
 
 ## Receiving the Data
 
+crazy math example:
+
+$$
+\begin{equation}
+\int_0^x \sin(x) dx
+\label{eq:test}
+\end{equation}
+$$
 
 
 
