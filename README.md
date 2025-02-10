@@ -17,10 +17,10 @@
 
 <b>
 <p align="center">
-	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Download</a> · 
-	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Getting Started</a> · 
-	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Example Projects</a> · 
-	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Documentation</a> · 
+	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Download</a> ·
+	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Getting Started</a> ·
+	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Example Projects</a> ·
+	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Documentation</a> ·
 	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Contribution</a>
 </p>
 </b>
@@ -33,7 +33,7 @@
   * **1x Infineon Barometric Air Pressure Sensor** measures both pressure and temperature, making it ideal for indoor and outdoor navigation, weather stations, drones, and more (<a href="https://www.infineon.com/dgdl/Infineon-DPS310-DataSheet-v01_02-EN.pdf?fileId=5546d462576f34750157750826c42242" target="_blank">datasheet</a>).
   * **2x Ultrasonic Transducers** with center frequency at ~32kHz (<a href="https://www.farnell.com/datasheets/4413630.pdf?_gl=1*1fltz5c*_gcl_au*MTQwMTY3ODgxOC4xNzI2NDc2MDYw" target="_blank">datasheet</a>).
 * **Low-Level Library "SensEdu"** designed for the GIGA R1, this library serves as a basic abstraction layer for the MCU's peripherals and provides default configurations for all sensors. It is implemented at the register level with the help of <a href="https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" target="_blank">STM32H747 Reference Manual</a> and <a href="https://developer.arm.com/documentation/ddi0403/latest/" target="_blank"> ARMv7-M Architecture Reference Manual</a> to ensure simplicity and expandability. Extensive examples are included to demonstrate library functionality.
-* **Firmware for example projects** showcase how to use multiple sensors to achieve goals such as ultrasonic distance measurements, FSK-modulated ultrasonic communication, FMCR radar measurements, and more.
+* **Firmware for example projects** showcase how to use multiple sensors to achieve goals such as ultrasonic distance measurements, FSK-modulated ultrasonic communication, FMCW radar measurements, and more.
 * **MATLAB scripts** enable visualization, analysis and processing of data transferred from the MCU to a PC via USB or WiFi.
 
 
