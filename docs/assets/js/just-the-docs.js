@@ -1,4 +1,5 @@
 ---
+layout: null
 ---
 (function (jtd, undefined) {
 
@@ -144,6 +145,18 @@ function searchLoaded(index, docs) {
   var mainHeader = document.getElementById('main-header');
   var currentInput;
   var currentSearchIndex = 0;
+
+  {%- if site.search.focus_shortcut_key %}
+  // add event listener on ctrl + <focus_shortcut_key> for showing the search input
+  jtd.addEvent(document, 'keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === '{{ site.search.focus_shortcut_key }}') {
+      e.preventDefault();
+
+      mainHeader.classList.add('nav-open');
+      searchInput.focus();
+    }
+  });
+  {%- endif %}
 
   function showSearch() {
     document.documentElement.classList.add('search-active');
@@ -471,6 +484,7 @@ function searchLoaded(index, docs) {
 }
 {%- endif %}
 
+
 // Switch theme
 
 jtd.getTheme = function() {
@@ -513,11 +527,28 @@ jtd.setTheme = function(theme) {
 // and not have the slash on GitHub Pages
 
 function navLink() {
-  var href = document.location.pathname;
-  if (href.endsWith('/') && href != '/') {
-    href = href.slice(0, -1);
+  var pathname = document.location.pathname;
+
+  var navLink = document.getElementById('site-nav').querySelector('a[href="' + pathname + '"]');
+  if (navLink) {
+    return navLink;
   }
-  return document.getElementById('site-nav').querySelector('a[href="' + href + '"], a[href="' + href + '/"]');
+
+  // The `permalink` setting may produce navigation links whose `href` ends with `/` or `.html`.
+  // To find these links when `/` is omitted from or added to pathname, or `.html` is omitted:
+
+  if (pathname.endsWith('/') && pathname != '/') {
+    pathname = pathname.slice(0, -1);
+  }
+
+  if (pathname != '/') {
+    navLink = document.getElementById('site-nav').querySelector('a[href="' + pathname + '"], a[href="' + pathname + '/"], a[href="' + pathname + '.html"]');
+    if (navLink) {
+      return navLink;
+    }
+  }
+
+  return null; // avoids `undefined`
 }
 
 // Scroll site-nav to ensure the link to the current page is visible
@@ -552,12 +583,14 @@ function activateNav() {
 // Document ready
 
 jtd.onReady(function(){
-  initNav();
+  if (document.getElementById('site-nav')) {
+    initNav();
+    activateNav();
+    scrollNav();
+  }
   {%- if site.search_enabled != false %}
   initSearch();
   {%- endif %}
-  activateNav();
-  scrollNav();
 });
 
 // Copy button on code
