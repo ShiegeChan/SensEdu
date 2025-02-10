@@ -6,19 +6,19 @@ uint32_t lib_error = 0;
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-const size_t lut_size = 16;
-static uint16_t lut[] __attribute__((aligned(16*2))) = {
-    0x0000,0x0001,0x0002,0x0003,0x0004,0x0005,0x0006,0x0007,0x0008,0x0009,0x000A,0x000B,0x000C,0x000D,0x000E,0x000F
+const size_t lut_size = 17;
+static SENSEDU_DAC_BUFFER(lut, lut_size) = {
+    0x0000,0x0001,0x0002,0x0003,0x0004,0x0005,0x0006,0x0007,0x0008,0x0009,0x000A,0x000B,0x000C,0x000D,0x000E,0x000F,0x0010
 };
 static uint8_t increment_flag = 1; // run time modification flag
 
 void disable_dac_cache()
 {
-  LL_MPU_Disable();
-  LL_MPU_ConfigRegion(LL_MPU_REGION_NUMBER5, 0x0, (uint32_t)(&lut), LL_MPU_REGION_SIZE_32B|LL_MPU_TEX_LEVEL1|LL_MPU_REGION_FULL_ACCESS|LL_MPU_INSTRUCTION_ACCESS_DISABLE|LL_MPU_ACCESS_SHAREABLE|LL_MPU_ACCESS_NOT_CACHEABLE|LL_MPU_ACCESS_NOT_BUFFERABLE);
-  LL_MPU_EnableRegion(LL_MPU_REGION_NUMBER5);
-  SCB_CleanDCache_by_Addr((uint32_t*)lut, 32);
-  LL_MPU_Enable(LL_MPU_CTRL_PRIVILEGED_DEFAULT);
+    LL_MPU_Disable();
+    LL_MPU_ConfigRegion(LL_MPU_REGION_NUMBER5, 0x0, (uint32_t)(&lut), LL_MPU_REGION_SIZE_64B|LL_MPU_TEX_LEVEL1|LL_MPU_REGION_FULL_ACCESS|LL_MPU_INSTRUCTION_ACCESS_DISABLE|LL_MPU_ACCESS_SHAREABLE|LL_MPU_ACCESS_NOT_CACHEABLE|LL_MPU_ACCESS_NOT_BUFFERABLE);
+    LL_MPU_EnableRegion(LL_MPU_REGION_NUMBER5);
+    SCB_CleanDCache_by_Addr((uint32_t*)lut, 64);
+    LL_MPU_Enable(LL_MPU_CTRL_PRIVILEGED_DEFAULT);
 }
 
 

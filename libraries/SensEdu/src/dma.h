@@ -8,6 +8,20 @@ extern "C" {
 #include "libs.h"
 #include "dac.h"
 
+// calculates next power of two, based on how many leading zeros in binary
+#define NEXT_POWER_OF_2(x) \
+    ((x) <= 1 ? 1 : (1 << (32 - __builtin_clz((x) - 1))))
+
+// aligned with power of two buffer size (required for MPU config)
+// hard coded for 16bit variable
+#define SENSEDU_DAC_BUFFER(name, user_size) \
+    uint16_t name[NEXT_POWER_OF_2(user_size * 2) / 2] \
+    __attribute__((aligned(NEXT_POWER_OF_2(user_size * 2))))
+
+// aligned with DCache line size
+#define SENSEDU_ADC_BUFFER(name, size) uint16_t name[size] \
+    __attribute__((aligned(__SCB_DCACHE_LINE_SIZE)))
+
 typedef enum {
     DMA_ERROR_NO_ERRORS = 0x00,
     DMA_ERROR_ENABLED_BEFORE_INIT = 0x01,

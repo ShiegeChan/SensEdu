@@ -7,8 +7,6 @@ extern "C" {
 
 #include "libs.h"
 
-#define SENSEDU_DMA_BUFFER(type) type __attribute__((section(".RAM_D2")))
-
 typedef enum {
     DAC_ERROR_NO_ERRORS = 0x00,
     DAC_ERROR_INIT_FAILED = 0x01,
