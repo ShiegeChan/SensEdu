@@ -49,6 +49,8 @@ void dma_clear_status_flags(DMA_Flags* dma_flags);
 void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags* flags);
 adc_config* get_adc_config(ADC_TypeDef* adc);
 
+void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size);
+
 
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
@@ -78,6 +80,13 @@ void DMA_DAC1Init(uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MO
     dma_dac1_init(DMA1_Stream7, DMA1_Stream7_IRQn, 
         (uint32_t)&(DAC1->DHR12R1), (uint32_t)mem_address, mem_size, wave_mode);
     MODIFY_REG(DMAMUX1_Channel7->CCR, DMAMUX_CxCR_DMAREQ_ID, (67U) << DMAMUX_CxCR_DMAREQ_ID_Pos); 
+
+    // disable cache for dac's dma buffer
+    if (mem_size < 1) {
+        error = DMA_ERROR_DAC_BUFFER_SIZE_TOO_SMALL;
+        return;
+    }
+    dma_dac_mpu_config(mem_address, mem_size);
 }
 
 void DMA_ADCEnable(ADC_TypeDef* adc) {
@@ -243,6 +252,25 @@ void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags* flags) {
     while(READ_BIT(dma_stream->CR, DMA_SxCR_EN));
 
     dma_clear_status_flags(flags);
+}
+
+void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size) {
+    LL_MPU_Disable();
+
+    // check e.g. LL_MPU_REGION_SIZE_32B mapping 
+    // to understand region size calculations
+    LL_MPU_ConfigRegion(LL_MPU_REGION_NUMBER5, 0x0, (uint32_t)(mem_address), 
+    MPU_REGION_SIZE_ATTRIBUTE(mem_size) | 
+    LL_MPU_TEX_LEVEL1 |
+    LL_MPU_REGION_FULL_ACCESS |
+    LL_MPU_INSTRUCTION_ACCESS_DISABLE | 
+    LL_MPU_ACCESS_SHAREABLE |
+    LL_MPU_ACCESS_NOT_CACHEABLE |
+    LL_MPU_ACCESS_NOT_BUFFERABLE);
+
+    LL_MPU_EnableRegion(LL_MPU_REGION_NUMBER5);
+    SCB_CleanDCache_by_Addr((uint32_t)mem_address, mem_size << 1);
+    LL_MPU_Enable(LL_MPU_CTRL_PRIVILEGED_DEFAULT);
 }
 
 
