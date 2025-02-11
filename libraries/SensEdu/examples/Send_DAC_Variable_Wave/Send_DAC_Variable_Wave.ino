@@ -1,17 +1,14 @@
 #include <SensEdu.h>
 
-uint32_t lib_error = 0;
+static uint32_t lib_error = 0;
+static uint8_t increment_flag = 1; // run time modification flag
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
-// DAC transfered symbols
-const size_t sine_lut_size = 64;
-const SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {
-    0x0000,0x000a,0x0027,0x0058,0x009c,0x00f2,0x0159,0x01d1,0x0258,0x02ed,0x038e,0x043a,0x04f0,0x05ad,0x0670,0x0737,
-	0x0800,0x08c8,0x098f,0x0a52,0x0b0f,0x0bc5,0x0c71,0x0d12,0x0da7,0x0e2e,0x0ea6,0x0f0d,0x0f63,0x0fa7,0x0fd8,0x0ff5,
-	0x0fff,0x0ff5,0x0fd8,0x0fa7,0x0f63,0x0f0d,0x0ea6,0x0e2e,0x0da7,0x0d12,0x0c71,0x0bc5,0x0b0f,0x0a52,0x098f,0x08c8,
-	0x0800,0x0737,0x0670,0x05ad,0x04f0,0x043a,0x038e,0x02ed,0x0258,0x01d1,0x0159,0x00f2,0x009c,0x0058,0x0027,0x000a
+const size_t lut_size = 4;
+static SENSEDU_DAC_BUFFER(lut, lut_size) = {
+    0x0000,0x0001,0x0002,0x0003
 };
 
 /* -------------------------------------------------------------------------- */
@@ -20,8 +17,7 @@ const SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {
 void setup() {
     Serial.begin(115200);
 
-    // TODO: rewrite it to show argument names
-    SensEdu_DAC_Settings dac1_settings = {DAC1, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
+    SensEdu_DAC_Settings dac1_settings = {DAC1, 64000*16, (uint16_t*)lut, lut_size, 
         SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
 
     SensEdu_DAC_Init(&dac1_settings);
@@ -41,6 +37,23 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
+    // modify lut
+    for (uint16_t i = 0; i < lut_size; i++) {
+        if (increment_flag) {
+            lut[i]++;
+        } else {
+            lut[i]--;
+        }
+    }
+
+    // out of bounds checks
+    if (lut[0] == 0x0000) {
+        increment_flag = 1;
+    }
+    if (lut[lut_size-1] == 0x0FFF) {
+        increment_flag = 0;
+    }
+    
     // check errors
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
