@@ -19,25 +19,3 @@ function data = read_debug_array(arduino, data_length, data_type, byte_per_sampl
 
     data = double(typecast(uint8(serial_rx_data), data_type));
 end
-
-% function data = read_debug_array(arduino, data_length, data_type, byte_per_sample)
-%     total_byte_length = data_length * byte_per_sample;
-%     serial_rx_data = zeros(1, total_byte_length, 'uint8');
-% 
-%     Ensure the total_byte_length is a multiple of 32 for chunk processing
-%     if mod(total_byte_length, 32) ~= 0
-%         error('Total byte length must be a multiple of 32');
-%     end
-% 
-%     for i = 1:(total_byte_length / 32) % 32 byte chunk size
-%         chunk = read(arduino, 32, 'uint8')
-%         Ensure that exactly 32 bytes were read
-%         if length(chunk) ~= 32
-%             error('Failed to read 32 bytes from serial port');
-%         end
-% 
-%         serial_rx_data((32 * (i - 1) + 1):(32 * i)) = chunk;
-%     end
-% 
-%     data = double(typecast(uint8(serial_rx_data), data_type)); 
-% end
