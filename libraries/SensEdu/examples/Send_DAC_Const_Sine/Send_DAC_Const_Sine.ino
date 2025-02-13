@@ -21,11 +21,11 @@ void setup() {
     Serial.begin(115200);
 
     // TODO: rewrite it to show argument names
-    SensEdu_DAC_Settings dac1_settings = {DAC1, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
+    SensEdu_DAC_Settings dac2_settings = {DAC_CH2, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
         SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
 
-    SensEdu_DAC_Init(&dac1_settings);
-    SensEdu_DAC_Enable(DAC1);
+    SensEdu_DAC_Init(&dac2_settings);
+    SensEdu_DAC_Enable(DAC_CH2);
 
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -33,7 +33,6 @@ void setup() {
         Serial.print("Error: 0x");
         Serial.println(lib_error, HEX);
     }
-
     Serial.println("Setup is successful.");
 }
 
