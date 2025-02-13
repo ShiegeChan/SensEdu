@@ -1,28 +1,46 @@
 #include <SensEdu.h>
 
-static uint32_t lib_error = 0;
-static uint8_t increment_flag = 1; // run time modification flag
 
 /* -------------------------------------------------------------------------- */
-/*                                  Settings                                  */
+/*                                User Settings                               */
 /* -------------------------------------------------------------------------- */
-const size_t lut_size = 4;
-static SENSEDU_DAC_BUFFER(lut, lut_size) = {
-    0x0000,0x0001,0x0002,0x0003
-};
+
+#define CHIRP_DURATION          0.0009    // Duration of the chirp (in seconds)
+#define START_FREQUENCY         30300    // Start frequency (in Hz)
+#define END_FREQUENCY           35300   // Stop frequency (in Hz)
+
+/* -------------------------------------------------------------------------- */
+/*                              Global Variables                              */
+/* -------------------------------------------------------------------------- */
+
+static uint32_t lib_error = 0;
+static uint8_t increment_flag = 1; // Run time modification flag
+const float fs = 100 * END_FREQUENCY; // Sampling frequency of LUT
+const float samples = fs * CHIRP_DURATION; // Number of samples
+const uint32_t samples_int = (uint32_t)samples;
+const float chirp_nb = 1/CHIRP_DURATION; //Number of chirp cycles per second
+static SENSEDU_DAC_BUFFER(lut, samples_int); // Buffer for the chirp signal
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
+
 void setup() {
     Serial.begin(115200);
 
-    SensEdu_DAC_Settings dac1_settings = {DAC1, 64000*16, (uint16_t*)lut, lut_size, 
-        SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
+    // Initialize DAC settings
+    SensEdu_DAC_Settings dac1_settings = {
+        DAC1, chirp_nb*samples_int, (uint16_t*)lut, samples_int,
+        SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0
+    };
+
+    // Generate the chirp signal
+    generateChirpSignal(lut);
 
     SensEdu_DAC_Init(&dac1_settings);
     SensEdu_DAC_Enable(DAC1);
 
+    // Check for errors
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);
@@ -33,28 +51,12 @@ void setup() {
     Serial.println("Setup is successful.");
 }
 
+
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    // modify lut
-    for (uint16_t i = 0; i < lut_size; i++) {
-        if (increment_flag) {
-            lut[i]++;
-        } else {
-            lut[i]--;
-        }
-    }
-
-    // out of bounds checks
-    if (lut[0] == 0x0000) {
-        increment_flag = 1;
-    }
-    if (lut[lut_size-1] == 0x0FFF) {
-        increment_flag = 0;
-    }
-    
-    // check errors
+    // Check for errors
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);
