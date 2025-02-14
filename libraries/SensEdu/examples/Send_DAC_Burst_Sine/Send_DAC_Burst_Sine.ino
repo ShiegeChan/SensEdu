@@ -7,7 +7,7 @@ uint32_t lib_error = 0;
 /* -------------------------------------------------------------------------- */
 
 // how many LUT repeats for one DAC transfer
-const uint16_t dac_cycle_num = 5;
+const uint16_t dac_cycle_num = 10;
 
 // DAC transfered symbols
 const size_t sine_lut_size = 64;
@@ -25,10 +25,11 @@ void setup() {
     Serial.begin(115200);
 
     // TODO: rewrite it to show argument names
-    SensEdu_DAC_Settings dac1_settings = {DAC1, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
+    // For DAC Channel 1 enter DAC_CH1
+    SensEdu_DAC_Settings dac_settings = {DAC_CH1, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
         SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num};
 
-    SensEdu_DAC_Init(&dac1_settings);
+    SensEdu_DAC_Init(&dac_settings);
 
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -44,8 +45,8 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-
-    SensEdu_DAC_Enable(DAC1);
+    // For DAC Channel 1 enter DAC_CH1
+    SensEdu_DAC_Enable(DAC_CH1);
     
     // check errors
     lib_error = SensEdu_GetError();

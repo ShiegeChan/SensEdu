@@ -6,6 +6,9 @@ uint32_t lib_error = 0;
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
+// how many LUT repeats for one DAC transfer
+const uint16_t dac_cycle_num = 10;
+
 // DAC transfered symbols
 const size_t sine_lut_size = 64;
 const SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {
@@ -18,18 +21,22 @@ const SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
-
 void setup() {
     Serial.begin(115200);
-    // For DAC Channel 2 (PIN DAC1) enter DAC_CH2 instead of DAC_CH1
 
-    // TODO: rewrite it to show argument names
-    SensEdu_DAC_Settings dac_settings = {DAC_CH1, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
-        SENSEDU_DAC_MODE_SINGLE_WAVE, 0};
+    // TODO: make two channels work simultaniously
 
-    SensEdu_DAC_Init(&dac_settings);
-    SensEdu_DAC_Enable(DAC_CH1);
+    SensEdu_DAC_Settings dac_ch1_settings = {DAC_CH1, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
+        SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num};
 
+    SensEdu_DAC_Init(&dac_ch1_settings);
+
+    SensEdu_DAC_Settings dac_ch2_settings = {DAC_CH2, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
+        SENSEDU_DAC_MODE_CONTINUOUS_WAVE, dac_cycle_num};
+
+    SensEdu_DAC_Init(&dac_ch2_settings);
+
+    
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);
@@ -43,8 +50,10 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
-
 void loop() {
+    SensEdu_DAC_Enable(DAC_CH1);
+    SensEdu_DAC_Enable(DAC_CH2);
+    
     // check errors
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -52,5 +61,6 @@ void loop() {
         Serial.print("Error: 0x");
         Serial.println(lib_error, HEX);
     }
-}
 
+    delay(100);
+}

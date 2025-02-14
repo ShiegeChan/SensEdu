@@ -6,15 +6,26 @@ uint32_t cntr = 0;
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
-ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 3;
 uint8_t adc_pins[adc_pin_num] = {A0, A1, A2}; 
-
 // must be:
 // 1. multiple of 32 words (64 half-words) to ensure cache coherence
 // 2. properly aligned
 const uint16_t memory4adc_size = 64 * adc_pin_num; // allocate chunks of (4 * 32) * number of channels
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
+
+SensEdu_ADC_Settings adc_settings = {
+    .adc = ADC1,
+    .pins = adc_pins,
+    .pin_num = adc_pin_num,
+
+    .conv_mode = SENSEDU_ADC_MODE_CONT,
+    .sampling_freq = 0,
+    
+    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .mem_address = (uint16_t*)memory4adc,
+    .mem_size = memory4adc_size
+};
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
@@ -28,13 +39,9 @@ void setup() {
     }
     Serial.println("Started Initialization...");
 
-    SensEdu_Init(adc, adc_pins, adc_pin_num, SENSEDU_ADC_MODE_CONT, 1000, SENSEDU_ADC_DMA_CONNECT); // continuos mode for ADC
-    SensEdu_ADC_Enable(adc);
-
-    SensEdu_DMA_Init((uint16_t*)memory4adc, memory4adc_size); 
-    SensEdu_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
-
-    SensEdu_ADC_Start(adc);
+    SensEdu_ADC_Init(&adc_settings);
+    SensEdu_ADC_Enable(ADC1);
+    SensEdu_ADC_Start(ADC1);
 
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -58,7 +65,7 @@ void loop() {
     // DMA in background
 
     // Print transfered Data if available
-    if (SensEdu_DMA_GetTransferStatus()) {
+    if (SensEdu_DMA_GetADCTransferStatus(ADC1)) {
         Serial.println("------");
         for (int i = 0; i < memory4adc_size; i+=3) {
             Serial.print("ADC value ");
@@ -78,9 +85,8 @@ void loop() {
         };
 
         // restart ADC
-        SensEdu_DMA_ClearTransferStatus();
-        SensEdu_DMA_Enable((uint16_t*)memory4adc, memory4adc_size);
-        SensEdu_ADC_Start(adc);
+        SensEdu_DMA_ClearADCTransferStatus(ADC1);
+        SensEdu_ADC_Start(ADC1);
     }
 
     // check errors
