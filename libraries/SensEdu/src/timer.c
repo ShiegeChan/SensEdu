@@ -32,9 +32,9 @@ void SensEdu_TIMER_DelayInit(void) {
     tim2_delay_init();
 }
 
-void SensEdu_TIMER_Delay_us(uint32_t delay_value) {
+void SensEdu_TIMER_Delay_us(uint32_t delay_us) {
     delay_flag = 1;
-    WRITE_REG(TIM2->ARR, delay_value);
+    WRITE_REG(TIM2->ARR, delay_us);
     WRITE_REG(TIM2->CNT, 0U);
     SET_BIT(TIM2->CR1, TIM_CR1_CEN);
     while(delay_flag == 1);

@@ -6,14 +6,13 @@ nav_order: 2
 ---
 
 # ADC Peripheral
-{: .fs-8 .fw-500}
+{: .fs-8 .fw-500 .no_toc}
 ---
 
 bla bla bla
 {: .fw-500}
 
 ## Functions
-
 
 
 ## Developer Notes

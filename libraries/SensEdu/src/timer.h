@@ -13,7 +13,7 @@ typedef enum {
 } TIMER_ERROR;
 
 void SensEdu_TIMER_DelayInit(void);
-void SensEdu_TIMER_Delay_us(uint32_t delay_value);
+void SensEdu_TIMER_Delay_us(uint32_t delay_us);
 
 TIMER_ERROR TIMER_GetError(void);
 void TIMER_ADC1Init(void);
