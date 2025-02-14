@@ -50,7 +50,8 @@ typedef enum {
     DMA_ERROR_MEMORY_WRONG_SIZE = 0x06,
     DMA_ERROR_ENABLED_BEFORE_ENABLE = 0x07,
     DMA_ERROR_ADC_WRONG_INPUT = 0x08,
-    DMA_ERROR_DAC_BUFFER_SIZE_TOO_SMALL = 0x09
+    DMA_ERROR_DAC_BUFFER_SIZE_TOO_SMALL = 0x09,
+    DMA_ERROR_DAC_WRONG_INPUT = 0x0A
 } DMA_ERROR;
 
 uint8_t SensEdu_DMA_GetADCTransferStatus(ADC_TypeDef* adc);
@@ -58,11 +59,11 @@ void SensEdu_DMA_ClearADCTransferStatus(ADC_TypeDef* adc);
 
 DMA_ERROR DMA_GetError(void);
 void DMA_ADCInit(ADC_TypeDef* adc, uint16_t* mem_address, const uint16_t mem_size);
-void DMA_DAC1Init(uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MODE wave_mode);
+void DMA_DACInit(DAC_Channel* dac_channel, uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MODE wave_mode);
 void DMA_ADCEnable(ADC_TypeDef* adc);
-void DMA_DAC1Enable(void);
+void DMA_DACEnable(DAC_Channel* dac_channel);
 void DMA_ADCDisable(ADC_TypeDef* adc);
-void DMA_DAC1Disable(void);
+void DMA_DACDisable(DAC_Channel* dac_channel);
 
 
 #ifdef __cplusplus

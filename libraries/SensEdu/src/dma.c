@@ -20,16 +20,38 @@ typedef struct {
     uint8_t dmamux_periph_id;
 } adc_config;
 
+typedef struct {
+    SENSEDU_DAC_MODE wave_mode;
+    uint16_t* memory_address;
+    uint16_t memory_size;
+    uint32_t dac_reg_address;
+    DMA_Stream_TypeDef* dma_stream;
+    DMA_Flags* dma_stream_flags;
+    IRQn_Type dma_irq;
+    DMAMUX_Channel_TypeDef* dmamux_ch;
+    uint8_t dmamux_periph_id;
+} dac_config;
 
 /* -------------------------------------------------------------------------- */
 /*                                  Variables                                 */
 /* -------------------------------------------------------------------------- */
+
+static DMA_Flags dma_ch0_flags = {(DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0), (DMA_LISR_TCIF0 | DMA_LISR_HTIF0 | DMA_LISR_TEIF0 | DMA_LISR_DMEIF0)};
+static DMA_Flags dma_ch1_flags = {(DMA_LIFCR_CTCIF1 | DMA_LIFCR_CHTIF1 | DMA_LIFCR_CTEIF1), (DMA_LISR_TCIF1 | DMA_LISR_HTIF1 | DMA_LISR_TEIF1 | DMA_LISR_DMEIF1)};
+static DMA_Flags dma_ch2_flags = {(DMA_LIFCR_CTCIF2 | DMA_LIFCR_CHTIF2 | DMA_LIFCR_CTEIF2), (DMA_LISR_TCIF2 | DMA_LISR_HTIF2 | DMA_LISR_TEIF2 | DMA_LISR_DMEIF2)};
+static DMA_Flags dma_ch3_flags = {(DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3 | DMA_LIFCR_CTEIF3), (DMA_LISR_TCIF3 | DMA_LISR_HTIF3 | DMA_LISR_TEIF3 | DMA_LISR_DMEIF3)};
+
 static DMA_Flags dma_ch4_flags = {(DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4), (DMA_HISR_TCIF4 | DMA_HISR_HTIF4 | DMA_HISR_TEIF4 | DMA_HISR_DMEIF4)};
 static DMA_Flags dma_ch5_flags = {(DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5 | DMA_HIFCR_CTEIF5), (DMA_HISR_TCIF5 | DMA_HISR_HTIF5 | DMA_HISR_TEIF5 | DMA_HISR_DMEIF5)};
 static DMA_Flags dma_ch6_flags = {(DMA_HIFCR_CTCIF6 | DMA_HIFCR_CHTIF6 | DMA_HIFCR_CTEIF6), (DMA_HISR_TCIF6 | DMA_HISR_HTIF6 | DMA_HISR_TEIF6 | DMA_HISR_DMEIF6)};
 static DMA_Flags dma_ch7_flags = {(DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIFCR_CTEIF7), (DMA_HISR_TCIF7 | DMA_HISR_HTIF7 | DMA_HISR_TEIF7 | DMA_HISR_DMEIF7)};
 
 static volatile DMA_ERROR error = DMA_ERROR_NO_ERRORS;
+
+static dac_config dac_ch1_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(DAC1->DHR12R1), DMA1_Stream2, 
+    &dma_ch2_flags, DMA1_Stream2_IRQn, DMAMUX1_Channel2, (67U)};
+static dac_config dac_ch2_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(DAC1->DHR12R2), DMA1_Stream3, 
+    &dma_ch3_flags, DMA1_Stream3_IRQn, DMAMUX1_Channel3, (68U)};
 
 static adc_config adc1_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC1->DR), DMA1_Stream6, 
     &dma_ch6_flags, DMA1_Stream6_IRQn, DMAMUX1_Channel6, (9U)};
@@ -38,16 +60,17 @@ static adc_config adc2_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC2->DR),
 static adc_config adc3_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC3->DR)};
 
 
+
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
 void dma_adc_init(adc_config* config);
-void dma_dac1_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, 
-    uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size, SENSEDU_DAC_MODE wave_mode);
+void dma_dac_init(dac_config* config);
 
 void dma_clear_status_flags(DMA_Flags* dma_flags);
 void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags* flags);
 adc_config* get_adc_config(ADC_TypeDef* adc);
+dac_config* get_dac_config(DAC_Channel* dac_channel);
 
 void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size);
 
@@ -76,10 +99,14 @@ void DMA_ADCInit(ADC_TypeDef* adc, uint16_t* mem_address, const uint16_t mem_siz
     MODIFY_REG(config->dmamux_ch->CCR, DMAMUX_CxCR_DMAREQ_ID, config->dmamux_periph_id << DMAMUX_CxCR_DMAREQ_ID_Pos); 
 }
 
-void DMA_DAC1Init(uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MODE wave_mode) {
-    dma_dac1_init(DMA1_Stream7, DMA1_Stream7_IRQn, 
-        (uint32_t)&(DAC1->DHR12R1), (uint32_t)mem_address, mem_size, wave_mode);
-    MODIFY_REG(DMAMUX1_Channel7->CCR, DMAMUX_CxCR_DMAREQ_ID, (67U) << DMAMUX_CxCR_DMAREQ_ID_Pos); 
+void DMA_DACInit(DAC_Channel* dac_channel, uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MODE wave_mode) {
+    dac_config* config = get_dac_config(dac_channel);
+    config->memory_address = mem_address;
+    config->memory_size = mem_size;
+    config->wave_mode = wave_mode;
+
+    dma_dac_init(config);
+    MODIFY_REG(config->dmamux_ch->CCR, DMAMUX_CxCR_DMAREQ_ID, config->dmamux_periph_id << DMAMUX_CxCR_DMAREQ_ID_Pos); 
 
     // disable cache for dac's dma buffer
     if (mem_size < 1) {
@@ -111,13 +138,13 @@ void DMA_ADCEnable(ADC_TypeDef* adc) {
     SET_BIT(config->dma_stream->CR, DMA_SxCR_EN);
 }
 
-void DMA_DAC1Enable(void) {
-    if (READ_BIT(DMA1_Stream7->CR, DMA_SxCR_EN)) {
+void DMA_DACEnable(DAC_Channel* dac_channel) {
+    dac_config* config = get_dac_config(dac_channel);
+    if (READ_BIT(config->dma_stream->CR, DMA_SxCR_EN)) {
         error = DMA_ERROR_ENABLED_BEFORE_ENABLE;
-    } 
-
-    dma_clear_status_flags(&dma_ch7_flags);
-    SET_BIT(DMA1_Stream7->CR, DMA_SxCR_EN);
+    }
+    dma_clear_status_flags(&(config->dma_stream_flags));
+    SET_BIT(config->dma_stream->CR, DMA_SxCR_EN);
 }
 
 void DMA_ADCDisable(ADC_TypeDef* adc) {
@@ -125,8 +152,9 @@ void DMA_ADCDisable(ADC_TypeDef* adc) {
     dma_disable(config->dma_stream, config->dma_stream_flags);
 }
 
-void DMA_DAC1Disable(void) {
-    dma_disable(DMA1_Stream7, &dma_ch7_flags);
+void DMA_DACDisable(DAC_Channel* dac_channel) {
+    dac_config* config = get_dac_config(dac_channel);
+    dma_disable(config->dma_stream, config->dma_stream_flags);
 }
 
 
@@ -190,10 +218,21 @@ void dma_adc_init(adc_config* config) {
     WRITE_REG(config->dma_stream->M0AR, config->memory_address);
 }
 
-void dma_dac1_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq, 
-    uint32_t periph_address, uint32_t mem_address, const uint16_t mem_size, SENSEDU_DAC_MODE wave_mode) {
+dac_config* get_dac_config(DAC_Channel* dac_channel) {
+    if (dac_channel == DAC_CH1) {
+        return &dac_ch1_config;
+    }
+    if (dac_channel == DAC_CH2) {
+        return &dac_ch2_config;
+    }
+
+    error = DMA_ERROR_DAC_WRONG_INPUT;
+    return 0;
+}
+
+void dma_dac_init(dac_config *config) {
     
-    if (READ_BIT(dma_stream->CR, DMA_SxCR_EN)) {
+    if (READ_BIT(config->dma_stream->CR, DMA_SxCR_EN)) {
         error = DMA_ERROR_ENABLED_BEFORE_INIT;
     }
     
@@ -201,47 +240,55 @@ void dma_dac1_init(DMA_Stream_TypeDef* dma_stream, IRQn_Type dma_irq,
     SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_DMA1EN);  // DMA1 Clock
 
     // Priority
-    MODIFY_REG(dma_stream->CR, DMA_SxCR_PL, 0b11 << DMA_SxCR_PL_Pos); // Very High Priority
+    MODIFY_REG(config->dma_stream->CR, DMA_SxCR_PL, 0b11 << DMA_SxCR_PL_Pos); // Very High Priority
 
     // Half-word (16bit) data sizes
-    MODIFY_REG(dma_stream->CR, DMA_SxCR_MSIZE, 0b01 << DMA_SxCR_MSIZE_Pos); // memory
-    MODIFY_REG(dma_stream->CR, DMA_SxCR_PSIZE, 0b01 << DMA_SxCR_PSIZE_Pos); // peripheral
+    MODIFY_REG(config->dma_stream->CR, DMA_SxCR_MSIZE, 0b01 << DMA_SxCR_MSIZE_Pos); // memory
+    MODIFY_REG(config->dma_stream->CR, DMA_SxCR_PSIZE, 0b01 << DMA_SxCR_PSIZE_Pos); // peripheral
 
     // Address incrementation
-    SET_BIT(dma_stream->CR, DMA_SxCR_MINC); // memory
-    CLEAR_BIT(dma_stream->CR, DMA_SxCR_PINC); // peripheral
+    SET_BIT(config->dma_stream->CR, DMA_SxCR_MINC); // memory
+    CLEAR_BIT(config->dma_stream->CR, DMA_SxCR_PINC); // peripheral
 
-    if (wave_mode == SENSEDU_DAC_MODE_CONTINUOUS_WAVE) {
-        SET_BIT(dma_stream->CR, DMA_SxCR_CIRC); // Circular mode
+    if (config->wave_mode == SENSEDU_DAC_MODE_CONTINUOUS_WAVE) {
+        SET_BIT(config->dma_stream->CR, DMA_SxCR_CIRC); // Circular mode
     } else {
-        CLEAR_BIT(dma_stream->CR, DMA_SxCR_CIRC);
+        CLEAR_BIT(config->dma_stream->CR, DMA_SxCR_CIRC);
     }
 
     // Data transfer direction
-    MODIFY_REG(dma_stream->CR, DMA_SxCR_DIR, 0b01 << DMA_SxCR_DIR_Pos); // memory -> peripheral
+    MODIFY_REG(config->dma_stream->CR, DMA_SxCR_DIR, 0b01 << DMA_SxCR_DIR_Pos); // memory -> peripheral
 
     // Enable Interrupts
-    SET_BIT(dma_stream->CR, DMA_SxCR_TCIE); // transfer complete
-    SET_BIT(dma_stream->CR, DMA_SxCR_TEIE); // transfer error
-    NVIC_SetPriority(dma_irq, 3);
-    NVIC_EnableIRQ(dma_irq);
+    SET_BIT(config->dma_stream->CR, DMA_SxCR_TCIE); // transfer complete
+    SET_BIT(config->dma_stream->CR, DMA_SxCR_TEIE); // transfer error
+    NVIC_SetPriority(config->dma_irq, 3);
+    NVIC_EnableIRQ(config->dma_irq);
 
     // Number of data items to transfer
-    MODIFY_REG(dma_stream->NDTR, DMA_SxNDT, (mem_size) << DMA_SxNDT_Pos);
+    MODIFY_REG(config->dma_stream->NDTR, DMA_SxNDT, (config->memory_size) << DMA_SxNDT_Pos);
     
     // Peripheral data register address
-    WRITE_REG(dma_stream->PAR, periph_address);
+    WRITE_REG(config->dma_stream->PAR, config->dac_reg_address);
 
     // Memory data register address
-    WRITE_REG(dma_stream->M0AR, mem_address);
+    WRITE_REG(config->dma_stream->M0AR, config->memory_address);
 
     // Disable FIFO
-    CLEAR_BIT(dma_stream->FCR, DMA_SxFCR_DMDIS);  
+    CLEAR_BIT(config->dma_stream->FCR, DMA_SxFCR_DMDIS);  
 }
 
 void dma_clear_status_flags(DMA_Flags* dma_flags) {
-    SET_BIT(DMA1->HIFCR, dma_flags->clear_flags);
+    if (dma_flags==&dma_ch0_flags || dma_flags==&dma_ch1_flags || dma_flags==&dma_ch2_flags || dma_flags==&dma_ch3_flags) {
+        SET_BIT(DMA1->LIFCR, dma_flags->clear_flags);
 
+        if (READ_BIT(DMA1->LISR, dma_flags->flags)) {
+            error = DMA_ERROR_INTERRUPTS_NOT_CLEARED;
+        } 
+        return;
+    }
+
+    SET_BIT(DMA1->HIFCR, dma_flags->clear_flags);
     if (READ_BIT(DMA1->HISR, dma_flags->flags)) {
         error = DMA_ERROR_INTERRUPTS_NOT_CLEARED;
     }    
@@ -304,11 +351,35 @@ void DMA1_Stream6_IRQHandler(void) {
 void DMA1_Stream7_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF7)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF7);
-        DAC_TransferCompleteDMAinterrupt(DAC1);
+        // TODO: ADC3
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF7)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF7);
+        error = DMA_ERROR_DAC_INTERRUPT_TRANSFER_ERROR;
+    }
+}
+
+void DMA1_Stream2_IRQHandler(void) {
+    if (READ_BIT(DMA1->LISR, DMA_LISR_TCIF2)) {
+        SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTCIF2);
+        DAC_TransferCompleteDMAinterrupt(DAC_CH1);
+    }
+
+    if (READ_BIT(DMA1->LISR, DMA_LISR_TEIF2)) {
+        SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTEIF2);
+        error = DMA_ERROR_DAC_INTERRUPT_TRANSFER_ERROR;
+    }
+}
+
+void DMA1_Stream3_IRQHandler(void) {
+    if (READ_BIT(DMA1->LISR, DMA_LISR_TCIF3)) {
+        SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTCIF3);
+        DAC_TransferCompleteDMAinterrupt(DAC_CH2);
+    }
+
+    if (READ_BIT(DMA1->LISR, DMA_LISR_TEIF3)) {
+        SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTEIF3);
         error = DMA_ERROR_DAC_INTERRUPT_TRANSFER_ERROR;
     }
 }
