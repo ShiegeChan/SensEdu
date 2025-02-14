@@ -18,7 +18,6 @@ static uint8_t increment_flag = 1; // Run time modification flag
 const float fs = 100 * END_FREQUENCY; // Sampling frequency of LUT
 const float samples = fs * CHIRP_DURATION; // Number of samples
 const uint32_t samples_int = (uint32_t)samples;
-const float chirp_nb = 1/CHIRP_DURATION; //Number of chirp cycles per second
 static SENSEDU_DAC_BUFFER(lut, samples_int*2); // Buffer for the chirp signal
 
 /* -------------------------------------------------------------------------- */
@@ -27,10 +26,10 @@ static SENSEDU_DAC_BUFFER(lut, samples_int*2); // Buffer for the chirp signal
 
 void setup() {
     Serial.begin(115200);
-
+    
     // Initialize DAC settings
     SensEdu_DAC_Settings dac1_settings = {
-        DAC1, chirp_nb*samples_int, (uint16_t*)lut, samples_int*2,
+        DAC1, fs, (uint16_t*)lut, samples_int*2,
         SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0
     };
 
