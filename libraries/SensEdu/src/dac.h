@@ -27,12 +27,12 @@ typedef struct
 } DAC_Channel;
 
 typedef struct {
-    DAC_Channel* dac_channel;               // DAC1 or DAC2
+    DAC_Channel* dac_channel;               // DAC_CH1 or DAC_CH2
     uint32_t sampling_freq;
-    uint16_t* mem_address;          // Address of the array's first element written to DAC
-    uint16_t mem_size;              // Number of array elements
+    uint16_t* mem_address;                  // Address of the array's first element written to DAC
+    uint16_t mem_size;                      // Number of array elements
     SENSEDU_DAC_MODE wave_mode;
-    uint16_t burst_num;             // If in burst mode, how many array cycles to write
+    uint16_t burst_num;                     // If in burst mode, how many array cycles to write
 } SensEdu_DAC_Settings;
 
 #define DAC_CH1                ((DAC_Channel *) 0)

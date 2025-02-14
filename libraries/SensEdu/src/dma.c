@@ -223,7 +223,7 @@ dac_config* get_dac_config(DAC_Channel* dac_channel) {
         return &dac_ch1_config;
     }
     if (dac_channel == DAC_CH2) {
-        return &dac_ch1_config;
+        return &dac_ch2_config;
     }
 
     error = DMA_ERROR_DAC_WRONG_INPUT;

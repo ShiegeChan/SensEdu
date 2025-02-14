@@ -1,7 +1,6 @@
 #include "dac.h"
 #include "timer.h"
 
-
 /* -------------------------------------------------------------------------- */
 /*                                   Structs                                  */
 /* -------------------------------------------------------------------------- */
@@ -15,6 +14,7 @@ typedef struct
 /* -------------------------------------------------------------------------- */
 /*                                  Variables                                 */
 /* -------------------------------------------------------------------------- */
+
 static volatile DAC_ERROR error = DAC_ERROR_NO_ERRORS;
 
 static SensEdu_DAC_Settings dac_ch1_settings = {DAC_CH1, 1000000, 0x0000, 0, 
@@ -28,16 +28,16 @@ static dac_data dac_ch2_data;
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
+
 void dac_init(DAC_Channel* dac_channel);
 SensEdu_DAC_Settings* get_dac_settings(DAC_Channel* dac_channel);
 static DAC_ERROR check_settings(SensEdu_DAC_Settings* settings);
 dac_data* get_dac_data(DAC_Channel* dac_channel);
 
-
-
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
+
 void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings) {
     // Sanity checks
     error = check_settings(dac_settings);
@@ -51,6 +51,7 @@ void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings) {
     get_dac_data(dac_settings->dac_channel)->burst_complete = 0; 
 
     // Timer + DAC + DMA
+    // Both DAC channels use the same timer
     TIMER_DAC1Init(dac_settings->sampling_freq);
     
     dac_init(dac_settings->dac_channel);
@@ -113,20 +114,20 @@ uint16_t DAC_ReadCurrentOutputData(DAC_Channel* dac_channel) {
     }
 }
 
-
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
-// TODO: fix it to work with DAC2 too
+
 void dac_init(DAC_Channel* dac_channel) {
 
     uint16_t shift = 0U;
     if (dac_channel == DAC_CH2) {
-        shift = 16U;  //all bits in CR register are shifted 16 positions for channel 2
+        // all bits in CR register are shifted 16 positions for channel 2
+        shift = 16U;  
     }
 
     // check for both channels
-    if (READ_BIT(DAC1->CR, (DAC_CR_EN1 << shift) | (DAC_CR_CEN1 << shift))) { 
+    if (READ_BIT(DAC1->CR, ((DAC_CR_EN1 << shift) | (DAC_CR_CEN1 << shift)))) { 
         error = DAC_ERROR_ENABLED_BEFORE_INIT;
         return;
     }
@@ -139,8 +140,8 @@ void dac_init(DAC_Channel* dac_channel) {
     SET_BIT(RCC->APB1LENR, RCC_APB1LENR_DAC12EN);
 
     // DMA
-    SET_BIT(DAC1->CR, DAC_CR_DMAUDRIE1 << shift); // Enable DMA Underrun Interrupt
-    SET_BIT(DAC1->CR, DAC_CR_DMAEN1 << shift); // Enable DMA
+    SET_BIT(DAC1->CR, DAC_CR_DMAUDRIE1 << shift);   // Enable DMA Underrun Interrupt
+    SET_BIT(DAC1->CR, DAC_CR_DMAEN1 << shift);      // Enable DMA
 
     // Trigger
     MODIFY_REG(DAC1->CR, DAC_CR_TSEL1 << shift, (3U) << (DAC_CR_TSEL1_Pos + shift)); // dac_chx_trg3 -> tim4_trgo
@@ -190,6 +191,7 @@ static DAC_ERROR check_settings(SensEdu_DAC_Settings* settings) {
 /* -------------------------------------------------------------------------- */
 /*                                 Interrupts                                 */
 /* -------------------------------------------------------------------------- */
+
 void DAC_IRQHandler(void) {
     if (READ_BIT(DAC1->SR, DAC_SR_DMAUDR1)) {
         SET_BIT(DAC1->SR, DAC_SR_DMAUDR1);
@@ -202,7 +204,6 @@ void DAC_IRQHandler(void) {
     }
 }
 
-// TODO: make it flexible for all DAC channels
 void DAC_TransferCompleteDMAinterrupt(DAC_Channel* dac_channel) {
     if (get_dac_settings(dac_channel)->wave_mode == SENSEDU_DAC_MODE_BURST_WAVE) {
         dac_data* data =get_dac_data(dac_channel);

@@ -21,10 +21,12 @@ void setup() {
     Serial.begin(115200);
 
     // TODO: rewrite it to show argument names
-    SensEdu_DAC_Settings dac2_settings = {DAC_CH2, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
+    // For DAC Channel 1 enter DAC_CH1
+    SensEdu_DAC_Settings dac_settings = {DAC_CH2, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
         SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
 
-    SensEdu_DAC_Init(&dac2_settings);
+    SensEdu_DAC_Init(&dac_settings);
+    // For DAC Channel 1 enter DAC_CH1
     SensEdu_DAC_Enable(DAC_CH2);
 
     lib_error = SensEdu_GetError();
