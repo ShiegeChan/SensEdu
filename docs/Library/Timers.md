@@ -21,7 +21,7 @@ Timers allow precise event scheduling, such as creating delays or setting sampli
 Initializes the timer used for microsecond delays. Call it once in the setup before using delays.
 
 ```c
-SensEdu_TIMER_DelayInit();
+void SensEdu_TIMER_DelayInit();
 ```
 
 ### SensEdu_TIMER_Delay_us
@@ -29,7 +29,7 @@ SensEdu_TIMER_DelayInit();
 Pauses program execution for a specified duration (blocking delay).
 
 ```c
-SensEdu_TIMER_Delay_us(uint32_t delay_us);
+void SensEdu_TIMER_Delay_us(uint32_t delay_us);
 ```
 
 #### Parameters
@@ -81,5 +81,7 @@ Timer allocation:
 
 {: .warning }
 Avoid reusing occupied timers. Refere to [STM32H747 Reference Manual] to find free available timers. Be aware, future updates will assign dedicated timers to each ADC/DAC separately, which may occupy your custom timer.
+
+TODO: explain how frequency is set and what are the expected frequencies
 
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/

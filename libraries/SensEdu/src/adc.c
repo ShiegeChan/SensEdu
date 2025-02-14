@@ -108,7 +108,7 @@ void SensEdu_ADC_Disable(ADC_TypeDef* ADC) {
 
     // disable DMA
     if (get_adc_settings(ADC)->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
-        TIMER_ADC1Disable();
+        DMA_ADCDisable(ADC);
     }
 }
 
