@@ -89,7 +89,7 @@ In the Arduino environment, call `SENSEDU_ERROR SensEdu_GetError();` to retrieve
 {: .note }
 It is recommended to check for errors after critical operations (e.g., during initialization) and periodically in the main loop if real-time performance allows.
 
-Below is an example of how to check for errors. Serial Monitor is used to notify the programmer of any internal errors. Alternatively, you could use a LED (e.g., the on-board red LED on pin D86).
+Below is an example of how to check for errors. Serial Monitor is being used to notify the programmer of any internal errors. Alternatively, you could use a LED (e.g., the on-board red LED on pin D86).
 
 ```c
 void setup {

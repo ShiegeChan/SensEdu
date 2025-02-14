@@ -9,7 +9,7 @@ nav_order: 1
 {: .fs-8 .fw-500}
 ---
 
-bla bla bla
+Timers allow for certain events happen at certain rate, e.g., creating delays, sampling rate.
 {: .fw-500}
 
 ## Functions
