@@ -9,6 +9,7 @@ typedef struct {
 } channel;
 
 typedef struct {
+    volatile uint8_t dma_complete;
     volatile uint8_t eoc_flag;  // End of Conversion flags
     uint16_t sequence_data[16]; // software polling data storage
 } adc_data;
@@ -21,9 +22,11 @@ static ADC_ERROR error = ADC_ERROR_NO_ERRORS;
 
 static SensEdu_ADC_Settings ADC1_Settings = {ADC1, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
 static SensEdu_ADC_Settings ADC2_Settings = {ADC2, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
+static SensEdu_ADC_Settings ADC3_Settings = {ADC3, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
 
 static adc_data adc1_data;
 static adc_data adc2_data;
+static adc_data adc3_data;
 
 static uint16_t pll_configured = 0;
 
@@ -53,6 +56,7 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings) {
 
     // Init flags and storage
     get_adc_data(adc_settings->adc)->eoc_flag = 0;
+    get_adc_data(adc_settings->adc)->dma_complete = 0;
 
     // Init TIMER, Clock and ADC
     TIMER_ADC1Init();
@@ -136,6 +140,14 @@ uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC) {
     return data->sequence_data;
 }
 
+uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc) {
+    return get_adc_data(adc)->dma_complete;
+}
+
+void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc) {
+    get_adc_data(adc)->dma_complete = 0;
+}
+
 // Early versions of the board are using 
 // A9 - PC3_C - ADC3_INP1
 // as microphone input
@@ -150,6 +162,9 @@ ADC_ERROR ADC_GetError(void) {
     return error;
 }
 
+void ADC_TransferCompleteDMAinterrupt(ADC_TypeDef* adc) {
+    get_adc_data(adc)->dma_complete = 1;
+}
 
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
@@ -159,6 +174,8 @@ SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* ADC) {
         return &ADC1_Settings;
     } else if (ADC == ADC2) {
         return &ADC2_Settings;
+    } else if (ADC == ADC3) {
+        return &ADC3_Settings;
     }
 }
 
@@ -171,8 +188,8 @@ adc_data* get_adc_data(ADC_TypeDef* ADC) {
 }
 
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings) {
-    if (settings->adc != ADC1 && settings->adc != ADC2) {
-        return ADC_ERROR_WRONG_ADC; // you can only use ADC1 or ADC2
+    if (settings->adc != ADC1 && settings->adc != ADC2 && settings->adc != ADC3) {
+        return ADC_ERROR_WRONG_ADC;
     } 
 
     if (settings->pin_num < 1) {
@@ -233,7 +250,7 @@ void configure_pll2(void) {
     SET_BIT(RCC->CR, RCC_CR_PLL2ON);
 
     // turn on buses
-    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);  //Enable ADC 1 and 2
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);
     SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
 
     // flag
