@@ -184,6 +184,8 @@ adc_data* get_adc_data(ADC_TypeDef* ADC) {
         return &adc1_data;
     } else if (ADC == ADC2) {
         return &adc2_data;
+    } else if (ADC == ADC3) {
+        return &adc3_data;
     }
 }
 
@@ -253,6 +255,12 @@ void configure_pll2(void) {
     SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);
     SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
 
+    // set adc clock to async from PLL2 (ADCs must be OFF)
+    MODIFY_REG(ADC12_COMMON->CCR, ADC_CCR_CKMODE, 0b00 << ADC_CCR_CKMODE_Pos);
+    MODIFY_REG(ADC12_COMMON->CCR, ADC_CCR_PRESC, 0b0000 << ADC_CCR_PRESC_Pos);
+    MODIFY_REG(ADC3_COMMON->CCR, ADC_CCR_CKMODE, 0b00 << ADC_CCR_CKMODE_Pos);
+    MODIFY_REG(ADC3_COMMON->CCR, ADC_CCR_PRESC, 0b0000 << ADC_CCR_PRESC_Pos);
+
     // flag
     pll_configured = 1;
 }
@@ -272,10 +280,6 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
 
     // set clock range 12.5MHz:25Mhz
     MODIFY_REG(ADC->CR, ADC_CR_BOOST, 0b10 << ADC_CR_BOOST_Pos);
-    
-    // set adc clock to async from PLL2 (ADCs must be OFF)
-    MODIFY_REG(ADC12_COMMON->CCR, ADC_CCR_CKMODE, 0b00 << ADC_CCR_CKMODE_Pos);
-    MODIFY_REG(ADC12_COMMON->CCR, ADC_CCR_PRESC, 0b0000 << ADC_CCR_PRESC_Pos);
 
     // set overrun mode (overwrite data)
     SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
@@ -290,7 +294,7 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
     }
     
     // select channels
-    MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ1, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
+    MODIFY_REG(ADC->SQR1, ADC_SQR1_L, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
     for (uint8_t i = 0; i < adc_pin_num; i++) {
         channel adc_channel = get_adc_channel(arduino_pins[i], ADC);
         SET_BIT(ADC->PCSEL, adc_channel.preselection);
@@ -361,22 +365,42 @@ channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC) {
     channel adc_channel = {.number = 0U, .preselection = 0U};
     switch(arduino_pin) {
         case PIN_A0:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 4U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_4;
             break;
         case PIN_A1:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 8U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_8;
             break;
         case PIN_A2:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 9U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_9;
             break;
         case PIN_A3:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 5U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_5;
             break;
         case PIN_A4:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 13U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_13;
             break;
@@ -389,24 +413,42 @@ channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC) {
             adc_channel.preselection = ADC_PCSEL_PCSEL_10;
             break;
         case PIN_A7:
-            if (ADC == ADC1) {
-                adc_channel.number = 16U;
-                adc_channel.preselection = ADC_PCSEL_PCSEL_16;
-            } else {
+            if (ADC == ADC2 || ADC == ADC3) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
             }
+            adc_channel.number = 16U;
+            adc_channel.preselection = ADC_PCSEL_PCSEL_16;
             break;
         case A8:
-            error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+            if (ADC == ADC1 || ADC == ADC2) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
+            adc_channel.number = 0U;
+            adc_channel.preselection = ADC_PCSEL_PCSEL_0;
             break;
         case A9:
-            error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+            if (ADC == ADC1 || ADC == ADC2) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
+            adc_channel.number = 1U;
+            adc_channel.preselection = ADC_PCSEL_PCSEL_1;
             break;
         case A10:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 1U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_1;
             break;
         case A11:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 0U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_0;
             break;
@@ -555,5 +597,10 @@ void ADC_IRQHandler(void) {
     if (READ_BIT(ADC2->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC2->ISR, ADC_ISR_EOC);
         adc2_data.eoc_flag = 1;
+    }
+
+    if (READ_BIT(ADC3->ISR, ADC_ISR_EOC)) {
+        SET_BIT(ADC3->ISR, ADC_ISR_EOC);
+        adc3_data.eoc_flag = 1;
     }
 }

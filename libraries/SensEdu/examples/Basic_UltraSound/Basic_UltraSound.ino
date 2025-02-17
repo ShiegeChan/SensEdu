@@ -10,8 +10,9 @@
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
+DAC_Channel* dac_ch = DAC_CH1;
 SensEdu_DAC_Settings dac1_settings = {
-    .dac_channel = DAC_CH1, 
+    .dac_channel = dac_ch, 
     .sampling_freq = DAC_SAMPLE_RATE,
     .mem_address = (uint16_t*)sine_lut,
     .mem_size = sine_lut_size,
@@ -83,14 +84,14 @@ void loop() {
     }
 
     // start dac->adc sequence
-    SensEdu_DAC_Enable(DAC_CH1);
-    while(!SensEdu_DAC_GetBurstCompleteFlag(DAC_CH1));
-    SensEdu_DAC_ClearBurstCompleteFlag(DAC_CH1);
+    SensEdu_DAC_Enable(dac_ch);
+    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
+    SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
     SensEdu_ADC_Start(adc);
     
     // wait for the data and send it
-    while(!SensEdu_ADC_GetTransferStatus(ADC1));
-    SensEdu_ADC_ClearTransferStatus(ADC1);
+    while(!SensEdu_ADC_GetTransferStatus(adc));
+    SensEdu_ADC_ClearTransferStatus(adc);
     serial_send_array((const uint8_t *) & mic_data, mic_data_size << 1);
 
     // check errors
