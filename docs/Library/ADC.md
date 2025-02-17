@@ -95,6 +95,23 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings);
 {: .no_toc}
 * Initializes associated DMA and timer in `SENSEDU_ADC_DMA_CONNECT` and `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` modes respectively.
 
+{: .warning}
+Be careful to initialize each required ADC before enabling. Certain configuration is shared between multiple ADCs, which could be edited only if related ADCs are disabled.
+
+```c
+// ERROR
+SensEdu_ADC_Init(ADC1_Settings);
+SensEdu_ADC_Enable(ADC1);
+SensEdu_ADC_Init(ADC2_Settings);
+SensEdu_ADC_Enable(ADC2);
+
+// CORRECT
+SensEdu_ADC_Init(ADC1_Settings);
+SensEdu_ADC_Init(ADC2_Settings);
+SensEdu_ADC_Enable(ADC1);
+SensEdu_ADC_Enable(ADC2);
+```
+
 
 ### SensEdu_ADC_Enable
 Powers on the ADC.
@@ -143,6 +160,46 @@ void SensEdu_ADC_Start(ADC_TypeDef* ADC);
 #### Notes
 {: .no_toc}
 * Enables associated DMA in `SENSEDU_ADC_DMA_CONNECT` mode.
+
+
+### SensEdu_ADC_GetTransferStatus
+bla bla bla
+
+```c
+uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
+```
+
+#### Parameters
+{: .no_toc}
+* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+
+#### Returns
+{: .no_toc}
+* bla bla bla
+
+#### Notes
+{: .no_toc}
+* bla bla bla
+
+
+### SensEdu_ADC_ClearTransferStatus
+bla bla bla
+
+```c
+void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc);
+```
+
+#### Parameters
+{: .no_toc}
+* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+
+#### Returns
+{: .no_toc}
+* bla bla bla
+
+#### Notes
+{: .no_toc}
+* bla bla bla
 
 
 ### SensEdu_ADC_ReadSingleSequence
