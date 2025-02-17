@@ -16,12 +16,13 @@ static SENSEDU_DAC_BUFFER(lut, lut_size) = {
 /* -------------------------------------------------------------------------- */
 void setup() {
     Serial.begin(115200);
-
-    SensEdu_DAC_Settings dac1_settings = {DAC1, 64000*16, (uint16_t*)lut, lut_size, 
+    // for DAC channel 2, DAC_CH2 as an argument to the function instead of DAC_CH1
+    SensEdu_DAC_Settings dac_settings = {DAC_CH1, 64000*16, (uint16_t*)lut, lut_size, 
         SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
 
-    SensEdu_DAC_Init(&dac1_settings);
-    SensEdu_DAC_Enable(DAC1);
+    SensEdu_DAC_Init(&dac_settings);
+    // for DAC channel 2, DAC_CH2 as an argument to the function instead of DAC_CH1
+    SensEdu_DAC_Enable(DAC_CH1);
 
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {

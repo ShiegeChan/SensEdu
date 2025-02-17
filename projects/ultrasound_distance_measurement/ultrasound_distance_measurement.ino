@@ -83,7 +83,7 @@ SensEdu_ADC_Settings adc2_settings = {
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
-SensEdu_DAC_Settings dac1_settings = {DAC1, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
+SensEdu_DAC_Settings dac1_settings = {DAC_CH1, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
     SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num}; // specifying burst mode 
 
 
@@ -167,9 +167,9 @@ void loop() {
 	#endif
     
     // start dac->adc sequence
-    SensEdu_DAC_Enable(DAC1);
-    while(!SensEdu_DAC_GetBurstCompleteFlag()); // wait for dac to finish sending the burst
-    SensEdu_DAC_ClearBurstCompleteFlag(); 
+    SensEdu_DAC_Enable(DAC_CH1);
+    while(!SensEdu_DAC_GetBurstCompleteFlag(DAC_CH1)); // wait for dac to finish sending the burst
+    SensEdu_DAC_ClearBurstCompleteFlag(DAC_CH1); 
     SensEdu_ADC_Start(adc1);
     SensEdu_ADC_Start(adc2);
 
