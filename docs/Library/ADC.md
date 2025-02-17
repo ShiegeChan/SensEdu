@@ -46,9 +46,9 @@ typedef struct {
   * `SENSEDU_ADC_MODE_ONE_SHOT`: Single conversion on demand
   * `SENSEDU_ADC_MODE_CONT`: Continuous conversions
   * `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`: Timer-driven continuous conversions, which enables stable sampling frequency
-* `sampling_freq`: specified sampling frequency for `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` mode. Up to ~500kS/sec
-* `dma_mode`: specifies if ADC values are manually polled with CPU or automatically transferred into memory with DMA:
-  * `SENSEDU_ADC_DMA_CONNECT`: attach DMA
+* `sampling_freq`: Specified sampling frequency for `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` mode. Up to ~500kS/sec
+* `dma_mode`: Specifies if ADC values are manually polled with CPU or automatically transferred into memory with DMA:
+  * `SENSEDU_ADC_DMA_CONNECT`: Attach DMA
   * `SENSEDU_ADC_DMA_DISCONNECT`: CPU polling
 * `mem_address`: DMA buffer address in memory (first element of the array)
 * `mem_size`: DMA buffer size
@@ -77,6 +77,7 @@ Be aware of which pins you can use with selected ADC. Table below shows ADC conn
 | A10         | PA1_C      | ADC12_INP1     |
 | A11         | PA0_C      | ADC12_INP0     |
 
+
 ## Functions
 
 ### SensEdu_ADC_Init
@@ -92,7 +93,8 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings);
 
 #### Notes
 {: .no_toc}
-* Additionally, initializes associated DMA and timer in `SENSEDU_ADC_DMA_CONNECT` and `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` modes respectively.
+* Initializes associated DMA and timer in `SENSEDU_ADC_DMA_CONNECT` and `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` modes respectively.
+
 
 ### SensEdu_ADC_Enable
 Powers on the ADC.
@@ -107,8 +109,9 @@ void SensEdu_ADC_Enable(ADC_TypeDef* ADC);
 
 #### Notes
 {: .no_toc}
-* Additionally, enables sampling frequency timer in `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` mode.
+* Enables sampling frequency timer in `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` mode.
 * **Don't confuse with `SensEdu_ADC_Start`.** `Enable` turns ADC on, but `Start` is used to trigger conversions.
+
 
 ### SensEdu_ADC_Disable
 Deactivates the ADC.
@@ -123,7 +126,8 @@ void SensEdu_ADC_Disable(ADC_TypeDef* ADC);
 
 #### Notes
 {: .no_toc}
-* Additionally, disables associated DMA in `SENSEDU_ADC_DMA_CONNECT` mode.
+* Disables associated DMA in `SENSEDU_ADC_DMA_CONNECT` mode.
+
 
 ### SensEdu_ADC_Start
 Triggers ADC conversions.
@@ -138,10 +142,11 @@ void SensEdu_ADC_Start(ADC_TypeDef* ADC);
 
 #### Notes
 {: .no_toc}
-* Additionally, enables associated DMA in `SENSEDU_ADC_DMA_CONNECT` mode.
+* Enables associated DMA in `SENSEDU_ADC_DMA_CONNECT` mode.
+
 
 ### SensEdu_ADC_ReadSingleSequence
-it does cool things
+Manually read a single sequence of ADC values (alternative to DMA).
 
 ```c
 uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC);
@@ -149,25 +154,33 @@ uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC);
 
 #### Parameters
 {: .no_toc}
-* `parameter`: explanation
+* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
 
 #### Returns
 {: .no_toc}
+* A pointer to an array of ADC conversion results. Index the array to access values:
+  * Single-channel: Use `[0]`
+  * Multi-channel: Use `[0]`, `[1]`, `[2]`, etc., corresponding to the amount of selected channels (`pins` array in `SensEdu_ADC_Settings`)
+
+#### Notes
+{: .no_toc}
+* Consumes CPU cycles. Prefer DMA to free CPU for other tasks. For example, you can perform complex calculations on ADC values, while requesting the new set of data with DMA.
+* Refer to non-DMA examples like `Read_ADC_3CH_TIM`.
+
 
 ### SensEdu_ADC_ShortA4toA9
-it does cool things
+Shorts pin `A4` to `A9` on Arduino. 
 
 ```c
 void SensEdu_ADC_ShortA4toA9(void);
 ```
 
-#### Parameters
-{: .no_toc}
-* `parameter`: explanation
+#### Notes
+* **In older board revisions**, microphone #2 is wired to pin `A9` (`PC3_C`), which is routed only to `ADC3`. This conflicts with project requiring x4 microphones, using `ADC1` and `ADC2` with x2 channels per ADC. To solve this problem, `_C` pins could be shorted to their `non_C` counterparts. This way pin `A4` (`PC3`) is bridged to `A9` (`PC3_C`), allowing microphone #2 to be accessed via any ADC, since `PC3` is shared between `ADC1` and `ADC2`. Refer to the table at [settings section]({% link Library/ADC.md %}#notes) for better understanding.
 
 
 ## Examples
-Examples are presented in repeatable way with succession complexity. So with each more complex example, explained only what changed and you can always refer to previous onces to understand basic operation.
+Examples are organized incrementally. Each builds on the previous one by introducing only new features or modifications. Refer to earlier examples for core functionality details.
 
 ### Read_ADC_1CH
 
@@ -183,6 +196,7 @@ something wrong
 // simplified minimal code, maybe even split if too long
 ```
 
+
 ### Read_ADC_1CH_TIM
 
 does cool things
@@ -196,6 +210,7 @@ something wrong
 ```c
 // simplified minimal code, maybe even split if too long
 ```
+
 
 ### Read_ADC_3CH_TIM
 
@@ -211,6 +226,7 @@ something wrong
 // simplified minimal code, maybe even split if too long
 ```
 
+
 ### Read_ADC_1CH_DMA
 
 does cool things
@@ -225,6 +241,7 @@ something wrong
 // simplified minimal code, maybe even split if too long
 ```
 
+
 ### Read_ADC_3CH_DMA
 
 does cool things
@@ -238,6 +255,7 @@ something wrong
 ```c
 // simplified minimal code, maybe even split if too long
 ```
+
 
 ### Read_2ADC_3CH_DMA
 
@@ -255,6 +273,8 @@ something wrong
 
 
 ## Developer Notes
+
+### Initialization
 
 TODO: explain adc taken dma streams, how interrupts work, what exactly initialisation sets
 TODO: conversion time calculations

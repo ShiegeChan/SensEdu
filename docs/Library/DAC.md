@@ -37,6 +37,7 @@ it does cool things
 * `parameter`: explanation
 
 ## Examples
+Examples are organized incrementally. Each builds on the previous one by introducing only new features or modifications. Refer to earlier examples for core functionality details.
 
 ### first example
 
