@@ -77,7 +77,6 @@ void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
         // perform the filter operation for the current block
         arm_fir_f32(&Fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
     }
-
     // copy the filtered signal to the rescaled_adc_wave
     memcpy(rescaled_adc_wave, output_signal, adc_data_length * sizeof(float));
 }

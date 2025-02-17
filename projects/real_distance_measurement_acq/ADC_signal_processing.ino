@@ -2,29 +2,16 @@
 /*------------------------------------------------------------------*/
 /*                     MAIN MEASUREMENT FUNCTION                    */
 /*------------------------------------------------------------------*/
-
-
-uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint16_t* mic_array, size_t mic_array_size, const char* channel, uint8_t ban_flag) {
+uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint16_t* mic_array, size_t mic_array_size, const char* channel) {
+    // Rescale from [0, (2^16-1)] to [-1, 1] and filter around 32 kHz
 	rescale_adc_wave(xcorr_buf, mic_array, channel, mic_array_size);
-    if (XCORR_DEBUG)
-        serial_send_array((const uint8_t*)mic_array, mic_array_size, channel);
 
-	// remove self reflections from a dataset
-	if (ban_flag == 1) {
-		for (uint32_t i = 0; i < banned_sample_num; i++) {
-			xcorr_buf[i] = 0;
-		}
-	}
-    if (XCORR_DEBUG)
-        serial_send_array((const uint8_t*)xcorr_buf, xcorr_buf_size, "b");
-
+    // Perform cross-correlation algorithm
     custom_xcorr(xcorr_buf, dac_wave, STORE_BUF_SIZE);
-    if (XCORR_DEBUG)
-	    serial_send_array((const uint8_t*)xcorr_buf, xcorr_buf_size, "b");
 
+    // Calculate the distance of the object
 	uint32_t peak_index = 0;
 	float biggest = 0.0f;
-
 	for (uint32_t i = 0; i < STORE_BUF_SIZE; i++) {
 		if (xcorr_buf[i] > biggest) {
 			biggest = xcorr_buf[i];
@@ -32,9 +19,9 @@ uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint1
 		}
 	}
 	uint16_t sr = ACTUAL_SAMPLING_RATE/1000; // kS/sec  sample rate
-	uint16_t c = 343; // speed in air
+	//uint16_t c = 343; // speed in air
 	// (lag_samples * sample_time) * air_speed / 2
-	uint32_t distance = ((peak_index * 1000 * c) / sr) >> 1; // in micrometers
+	uint32_t distance = ((peak_index * 1000 * air_speed) / sr) >> 1; // in micrometers
     return distance;
 }
 
@@ -59,7 +46,6 @@ void custom_xcorr(float* xcorr_buf, const uint16_t* dac_wave, uint32_t adc_data_
         xcorr_buf[m] = sum; 
     }
 }
-
 
 /*------------------------------------------------------------------*/
 /*                     BANDPASS FILTERING FUNCTION                  */
