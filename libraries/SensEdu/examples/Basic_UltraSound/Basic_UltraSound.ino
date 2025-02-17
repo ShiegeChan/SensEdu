@@ -11,7 +11,7 @@
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
 DAC_Channel* dac_ch = DAC_CH1;
-SensEdu_DAC_Settings dac1_settings = {
+SensEdu_DAC_Settings dac_settings = {
     .dac_channel = dac_ch, 
     .sampling_freq = DAC_SAMPLE_RATE,
     .mem_address = (uint16_t*)sine_lut,
@@ -51,7 +51,7 @@ void setup() {
 
     Serial.begin(115200);
 
-    SensEdu_DAC_Init(&dac1_settings);
+    SensEdu_DAC_Init(&dac_settings);
 
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);

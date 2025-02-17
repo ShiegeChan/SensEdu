@@ -241,15 +241,16 @@ void configure_pll2(void) {
     // vco must be 150MHz:420MHz, vco = ref2_ck * DIVN2 = 4MHz * 75 = 300MHz
     SET_BIT(RCC->PLLCFGR, RCC_PLLCFGR_PLL2VCOSEL); // set narrow range for vco
     CLEAR_BIT(RCC->PLL2FRACR, RCC_PLL2FRACR_FRACN2); // no fractions
-    MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_N2, (75U-1U) << RCC_PLL2DIVR_N2_Pos); // reg 0x03 -> x4, which means set with "-1"
+    MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_N2, (75U-1U) << RCC_PLL2DIVR_N2_Pos); // e.g., reg 0x03 -> x4, which means set with "-1"
 
     // 5. set DIVP2 division factor (/6)
-    MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_P2, (6U-1U) << RCC_PLL2DIVR_P2_Pos); // reg 0x01 -> /2
+    MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_P2, (6U-1U) << RCC_PLL2DIVR_P2_Pos); // e.g., reg 0x01 -> /2
 
     /* end configure PLL2 */
 
     // turn on PLL2
     SET_BIT(RCC->CR, RCC_CR_PLL2ON);
+    while (!READ_BIT(RCC->CR, RCC_CR_PLL2RDY));
 
     // turn on buses
     SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);
