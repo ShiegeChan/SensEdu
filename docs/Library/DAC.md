@@ -12,29 +12,90 @@ nav_order: 3
 A DAC (Digital-to-Analog Converter) converts a digital signal into an analog waveform, which is then sent to a speaker to produce acoustic waves.
 {: .fw-500}
 
-The STM32H747 features one DAC with two available channels:
-{: .mb-1}
-1. **Central Speaker**: connected to the first channel on `DAC0` pin 
-2. **Bottom Speaker** connected to the second channel on `DAC1` pin
-
 - TOC
 {:toc}
 
-## Functions (list all public functions)
+The STM32H747 features one DAC module with two available channels:
+* **Central Speaker**: connected to the first channel (channel 1) on `DAC0` pin 
+* **Bottom Speaker** connected to the second channel (channel 2) on `DAC1` pin
 
-### SensEdu_DAC_??
+## Structs
+
+## Functions 
+
+### SensEdu_DAC_Init
+Configures DAC clock and initializes the peripheral with specified settings (channel, sampling frequency, waveform, etc.) 
+
+```c
+void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings);
+```
+#### Parameters
+{: .no_toc}
+* `dac_settings`: DAC configuration structure
+
+#### Notes
+* Additionally, initializes associated DMA and timer in ---- modes respectively. 
+
+### SensEdu_DAC_Enable
+Powers on the DAC module. 
+```c
+void SensEdu_DAC_Enable(DAC_Channel* dac_channel);
+```
+#### Parameters
+{: .no_toc}
+* `dac_channel`: DAC Channel instance
+
+
+### SensEdu_DAC_Disable
+Deactivates the DAC module. 
+```c
+void SensEdu_DAC_Disable(DAC_Channel* dac_channel);
+```
+#### Parameters
+{: .no_toc}
+* `parameter`: explanation
+
+
+### SensEdu_DAC_GetBurstCompleteFlag
 it does cool things
 
 #### Parameters
 {: .no_toc}
 * `parameter`: explanation
 
-### SensEdu_DAC_??
+
+### SensEdu_DAC_ClearBurstCompleteFlag
 it does cool things
 
 #### Parameters
 {: .no_toc}
 * `parameter`: explanation
+
+### DAC_GetError
+it does cool things
+
+#### Parameters
+{: .no_toc}
+* `parameter`: explanation
+
+### DAC_WriteDataManually
+it does cool things
+
+#### Parameters
+{: .no_toc}
+* `parameter`: explanation
+
+### DAC_ReadCurrentOutputData
+it does cool things
+
+#### Parameters
+{: .no_toc}
+* `parameter`: explanation
+
+
+
+
+
 
 ## Examples
 
@@ -56,9 +117,5 @@ something wrong
 
 info about internal things, like taken streams, channels and etc.
 if you want link, include it like this: [link_name]. and link itself at the bottom
-
-TODO: explain all structs, why we need dac_data, DAC settings
-TODO: explain errors
-TODO: how wave modes are different
 
 [link_name]: https:://link
