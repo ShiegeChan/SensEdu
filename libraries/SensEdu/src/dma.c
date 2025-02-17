@@ -78,14 +78,6 @@ void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size);
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
-uint8_t SensEdu_DMA_GetADCTransferStatus(ADC_TypeDef* adc) {
-    return get_adc_config(adc)->transfer_status;
-}
-
-void SensEdu_DMA_ClearADCTransferStatus(ADC_TypeDef* adc) {
-    get_adc_config(adc)->transfer_status = 0;
-}
-
 DMA_ERROR DMA_GetError(void) {
     return error;
 }

@@ -89,7 +89,7 @@ void loop() {
     // DMA in background
 
     // Print transfered Data if available
-    if (SensEdu_DMA_GetADCTransferStatus(ADC1)) {
+    if (SensEdu_ADC_GetTransferStatus(ADC1)) {
         Serial.print("---- ");
         Serial.print("ADC1 ");
         Serial.println("----");
@@ -111,11 +111,11 @@ void loop() {
         };
 
         // restart ADC1
-        SensEdu_DMA_ClearADCTransferStatus(ADC1);
+        SensEdu_ADC_ClearTransferStatus(ADC1);
         SensEdu_ADC_Start(ADC1);
     }
 
-    if (SensEdu_DMA_GetADCTransferStatus(ADC2)) {
+    if (SensEdu_ADC_GetTransferStatus(ADC2)) {
         Serial.print("---- ");
         Serial.print("ADC2 ");
         Serial.println("----");
@@ -137,7 +137,7 @@ void loop() {
         };
 
         // restart ADC2
-        SensEdu_DMA_ClearADCTransferStatus(ADC2);
+        SensEdu_ADC_ClearTransferStatus(ADC2);
         SensEdu_ADC_Start(ADC2);
     }
 

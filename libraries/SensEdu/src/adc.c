@@ -339,8 +339,13 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
 
     // interrupts
     SET_BIT(ADC->IER, ADC_IER_EOCIE);
-    NVIC_SetPriority(ADC_IRQn, 2);
-    NVIC_EnableIRQ(ADC_IRQn);
+    if (ADC == ADC1 || ADC == ADC2) {
+        NVIC_SetPriority(ADC_IRQn, 2);
+        NVIC_EnableIRQ(ADC_IRQn);
+    } else if (ADC == ADC3) {
+        NVIC_SetPriority(ADC3_IRQn, 2);
+        NVIC_EnableIRQ(ADC3_IRQn);
+    }
 }
 
 /*
@@ -599,7 +604,9 @@ void ADC_IRQHandler(void) {
         SET_BIT(ADC2->ISR, ADC_ISR_EOC);
         adc2_data.eoc_flag = 1;
     }
+}
 
+void ADC3_IRQHandler(void) {
     if (READ_BIT(ADC3->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC3->ISR, ADC_ISR_EOC);
         adc3_data.eoc_flag = 1;
