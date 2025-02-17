@@ -104,7 +104,7 @@ function *read_mcu_xcorr_details.m* reads raw-, rescaled-, and filtered data.
 
 Since we are using serial communication, the data is received one bit at a time. To start receiving the data from the microcontroller, the PC initiates the communication by sending the starting byte. 
 
-![Serial communication between the mcu and the pc](http://localhost:4000/SensEdu/\assets\images\serial_communication_registers.png)
+![Serial communication between the mcu and the pc]({{site.baseurl}}/assets/images/serial_communication_registers.png)
 
 
 This diagram depicts one iteration of PC receiving the data. This continues for number of iterations that are specified in the MATLAB script. Then, the data is plotted for visualization.

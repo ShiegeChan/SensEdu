@@ -2,6 +2,7 @@
 title: Timers
 layout: default
 parent: Library
+math: mathjax
 nav_order: 1
 ---
 
@@ -47,7 +48,7 @@ Blinks a LED using microsecond delays.
 3. Configure the LED pin as an `OUTPUT` using `pinMode()`
 4. Use alternating calls to `SensEdu_TIMER_Delay_us()` and `digitalWrite()` in the main loop to toggle the LED state.
 
-{: .warning }
+{: .note }
 On Arduino GIGA R1 the built-in LED is active-low: `LOW` = on, `HIGH` = off.
 
 ```c
@@ -72,6 +73,8 @@ void loop() {
 
 ## Developer Notes
 
+### Timer occupation
+
 Peripheral timers (ADC/DAC) are hidden, automatically configured and require no user involvement.
 
 Timer allocation:
@@ -82,6 +85,30 @@ Timer allocation:
 {: .warning }
 Avoid reusing occupied timers. Refere to [STM32H747 Reference Manual] to find free available timers. Be aware, future updates will assign dedicated timers to each ADC/DAC separately, which may occupy your custom timer.
 
-TODO: explain how frequency is set and what are the expected frequencies
+### Frequency settings
+
+Timer frequency is dependent on 3 parameters:
+* Clock Frequency $$(CLK)$$
+* Prescaler $$(PSC)$$: CLK divider
+* Period $$(ARR)$$: Register containing the value up to which the count proceeds
+
+$$TIM_{freq} = \frac{CLK}{PSC + 1} * \frac{1}{ARR + 1}$$
+
+The CLK signal is derived from the APB1 and APB2 Timer Clocks, each running at 240MHz.
+
+![]({{site.baseurl}}/assets/images/TIM_CLK.png)
+
+Prescaler is set to its minimum value to achieve the finest frequency adjustments, resulting in a step size of $$\frac{1}{120\text{MHz}} \approx 8.33\text{ns}$$.
+
+| ARR | Period | Frequency |
+|:----|:-------|:----------|
+| 1   | 16.7ns | 60MHz     |
+| 2   | 25.0ns | 40MHz     |
+| 3   | 33.3ns | 30MHz     |
+| 4   | 41.7ns | 24MHz     |
+| 5   | 50.0ns | 20MHz     |
+
+{: .warning }
+When a user specifies a frequency for a DAC or ADC, the target value is automatically rounded to the nearest achievable frequency dictated by the timer's step. The lower target frequency, the higher the achievable precision.
 
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/
