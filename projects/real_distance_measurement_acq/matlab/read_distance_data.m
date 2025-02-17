@@ -1,4 +1,4 @@
-function dist_vector = read_mcu_xcorr(arduino, mic_num)
+function dist_vector = read_distance_data(arduino, mic_num)
     dist_vector = zeros(1, mic_num);
     for i = 1:mic_num
         serial_rx_data = read(arduino, 4, 'uint8'); % 32bit per one distance measurement
