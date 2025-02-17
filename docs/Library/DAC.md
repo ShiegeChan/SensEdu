@@ -13,8 +13,9 @@ A DAC (Digital-to-Analog Converter) converts a digital signal into an analog wav
 {: .fw-500}
 
 The STM32H747 features one DAC with two available channels:
-* **Central Speaker**: connected to the first channel on `DAC0` pin 
-* **Bottom Speaker** connected to the second channel on `DAC1` pin
+{: .mb-1}
+1. **Central Speaker**: connected to the first channel on `DAC0` pin 
+2. **Bottom Speaker** connected to the second channel on `DAC1` pin
 
 - TOC
 {:toc}
@@ -55,5 +56,9 @@ something wrong
 
 info about internal things, like taken streams, channels and etc.
 if you want link, include it like this: [link_name]. and link itself at the bottom
+
+TODO: explain all structs, why we need dac_data, DAC settings
+TODO: explain errors
+TODO: how wave modes are different
 
 [link_name]: https:://link
