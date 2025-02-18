@@ -1,11 +1,11 @@
-%% Basic_UltraSound_ReadData.m
-% reads config data and then ADC mics meassurements from Arduino
+%% Basic_UltraSound_4CH_ReadData.m
+% reads config data and then ADC mics measurements from Arduino
 clear;
 close all;
 clc;
 
 %% Settings
-ARDUINO_PORT = 'COM9';
+ARDUINO_PORT = 'COM4';
 ARDUINO_BAUDRATE = 115200;
 ITERATIONS = 10000;
 
@@ -25,8 +25,9 @@ for it = 1:ITERATIONS
     write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
 
-    [data_mic1, data_mic2] = read_data(arduino, DATA_LENGTH);
-    plot_data(data_mic1, data_mic2);
+    [data_mic1, data_mic2] = read_2mic_data(arduino, DATA_LENGTH);
+    [data_mic3, data_mic4] = read_2mic_data(arduino, DATA_LENGTH);
+    plot_data(data_mic1, data_mic2, data_mic3, data_mic4);
 end
 
 % set COM port back free
@@ -50,7 +51,7 @@ fprintf("Plots are activated: %s\n", mat2str(ACTIVATE_PLOTS));
 fprintf("average time between measurements: %fsec\n", buf);
 
 %% functions
-function [data_mic1, data_mic2] = read_data(arduino, data_length)
+function [data_mic1, data_mic2] = read_2mic_data(arduino, data_length)
     total_byte_length = data_length * 2; % 2 bytes per sample
     serial_rx_data = zeros(1, total_byte_length);
 
@@ -69,22 +70,40 @@ function [data_mic1, data_mic2] = read_data(arduino, data_length)
     end
 end
 
-function plot_data(data_mic1, data_mic2)
-    subplot(2,1,1)
+function plot_data(data_mic1, data_mic2, data_mic3, data_mic4)
+    subplot(4,1,1)
     plot(data_mic1);
     ylim([0, 65535]);
     xlim([0, length(data_mic1)])
     xlabel("Sample #");
     ylabel("ADC1 channel 1 16bit value");
-    title("Microphone 3 data")
+    title("Microphone 1 data")
     grid on;
 
-    subplot(2,1,2)
+    subplot(4,1,2)
     plot(data_mic2)
     ylim([0, 65535]);
     xlim([0, length(data_mic2)])
     xlabel("Sample #");
-    ylabel("ADC1 channel 5 16bit value");
-    title("Microphone 1 data");
+    ylabel("ADC1 channel 2 16bit value");
+    title("Microphone 2 data");
+    grid on;
+
+    subplot(4,2,1)
+    plot(data_mic3)
+    ylim([0, 65535]);
+    xlim([0, length(data_mic3)])
+    xlabel("Sample #");
+    ylabel("ADC2 channel 1 16bit value");
+    title("Microphone 3 data");
+    grid on;
+
+    subplot(4,2,2)
+    plot(data_mic4)
+    ylim([0, 65535]);
+    xlim([0, length(data_mic4)])
+    xlabel("Sample #");
+    ylabel("ADC2 channel 2 16bit value");
+    title("Microphone 4 data");
     grid on;
 end
