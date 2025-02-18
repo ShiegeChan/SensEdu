@@ -19,7 +19,7 @@ __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t mic_data[mic_data_size
 
 ADC_TypeDef* adc = ADC1;
 const uint8_t mic_num = 1;
-uint8_t mic_pins[mic_num] = {A1};
+uint8_t mic_pins[mic_num] = {A5};
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = mic_pins,

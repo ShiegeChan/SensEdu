@@ -19,7 +19,7 @@ uint8_t error_led = D86;
 #define LOCAL_XCORR     true    // doing xcorr on the microcontroller
 #define XCORR_DEBUG     true    // sending only distance w/o other data
 
-#define BAN_DISTANCE	25		    // min distance [cm] - how many self reflections cancelled
+#define BAN_DISTANCE	0		    // min distance [cm] - how many self reflections cancelled
 #define ACTUAL_SAMPLING_RATE 244000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
 #define STORE_BUF_SIZE  64 * 32     // 2400 for 1 measurement per second. 
                             	    // only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)

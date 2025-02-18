@@ -4,7 +4,7 @@
 /*                                User Settings                               */
 /* -------------------------------------------------------------------------- */
 
-#define CHIRP_DURATION          0.0011   // Duration of the chirp (in seconds)
+#define CHIRP_DURATION          0.001   // Duration of the chirp (in seconds)
 #define START_FREQUENCY         30300   // Start frequency (in Hz)
 #define END_FREQUENCY           35300  // Stop frequency (in Hz)
 
@@ -25,12 +25,11 @@ static SENSEDU_DAC_BUFFER(lut, samples_int); // Buffer for the chirp signal
 
 void setup() {
     Serial.begin(115200);
-    while(!Serial);
 
     // Initialize DAC settings
     SensEdu_DAC_Settings dac1_settings = {
         DAC1, (uint32_t)fs, (uint16_t*)lut, samples_int,
-        SENSEDU_DAC_MODE_BURST_WAVE   , 1
+        SENSEDU_DAC_MODE_CONTINUOUS_WAVE   , 0
     };
 
     // Generate the chirp signal
@@ -48,14 +47,7 @@ void setup() {
     }
 
     Serial.println("Setup is successful.");
-
-    Serial.println("start of the Chirp LUT");
-    for (int i = 0 ; i < samples_int; i++) { // loop for the LUT size
-        Serial.print("value ");
-        Serial.print(i+1);
-        Serial.print(" of the Chirp LUT: ");
-        Serial.println(lut[i]);
-    }
+    
 }
 
 
@@ -70,7 +62,4 @@ void loop() {
         Serial.print("Error: 0x");
         Serial.println(lib_error, HEX);
     }
-
-    delay(100);
-    SensEdu_DAC_Enable(DAC1);
 }
