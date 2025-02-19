@@ -71,39 +71,39 @@ function [data_mic1, data_mic2] = read_2mic_data(arduino, data_length)
 end
 
 function plot_data(data_mic1, data_mic2, data_mic3, data_mic4)
-    subplot(4,1,1)
+    subplot(2,2,1)
     plot(data_mic1);
     ylim([0, 65535]);
-    xlim([0, length(data_mic1)])
+    xlim([0, length(data_mic1)]);
     xlabel("Sample #");
-    ylabel("ADC1 channel 1 16bit value");
-    title("Microphone 1 data")
+    ylabel("ADC1 CH1 16bit");
+    title("Microphone 1 data");
     grid on;
 
-    subplot(4,1,2)
-    plot(data_mic2)
+    subplot(2,2,2)
+    plot(data_mic2);
     ylim([0, 65535]);
-    xlim([0, length(data_mic2)])
+    xlim([0, length(data_mic2)]);
     xlabel("Sample #");
-    ylabel("ADC1 channel 2 16bit value");
+    ylabel("ADC1 CH2 16bit");
     title("Microphone 2 data");
     grid on;
 
-    subplot(4,2,1)
-    plot(data_mic3)
+    subplot(2,2,3)
+    plot(data_mic3);
     ylim([0, 65535]);
-    xlim([0, length(data_mic3)])
+    xlim([0, length(data_mic3)]);
     xlabel("Sample #");
-    ylabel("ADC2 channel 1 16bit value");
+    ylabel("ADC2 CH1 16bit");
     title("Microphone 3 data");
     grid on;
 
-    subplot(4,2,2)
-    plot(data_mic4)
+    subplot(2,2,4)
+    plot(data_mic4);
     ylim([0, 65535]);
-    xlim([0, length(data_mic4)])
+    xlim([0, length(data_mic4)]);
     xlabel("Sample #");
-    ylabel("ADC2 channel 2 16bit value");
+    ylabel("ADC2 CH2 16bit");
     title("Microphone 4 data");
     grid on;
 end
