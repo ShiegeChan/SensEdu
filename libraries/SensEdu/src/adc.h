@@ -26,7 +26,8 @@ typedef enum {
     ADC_ERROR_WRONG_OPERATION_MODE = 0x09,
     ADC_ERROR_WRONG_DATA_MANAGEMENT_MODE = 0x0A,
     ADC_ERROR_WRONG_INIT_SETTINGS_PARAMETERS = 0x0B,
-    ADC_ERROR_BAD_SAMPLING_FREQ = 0x0C
+    ADC_ERROR_BAD_SAMPLING_FREQ = 0x0C,
+    ADC_ERROR_NOT_SUPPORTED_MODE = 0x0D
 } ADC_ERROR;
 
 typedef enum {
@@ -57,11 +58,17 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings);
 void SensEdu_ADC_Enable(ADC_TypeDef* ADC);
 void SensEdu_ADC_Disable(ADC_TypeDef* ADC);
 void SensEdu_ADC_Start(ADC_TypeDef* ADC);
-uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC);
+
+uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* ADC);
+uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC);
+
+uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
+void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc);
 
 void SensEdu_ADC_ShortA4toA9(void);
 
 ADC_ERROR ADC_GetError(void);
+void ADC_TransferCompleteDMAinterrupt(ADC_TypeDef* adc);
 
 
 #ifdef __cplusplus

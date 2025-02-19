@@ -1,21 +1,13 @@
 #include "SensEdu.h"
 
 uint32_t lib_error = 0;
-uint32_t cntr = 0;
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
-
-// must be:
-// 1. multiple of 32 words (64 half-words) to ensure cache coherence
-// 2. properly aligned
-const uint16_t memory4adc_size = 128;
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
-
 ADC_TypeDef* adc = ADC1;
-const uint8_t adc_pin_num = 1;
-uint8_t adc_pins[adc_pin_num] = {A0};
+const uint8_t adc_pin_num = 3;
+uint8_t adc_pins[adc_pin_num] = {A0, A1, A2};
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,
@@ -24,23 +16,23 @@ SensEdu_ADC_Settings adc_settings = {
     .conv_mode = SENSEDU_ADC_MODE_CONT,
     .sampling_freq = 0,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
-    .mem_address = (uint16_t*)memory4adc,
-    .mem_size = memory4adc_size
+    .dma_mode = SENSEDU_ADC_DMA_DISCONNECT,
+    .mem_address = 0x0000,
+    .mem_size = 0
 };
+uint8_t led = D2; // test with any digital pin (e.g. D2) or led (LED_BUILTIN)
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
 void setup() {
-
     // doesn't boot without opened serial monitor
     Serial.begin(115200);
     while (!Serial) {
         delay(1);
     }
     Serial.println("Started Initialization...");
-
+    
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
@@ -52,6 +44,9 @@ void setup() {
         Serial.println(lib_error, HEX);
     }
 
+    pinMode(led, OUTPUT);
+    digitalWrite(led, LOW);
+
     Serial.println("Setup is successful.");
 }
 
@@ -59,32 +54,21 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    // CPU does something
-    cntr += 1;
-    Serial.println(cntr);
+    // use one shot
+    // to simplify synchronization in multi-channel mode
+    uint16_t* data = SensEdu_ADC_ReadSequence(adc);
     
-    // DMA in background
-
-    // Print transfered Data if available
-    if (SensEdu_ADC_GetTransferStatus(adc)) {
-        Serial.println("------");
-        for (int i = 0; i < memory4adc_size; i++) {
-            Serial.print("ADC value ");
-            Serial.print(i);
-            Serial.print(": ");
-            Serial.println(memory4adc[i]);
-        };
-
-        // restart ADC
-        SensEdu_ADC_ClearTransferStatus(adc);
-        SensEdu_ADC_Start(adc);
+    Serial.println("-------");
+    for (uint8_t i = 0; i < adc_pin_num; i++) {
+        Serial.print("Value CH");
+        Serial.print(i);
+        Serial.print(": ");
+        Serial.println(data[i]);
     }
 
-    // check errors
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
+    if (digitalRead(led) == HIGH) {
+        digitalWrite(led, LOW);
+    } else {
+        digitalWrite(led, HIGH);
     }
 }

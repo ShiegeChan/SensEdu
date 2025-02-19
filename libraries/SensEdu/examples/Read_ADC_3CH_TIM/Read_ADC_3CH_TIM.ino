@@ -54,7 +54,7 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    uint16_t* temp = SensEdu_ADC_ReadSingleSequence(adc);
+    uint16_t* data = SensEdu_ADC_ReadSequence(adc);
 
     // serial prints slow down CPU and cause wrong sample rate (not following timer settings)
     Serial.println("-------");
@@ -62,7 +62,7 @@ void loop() {
         Serial.print("Value CH");
         Serial.print(i);
         Serial.print(": ");
-        Serial.println(temp[i]);
+        Serial.println(data[i]);
     }
 
     if (digitalRead(led) == HIGH) {

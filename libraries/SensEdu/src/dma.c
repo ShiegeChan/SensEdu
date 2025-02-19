@@ -57,8 +57,8 @@ static adc_config adc1_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC1->DR),
     &dma_ch6_flags, DMA1_Stream6_IRQn, DMAMUX1_Channel6, (9U)};
 static adc_config adc2_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC2->DR), DMA1_Stream5,
     &dma_ch5_flags, DMA1_Stream5_IRQn, DMAMUX1_Channel5, (10U)};
-static adc_config adc3_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC3->DR)};
-
+static adc_config adc3_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC3->DR), DMA1_Stream7,
+    &dma_ch7_flags, DMA1_Stream7_IRQn, DMAMUX1_Channel7, (115U)};
 
 
 /* -------------------------------------------------------------------------- */
@@ -78,14 +78,6 @@ void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size);
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
-uint8_t SensEdu_DMA_GetADCTransferStatus(ADC_TypeDef* adc) {
-    return get_adc_config(adc)->transfer_status;
-}
-
-void SensEdu_DMA_ClearADCTransferStatus(ADC_TypeDef* adc) {
-    get_adc_config(adc)->transfer_status = 0;
-}
-
 DMA_ERROR DMA_GetError(void) {
     return error;
 }
@@ -327,7 +319,7 @@ void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size) {
 void DMA1_Stream5_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF5)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF5);
-        adc2_config.transfer_status = 1;
+        ADC_TransferCompleteDMAinterrupt(ADC2);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF5)) {
@@ -339,7 +331,7 @@ void DMA1_Stream5_IRQHandler(void) {
 void DMA1_Stream6_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);
-        adc1_config.transfer_status = 1;
+        ADC_TransferCompleteDMAinterrupt(ADC1);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF6)) {
@@ -351,7 +343,7 @@ void DMA1_Stream6_IRQHandler(void) {
 void DMA1_Stream7_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF7)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF7);
-        // TODO: ADC3
+        ADC_TransferCompleteDMAinterrupt(ADC3);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF7)) {

@@ -9,7 +9,9 @@ typedef struct {
 } channel;
 
 typedef struct {
-    volatile uint8_t eoc_flag;  // End of Conversion flags
+    volatile uint8_t dma_complete;
+    volatile uint8_t eoc_flag;  // End of Conversion flag
+    volatile uint8_t eoc_cntr;  // EOC counter for multi-channel sequence
     uint16_t sequence_data[16]; // software polling data storage
 } adc_data;
 
@@ -21,9 +23,11 @@ static ADC_ERROR error = ADC_ERROR_NO_ERRORS;
 
 static SensEdu_ADC_Settings ADC1_Settings = {ADC1, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
 static SensEdu_ADC_Settings ADC2_Settings = {ADC2, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
+static SensEdu_ADC_Settings ADC3_Settings = {ADC3, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
 
 static adc_data adc1_data;
 static adc_data adc2_data;
+static adc_data adc3_data;
 
 static uint16_t pll_configured = 0;
 
@@ -52,24 +56,27 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings) {
     *settings = *adc_settings;
 
     // Init flags and storage
-    get_adc_data(adc_settings->adc)->eoc_flag = 0;
+    get_adc_data(settings->adc)->eoc_flag = 0;
+    get_adc_data(settings->adc)->eoc_cntr = 0;
+    get_adc_data(settings->adc)->dma_complete = 0;
+
 
     // Init TIMER, Clock and ADC
     TIMER_ADC1Init();
     if (!pll_configured) {
         configure_pll2();
     }
-    adc_init(adc_settings->adc, adc_settings->pins, adc_settings->pin_num, 
-        adc_settings->conv_mode, adc_settings->dma_mode);
+    adc_init(settings->adc, settings->pins, settings->pin_num, 
+        settings->conv_mode, settings->dma_mode);
 
     // timer setttings if in timer triggered mode
-    if (adc_settings->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
-        TIMER_ADC1SetFreq(adc_settings->sampling_freq);
+    if (settings->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
+        TIMER_ADC1SetFreq(settings->sampling_freq);
     }
 
     // dma settings if in dma mode
-    if (adc_settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
-        DMA_ADCInit(adc_settings->adc, adc_settings->mem_address, adc_settings->mem_size);
+    if (settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
+        DMA_ADCInit(settings->adc, settings->mem_address, settings->mem_size);
     }
 }
 
@@ -123,17 +130,45 @@ void SensEdu_ADC_Start(ADC_TypeDef* ADC) {
 }
 
 // Software Polling (slow alternative to DMA transfers)
-uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC) {
+// Multi-Channel
+uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC) {
     SensEdu_ADC_Settings* settings = get_adc_settings(ADC);
     adc_data* data = get_adc_data(ADC);
 
-    for (uint8_t i = 0; i < settings->pin_num; i++) {
-        data->eoc_flag = 0;
-        while(!(data->eoc_flag));
-        data->sequence_data[i] = READ_REG(ADC->DR);
+    if (settings->conv_mode == SENSEDU_ADC_MODE_ONE_SHOT) {
+        error = ADC_ERROR_NOT_SUPPORTED_MODE; // currently broken for this mode
+        return;
     }
-    
+
+    // software polled sequences in cont mode are not stable due to synchronization issues
+    // adc reset helps
+    if (READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
+        SET_BIT(ADC->CR, ADC_CR_ADSTP);
+        while(READ_BIT(ADC->CR, ADC_CR_ADSTP));
+    }
+
+    // set interrupt parameters before start
+    data->eoc_flag = 1;
+    data->eoc_cntr = settings->pin_num;
+
+    SET_BIT(ADC->CR, ADC_CR_ADSTART);
+    while (data->eoc_flag);
+
     return data->sequence_data;
+}
+
+// Software Polling (slow alternative to DMA transfers)
+// Single-Channel
+uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* ADC) {
+    return READ_REG(ADC->DR);
+}
+
+uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc) {
+    return get_adc_data(adc)->dma_complete;
+}
+
+void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc) {
+    get_adc_data(adc)->dma_complete = 0;
 }
 
 // Early versions of the board are using 
@@ -150,6 +185,9 @@ ADC_ERROR ADC_GetError(void) {
     return error;
 }
 
+void ADC_TransferCompleteDMAinterrupt(ADC_TypeDef* adc) {
+    get_adc_data(adc)->dma_complete = 1;
+}
 
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
@@ -159,6 +197,8 @@ SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* ADC) {
         return &ADC1_Settings;
     } else if (ADC == ADC2) {
         return &ADC2_Settings;
+    } else if (ADC == ADC3) {
+        return &ADC3_Settings;
     }
 }
 
@@ -167,12 +207,14 @@ adc_data* get_adc_data(ADC_TypeDef* ADC) {
         return &adc1_data;
     } else if (ADC == ADC2) {
         return &adc2_data;
+    } else if (ADC == ADC3) {
+        return &adc3_data;
     }
 }
 
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings) {
-    if (settings->adc != ADC1 && settings->adc != ADC2) {
-        return ADC_ERROR_WRONG_ADC; // you can only use ADC1 or ADC2
+    if (settings->adc != ADC1 && settings->adc != ADC2 && settings->adc != ADC3) {
+        return ADC_ERROR_WRONG_ADC;
     } 
 
     if (settings->pin_num < 1) {
@@ -222,19 +264,26 @@ void configure_pll2(void) {
     // vco must be 150MHz:420MHz, vco = ref2_ck * DIVN2 = 4MHz * 75 = 300MHz
     SET_BIT(RCC->PLLCFGR, RCC_PLLCFGR_PLL2VCOSEL); // set narrow range for vco
     CLEAR_BIT(RCC->PLL2FRACR, RCC_PLL2FRACR_FRACN2); // no fractions
-    MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_N2, (75U-1U) << RCC_PLL2DIVR_N2_Pos); // reg 0x03 -> x4, which means set with "-1"
+    MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_N2, (75U-1U) << RCC_PLL2DIVR_N2_Pos); // e.g., reg 0x03 -> x4, which means set with "-1"
 
     // 5. set DIVP2 division factor (/6)
-    MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_P2, (6U-1U) << RCC_PLL2DIVR_P2_Pos); // reg 0x01 -> /2
+    MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_P2, (6U-1U) << RCC_PLL2DIVR_P2_Pos); // e.g., reg 0x01 -> /2
 
     /* end configure PLL2 */
 
     // turn on PLL2
     SET_BIT(RCC->CR, RCC_CR_PLL2ON);
+    while (!READ_BIT(RCC->CR, RCC_CR_PLL2RDY));
 
     // turn on buses
-    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);  //Enable ADC 1 and 2
+    SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);
     SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
+
+    // set adc clock to async from PLL2 (ADCs must be OFF)
+    MODIFY_REG(ADC12_COMMON->CCR, ADC_CCR_CKMODE, 0b00 << ADC_CCR_CKMODE_Pos);
+    MODIFY_REG(ADC12_COMMON->CCR, ADC_CCR_PRESC, 0b0000 << ADC_CCR_PRESC_Pos);
+    MODIFY_REG(ADC3_COMMON->CCR, ADC_CCR_CKMODE, 0b00 << ADC_CCR_CKMODE_Pos);
+    MODIFY_REG(ADC3_COMMON->CCR, ADC_CCR_PRESC, 0b0000 << ADC_CCR_PRESC_Pos);
 
     // flag
     pll_configured = 1;
@@ -255,13 +304,9 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
 
     // set clock range 12.5MHz:25Mhz
     MODIFY_REG(ADC->CR, ADC_CR_BOOST, 0b10 << ADC_CR_BOOST_Pos);
-    
-    // set adc clock to async from PLL2 (ADCs must be OFF)
-    MODIFY_REG(ADC12_COMMON->CCR, ADC_CCR_CKMODE, 0b00 << ADC_CCR_CKMODE_Pos);
-    MODIFY_REG(ADC12_COMMON->CCR, ADC_CCR_PRESC, 0b0000 << ADC_CCR_PRESC_Pos);
 
-    // set overrun mode (overwrite data)
-    SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
+    // overrun mode (overwrite data)
+    SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD); 
 
     // data management
     if (adc_dma == SENSEDU_ADC_DMA_CONNECT) {
@@ -273,7 +318,7 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
     }
     
     // select channels
-    MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ1, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
+    MODIFY_REG(ADC->SQR1, ADC_SQR1_L, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
     for (uint8_t i = 0; i < adc_pin_num; i++) {
         channel adc_channel = get_adc_channel(arduino_pins[i], ADC);
         SET_BIT(ADC->PCSEL, adc_channel.preselection);
@@ -315,10 +360,17 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
     SET_BIT(ADC->CR, ADC_CR_ADCAL); // start
     while(READ_BIT(ADC->CR, ADC_CR_ADCAL)); // wait for calibration
 
-    // interrupts
-    SET_BIT(ADC->IER, ADC_IER_EOCIE);
-    NVIC_SetPriority(ADC_IRQn, 2);
-    NVIC_EnableIRQ(ADC_IRQn);
+    // interrupts (only for software polling)
+    if (adc_dma == SENSEDU_ADC_DMA_DISCONNECT) {
+        SET_BIT(ADC->IER, ADC_IER_EOCIE);
+        if (ADC == ADC1 || ADC == ADC2) {
+            NVIC_SetPriority(ADC_IRQn, 2);
+            NVIC_EnableIRQ(ADC_IRQn);
+        } else if (ADC == ADC3) {
+            NVIC_SetPriority(ADC3_IRQn, 2);
+            NVIC_EnableIRQ(ADC3_IRQn);
+        }
+    }
 }
 
 /*
@@ -344,22 +396,42 @@ channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC) {
     channel adc_channel = {.number = 0U, .preselection = 0U};
     switch(arduino_pin) {
         case PIN_A0:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 4U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_4;
             break;
         case PIN_A1:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 8U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_8;
             break;
         case PIN_A2:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 9U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_9;
             break;
         case PIN_A3:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 5U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_5;
             break;
         case PIN_A4:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 13U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_13;
             break;
@@ -372,24 +444,42 @@ channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC) {
             adc_channel.preselection = ADC_PCSEL_PCSEL_10;
             break;
         case PIN_A7:
-            if (ADC == ADC1) {
-                adc_channel.number = 16U;
-                adc_channel.preselection = ADC_PCSEL_PCSEL_16;
-            } else {
+            if (ADC == ADC2 || ADC == ADC3) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
             }
+            adc_channel.number = 16U;
+            adc_channel.preselection = ADC_PCSEL_PCSEL_16;
             break;
         case A8:
-            error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+            if (ADC == ADC1 || ADC == ADC2) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
+            adc_channel.number = 0U;
+            adc_channel.preselection = ADC_PCSEL_PCSEL_0;
             break;
         case A9:
-            error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+            if (ADC == ADC1 || ADC == ADC2) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
+            adc_channel.number = 1U;
+            adc_channel.preselection = ADC_PCSEL_PCSEL_1;
             break;
         case A10:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 1U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_1;
             break;
         case A11:
+            if (ADC == ADC3) {
+                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+                break;
+            }
             adc_channel.number = 0U;
             adc_channel.preselection = ADC_PCSEL_PCSEL_0;
             break;
@@ -532,11 +622,36 @@ void set_adc_channel_sample_time(ADC_TypeDef* ADC, uint8_t sample_time, uint8_t 
 void ADC_IRQHandler(void) {
     if (READ_BIT(ADC1->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC1->ISR, ADC_ISR_EOC);
-        adc1_data.eoc_flag = 1;
+        if (adc1_data.eoc_flag) {
+            adc1_data.sequence_data[ADC1_Settings.pin_num - adc1_data.eoc_cntr] = READ_REG(ADC1->DR);
+            adc1_data.eoc_cntr = adc1_data.eoc_cntr - 1;
+            if (adc1_data.eoc_cntr == 0) {
+                adc1_data.eoc_flag = 0;
+            }
+        }
     }
     
     if (READ_BIT(ADC2->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC2->ISR, ADC_ISR_EOC);
-        adc2_data.eoc_flag = 1;
+        if (adc2_data.eoc_flag) {
+            adc2_data.sequence_data[ADC2_Settings.pin_num - adc2_data.eoc_cntr] = READ_REG(ADC2->DR);
+            adc2_data.eoc_cntr = adc2_data.eoc_cntr - 1;
+            if (adc2_data.eoc_cntr == 0) {
+                adc2_data.eoc_flag = 0;
+            }
+        }
+    }
+}
+
+void ADC3_IRQHandler(void) {
+    if (READ_BIT(ADC3->ISR, ADC_ISR_EOC)) {
+        SET_BIT(ADC3->ISR, ADC_ISR_EOC);
+        if (adc3_data.eoc_flag) {
+            adc3_data.sequence_data[ADC3_Settings.pin_num - adc3_data.eoc_cntr] = READ_REG(ADC3->DR);
+            adc3_data.eoc_cntr = adc3_data.eoc_cntr - 1;
+            if (adc3_data.eoc_cntr == 0) {
+                adc3_data.eoc_flag = 0;
+            }
+        }
     }
 }

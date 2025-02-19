@@ -10,8 +10,15 @@
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
-SensEdu_DAC_Settings dac1_settings = {DAC1, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
-    SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num};
+DAC_Channel* dac_ch = DAC_CH1;
+SensEdu_DAC_Settings dac_settings = {
+    .dac_channel = dac_ch, 
+    .sampling_freq = DAC_SAMPLE_RATE,
+    .mem_address = (uint16_t*)sine_lut,
+    .mem_size = sine_lut_size,
+    .wave_mode = SENSEDU_DAC_MODE_BURST_WAVE,
+    .burst_num = dac_cycle_num
+};
 
 /* ADC */
 const uint16_t mic_data_size = 64*32; // must be multiple of 64 for 16bit
@@ -44,7 +51,7 @@ void setup() {
 
     Serial.begin(115200);
 
-    SensEdu_DAC_Init(&dac1_settings);
+    SensEdu_DAC_Init(&dac_settings);
 
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
@@ -77,14 +84,14 @@ void loop() {
     }
 
     // start dac->adc sequence
-    SensEdu_DAC_Enable(DAC1);
-    while(!SensEdu_DAC_GetBurstCompleteFlag());
-    SensEdu_DAC_ClearBurstCompleteFlag();
+    SensEdu_DAC_Enable(dac_ch);
+    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
+    SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
     SensEdu_ADC_Start(adc);
     
     // wait for the data and send it
-    while(!SensEdu_DMA_GetADCTransferStatus(ADC1));
-    SensEdu_DMA_ClearADCTransferStatus(ADC1);
+    while(!SensEdu_ADC_GetTransferStatus(adc));
+    SensEdu_ADC_ClearTransferStatus(adc);
     serial_send_array((const uint8_t *) & mic_data, mic_data_size << 1);
 
     // check errors
