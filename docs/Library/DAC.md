@@ -9,7 +9,7 @@ nav_order: 3
 {: .fs-8 .fw-500 .no_toc}
 ---
 
-A DAC (Digital-to-Analog Converter) converts a digital signal into an analog waveform, which is then sent to a speaker to produce acoustic waves.
+A DAC (Digital-to-Analog Converter) converts a digital signal into an analog waveform, which is then sent to a speaker to produce acoustic waves. 
 {: .fw-500}
 
 - TOC
@@ -18,6 +18,8 @@ A DAC (Digital-to-Analog Converter) converts a digital signal into an analog wav
 The STM32H747 features one DAC module with two available channels:
 * **Central Speaker**: connected to the first channel (channel 1) on `DAC0` pin 
 * **Bottom Speaker** connected to the second channel (channel 2) on `DAC1` pin
+
+There are 3 modes that DAC
 
 ## Structs
 
@@ -43,33 +45,44 @@ void SensEdu_DAC_Enable(DAC_Channel* dac_channel);
 ```
 #### Parameters
 {: .no_toc}
-* `dac_channel`: DAC Channel instance
+* `dac_channel`: DAC Channel instance.
 
 
 ### SensEdu_DAC_Disable
 Deactivates the DAC module. 
+
 ```c
 void SensEdu_DAC_Disable(DAC_Channel* dac_channel);
 ```
 #### Parameters
 {: .no_toc}
-* `parameter`: explanation
+* `dac_channel`: DAC Channel instance. 
 
 
 ### SensEdu_DAC_GetBurstCompleteFlag
-it does cool things
+
+Returns the burst status flag of the DAC channel. If the sending mode is in "Burst Mode", the burst_complete flag will be set to `true`. 
+
+```c
+uint8_t SensEdu_DAC_GetBurstCompleteFlag(DAC_Channel* dac_channel);
+```
 
 #### Parameters
 {: .no_toc}
-* `parameter`: explanation
+* `dac_channel`: DAC Channel instance. 
 
 
 ### SensEdu_DAC_ClearBurstCompleteFlag
-it does cool things
+
+Resets the burst status flag of the DAC channel to its default value `false`. 
+
+```c
+void SensEdu_DAC_ClearBurstCompleteFlag(DAC_Channel* dac_channel);
+```
 
 #### Parameters
 {: .no_toc}
-* `parameter`: explanation
+* `dac_channel`: DAC Channel instance. 
 
 ### DAC_GetError
 it does cool things
@@ -98,7 +111,6 @@ it does cool things
 
 
 ## Examples
-Examples are organized incrementally. Each builds on the previous one by introducing only new features or modifications. Refer to earlier examples for core functionality details.
 
 ### first example
 
