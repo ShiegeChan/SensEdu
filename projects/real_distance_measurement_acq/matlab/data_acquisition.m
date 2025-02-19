@@ -2,10 +2,9 @@
 % reads config data and then ADC mics meassurements from Arduino
 clear;
 close all;
-clc;
 
 %% Data Acquisition parameters
-ITERATIONS = 500; 
+ITERATIONS = 1000; 
 MIC_NUM = 4;
 DATA_LENGTH = 64 * 32;
 dist_matrix = zeros(MIC_NUM, ITERATIONS); % preallocation of data array
@@ -22,10 +21,13 @@ tic;
 for it = 1:ITERATIONS
     % Start the acquisition
     write(arduino, 't', "char"); % trigger arduino measurement
-    
-    % Reading the distance measurements
-    dist_matrix(:, it) = read_distance_data(arduino, MIC_NUM);
     time_axis(it) = toc;
+    pom = read_distance_data(arduino, MIC_NUM);
+    if (any(pom < 0.2) && it > 1)
+        pom = dist_matrix(:, it-1);
+    end
+    % Reading the distance measurements
+    dist_matrix(:, it) = pom;
 end
 acquisition_time = toc;
 
@@ -40,3 +42,13 @@ fprintf("Data acquisition completed in: %fsec\n", acquisition_time);
 % Close serial connection
 arduino = [];
 
+%% Plotting the data
+figure
+for i = 1:MIC_NUM
+    subplot(MIC_NUM, 1, i);
+    plot(time_axis, dist_matrix(i, :))
+    ylim([0 1])
+    xlim([0 time_axis(end)])
+    grid on
+
+end

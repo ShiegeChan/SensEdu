@@ -36,7 +36,7 @@ arm_fir_instance_f32 Fir_filt;  // creating an object instance
 
 ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
-DAC_Channel* dac_channel = DAC_CH2;
+
 
 const uint8_t adc1_mic_num = 2; // 2 microphones for adc1
 const uint8_t adc2_mic_num = 2; // 2 microphones for adc2
@@ -80,6 +80,7 @@ SensEdu_ADC_Settings adc2_settings = {
 };
 
 /********************************************* DAC **************************************************/
+DAC_Channel* dac_channel = DAC_CH2;
 // lut settings are in SineLUT.h
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle

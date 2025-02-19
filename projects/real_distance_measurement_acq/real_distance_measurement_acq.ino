@@ -12,11 +12,11 @@ uint8_t error_led = D86;
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
-
+//#define SERIAL_OFF
 //#define LOCAL_XCORR     true    // doing xcorr on the microcontroller
 //#define XCORR_DEBUG     true    // sending only distance w/o other data
 
-//#define BAN_DISTANCE	25		    // min distance [cm] - how many self reflections cancelled
+#define BAN_DISTANCE	20		    // min distance [cm] - how many self reflections cancelled
 #define ACTUAL_SAMPLING_RATE 244000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
 #define STORE_BUF_SIZE  64 * 32     // 2400 for 1 measurement per second. 
                             	    // only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)
@@ -75,11 +75,12 @@ SensEdu_ADC_Settings adc2_settings = {
 };
 
 /********************* DAC ****************/
+DAC_Channel* dac_channel = DAC_CH1;
 // lut settings are in SineLUT.h
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
-SensEdu_DAC_Settings dac_settings = {DAC_CH1, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
+SensEdu_DAC_Settings dac_settings = {dac_channel, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
     SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num}; // specifying burst mode 
 
 /* -------------------------------------------------------------------------- */
@@ -89,7 +90,7 @@ SensEdu_DAC_Settings dac_settings = {DAC_CH1, DAC_SAMPLE_RATE, (uint16_t*)sine_l
 const uint16_t air_speed = 343; // m/s
 
 // e.g. 25cm ban means 0.25*2/343 time ban, then multiply by sample rate
-// const uint32_t banned_sample_num = ((BAN_DISTANCE*2*ACTUAL_SAMPLING_RATE)/air_speed)/100; 
+const uint32_t banned_sample_num = ((BAN_DISTANCE*2*ACTUAL_SAMPLING_RATE)/air_speed)/100; 
 
 /* -------------------------------------------------------------------------- */
 /*                              Global Structure                              */
@@ -149,39 +150,38 @@ void loop() {
 		while (1) {
 			while (Serial.available() == 0);    // Wait for a signal
 			serial_buf = Serial.read();
-			// Send Configuration Data to computing device
 			if (serial_buf == 't') {
-				//send_config();
                 break; 
 			}
 		}
 	#endif
     
     // Start dac->adc sequence
-    SensEdu_DAC_Enable(DAC_CH1);
-    while(!SensEdu_DAC_GetBurstCompleteFlag(DAC_CH1)); // wait for dac to finish sending the burst
-    SensEdu_DAC_ClearBurstCompleteFlag(DAC_CH1); 
+    SensEdu_DAC_Enable(dac_channel);
+    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_channel)); // wait for dac to finish sending the burst
+    SensEdu_DAC_ClearBurstCompleteFlag(dac_channel); 
     
     // Start ADCs
     SensEdu_ADC_Start(adc1);
     SensEdu_ADC_Start(adc2);
 
     // Wait for the data from ADC1
-    while(!SensEdu_DMA_GetADCTransferStatus(ADC1));
-    SensEdu_DMA_ClearADCTransferStatus(ADC1);
+    while(!SensEdu_DMA_GetADCTransferStatus(adc1));
+    SensEdu_DMA_ClearADCTransferStatus(adc1);
 
     // Wait for the data from ADC2
-    while(!SensEdu_DMA_GetADCTransferStatus(ADC2));
-    SensEdu_DMA_ClearADCTransferStatus(ADC2);
+    while(!SensEdu_DMA_GetADCTransferStatus(adc2));
+    SensEdu_DMA_ClearADCTransferStatus(adc2);
 
     // Calculating distance for each microphone
     static uint32_t distance[4];
-	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1");
-    distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2");
-    distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "1");
-    distance[3] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "2");
+	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", main_obj_ptr->ban_flag) ;
+    distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2", main_obj_ptr->ban_flag);
+    distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "1", main_obj_ptr->ban_flag);
+    distance[3] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "2", main_obj_ptr->ban_flag);
 
     // Sending the distance measurements
+    
     Serial.write((const uint8_t *) &distance[0], 4);
     Serial.write((const uint8_t *) &distance[1], 4);
     Serial.write((const uint8_t *) &distance[2], 4);
