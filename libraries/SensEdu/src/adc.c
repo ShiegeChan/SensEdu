@@ -135,9 +135,13 @@ uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC) {
     SensEdu_ADC_Settings* settings = get_adc_settings(ADC);
     adc_data* data = get_adc_data(ADC);
 
+    if (settings->conv_mode == SENSEDU_ADC_MODE_ONE_SHOT) {
+        error = ADC_ERROR_NOT_SUPPORTED_MODE; // currently broken for this mode
+        return;
+    }
+
     // software polled sequences in cont mode are not stable due to synchronization issues
-    // better use one shot mode if software poll is absoulte necessary
-    // otherwise it is always better to use DMA
+    // adc reset helps
     if (READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
         SET_BIT(ADC->CR, ADC_CR_ADSTP);
         while(READ_BIT(ADC->CR, ADC_CR_ADSTP));
@@ -301,6 +305,9 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
     // set clock range 12.5MHz:25Mhz
     MODIFY_REG(ADC->CR, ADC_CR_BOOST, 0b10 << ADC_CR_BOOST_Pos);
 
+    // overrun mode (overwrite data)
+    SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD); 
+
     // data management
     if (adc_dma == SENSEDU_ADC_DMA_CONNECT) {
         MODIFY_REG(ADC->CFGR, ADC_CFGR_DMNGT, 0b01 << ADC_CFGR_DMNGT_Pos); // circular DMA mode
@@ -333,17 +340,14 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
             MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b01 << ADC_CFGR_EXTEN_Pos); // enable trigger on rising edge
             MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTSEL, 0b01001 << ADC_CFGR_EXTSEL_Pos); // adc_ext_trg9 from a datasheet (Timer #1)
             CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); // set single conversion mode
-            SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD); // overrun mode (overwrite data)
             break;
         case SENSEDU_ADC_MODE_CONT:
             MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos); // disable hardware trigger
             SET_BIT(ADC->CFGR, ADC_CFGR_CONT); // set continuous mode
-            SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD); // overrun mode (overwrite data)
             break;
         case SENSEDU_ADC_MODE_ONE_SHOT:
             MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos); // disable hardware trigger
             CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); // set single conv mode
-            SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD); // data override isn't allowed
             break;
         default:
             error = ADC_ERROR_WRONG_OPERATION_MODE;
@@ -359,7 +363,6 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
     // interrupts (only for software polling)
     if (adc_dma == SENSEDU_ADC_DMA_DISCONNECT) {
         SET_BIT(ADC->IER, ADC_IER_EOCIE);
-        SET_BIT(ADC->IER, ADC_IER_EOSIE);
         if (ADC == ADC1 || ADC == ADC2) {
             NVIC_SetPriority(ADC_IRQn, 2);
             NVIC_EnableIRQ(ADC_IRQn);
@@ -621,27 +624,34 @@ void ADC_IRQHandler(void) {
         SET_BIT(ADC1->ISR, ADC_ISR_EOC);
         if (adc1_data.eoc_flag) {
             adc1_data.sequence_data[ADC1_Settings.pin_num - adc1_data.eoc_cntr] = READ_REG(ADC1->DR);
-            adc1_data.eoc_cntr--;
-            if (adc1_data.eoc_cntr < 1) {
+            adc1_data.eoc_cntr = adc1_data.eoc_cntr - 1;
+            if (adc1_data.eoc_cntr == 0) {
                 adc1_data.eoc_flag = 0;
             }
         }
     }
-
-    if (READ_BIT(ADC1->ISR, ADC_ISR_EOS)) {
-        SET_BIT(ADC1->ISR, ADC_ISR_EOS);
-        adc1_data.eoc_flag = 0;
-    }
     
     if (READ_BIT(ADC2->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC2->ISR, ADC_ISR_EOC);
-        adc2_data.eoc_flag = 1;
+        if (adc2_data.eoc_flag) {
+            adc2_data.sequence_data[ADC2_Settings.pin_num - adc2_data.eoc_cntr] = READ_REG(ADC2->DR);
+            adc2_data.eoc_cntr = adc2_data.eoc_cntr - 1;
+            if (adc2_data.eoc_cntr == 0) {
+                adc2_data.eoc_flag = 0;
+            }
+        }
     }
 }
 
 void ADC3_IRQHandler(void) {
     if (READ_BIT(ADC3->ISR, ADC_ISR_EOC)) {
         SET_BIT(ADC3->ISR, ADC_ISR_EOC);
-        adc3_data.eoc_flag = 1;
+        if (adc3_data.eoc_flag) {
+            adc3_data.sequence_data[ADC3_Settings.pin_num - adc3_data.eoc_cntr] = READ_REG(ADC3->DR);
+            adc3_data.eoc_cntr = adc3_data.eoc_cntr - 1;
+            if (adc3_data.eoc_cntr == 0) {
+                adc3_data.eoc_flag = 0;
+            }
+        }
     }
 }

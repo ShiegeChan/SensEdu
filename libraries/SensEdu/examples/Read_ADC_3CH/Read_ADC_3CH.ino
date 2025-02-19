@@ -35,6 +35,7 @@ void setup() {
     
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
+    SensEdu_ADC_Start(adc);
 
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {

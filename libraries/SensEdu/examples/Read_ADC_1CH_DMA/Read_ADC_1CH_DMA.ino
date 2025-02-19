@@ -13,7 +13,7 @@ uint32_t cntr = 0;
 const uint16_t memory4adc_size = 128;
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
 
-ADC_TypeDef* adc = ADC2;
+ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 1;
 uint8_t adc_pins[adc_pin_num] = {A0};
 SensEdu_ADC_Settings adc_settings = {

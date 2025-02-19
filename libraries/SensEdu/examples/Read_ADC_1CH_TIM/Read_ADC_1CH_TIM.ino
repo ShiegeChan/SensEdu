@@ -54,8 +54,8 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    uint16_t* temp = SensEdu_ADC_ReadSingleSequence(adc);
-    Serial.println(temp[0]);
+    uint16_t data = SensEdu_ADC_ReadConversion(adc);
+    Serial.println(data);
 
     if (digitalRead(led) == HIGH) {
         digitalWrite(led, LOW);
