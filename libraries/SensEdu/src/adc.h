@@ -57,7 +57,9 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings);
 void SensEdu_ADC_Enable(ADC_TypeDef* ADC);
 void SensEdu_ADC_Disable(ADC_TypeDef* ADC);
 void SensEdu_ADC_Start(ADC_TypeDef* ADC);
-uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC);
+
+uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* ADC);
+uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC);
 
 uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
 void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc);

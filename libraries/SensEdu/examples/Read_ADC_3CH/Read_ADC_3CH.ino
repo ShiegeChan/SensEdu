@@ -6,8 +6,8 @@ uint32_t lib_error = 0;
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 ADC_TypeDef* adc = ADC1;
-const uint8_t adc_pin_num = 1;
-uint8_t adc_pins[adc_pin_num] = {A0};
+const uint8_t adc_pin_num = 3;
+uint8_t adc_pins[adc_pin_num] = {A0, A1, A2};
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,
@@ -35,7 +35,6 @@ void setup() {
     
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
-    SensEdu_ADC_Start(adc);
 
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -54,8 +53,17 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
-    uint16_t data = SensEdu_ADC_ReadConversion(adc);
-    Serial.println(data);
+    // use one shot
+    // to simplify synchronization in multi-channel mode
+    uint16_t* data = SensEdu_ADC_ReadSequence(adc);
+    
+    Serial.println("-------");
+    for (uint8_t i = 0; i < adc_pin_num; i++) {
+        Serial.print("Value CH");
+        Serial.print(i);
+        Serial.print(": ");
+        Serial.println(data[i]);
+    }
 
     if (digitalRead(led) == HIGH) {
         digitalWrite(led, LOW);
