@@ -202,11 +202,11 @@ void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc);
 * bla bla bla
 
 
-### SensEdu_ADC_ReadSingleSequence
-Manually read a single sequence of ADC values (alternative to DMA).
+### SensEdu_ADC_ReadConversion
+Manually read a single ADC conversion (alternative to DMA).
 
 ```c
-uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC);
+uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* ADC)
 ```
 
 #### Parameters
@@ -215,14 +215,38 @@ uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC);
 
 #### Returns
 {: .no_toc}
-* A pointer to an array of ADC conversion results. Index the array to access values:
-  * Single-channel: Use `[0]`
-  * Multi-channel: Use `[0]`, `[1]`, `[2]`, etc., corresponding to the amount of selected channels (`pins` array in `SensEdu_ADC_Settings`)
+* 16-bit value from selected channel
 
 #### Notes
 {: .no_toc}
+* Used for readings using single channel. For multi-channel readings, use `SensEdu_ADC_ReadSequence`.
 * Consumes CPU cycles. Prefer DMA to free CPU for other tasks. For example, you can perform complex calculations on ADC values, while requesting the new set of data with DMA.
-* Refer to non-DMA examples like `Read_ADC_3CH_TIM`.
+* Refer to non-DMA examples like `Read_ADC_1CH`.
+
+
+### SensEdu_ADC_ReadSequence
+Manually read a sequence of ADC conversions (alternative to DMA).
+
+```c
+uint16_t SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC)
+```
+
+#### Parameters
+{: .no_toc}
+* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+
+#### Returns
+{: .no_toc}
+* A pointer to an array of ADC conversion results. Index the array to access values: `[0]`, `[1]`, `[2]`, etc., corresponding to the amount of selected channels (`pins` array in `SensEdu_ADC_Settings`)
+
+#### Notes
+{: .no_toc}
+* Used for readings using multiple channels. For single-channel readings, use `SensEdu_ADC_ReadConversion`.
+* Consumes CPU cycles. Prefer DMA to free CPU for other tasks. For example, you can perform complex calculations on ADC values, while requesting the new set of data with DMA.
+* Refer to non-DMA examples like `Read_ADC_3CH`.
+
+{: .warning}
+Multi-channel CPU polling currently doesn't work in `SENSEDU_ADC_MODE_ONE_SHOT`. Use `SENSEDU_ADC_MODE_CONT` or `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`. If you want to look into this and have a try fixing it, refer to [this issue].
 
 
 ### SensEdu_ADC_ShortA4toA9
@@ -348,3 +372,4 @@ this shorts PC3_C to PC3
 and you could access ADC12_INP13 through PC3_C
 
 [link_name]: https:://link
+[this issue]: https://github.com/ShiegeChan/SensEdu/issues/8
