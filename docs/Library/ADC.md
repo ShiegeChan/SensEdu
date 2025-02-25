@@ -263,35 +263,117 @@ void SensEdu_ADC_ShortA4toA9(void);
 
 ## Examples
 Examples are organized incrementally. Each builds on the previous one by introducing only new features or modifications. Refer to earlier examples for core functionality details.
+{: .fw-500}
+
+If you want to see complete examples, visit `\examples\` directory or open them via Arduino IDE by navigating to `File → Examples → SensEdu`.
 
 ### Read_ADC_1CH
 
-does cool things
+Continuously reads ADC conversions directly with CPU for one chosen pin.
 
-1. do this
-2. and the this
-
-{: .warning}
-something wrong
+1. Include the SensEdu library
+2. Declare ADC, pin array and its size, according to amount of desired channels for selected ADC.
+3. Declare [`SensEdu_ADC_Settings`]({% link Library/ADC.md %}#sensedu_adc_settings) struct, configuring all required ADC parameters
+4. Initialize ADC with `SensEdu_ADC_Init()` and power it up `SensEdu_ADC_Enable()`
+5. In continuous mode `SENSEDU_ADC_MODE_CONT` start ADC once with `SensEdu_ADC_Start()`
+6. To read data manually from single channel, use `SensEdu_ADC_ReadConversion()` function in a loop and print result with a `Serial`.
+7. Try to connect selected pin to ground or 3.3V and open Serial Monitor to see ADC conversions. The values should vary in a range from 0 to 65535.
 
 ```c
-// simplified minimal code, maybe even split if too long
+#include "SensEdu.h"
+
+ADC_TypeDef* adc = ADC1;
+const uint8_t adc_pin_num = 1;
+uint8_t adc_pins[adc_pin_num] = {A0};
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = adc_pins,
+    .pin_num = adc_pin_num,
+
+    .conv_mode = SENSEDU_ADC_MODE_CONT,
+    .sampling_freq = 0,
+    
+    .dma_mode = SENSEDU_ADC_DMA_DISCONNECT,
+    .mem_address = 0x0000,
+    .mem_size = 0
+};
+
+void setup() {
+    Serial.begin(115200);
+    
+    SensEdu_ADC_Init(&adc_settings);
+    SensEdu_ADC_Enable(adc);
+    SensEdu_ADC_Start(adc);
+}
+
+void loop() {
+    uint16_t data = SensEdu_ADC_ReadConversion(adc);
+    Serial.println(data);
+}
 ```
 
+#### Notes
+{: .no_toc}
+* For this simplest configuration parameters like `.sampling_rate` or `.mem_address` are not used and completely ignored.
+
+
+### Read_ADC_3CH
+
+Continuously reads sequences of ADC conversions directly with CPU for multiple chosen pins.
+
+1. Repeat the steps from [`Read_ADC_1CH`]({% link Library/ADC.md %}#read_adc_1ch) example
+2. Change the pin array for desired number of channel (e.g., 3 for this example)
+3. Change reading function to `SensEdu_ADC_ReadSequence()`. Now it return not the value, but the pointer to the first element of sequence of array. You can access each channel with an index brackets `[]`
+
+```c
+...
+const uint8_t adc_pin_num = 3;
+uint8_t adc_pins[adc_pin_num] = {A0, A1, A2};
+...
+void loop() {
+    uint16_t* data = SensEdu_ADC_ReadSequence(adc);
+    Serial.println("-------");
+    for (uint8_t i = 0; i < adc_pin_num; i++) {
+        Serial.print("Value CH");
+        Serial.print(i);
+        Serial.print(": ");
+        Serial.println(data[i]);
+    }
+}
+```
+
+#### Notes
+{: .no_toc}
+* ADC conversions are organised in "packages" (e.g., Sequence #1: CH1-CH2-CH3; Sequence #2: CH1-CH2-CH3). If you want to access an array of conversions for each channel separately (e.g., Array #1: [Seq#1 CH1, Seq#2 CH1, ...]; Array #2: [Seq#1 CH2, Seq#2 CH2, ...]), you need to decompose the packages manually.
 
 ### Read_ADC_1CH_TIM
 
-does cool things
+Continuously reads ADC conversions directly with CPU for one chosen pin with constant sampling rate.
 
-1. do this
-2. and the this
-
-{: .warning}
-something wrong
+1. Repeat the steps from [`Read_ADC_1CH`]({% link Library/ADC.md %}#read_adc_1ch) example
+2. In `SensEdu_ADC_Settings` change the `.conv_mode` to `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`
+3. Specify sampling frequency `.sampling_freq`
 
 ```c
-// simplified minimal code, maybe even split if too long
+...
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = adc_pins,
+    .pin_num = adc_pin_num,
+
+    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
+    .sampling_freq = 250000,
+    
+    .dma_mode = SENSEDU_ADC_DMA_DISCONNECT,
+    .mem_address = 0x0000,
+    .mem_size = 0
+};
+...
 ```
+
+#### Notes
+{: .no_toc}
+* Expect small variations from specified sampling frequency
 
 
 ### Read_ADC_3CH_TIM
