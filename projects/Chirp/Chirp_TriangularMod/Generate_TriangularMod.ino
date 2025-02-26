@@ -5,7 +5,7 @@ const float Pi = 3.14159; // pi
 void generateTriangularChirp(uint16_t* array) {
 
     float lut_sin[90 * x]; // Quarter-wave LUT for sine values
-    float vChirp[samples_int*2]; // Chirp signal LUT
+    float vChirp[samples_int*2]; // Chirp signal array
 
     // Generate the quarter-wave sine LUT
     for (int i = 0; i < 90 * x; i++) {
