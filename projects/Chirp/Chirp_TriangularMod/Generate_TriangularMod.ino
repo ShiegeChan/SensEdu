@@ -2,7 +2,7 @@ const uint32_t x = 5; // sin LUT resolution
 const float Pi = 3.14159; // pi
 
 // Generate the chirp signal
-void generateChirpSignal(uint16_t* array) {
+void generateTriangularChirp(uint16_t* array) {
 
     float lut_sin[90 * x]; // Quarter-wave LUT for sine values
     float vChirp[samples_int*2]; // Chirp signal LUT

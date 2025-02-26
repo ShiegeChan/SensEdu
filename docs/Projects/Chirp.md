@@ -1,44 +1,49 @@
 ---
-title: Chirp
+title: Chirp Signal Generation
 layout: default
 math: mathjax
 parent: Projects
 nav_order: 2
 ---
 
-# PCB
-{: .fs-8 .fw-500}
+# Chirp Signal Generation
+{: .no_toc .fs-8 .fw-500}
 ---
 
-very cool pcb for sensedu shield for arduino giga r1... (short description)
+The chirp signal generation project aims at proviving basic code to generate 
+frequency modulated continuous waves on the SensEdu Shield using the Arduino Giga R1. The projects provides two types of frequency modulation : sawtooth and triangular.
+
+Chirp signals are encountered in numerous fields like radar & sonar systems, telecommunications, signal processing and more. You will find more information on the potential applications from our upcoming FMCW radar project.
+
 {: .fw-500}
 
-- TOC
+## Table of contents
+{: .no_toc .text-delta }
+1. TOC
 {:toc}
 
-## Chapter 1
+## Chirp Generation Function
+Arduino does not provide any built-in chirp signal function. There are workarounds using MATLAB's built-in chirp function but our idea was to create this signal directly in Arduino with the SensEdu library.
 
-TODO: exaplanations about component specifics, voltages, range
+The `generateSawtoothChirp` and `generateTriangularChirp` functions both calculate the values to generate the lookup table (LUT) of a sawtooth chirp and triangular chirp signal respectively.
 
-TODO: voltage for DC jack
+```c
+void generateSawtoothChirp(uint16_t* array)
+```
 
-TODO: aplifiers gain
-
-TODO: screenshots of specific parts of schematics for better understanding
-
-TODO: eveything needed for board modifications, pitfalls and problems
-
-TODO: guide, how to order the board
+Parameter 
+* `uint16_t* array` : A pointer to an array where the generated chirp signal will be stored.
 
 
-styling examples: 
-* check library documentation code
-* [link1]
-* [link2]
+
 
 ---
 
-example text
+## Main code
+The Chirp_SawtoothMod.ino and Chirp_TriangularMod.ino and
+
+
+<!-- example text
 
 [example link]
 
@@ -58,18 +63,16 @@ example list 2:
 
 *Italics*
 
-### subchapter 1
 ```c
 // cool code
 ```
 
-## Chapter 2
 
 {. :warning}
 callout #1
 
 {. :note}
-callout #1
+callout #1 -->
 
 
 [example link]: https://github.com/ShiegeChan/SensEdu

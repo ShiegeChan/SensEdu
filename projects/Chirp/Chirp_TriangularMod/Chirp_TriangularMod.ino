@@ -54,7 +54,7 @@ void setup() {
     Serial.begin(115200);
     
     // Generate the chirp signal
-    generateChirpSignal(lut);
+    generateTriangularChirp(lut);
 
     SensEdu_DAC_Init(&dac1_settings);
     SensEdu_DAC_Enable(DAC1);
