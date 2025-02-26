@@ -2,6 +2,7 @@
 title: ADC
 layout: default
 parent: Library
+math: mathjax
 nav_order: 2
 ---
 
@@ -505,22 +506,64 @@ void loop() {
 
 ### Read_2ADC_3CH_DMA
 
-does cool things
+This example demonstrates the usage of multiple ADCs in DMA mode. Essentially, you follow the same steps as in the [`Read_ADC_3CH_DMA`]({% link Library/ADC.md %}#read_adc_3ch_dma) example, but use separate buffers, configuration structures, and function calls for each ADC.
 
-1. do this
-2. and then this
-
-{: .warning}
-something wrong
+For example:
 
 ```c
-// simplified minimal code, maybe even split if too long
+SensEdu_ADC_Init(&adc1_settings);
+SensEdu_ADC_Enable(ADC1);
+SensEdu_ADC_Start(ADC1);
+
+SensEdu_ADC_Init(&adc2_settings);
+SensEdu_ADC_Enable(ADC2);
+SensEdu_ADC_Start(ADC2);
 ```
+
+#### Notes
+{: .no_toc}
+* Ensure there is no pin overlap between different ADCs (e.g., do not include pin A0 in the arrays for both ADC1 and ADC2).
 
 
 ## Developer Notes
 
+### DMA Streams
+
+Each ADC occupies one DMA stream:
+* **ADC1**: DMA1_Stream6
+* **ADC2**: DMA1_Stream5
+* **ADC3**: DMA1_Stream7
+
+{: .warning }
+Avoid reusing occupied DMA streams. Refer to [STM32H747 Reference Manual] to find free available streams.
+
+### Conversion Time
+
+You can calculate the needed time for each conversion $$(T_{CONV})$$ with this formula:
+
+$$T_{CONV} = T_{SMPL} + T_{SAR}$$
+
+* $$T_{SMPL}$$: Configured sampling time
+* $$T_{SAR}$$: Successive approximation time depending on data resolution
+
+In SensEdu, $$T_{SMPL}$$ is configured to $$2.5$$ ADC clock cycles, which correpsonds to bits `SMP[2:0] = 0b001` in the **ADC_SMPR1** and **ADC_SMPR2** registers.
+
+ADC conversions are fixed to 16-bit resolution, so $$T_{SAR}$$ is constant and equals to $$8.5$$ ADC clock cycles.
+
+The ADC clock is routed from the PLL2 clock and set to $$25\text{MHz}$$ for each individual ADC, which gives us:
+
+$$T_{CONV} = (2.5 \text{ cycles} + 8.5 \text{ cycles}) * \frac{1}{f_{\text{adc_ker_ck}}} = 11 \text{ cycles} * \frac{1}{25\text{MHz}} = 440\text{ns}$$
+
+SensEdu is configured to x2 oversampling (basically, averaging), so we require around $$880\text{ns}$$ per one ADC conversion, which theoretically gives us a maximum $$1136\text{kS/sec}$$ sampling rate. However, in reality, this rate could be lower due to various additional delays. We assume a maximum sampling rate of $$500\text{kS/sec}$$, but it needs to be additionally tested and confirmed.
+
+
 ### Initialization
+
+### Clock configuration
+
+### Cache Coherence
+
+
 
 TODO: explain adc taken dma streams, how interrupts work, what exactly initialisation sets
 TODO: conversion time calculations
@@ -531,10 +574,6 @@ TODO: explain errors
 TODO: exaplain cache alignment
 
 
-_С pins could be shorted to their non-_C pins:
-CLEAR_BIT(SYSCFG->PMCR, SYSCFG_PMCR_PC3SO);
-this shorts PC3_C to PC3
-and you could access ADC12_INP13 through PC3_C
-
 [link_name]: https:://link
 [this issue]: https://github.com/ShiegeChan/SensEdu/issues/8
+[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/

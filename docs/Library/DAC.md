@@ -286,7 +286,17 @@ To send a continuous sine wave, the only modification would be DAC mode paramete
 
 ## Developer Notes
 
+### DMA Streams
+
+Each DAC channel occupies one DMA Stream:
+* **Channel 1**: DMA1_Stream2
+* **Channel 2**: DMA1_Stream3
+
+{: .warning }
+Avoid reusing occupied DMA streams. Refer to [STM32H747 Reference Manual] to find free available streams.
+
 info about internal things, like taken streams, channels and etc.
 if you want link, include it like this: [link_name]. and link itself at the bottom
 
 [link_name]: https:://link
+[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/
