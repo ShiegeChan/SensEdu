@@ -537,6 +537,7 @@ Each ADC occupies one DMA stream:
 {: .warning }
 Avoid reusing occupied DMA streams. Refer to [STM32H747 Reference Manual] to find free available streams.
 
+
 ### Conversion Time
 
 You can calculate the needed time for each conversion $$(T_{CONV})$$ with this formula:
@@ -559,6 +560,37 @@ SensEdu is configured to x2 oversampling (basically, averaging), so we require a
 
 ### Initialization
 
+General ADC configuration:
+
+| Register name | Register Field | Value | [Manual Page] | Function |
+|:-------|:-------|:--------|:------------------------|
+| CR     | BOOST  | 0b10    | 26.4.3 <br> Page: 958   | ADC clock range $$12.5\text{MHz}:25\text{MHz}$$ |
+| CFGR   | RES    | 0b000   | 26.6.4 <br> Page: 1047  | 16-bit Resolution
+| CFGR   | OVRMOD | 0b1     | 26.4.27 <br> Page: 998  | Overrun mode (overwrite data) |
+| SMPRx  | SMPy   | 0b001   | 26.4.13 <br> Page: 972  | Sample Time of 2.5 ADC clock cycles
+| CFGR2  | OVSR   | 2U - 1U | 26.4.31 <br> Page: 1009 | x2 Oversampling |
+| CFGR2  | ROVSE  | 0b1     | 26.4.31 <br> Page: 1009 | Enable Oversampling |
+| CFGR2  | OVSS   | 0b0001  | 26.4.31 <br> Page: 1009 | 1-bit right shift to account for x2 oversampling (averaging) |
+
+DMA vs CPU polling specific:
+
+|:-------|:-------|:--------|:------------------------|
+| CFGR   | DMNGT  | 0b01    | 26.4.27 <br> Page: 1000 | DMA is enabled in circular mode |
+| CFGR   | DMNGT  | 0b00    | 26.4.27 <br> Page: 1000 | Data is stored only in Data Register (DR) |
+
+Timer triggered mode (sampling rate generation) specific:
+
+|:-------|:--------|:-----------------|:-----------------------|
+| CFGR   | EXTEN   | 0b01             | 26.4.19 <br> Page: 977 | Enable trigger on rising edge |
+| CFGR   | EXTSEL  | depends on TIMx | 26.4.19 <br> Page: 977 | Code for selected timer that triggers ADC conversions |
+
+Continuous mode specific:
+
+|:------|:-----|:----|:-----------------------|
+| CFGR  | CONT | 0b0 | 26.4.14 <br> Page: 973 | Single conversion mode (`SENSEDU_ADC_MODE_ONE_SHOT`)
+| CFGR  | CONT | 0b1 | 26.4.15 <br> Page: 973 | Continuous conversion mode (`SENSEDU_ADC_MODE_CONT`)
+
+
 ### Clock configuration
 
 ### Cache Coherence
@@ -576,4 +608,5 @@ TODO: exaplain cache alignment
 
 [link_name]: https:://link
 [this issue]: https://github.com/ShiegeChan/SensEdu/issues/8
-[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/
+[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
+[Manual Page]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf

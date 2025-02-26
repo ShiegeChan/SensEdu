@@ -299,4 +299,4 @@ info about internal things, like taken streams, channels and etc.
 if you want link, include it like this: [link_name]. and link itself at the bottom
 
 [link_name]: https:://link
-[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/
+[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
