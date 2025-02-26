@@ -182,26 +182,6 @@ uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
 * bla bla bla
 
 
-### SensEdu_ADC_ClearTransferStatus
-bla bla bla
-
-```c
-void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc);
-```
-
-#### Parameters
-{: .no_toc}
-* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
-
-#### Returns
-{: .no_toc}
-* bla bla bla
-
-#### Notes
-{: .no_toc}
-* bla bla bla
-
-
 ### SensEdu_ADC_ReadConversion
 Manually read a single ADC conversion (alternative to DMA).
 
@@ -269,15 +249,15 @@ If you want to see complete examples, visit `\examples\` directory or open them 
 
 ### Read_ADC_1CH
 
-Continuously reads ADC conversions directly with CPU for one chosen pin.
+Continuously reads ADC conversions directly via CPU for one selected analog pin.
 
-1. Include the SensEdu library
-2. Declare ADC, pin array and its size, according to amount of desired channels for selected ADC.
-3. Declare [`SensEdu_ADC_Settings`]({% link Library/ADC.md %}#sensedu_adc_settings) struct, configuring all required ADC parameters
-4. Initialize ADC with `SensEdu_ADC_Init()` and power it up `SensEdu_ADC_Enable()`
-5. In continuous mode `SENSEDU_ADC_MODE_CONT` start ADC once with `SensEdu_ADC_Start()`
-6. To read data manually from single channel, use `SensEdu_ADC_ReadConversion()` function in a loop and print result with a `Serial`.
-7. Try to connect selected pin to ground or 3.3V and open Serial Monitor to see ADC conversions. The values should vary in a range from 0 to 65535.
+1. Include SensEdu library
+2. Declare ADC instance, pin array and array size corresponding to your channel count for selected ADC
+3. Configure ADC Parameters by declaring [`SensEdu_ADC_Settings`]({% link Library/ADC.md %}#sensedu_adc_settings) struct
+4. Initialize `SensEdu_ADC_Init()` and power up ADC `SensEdu_ADC_Enable()`
+5. Start ADC once with `SensEdu_ADC_Start()` (**once** applies only for continuous mode `SENSEDU_ADC_MODE_CONT`)
+6. In a loop, manually read data from a single channel using `SensEdu_ADC_ReadConversion()`. Print results with `Serial`
+7. Open Serial Monitor to see results. Try to connect selected pin to GND or 3.3V. The values should vary in a range from 0 to 65535
 
 ```c
 #include "SensEdu.h"
@@ -314,16 +294,17 @@ void loop() {
 
 #### Notes
 {: .no_toc}
-* For this simplest configuration parameters like `.sampling_rate` or `.mem_address` are not used and completely ignored.
+* For the most simple CPU polling configuration there are unused parameters like `.sampling_rate` or `.mem_address`. Such parameters could be set to any value, they are completely ignored.
+* ADC values are 16-bit, vary from 0 (0V) to 65535 (3.3V).
 
 
 ### Read_ADC_3CH
 
-Continuously reads sequences of ADC conversions directly with CPU for multiple chosen pins.
+Continuously reads sequences of ADC conversions directly via CPU for multiple selected analog pins.
 
-1. Repeat the steps from [`Read_ADC_1CH`]({% link Library/ADC.md %}#read_adc_1ch) example
-2. Change the pin array for desired number of channel (e.g., 3 for this example)
-3. Change reading function to `SensEdu_ADC_ReadSequence()`. Now it return not the value, but the pointer to the first element of sequence of array. You can access each channel with an index brackets `[]`
+1. Follow base configuration from the [`Read_ADC_1CH`]({% link Library/ADC.md %}#read_adc_1ch) example
+2. Expand pin array to include all desired channels. Update array size to match channel count
+3. Use `SensEdu_ADC_ReadSequence()` to retrieve a channel sequence array
 
 ```c
 ...
@@ -344,15 +325,17 @@ void loop() {
 
 #### Notes
 {: .no_toc}
-* ADC conversions are organised in "packages" (e.g., Sequence #1: CH1-CH2-CH3; Sequence #2: CH1-CH2-CH3). If you want to access an array of conversions for each channel separately (e.g., Array #1: [Seq#1 CH1, Seq#2 CH1, ...]; Array #2: [Seq#1 CH2, Seq#2 CH2, ...]), you need to decompose the packages manually.
+* Compared to single-channel configuration, `SensEdu_ADC_ReadSequence()` returns not a value, but a pointer. Using this pointer, you can access all channels in a sequence with index brackets `[]`.
+* ADC conversions are organised in a "package" called **sequence**. They follow exact order defined in `adc_pins` (A0 → A1 → A2 in this example).
+
 
 ### Read_ADC_1CH_TIM
 
-Continuously reads ADC conversions directly with CPU for one chosen pin with constant sampling rate.
+Continuously reads ADC conversions directly via CPU for one selected analog pin with constant sampling rate using timer trigger.
 
-1. Repeat the steps from [`Read_ADC_1CH`]({% link Library/ADC.md %}#read_adc_1ch) example
-2. In `SensEdu_ADC_Settings` change the `.conv_mode` to `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`
-3. Specify sampling frequency `.sampling_freq`
+1. Follow base configuration from the [`Read_ADC_1CH`]({% link Library/ADC.md %}#read_adc_1ch) example
+2. Update conversion mode `.conv_mode` in `SensEdu_ADC_Settings` to `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`
+3. Specify sampling frequency in Hz via `.sampling_freq`
 
 ```c
 ...
@@ -378,46 +361,145 @@ SensEdu_ADC_Settings adc_settings = {
 
 ### Read_ADC_3CH_TIM
 
-does cool things
+Continuously reads sequences of ADC conversions directly via CPU for multiple selected analog pins with constant sampling rate using timer trigger.
 
-1. do this
-2. and the this
-
-{: .warning}
-something wrong
+1. Follow base multi-channel configuration from the [`Read_ADC_3CH`]({% link Library/ADC.md %}#read_adc_3ch) example
+2. Update conversion mode `.conv_mode` in `SensEdu_ADC_Settings` to `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`
+3. Specify sampling frequency in Hz via `.sampling_freq`
 
 ```c
-// simplified minimal code, maybe even split if too long
+...
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = adc_pins,
+    .pin_num = adc_pin_num,
+
+    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
+    .sampling_freq = 250000,
+    
+    .dma_mode = SENSEDU_ADC_DMA_DISCONNECT,
+    .mem_address = 0x0000,
+    .mem_size = 0
+};
+...
 ```
+
+#### Notes
+{: .no_toc}
+* Expect small variations from specified sampling frequency
 
 
 ### Read_ADC_1CH_DMA
 
-does cool things
+Continuously reads ADC conversions using DMA for a single analog pin, allowing efficient data transfer without CPU intervention.
 
-1. do this
-2. and the this
+1. Follow base configuration from the [`Read_ADC_1CH`]({% link Library/ADC.md %}#read_adc_1ch) example
+2. Create an array to store ADC results. The array's size (in bytes) must be a multiple of the STM32 cache line size (32 bytes for STM32H747). For a `uint16_t` array, this means the number of elements should be a multiple of 16 (each element is 2 bytes). For example, sizes like 16, 32, 64, etc.
+3. Align the array to the cache line using `__attribute__((aligned(__SCB_DCACHE_LINE_SIZE)))`
+4. In `SensEdu_ADC_Settings`, set `.dma_mode` to `SENSEDU_ADC_DMA_CONNECT`
+5. Assign `.mem_address` to the array's first element address and `.mem_size` to its length
+6. After calling `SensEdu_ADC_Start()`, the ADC fills the buffer with conversions and automatically stops, setting the `dma_complete` flag
+7. Check `dma_complete` using `SensEdu_ADC_GetTransferStatus()`. When `true`, read the buffer and perform operations (e.g., print values, compute something)
+8. Call `SensEdu_ADC_Start()` again to trigger a new DMA transfer
 
 {: .warning}
-something wrong
+In future releases cache alignment will be automated, allowing arbitrary buffer sizes with a command like `SENSEDU_ADC_BUFFER(memory4adc, memory4adc_size);`. You can contribute to this feature [here](https://github.com/ShiegeChan/SensEdu/issues/10).
 
 ```c
-// simplified minimal code, maybe even split if too long
+#include "SensEdu.h"
+
+const uint16_t memory4adc_size = 128;
+__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
+
+ADC_TypeDef* adc = ADC1;
+const uint8_t adc_pin_num = 1;
+uint8_t adc_pins[adc_pin_num] = {A0};
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = adc_pins,
+    .pin_num = adc_pin_num,
+
+    .conv_mode = SENSEDU_ADC_MODE_CONT,
+    .sampling_freq = 0,
+    
+    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .mem_address = (uint16_t*)memory4adc,
+    .mem_size = memory4adc_size
+};
+
+void setup() {
+    Serial.begin(115200);
+
+    SensEdu_ADC_Init(&adc_settings);
+    SensEdu_ADC_Enable(adc);
+    SensEdu_ADC_Start(adc);
+}
+
+void loop() {
+    // do something else when transfer is not yet completed
+    if (SensEdu_ADC_GetTransferStatus(adc)) {
+        Serial.println("------");
+        for (int i = 0; i < memory4adc_size; i++) {
+            Serial.print("ADC value ");
+            Serial.print(i);
+            Serial.print(": ");
+            Serial.println(memory4adc[i]);
+        };
+
+        SensEdu_ADC_Start(adc);
+    }
+}
 ```
+
+#### Notes
+{: .no_toc}
+* `SensEdu_ADC_Start()` resets the `dma_complete` flag automatically.
+* Optimize your code to use DMA capability to perform memory transfers in the background. For example, start a new measurement in the middle of calculations, when the whole old dataset is not needed anymore.
+* Cache line alignment and cache invalidation are necessary to ensure cache coherence and prevent data corruption. When data is transferred to a cached memory chunk, the CPU may read outdated data from the cache. To avoid this issue, we need to invalidate the affected memory. Invalidation operation is performed for the entire cache line, which is 32 bytes long for the STM32H747.
 
 
 ### Read_ADC_3CH_DMA
 
-does cool things
+Continuously reads ADC conversions using DMA multiple selected analog pins, allowing efficient data transfer without CPU intervention.
 
-1. do this
-2. and the this
+1. Follow the DMA configuration from the [`Read_ADC_1CH_DMA`]({% link Library/ADC.md %}#read_adc_1ch_dma) example
+2. Expand pin array to include all desired channels. Update array size to match channel count
+3. Expand the ADC DMA buffer accordingly to include data for all channels. Ensure that the entire buffer size is still a multiple of the STM32 cache line size (32 bytes for STM32H747)
+4. Data is organized in a sequence, following the order defined in pin array (e.g., A0 → A1 → A2 → A0 → ...)
 
-{: .warning}
-something wrong
 
 ```c
-// simplified minimal code, maybe even split if too long
+...
+const uint8_t adc_pin_num = 3;
+uint8_t adc_pins[adc_pin_num] = {A0, A1, A2}; 
+
+const uint16_t memory4adc_size = 64 * adc_pin_num;
+__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
+...
+void loop() {
+    // do something else when transfer is not yet completed
+    if (SensEdu_ADC_GetTransferStatus(adc)) {
+        Serial.println("------");
+        for (int i = 0; i < memory4adc_size; i+=3) {
+            Serial.print("ADC value ");
+            Serial.print(i/3);
+            Serial.print("CH1: ");
+            Serial.println(memory4adc[i]);
+
+            Serial.print("ADC value ");
+            Serial.print(i/3);
+            Serial.print("CH2: ");
+            Serial.println(memory4adc[i+1]);
+
+            Serial.print("ADC value ");
+            Serial.print(i/3);
+            Serial.print("CH3: ");
+            Serial.println(memory4adc[i+2]);
+        }
+
+        SensEdu_ADC_Start(adc);
+    };
+}
 ```
 
 
@@ -446,6 +528,7 @@ TODO: PLL CONFIGURATION and ADC clock, stm32 screenshots
 TODO: explain why we need to short A4 to A9
 TODO: explain all structs, why we need adc_data, channels, ADC settings
 TODO: explain errors
+TODO: exaplain cache alignment
 
 
 _С pins could be shorted to their non-_C pins:
