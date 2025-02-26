@@ -465,7 +465,7 @@ Continuously reads ADC conversions using DMA multiple selected analog pins, allo
 1. Follow the DMA configuration from the [`Read_ADC_1CH_DMA`]({% link Library/ADC.md %}#read_adc_1ch_dma) example
 2. Expand pin array to include all desired channels. Update array size to match channel count
 3. Expand the ADC DMA buffer accordingly to include data for all channels. Ensure that the entire buffer size is still a multiple of the STM32 cache line size (32 bytes for STM32H747)
-4. Data is organized in a sequence, following the order defined in pin array (e.g., A0 → A1 → A2 → A0 → ...)
+4. Data is organized in a sequence, following the order defined in pin array (e.g., A0 → A1 → A2 → A0 → A1 → ...)
 
 
 ```c
