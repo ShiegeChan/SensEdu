@@ -92,8 +92,8 @@ if (phase_deg_wrapped <= 90) {
         }
 ```
 
-{: .note}
-Since we are using a sine and not a cosine wave LUT to calculate the chirp values, the first value of the chirp signal array is always 0 (or 0 V in amplitude).
+{: .warning }
+In this configuration, the first value of the chirp signal array is 0 (or 0 V in amplitude at DAC output). This initial value can be changed by modifying `sine_lut`.
 
 **Step 4**{: .text-blue-000} : Copy the chirp signal's values to the DAC buffer
 
@@ -107,23 +107,35 @@ Since we are using a sine and not a cosine wave LUT to calculate the chirp value
 ---
 
 ## Main code
-The `Chirp_SawtoothMod.ino` and `Chirp_TriangularMod.ino` files contain the main code to generate the chirp signal, send the chirp signal to the DAC and enable the DAC. The code contains the following user settings to adjust the chirp signal :
+Check out the [DAC]({% link Library/DAC.md %}) section for more information on the DAC library and different DAC related functions.
+
+The `Chirp_SawtoothMod.ino` and `Chirp_TriangularMod.ino` files contain the main code to generate the chirp signal, send the chirp signal to the DAC and enable the DAC.
+
+The code contains the following user settings to adjust the chirp signal :
 
 * `CHIRP_DURATION`{: .text-green-000} : The period of the chirp signal in seconds
 * `START_FREQUENCY`{: .text-green-000} : The start frequency of the chirp signal in Hz
 * `END_FREQUENCY`{: .text-green-000} : The end frequency of the chirp signal in Hz
 
-Check out the [DAC]({% link Library/DAC.md %}) section for more information on the DAC library and different DAC related functions.
+A very important variable in the main code is the sampling frequency `fs`. Based on the Nyquist-Shannon sampling theorem, `fs` needs to be at least double the maximum frequency (or end frequency) of the chirp signal.
+Keep in mind this sampling frequency will also be the DAC's output frequency in the `SensEdu_DAC_Settings` function.
 
-A very important variable in the main code in the sampling frequency `fs`. Given the Nyquist-Shannon sampling theorem, `fs` needs to be at least double the maximum frequency (or end frequency) of the chirp signal.
-Keep in mind this sampling frequency will also be the DAC's output frequency which cannot be greater than ...
+{: .warning }
+`fs` needs to be at least 2*END_FREQUENCY in order for the chirp signal to be generated properly.
 
-{: .important }
-`fs` has to be at least 2*END_FREQUENCY in order to generate the chirp signal properly
+The `samples_int` is an integer representing the amount of samples for one period of the chirp signal. This value also represent the DAC's buffer size for the `SENSEDU_DAC_BUFFER` and `SensEdu_DAC_Settings` functions.
 
-
-
-
+The values of the chirp are printed in the serial monitor.
+```c
+// Print the chirp signal LUT
+    Serial.println("start of the Chirp LUT");
+    for (int i = 0 ; i < samples_int; i++) { // loop for the LUT size
+        Serial.print("value ");
+        Serial.print(i+1);
+        Serial.print(" of the Chirp LUT: ");
+        Serial.println(lut[i]);
+    }
+```
 
 <!-- example text
 
