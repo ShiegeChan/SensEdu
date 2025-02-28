@@ -18,10 +18,10 @@
 <b>
 <p align="center">
 	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Download</a> ·
-	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Getting Started</a> ·
-	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Example Projects</a> ·
-	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Documentation</a> ·
-	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Contribution</a>
+	<a href="https://shiegechan.github.io/SensEdu/getting-started/" target="_blank">Getting Started</a> ·
+	<a href="https://shiegechan.github.io/SensEdu/projects/" target="_blank">Example Projects</a> ·
+	<a href="https://shiegechan.github.io/SensEdu/" target="_blank">Documentation</a> ·
+	<a href="https://shiegechan.github.io/SensEdu/contributing/" target="_blank">Contribution</a>
 </p>
 </b>
 

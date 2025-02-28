@@ -330,7 +330,7 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
 
     // if max 500kS/sec, then max 2000ns available for conversion
     // oversampling ratio (x2) -> 440ns * 2 = 880ns per conversion per channel
-    MODIFY_REG(ADC->CFGR2, ADC_CFGR2_OVSR, (2U-1U) << ADC_CFGR2_OVSR_Pos); // global for all channels // 2U-1U (temp disable)
+    MODIFY_REG(ADC->CFGR2, ADC_CFGR2_OVSR, (2U-1U) << ADC_CFGR2_OVSR_Pos); // global for all channels
     SET_BIT(ADC->CFGR2, ADC_CFGR2_ROVSE);
     MODIFY_REG(ADC->CFGR2, ADC_CFGR2_OVSS, 0b0001 << ADC_CFGR2_OVSS_Pos); // account for x2 oversampling with 1bit right shift for data register
     

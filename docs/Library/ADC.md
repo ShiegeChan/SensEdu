@@ -2,6 +2,7 @@
 title: ADC
 layout: default
 parent: Library
+math: mathjax
 nav_order: 2
 ---
 
@@ -163,7 +164,7 @@ void SensEdu_ADC_Start(ADC_TypeDef* ADC);
 
 
 ### SensEdu_ADC_GetTransferStatus
-bla bla bla
+Returns current DMA transfer status (`dma_complete` flag)
 
 ```c
 uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
@@ -175,11 +176,14 @@ uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
 
 #### Returns
 {: .no_toc}
-* bla bla bla
+* `dma_complete` flag: `HIGH` indicated that DMA controller finished memory transfer
 
 #### Notes
 {: .no_toc}
-* bla bla bla
+* `dma_complete` flag is automatically cleared by calling `SensEdu_ADC_Start()`
+
+{: .warning}
+Avoid performing any actions without acknowledging this flag. It ensures that the data was completely transferred.
 
 
 ### SensEdu_ADC_ReadConversion
@@ -505,36 +509,130 @@ void loop() {
 
 ### Read_2ADC_3CH_DMA
 
-does cool things
+This example demonstrates the usage of multiple ADCs in DMA mode. Essentially, you follow the same steps as in the [`Read_ADC_3CH_DMA`]({% link Library/ADC.md %}#read_adc_3ch_dma) example, but use separate buffers, configuration structures, and function calls for each ADC.
 
-1. do this
-2. and then this
-
-{: .warning}
-something wrong
+For example:
 
 ```c
-// simplified minimal code, maybe even split if too long
+SensEdu_ADC_Init(&adc1_settings);
+SensEdu_ADC_Enable(ADC1);
+SensEdu_ADC_Start(ADC1);
+
+SensEdu_ADC_Init(&adc2_settings);
+SensEdu_ADC_Enable(ADC2);
+SensEdu_ADC_Start(ADC2);
 ```
+
+#### Notes
+{: .no_toc}
+* Ensure there is no pin overlap between different ADCs (e.g., do not include pin A0 in the arrays for both ADC1 and ADC2).
 
 
 ## Developer Notes
 
+### DMA Streams
+
+Each ADC occupies one DMA stream:
+* **ADC1**: DMA1_Stream6
+* **ADC2**: DMA1_Stream5
+* **ADC3**: DMA1_Stream7
+
+{: .warning }
+Avoid reusing occupied DMA streams. Refer to [STM32H747 Reference Manual] to find free available streams.
+
+
+### Conversion Time
+
+You can calculate the needed time for each conversion $$(T_{CONV})$$ with this formula:
+
+$$T_{CONV} = T_{SMPL} + T_{SAR}$$
+
+* $$T_{SMPL}$$: Configured sampling time
+* $$T_{SAR}$$: Successive approximation time depending on data resolution
+
+In SensEdu, $$T_{SMPL}$$ is configured to $$2.5$$ ADC clock cycles, which correpsonds to bits `SMP[2:0] = 0b001` in the **ADC_SMPR1** and **ADC_SMPR2** registers.
+
+ADC conversions are fixed to 16-bit resolution, so $$T_{SAR}$$ is constant and equals to $$8.5$$ ADC clock cycles.
+
+The ADC clock is routed from the PLL2 clock and set to $$25\text{MHz}$$ for each individual ADC, which gives us:
+
+$$T_{CONV} = (2.5 \text{ cycles} + 8.5 \text{ cycles}) * \frac{1}{f_{\text{adc_ker_ck}}} = 11 \text{ cycles} * \frac{1}{25\text{MHz}} = 440\text{ns}$$
+
+SensEdu is configured to x2 oversampling (basically, averaging), so we require around $$880\text{ns}$$ per one ADC conversion, which theoretically gives us a maximum $$1136\text{kS/sec}$$ sampling rate. However, in reality, this rate could be lower due to various additional delays. We assume a maximum sampling rate of $$500\text{kS/sec}$$, but it needs to be additionally tested and confirmed.
+
+
 ### Initialization
 
-TODO: explain adc taken dma streams, how interrupts work, what exactly initialisation sets
-TODO: conversion time calculations
-TODO: PLL CONFIGURATION and ADC clock, stm32 screenshots
-TODO: explain why we need to short A4 to A9
-TODO: explain all structs, why we need adc_data, channels, ADC settings
-TODO: explain errors
-TODO: exaplain cache alignment
+General ADC configuration:
+
+| Register name | Register Field | Value | [Manual Page] | Function |
+|:-------|:-------|:--------|:------------------------|
+| CR     | BOOST  | 0b10    | 26.4.3 <br> Page: 958   | ADC clock range $$12.5\text{MHz}:25\text{MHz}$$ |
+| CFGR   | RES    | 0b000   | 26.6.4 <br> Page: 1047  | 16-bit Resolution
+| CFGR   | OVRMOD | 0b1     | 26.4.27 <br> Page: 998  | Overrun mode (overwrite data) |
+| SMPRx  | SMPy   | 0b001   | 26.4.13 <br> Page: 972  | Sample Time of 2.5 ADC clock cycles
+| CFGR2  | OVSR   | 2U - 1U | 26.4.31 <br> Page: 1009 | x2 Oversampling |
+| CFGR2  | ROVSE  | 0b1     | 26.4.31 <br> Page: 1009 | Enable Oversampling |
+| CFGR2  | OVSS   | 0b0001  | 26.4.31 <br> Page: 1009 | 1-bit right shift to account for x2 oversampling (averaging) |
+
+DMA vs CPU polling specific:
+
+|:-------|:-------|:--------|:------------------------|
+| CFGR   | DMNGT  | 0b01    | 26.4.27 <br> Page: 1000 | DMA is enabled in circular mode |
+| CFGR   | DMNGT  | 0b00    | 26.4.27 <br> Page: 1000 | Data is stored only in Data Register (DR) |
+
+Timer triggered mode (sampling rate generation) specific:
+
+|:-------|:--------|:-----------------|:-----------------------|
+| CFGR   | EXTEN   | 0b01             | 26.4.19 <br> Page: 977 | Enable trigger on rising edge |
+| CFGR   | EXTSEL  | depends on TIMx | 26.4.19 <br> Page: 977 | Code for selected timer that triggers ADC conversions |
+
+Continuous mode specific:
+
+|:------|:-----|:----|:-----------------------|
+| CFGR  | CONT | 0b0 | 26.4.14 <br> Page: 973 | Single conversion mode (`SENSEDU_ADC_MODE_ONE_SHOT`)
+| CFGR  | CONT | 0b1 | 26.4.15 <br> Page: 973 | Continuous conversion mode (`SENSEDU_ADC_MODE_CONT`)
 
 
-_С pins could be shorted to their non-_C pins:
-CLEAR_BIT(SYSCFG->PMCR, SYSCFG_PMCR_PC3SO);
-this shorts PC3_C to PC3
-and you could access ADC12_INP13 through PC3_C
+### Clock Configuration
 
-[link_name]: https:://link
+To configure the ADC clock, it is first necessary to configure the **PLL** (Phase-Locked Loop). The PLL contains frequency multipliers and dividers that enable the generation of different frequencies, which are multiples of the input frequency.
+
+The source frequency for the PLL is the HSE (High Speed External Oscillator), which has a frequency of 16MHz.
+{: .fw-500}
+
+The clock is first divided by DIVM2, which is set to 4, resulting in a 4MHz PLL2 input frequency ($$\text{ref2_ck}$$). Additionally, the PLL2RGE field in the PLLCFGR register must be configured according to the selected range for $$\text{ref2_ck}$$. Since we use 4MHz, it is set to the 4:8MHz range.
+
+The clock is then multiplied by DIVN2, which is set to 75, resulting in a **VCO** (Voltage-Controlled Oscillator) frequency of 300MHz. The frequency was selected to fit within the chosen VCO range in the PLL2VCOSEL field of the PLLCFGR register, which is set to the narrow range of 150:420MHz.
+
+Finally, the VCO frequency is divided by DIVP2, which is set to 6, resulting in a 50MHz frequency for the shared ADC bus.
+
+![]({{site.baseurl}}/assets/images/PLL_Clock.png)
+
+The ADC clock is selected to be independent and asynchronous with the AHB clock, named $$\text{adc_ker_ck_input}$$ and derived from PLL2. The clock then passes through a settable prescaler CKMODE in the ADCx_CCR register, which is set to 1 (no clock division). Then, it passes through a fixed /2 prescaler, resulting in a 25MHz frequency ($$F_{\text{adc_ker_ck}}$$) for each individual ADC. This frequency must comply with the maximum ADC clock frequency specified in Table 99 of the [STM32H747 Datasheet].
+
+![]({{site.baseurl}}/assets/images/ADC_Clock.png)
+
+
+### Cache Coherence
+
+When using the ADC with DMA, you need to be aware of cache coherence problems. Keep in mind that all memory is cached for faster access. The objective of DMA is to bypass the CPU and offload memory transfers to the DMA controller. The issue arises when the CPU reads the transferred data, the processor might read outdated data stored in cache instead of the actual data in memory, as it is not aware of DMA transfers.
+
+To ensure that the CPU reads correct data, you need to **invalidate the cache** before accessing any transferred data. This is accomplished using the internal function `SCB_InvalidateDCache_by_Addr(mem_addr, mem_size)` with the following parameters:
+* `mem_addr`: Memory address of the ADC buffer
+* `mem_size`: Memory size **in bytes**
+
+This cache invalidation is automatically performed inside the `void DMA_ADCEnable(ADC_TypeDef* adc)` function.
+
+The cache invalidation procedure applies to the entire cache line. Therefore, it is essential to align your ADC buffer to the cache line and ensure its size is a multiple of the cache line size. For the STM32H747, the cache line is 32 bytes long and is defined in the macro `__SCB_DCACHE_LINE_SIZE`. For a `uint16_t` array, this means the number of elements must be a multiple of 16 (each element is 2 bytes). For example. valid sizes include 16, 32, 64, etc. Alignment is achieved using the `__attribute__` directive:
+
+```c
+const uint16_t memory4adc_size = 128; // multiple of __SCB_DCACHE_LINE_SIZE/2
+__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
+```
+
+
 [this issue]: https://github.com/ShiegeChan/SensEdu/issues/8
+[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
+[Manual Page]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
+[STM32H747 Datasheet]: https://www.st.com/resource/en/datasheet/stm32h747ag.pdf
