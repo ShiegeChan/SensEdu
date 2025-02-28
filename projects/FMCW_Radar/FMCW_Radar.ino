@@ -1,5 +1,23 @@
 #include <SensEdu.h>
 
+// usage example
+// adc1_data is a pointer
+// if it is not, use & symbol before the array
+
+// serial_send_array((const uint8_t *)adc1_data, sizeof(adc1_data)); // second argument in bytes
+
+// for this poor implementation, make sure data is multiple of 32
+
+// send serial data in 32 byte chunks
+void serial_send_array(const uint8_t* data, size_t size) {
+    const size_t chunk_size = 32;
+	for (uint16_t i = 0; i < size/chunk_size; i++) {
+		Serial.write(data + chunk_size * i, chunk_size);
+	}
+}
+
+
+
 /* -------------------------------------------------------------------------- */
 /*                                User Settings                               */
 /* -------------------------------------------------------------------------- */
@@ -38,6 +56,8 @@ void setup() {
 
     SensEdu_DAC_Init(&dac1_settings);
     SensEdu_DAC_Enable(DAC1);
+
+    serial_send_array((const uint8_t *)lut, sizeof(lut), "b");
 
     // Check for errors
     lib_error = SensEdu_GetError();
