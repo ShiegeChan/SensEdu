@@ -29,6 +29,17 @@ Each of the methods are usefull for different applications.
 
 ## Errors
 
+Main DAC error code is `0x30xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+
+An overview of possible errors for DAC:
+* `0x3000`:
+* `0x3001`:
+* `0x3002`:
+
+An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
+* `0x30A0`:
+* `0x30A1`:
+
 ## Structs
 
 ### SensEdu_DAC_Settings
