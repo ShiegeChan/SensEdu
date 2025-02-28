@@ -20,6 +20,30 @@ The STM32H747 features three 16-bit ADCs with up to 20 multiplexed channels each
 
 ## Errors
 
+Main ADC error code is `0x20xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+
+An overview of possible errors for ADC:
+
+* `0x2000`: No Errors
+* `0x2001`: ADC was initialized before initialization
+* `0x2002`: Passed ADC instance is not either `ADC1`, `ADC2` nor `ADC3`
+* `0x2003`: ADC failed to disable
+* `0x2004`: ADC failed to power up
+* `0x2005`: Selected pin for ADC is not reachable. Refer to the [table]({% link Library/ADC.md %}#notes) to find proper pins for each ADC instance
+* `0x2006`: Unexpected pin number during initialization. Must be at least 1
+* `0x2007`: Unexpected address or memory size for DMA
+* `0x2008`: Unexpected sampling frequency. Must be at least 1kHz
+* `0x2009`: Software polling in `SENSEDU_ADC_MODE_ONE_SHOT` is currently broken. Use `SENSEDU_ADC_MODE_CONT` or `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`. If you want to look into this and have a try fixing it, refer to [this issue]
+
+An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
+
+* `0x20A0`: PLL configuration failed
+* `0x20A1`: Internal logic for channel selectrion failed
+* `0x20A1`: Internal logic for setting sample time failed
+* `0x20A2`: Operation mode selection accepted unexpected value. Should never happen, since all possible values of type `SENSEDU_ADC_CONVMODE` must be handled internally
+* `0x20A3`: Data management mode selection accepted unexpected value. Should never happen, since all possible values of type `SENSEDU_ADC_DMA` must be handled internally
+
+
 ## Structs
 
 ### SensEdu_ADC_Settings
