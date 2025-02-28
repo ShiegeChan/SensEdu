@@ -164,7 +164,7 @@ void SensEdu_ADC_Start(ADC_TypeDef* ADC);
 
 
 ### SensEdu_ADC_GetTransferStatus
-bla bla bla
+Returns current DMA transfer status (`dma_complete` flag)
 
 ```c
 uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
@@ -176,11 +176,14 @@ uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
 
 #### Returns
 {: .no_toc}
-* bla bla bla
+* `dma_complete` flag: `HIGH` indicated that DMA controller finished memory transfer
 
 #### Notes
 {: .no_toc}
-* bla bla bla
+* `dma_complete` flag is automatically cleared by calling `SensEdu_ADC_Start()`
+
+{: .warning}
+Avoid performing any actions without acknowledging this flag. It ensures that the data was completely transferred.
 
 
 ### SensEdu_ADC_ReadConversion
@@ -591,22 +594,45 @@ Continuous mode specific:
 | CFGR  | CONT | 0b1 | 26.4.15 <br> Page: 973 | Continuous conversion mode (`SENSEDU_ADC_MODE_CONT`)
 
 
-### Clock configuration
+### Clock Configuration
+
+To configure the ADC clock, it is first necessary to configure the **PLL** (Phase-Locked Loop). The PLL contains frequency multipliers and dividers that enable the generation of different frequencies, which are multiples of the input frequency.
+
+The source frequency for the PLL is the HSE (High Speed External Oscillator), which has a frequency of 16MHz.
+{: .fw-500}
+
+The clock is first divided by DIVM2, which is set to 4, resulting in a 4MHz PLL2 input frequency ($$\text{ref2_ck}$$). Additionally, the PLL2RGE field in the PLLCFGR register must be configured according to the selected range for $$\text{ref2_ck}$$. Since we use 4MHz, it is set to the 4:8MHz range.
+
+The clock is then multiplied by DIVN2, which is set to 75, resulting in a **VCO** (Voltage-Controlled Oscillator) frequency of 300MHz. The frequency was selected to fit within the chosen VCO range in the PLL2VCOSEL field of the PLLCFGR register, which is set to the narrow range of 150:420MHz.
+
+Finally, the VCO frequency is divided by DIVP2, which is set to 6, resulting in a 50MHz frequency for the shared ADC bus.
+
+![]({{site.baseurl}}/assets/images/PLL_Clock.png)
+
+The ADC clock is selected to be independent and asynchronous with the AHB clock, named $$\text{adc_ker_ck_input}$$ and derived from PLL2. The clock then passes through a settable prescaler CKMODE in the ADCx_CCR register, which is set to 1 (no clock division). Then, it passes through a fixed /2 prescaler, resulting in a 25MHz frequency ($$F_{\text{adc_ker_ck}}$$) for each individual ADC. This frequency must comply with the maximum ADC clock frequency specified in Table 99 of the [STM32H747 Datasheet].
+
+![]({{site.baseurl}}/assets/images/ADC_Clock.png)
+
 
 ### Cache Coherence
 
+When using the ADC with DMA, you need to be aware of cache coherence problems. Keep in mind that all memory is cached for faster access. The objective of DMA is to bypass the CPU and offload memory access to the DMA controller. The issue arises when the CPU reads the transferred data, the processor might read outdated data stored in cache instead of the actual data in memory, as it is not aware of DMA transfers.
+
+To ensure that the CPU reads correct data, you need to **invalidate the cache** before accessing any transferred data. This is accomplished using the internal function `SCB_InvalidateDCache_by_Addr(mem_addr, mem_size)` with the following parameters:
+* `mem_addr`: Memory address of the ADC buffer
+* `mem_size`: Memory size **in bytes**
+
+This cache invalidation is automatically performed inside the `void DMA_ADCEnable(ADC_TypeDef* adc)` function.
+
+The cache invalidation procedure applies to the entire cache line. Therefore, it is essential to align your ADC buffer to the cache line and ensure its size is a multiple of the cache line size. For the STM32H747, the cache line is 32 bytes long and is defined in the macro `__SCB_DCACHE_LINE_SIZE`. For a `uint16_t` array, this means the number of elements must be a multiple of 16 (each element is 2 bytes). For example. valid sizes include 16, 32, 64, etc. Alignment is achieved using the `__attribute__` directive:
+
+```c
+const uint16_t memory4adc_size = 128; // multiple of __SCB_DCACHE_LINE_SIZE/2
+__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
+```
 
 
-TODO: explain adc taken dma streams, how interrupts work, what exactly initialisation sets
-TODO: conversion time calculations
-TODO: PLL CONFIGURATION and ADC clock, stm32 screenshots
-TODO: explain why we need to short A4 to A9
-TODO: explain all structs, why we need adc_data, channels, ADC settings
-TODO: explain errors
-TODO: exaplain cache alignment
-
-
-[link_name]: https:://link
 [this issue]: https://github.com/ShiegeChan/SensEdu/issues/8
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
 [Manual Page]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
+[STM32H747 Datasheet]: https://www.st.com/resource/en/datasheet/stm32h747ag.pdf
