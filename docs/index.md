@@ -58,6 +58,7 @@ SensEdu was made possible thanks to these freely available tools:
 * [Arduino] and [Arduino IDE 2.x]
 * [STM32H747 Documentation] and [STM32CubeMX]
 * [Jekyll] and [Just the Docs] template
+* [KiCAD]
 
 Thank You to All Contributors!
 {: .fw-500 .mb-1}
@@ -78,3 +79,4 @@ Thank You to All Contributors!
 [Just the Docs]: https://github.com/just-the-docs/just-the-docs/tree/main
 [STM32H747]: https://www.st.com/en/microcontrollers-microprocessors/stm32h747-757.html
 [Arduino GIGA R1 WiFi]: https://docs.arduino.cc/hardware/giga-r1-wifi/
+[KiCAD]: https://www.kicad.org/
