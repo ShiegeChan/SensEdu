@@ -616,7 +616,7 @@ The ADC clock is selected to be independent and asynchronous with the AHB clock,
 
 ### Cache Coherence
 
-When using the ADC with DMA, you need to be aware of cache coherence problems. Keep in mind that all memory is cached for faster access. The objective of DMA is to bypass the CPU and offload memory access to the DMA controller. The issue arises when the CPU reads the transferred data, the processor might read outdated data stored in cache instead of the actual data in memory, as it is not aware of DMA transfers.
+When using the ADC with DMA, you need to be aware of cache coherence problems. Keep in mind that all memory is cached for faster access. The objective of DMA is to bypass the CPU and offload memory transfers to the DMA controller. The issue arises when the CPU reads the transferred data, the processor might read outdated data stored in cache instead of the actual data in memory, as it is not aware of DMA transfers.
 
 To ensure that the CPU reads correct data, you need to **invalidate the cache** before accessing any transferred data. This is accomplished using the internal function `SCB_InvalidateDCache_by_Addr(mem_addr, mem_size)` with the following parameters:
 * `mem_addr`: Memory address of the ADC buffer
