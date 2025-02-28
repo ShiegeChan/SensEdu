@@ -18,6 +18,12 @@ Timers allow precise event scheduling, such as creating delays or setting sampli
 
 ## Errors
 
+Main timers error code is `0x10xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+
+An overview of possible errors for timers:
+* `0x1000`: No Errors
+* `0x1001`: Unexpected DAC frequency. Maximum possible is 60MHz, refer to [these calculations]({% link Library/Timers.md %}#frequency-settings) for more details
+
 ## Functions
 
 ### SensEdu_TIMER_DelayInit
