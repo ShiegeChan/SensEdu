@@ -14,10 +14,16 @@
 
 static uint32_t lib_error = 0;
 static uint8_t increment_flag = 1; // Run time modification flag
-const float fs =  100* END_FREQUENCY; // Sampling frequency
+const float fs =  100 * END_FREQUENCY; // Sampling frequency
 const float samples = fs * CHIRP_DURATION; // Number of samples
 const uint32_t samples_int = (uint32_t)samples;
 static SENSEDU_DAC_BUFFER(lut, samples_int); // Buffer for the chirp signal
+
+// Initialize DAC settings
+    SensEdu_DAC_Settings dac1_settings = {
+        DAC_CH2, fs, (uint16_t*)lut, samples_int,
+        SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 1
+    };
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
@@ -27,16 +33,11 @@ void setup() {
     Serial.begin(115200);
     while(!Serial);
 
-  // Check if samples_int exceeds 7688 or fs exceeds 15 MHz
-  if (samples_int > 7688 || fs > 15000000) { // 15 MHz = 15,000,000 Hz
-    #error Error: samples_int exceeds 7688 or fs exceeds 15 MHz!
-  }
-
-    // Initialize DAC settings
-    SensEdu_DAC_Settings dac1_settings = {
-        DAC_CH2, fs, (uint16_t*)lut, 9000,
-        SENSEDU_DAC_MODE_BURST_WAVE, 10
-    };
+    // Check if array size exceeds 7688 or fs exceeds 15 MHz
+    if (samples_int > 7688 || fs > 15000000) {
+        Serial.println("Error: samples_int exceeds 7688 or fs exceeds 15 MHz!");
+        while (true);
+      }
 
     // Generate the chirp signal
     generateSawtoothChirp(lut);
@@ -63,7 +64,6 @@ void setup() {
         Serial.println(lut[i]);
     }
 }
-
 
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
