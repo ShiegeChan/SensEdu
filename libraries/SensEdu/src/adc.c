@@ -214,22 +214,22 @@ adc_data* get_adc_data(ADC_TypeDef* ADC) {
 
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings) {
     if (settings->adc != ADC1 && settings->adc != ADC2 && settings->adc != ADC3) {
-        return ADC_ERROR_WRONG_ADC;
+        return ADC_ERROR_WRONG_ADC_INSTANCE;
     } 
 
     if (settings->pin_num < 1) {
-        return ADC_ERROR_WRONG_INIT_SETTINGS_PARAMETERS;
+        return ADC_ERROR_INIT_PIN_NUMBER;
     } 
 
     if (settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
         if (settings->mem_address == 0x0000 || settings->mem_size == 0) {
-            return ADC_ERROR_WRONG_INIT_SETTINGS_PARAMETERS;
+            return ADC_ERROR_INIT_DMA_MEMORY;
         }
     }
 
     if (settings->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
         if (settings->sampling_freq < 1000) {
-            return ADC_ERROR_BAD_SAMPLING_FREQ;
+            return ADC_ERROR_INIT_SAMPLING_FREQ;
         }
     } 
 
@@ -292,7 +292,7 @@ void configure_pll2(void) {
 void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_CONVMODE mode, SENSEDU_ADC_DMA adc_dma) {
 
     if (READ_BIT(ADC->CR, ADC_CR_ADCAL | ADC_CR_JADSTART | ADC_CR_ADSTART | ADC_CR_ADSTP | ADC_CR_ADDIS | ADC_CR_ADEN)) {
-        error = ADC_ERROR_ADC_CONFIG_VOLTAGE_REGULATOR;
+        error = ADC_ERROR_ADC_INIT;
     }
 
     // exit deep power-down
