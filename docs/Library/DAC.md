@@ -47,9 +47,9 @@ typedef struct {
 #### Fields
 {: .no_toc}
 * `dac_channel`: Selects the DAC channel (channel 1 or channel 2)
-* `sampling_freq`: Specified DAC sampling frequency. Maximum value that can be set is 15 MHz. 
+* `sampling_freq`: Specified DAC sampling frequency. Maximum value that can be set is 15 MHz.
 * `mem_address`: Address of the array's first element written to DAC
-* `mem_size`: Number of array elements. Maximum value that can be set is 7688.
+* `mem_size`: Number of array elements.
 * `wave_mode`: 
     * `SENSEDU_DAC_MODE_CONTINUOUS_WAVE` 
     * `SENSEDU_DAC_MODE_SINGLE_WAVE`

@@ -171,6 +171,10 @@ static DAC_ERROR check_settings(SensEdu_DAC_Settings* settings) {
     if (settings->dac_channel != DAC_CH1 && settings->dac_channel != DAC_CH2) {
         return DAC_ERROR_INIT_FAILED;
     } 
+    
+    if (settings->sampling_freq > 15000000) {
+        return DAC_ERROR_SAMPLING_FREQ_TOO_HIGH;
+    } 
 
     if (settings->mem_address == 0x0000) {
         return DAC_ERROR_INIT_FAILED;
@@ -179,7 +183,7 @@ static DAC_ERROR check_settings(SensEdu_DAC_Settings* settings) {
     if (settings->mem_address == 0) {
         return DAC_ERROR_INIT_FAILED;
     } 
-    
+
     if (settings->wave_mode == SENSEDU_DAC_MODE_BURST_WAVE && settings->burst_num < 1) {
         settings->burst_num = 1; // be careful not to stuck in interrupt
         return DAC_ERROR_INIT_FAILED;

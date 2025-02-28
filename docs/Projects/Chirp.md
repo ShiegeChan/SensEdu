@@ -123,7 +123,10 @@ Keep in mind this sampling frequency will also be the DAC's output frequency in 
 {: .warning }
 `fs` needs to be at least 2*END_FREQUENCY in order for the chirp signal to be generated properly.
 
-The `samples_int` is an integer representing the amount of samples for one period of the chirp signal. This value also represent the DAC's buffer size for the `SENSEDU_DAC_BUFFER` and `SensEdu_DAC_Settings` functions.
+The `samples_int` is an integer representing the amount of samples for one period of the chirp signal. This value also represents the memory size in the `SENSEDU_DAC_BUFFER` and `SensEdu_DAC_Settings` functions.
+
+{: .warning }
+In this implementation, `samples_int` cannot exceed 7688.
 
 The values of the chirp are printed in the serial monitor.
 ```c
@@ -137,36 +140,6 @@ The values of the chirp are printed in the serial monitor.
     }
 ```
 
-<!-- example text
-
-[example link]
-
-example list:
-* sdsd
-* sdsds
-* sdsds
-
-example list 2:
-1. sdsd
-2. sdsds
-3. sdsds
-
-`marked text`
-
-**Bold text**
-
-*Italics*
-
-```c
-// cool code
-```
-
-
-{. :warning}
-callout #1
-
-{. :note}
-callout #1 -->
 
 
 [example link]: https://github.com/ShiegeChan/SensEdu
