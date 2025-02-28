@@ -1,3 +1,7 @@
+close all;
+clear;
+clc;
+
 % with that script you can generate wave for xcorr algorithm
 % dac wave gen
  f = 32e3; % wave freq
@@ -5,9 +9,10 @@
 
  t = 0:(0.000000001):0.000315;
  ts = 0:(1/fs):0.000315;
+ 
+ %y = generate_speaker_sig(t) .* 65535;
+ ys = generate_speaker_sig(ts) .* 65535;
 
- y = (sin(2*pi*f*t)/2 + 0.5).*65535;
- ys = (sin(2*pi*f*ts)/2 + 0.5).*65535;
  res = dec2hex(round(ys));
 
  lut = "";
@@ -25,9 +30,10 @@
  figure;
  plot(t, y);
  hold on;
- plot(ts, ys);
+ plot(ts, ys, 'LineWidth', 2);
  hold on;
  plot(ts, round(ys));
  hold off;
  legend("y", "ys", "round ys")
+
  %save("Measurements\test_xcorr_dac_wave.mat", "ys");
