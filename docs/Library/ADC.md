@@ -18,6 +18,8 @@ The STM32H747 features three 16-bit ADCs with up to 20 multiplexed channels each
 - TOC
 {:toc}
 
+## Errors
+
 ## Structs
 
 ### SensEdu_ADC_Settings

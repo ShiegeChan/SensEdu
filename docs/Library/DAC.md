@@ -27,6 +27,8 @@ The SensEdu library has advanced features accounting for ease of use and code ef
 
 Each of the methods are usefull for different applications. 
 
+## Errors
+
 ## Structs
 
 ### SensEdu_DAC_Settings
@@ -313,6 +315,7 @@ There are two ways to fix this:
 SensEdu uses MPU Configuration for the DAC.
 
 #### Cache Cleaning
+{: .no_toc}
 
 After updating the DAC buffer, explicitly clean the cache to force writes to physical memory. Use the CMSIS function `SCB_CleanDCache_by_Addr(mem_addr, mem_size)` with the following parameters:
 * `mem_addr`: Memory address of the DAC buffer
@@ -336,6 +339,7 @@ __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t buf[buf_size];
 ```
 
 #### MPU Configuration
+{: .no_toc}
 
 To avoid manual cache maintenance, configure the MPU to mark the DAC buffer’s memory region as non-cacheable. This bypasses the cache entirely, ensuring DMA always accesses physical memory.
 

@@ -16,6 +16,8 @@ Timers allow precise event scheduling, such as creating delays or setting sampli
 - TOC
 {:toc}
 
+## Errors
+
 ## Functions
 
 ### SensEdu_TIMER_DelayInit
