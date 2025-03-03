@@ -35,7 +35,7 @@ void setup() {
 
     // Check if array size exceeds 7688 or fs exceeds 15 MHz
     if (samples_int*2 > 7688 || fs > 15000000) {
-        Serial.println("Error: samples_int exceeds 7688 or fs exceeds 15 MHz!");
+        Serial.println("Error: samples_int*2 exceeds 7688 or fs exceeds 15 MHz!");
         while (true);
       }
 
