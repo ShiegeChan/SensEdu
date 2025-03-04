@@ -1,5 +1,5 @@
 ---
-title: UltraSound
+title: Ultrasonic Distance Measurements
 layout: default
 math: mathjax
 parent: Projects
