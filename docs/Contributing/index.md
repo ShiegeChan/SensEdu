@@ -21,7 +21,7 @@ Before diving in, familiarize yourself with SensEdu:
 2.  Run basic examples and finished projects
 3.  Explore existing [issues] and [roadmap]({%link Contributing/index.md %}#roadmap)
 
-If you are still not sure, feel free to open a [discussion](https://github.com/ShiegeChan/SensEdu/discussions) and we'll find a job for you!
+If you are still not sure what to do, feel free to open a [discussion](https://github.com/ShiegeChan/SensEdu/discussions) and we'll find a task for you!
 
 ## How to Contribute
 
@@ -46,21 +46,33 @@ Clear documentation is essential for our educational purposes, help us:
 * Clarify ambiguous explanations to ensure everything is easy to understand
 * Fill in missing explanations
 
+Check [Documentation Contributions]({% link Contributing/index.md %}#documentation-contributions) for detailed instructions.
+
 {: .warning}
-The documentation is targeted to beginner students as well. Try to avoid logical skips, use simple language and add diagrams, image or code examples!
+For educational purposes, the documentation is aimed not only at developers but at beginner students as well. Try to avoid logical skips, use simple language and add diagrams, image or code examples!
 
 ### Improve Code
 
 1. Review the [library wiki section]({% link Library/index.md %}) and [naming convention]({% link Contributing/index.md %}#library-contributions)
-2. Assign yourself an [issue] or [discussion]
-3. Create a Pull Request (PR) and ask for a review
+2. Assign yourself an [issue] to ensure collaboration with others who are working on the same feature and to avoid duplicates
+3. Create a fork and develop your feature
+4. Submit a [Pull Request] (PR) and ask for a review
 
 {: .warning}
-Try to keep PRs small, focusing on one feature/fix
+Try to keep PRs small, focusing on one feature/fix per PR.
 
 ### Submit Project
-Created something amazing using SensEdu? Share it with us! Check [Project Submissions]({% link Contributing/index.md %}#project-submissions) for detailed instructions.
+Created something amazing using SensEdu? Share it with us! Check [Project Contributions]({% link Contributing/index.md %}#project-contributions) for detailed instructions.
 
+Projects are much appreciated even if they are quite similar to already developed ones. If you are unsure which project to develop, here are some suggestions:
+* Radar speed gun
+* FSK (Frequency-Shift Keying) modulated communication between multiple boards
+* Weather station with barometric pressure sensor
+
+
+## Documentation Contributions
+
+put here readme thing
 
 ## Library Contributions
 
@@ -72,15 +84,28 @@ If you are an experienced embedded systems developer, feel free to optimize libr
 Before pushing your library changes, make sure that **ALL** examples are working properly
 
 
-## Project Submissions
+## Project Contributions
 
-If you have developed any projects using our shield, please feel free to push it to `projects\your_project\` directory. Additional examples for usage are much appreciated even if they are quite similar to already developed projects.
-
-If you are not sure, which project to develop there are some suggestions:
-* FSK (Frequency-Shift Keying) modulated communication between multiple boards
-* Radar speed gun
-* Weather station with barometric pressure sensor
-
+To submit your project, follow these steps:
+1. Fork SensEdu [repository]
+2. Add a new project folder in your fork `~\projects\my_project\`
+3. Create an Arduino sketch `~\projects\my_project\my_project.ino`. Ensure that the sketch filename matches the folder name
+   1. If you have additional files (e.g., MATLAB scripts), place them in the  subfolder within your project folder, such as `~\projects\my_project\matlab\my_script.m`
+4. Create a documentation for your project
+   1. Create a new markdown page `~\docs\Projects\my_project.md`
+   2. Add the following lines at the beginning of the markdown file:
+   ```md
+   ---
+   title: My Project
+   layout: default
+   math: mathjax
+   parent: Projects
+   nav_order: 10
+   ---
+   ```
+   3. The order of projects is defined by `nav_order`. Use the next available number for proper website navigation. Customize `title` with your project name
+   4. Share implementation details and nice pictures of you project! Follow the [Documentation Contributions]({% link Contributing/index.md %}#documentation-contributions) for detailed instructions
+5. Commit all changes to your fork and submit a [Pull Request] (PR) to the main SensEdu [repository]
 
 ## Roadmap
 
@@ -114,3 +139,5 @@ Thank You to All Contributors!
 [issue]: https://github.com/ShiegeChan/SensEdu/issues
 [issues]: https://github.com/ShiegeChan/SensEdu/issues
 [discussion]: https://github.com/ShiegeChan/SensEdu/discussions
+[repository]: https://github.com/ShiegeChan/SensEdu
+[Pull Request]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request

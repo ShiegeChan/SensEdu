@@ -25,6 +25,9 @@ This page will guide you through all steps needed to start developing your RADAR
 
 ## Starting as Developer
 
+{: .warning}
+If you want to start as a dev, please read through Contributing page
+
 1. here is how to access PCB files
 2. how to improve SensEdu lib
 3. how to edit wiki
