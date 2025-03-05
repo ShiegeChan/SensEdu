@@ -64,7 +64,7 @@
 
 ## Starting a Project
 
-To get started, you can explore the hardware interface by following the examples provided in the SensEdu library (`Arduino\libraries\SensEdu\examples\`). A detailed description of all functions can be found in the <a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Documentation</a> under the "SensEdu Library" section.
+To get started, you can explore the hardware interface by following the examples provided in the SensEdu library (`Arduino\libraries\SensEdu\examples\`). A detailed description of all functions can be found in the <a href="https://shiegechan.github.io/SensEdu/library/" target="_blank">Documentation</a> under the "SensEdu Library" section.
 
 In the `projects/` directory, you will find several complete projects designed for this board, including:
 * **Ultrasonic Distance Measurements** *(in progress)*
@@ -73,7 +73,7 @@ In the `projects/` directory, you will find several complete projects designed f
 * **Weather Station** *(coming soon)*
 * **WiFi MATLAB Communication** *(coming soon)*
 
-Detailed explanations for each project are available in the "Projects" section of the <a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Documentation</a>.
+Detailed explanations for each project are available in the "Projects" section of the <a href="https://shiegechan.github.io/SensEdu/projects/" target="_blank">Documentation</a>.
 
 
 ## How to host wiki locally on Windows

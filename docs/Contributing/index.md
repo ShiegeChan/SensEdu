@@ -36,7 +36,7 @@ Found a bug or unexpected behavior?  Help us fix it:
 ### Suggest Features
 Have an idea for a new sensor driver, project or optimization? 
 
-1. Create an issue with the `enhancement` label:
+1. Create an [issue] with the `enhancement` label:
    1. Descibe your idea in detail
    2. Provide some usage examples
 
