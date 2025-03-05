@@ -72,12 +72,13 @@ void TIMER_ADC1SetFreq(uint32_t freq) {
         //error = TIMER_ERROR_TIM1_BAD_SET_FREQUENCY;
         return;
     }
-    float periodf = (float)ADC_PRESC_FREQ/freq;
-    uint32_t period = (uint32_t)lroundf(periodf); // period = ARR + 1
-    uint32_t *psc, *arr;
-    calculate_timer_values(freq, *psc, *arr);
-    WRITE_REG(TIM1->PSC, &psc);
-    WRITE_REG(TIM1->ARR, &arr);
+    // Calculate the timer values
+    uint32_t psc, arr;
+    calculate_timer_values(freq, &psc, &arr);
+
+    // Set the timer registers
+    WRITE_REG(TIM1->PSC, psc);
+    WRITE_REG(TIM1->ARR, arr);
 }
 
 void TIMER_DAC1SetFreq(uint32_t freq) {
@@ -97,46 +98,34 @@ void TIMER_DAC1SetFreq(uint32_t freq) {
 /* -------------------------------------------------------------------------- */
 
 
-float calculate_freq_error(uint32_t PSC, uint32_t ARR, uint32_t target_freq) {
-    float calculated_freq = TIM_FREQ / ((PSC + 1) * (ARR + 1));
-    return (target_freq - calculated_freq);
-}
-
 void calculate_timer_values(uint32_t freq, uint32_t *PSC, uint32_t *ARR) {
     // uint32_t PSC_MAX = 65535; // 2^16-1
     // uint32_t ARR_MAX = 65535; 
-    float threshold = 1;
-    if(freq <= 9999) {
-        threshold = 50.0;
-    }
-    else if (freq <= 99999) {
-        threshold = 500.0;
-    }
-    else if (freq <= 999999) {
-        threshold = 50000.0;
-    }
-    else if (freq <= 9999999) {
-        threshold = 500000.0;
-    }
-    else if (freq <= 99999999) {
-        threshold = 5000000.0;
-    }
-    else if (freq <= 999999999) {
-        threshold = 50000000.0;
-    }
-    else {
-        threshold = 100;
-    }
+    uint32_t psc, arr; 
+    float min_error = 9999999; // very large number
+    uint32_t best_psc = 0, best_arr = 1;
+    
+    // go through psc values
+    for (psc = 1; psc <= 65535; psc++) {
+        // calculate arr value from the formula
+        arr = (uint32_t)((float)TIM_FREQ / (freq * (psc + 1)) - 1);
 
-    for (uint32_t i = 1; i < 65535; i++) {
-        for(int32_t j = 1; j < 65535; j++) {
-            if(calculate_freq_error(i, j, freq) < threshold) {
-                PSC = i;
-                ARR = j;
-                break;
-            }
+        // check if it goes beyond the max limit
+        if (arr > 65535) continue;
+
+        // calculate the error between the desired frequency and frequency using the current parameters
+        float error = fabsf(freq - (float)TIM_FREQ / ((psc + 1) * (arr + 1)));
+
+        // update best parameters if the error is smaller
+        if (error < min_error) {
+            min_error = error;
+            best_psc = psc;
+            best_arr = arr;
         }
     }
+    // assign the values 
+    *PSC = best_psc;
+    *ARR = best_arr;
 }
 
 void tim1_adc1_init(void) {
