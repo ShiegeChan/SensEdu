@@ -105,5 +105,4 @@ Thank You to All Contributors!
 [issue]: https://github.com/ShiegeChan/SensEdu/issues
 [issues]: https://github.com/ShiegeChan/SensEdu/issues
 [discussion]: https://github.com/ShiegeChan/SensEdu/discussions
-[repository]: https://github.com/ShiegeChan/SensEdu
-[Pull Request]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request
+
