@@ -46,7 +46,7 @@ Clear documentation is essential for our educational purposes, help us:
 * Clarify ambiguous explanations to ensure everything is easy to understand
 * Fill in missing explanations
 
-Check [Documentation Contributions]({% link Contributing/index.md %}#documentation-contributions) for detailed instructions.
+Check [Documentation Contributions]({% link Contributing/docs.md %}) for detailed instructions.
 
 {: .warning}
 For educational purposes, the documentation is aimed not only at developers but at beginner students as well. Try to avoid logical skips, use simple language and add diagrams, image or code examples!
@@ -70,9 +70,6 @@ Projects are much appreciated even if they are quite similar to already develope
 * Weather station with barometric pressure sensor
 
 
-## Documentation Contributions
-
-put here readme thing
 
 ## Library Contributions
 
@@ -93,18 +90,18 @@ To submit your project, follow these steps:
    1. If you have additional files (e.g., MATLAB scripts), place them in the  subfolder within your project folder, such as `~\projects\my_project\matlab\my_script.m`
 4. Create a documentation for your project
    1. Create a new markdown page `~\docs\Projects\my_project.md`
-   2. Add the following lines at the beginning of the markdown file:
+   2. Add the following fields at the beginning of the markdown file:
    ```md
    ---
    title: My Project
    layout: default
-   math: mathjax
    parent: Projects
    nav_order: 10
    ---
    ```
    3. The order of projects is defined by `nav_order`. Use the next available number for proper website navigation. Customize `title` with your project name
-   4. Share implementation details and nice pictures of you project! Follow the [Documentation Contributions]({% link Contributing/index.md %}#documentation-contributions) for detailed instructions
+   4. Follow [Documentation Contributions]({% link Contributing/docs.md %}) for detailed page creation guidelines
+   5. Share implementation details and nice pictures of you project!
 5. Commit all changes to your fork and submit a [Pull Request] (PR) to the main SensEdu [repository]
 
 ## Roadmap
