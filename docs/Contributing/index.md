@@ -69,8 +69,6 @@ Projects are much appreciated even if they are quite similar to already develope
 * FSK (Frequency-Shift Keying) modulated communication between multiple boards
 * Weather station with barometric pressure sensor
 
-
-
 ## Library Contributions
 
 Please follow naming convention used throught the code. Some of it described in [library main page]({% link Library/index.md %}). Be careful with usign new timers and dma streams, make sure they are free. Read through developers notes for each peripheral you want to modify.
@@ -106,19 +104,13 @@ To submit your project, follow these steps:
 
 ## Roadmap
 
-- [x] DAC Channel 2 support
-- [x] Automatic buffer alignment for DAC
-- [x] Cache coherence issues with DAC
-- [x] ADC3 support
 - [ ] Automatic buffer alignment for ADC
-- [ ] Rewrite ADC sampling frequency calculations
 - [ ] Separate timers for each ADC and DAC channel
 - [ ] Ultrasonic measurements performance boost using DMA
-- [ ] XCorr calibration algorithm
+- [ ] Xcorr calibration algorithm
 - [ ] Improved Arduino-MATLAB serial communication
-- [ ] SensEdu library barometric sensor support
-- [ ] Examples for barometric pressure usage
-- [ ] 2-3 Fully developed projects as SensEdu showcase
+- [ ] Barometric sensor support
+- [ ] FMCW Radar
 
 ---
 
