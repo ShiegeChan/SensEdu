@@ -18,15 +18,15 @@ SENSEDU_ERROR SensEdu_GetError(void) {
         return error;
     }
 
-    error |= DMA_GetError();
-    if (error) {
-        error |= SENSEDU_ERROR_DMA;
-        return error;
-    }
-
     error |= DAC_GetError();
     if (error) {
         error |= SENSEDU_ERROR_DAC;
+        return error;
+    }
+
+    error |= DMA_GetError();
+    if (error) {
+        error |= SENSEDU_ERROR_DMA;
         return error;
     }
 

@@ -29,6 +29,17 @@ Each of the methods are usefull for different applications.
 
 ## Errors
 
+Main DAC error code is `0x30xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+
+An overview of possible errors for DAC:
+* `0x3000`:
+* `0x3001`:
+* `0x3002`:
+
+An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
+* `0x30A0`:
+* `0x30A1`:
+
 ## Structs
 
 ### SensEdu_DAC_Settings
@@ -49,14 +60,14 @@ typedef struct {
 #### Fields
 {: .no_toc}
 * `dac_channel`: Selects the DAC channel (channel 1 or channel 2)
-* `sampling_freq`: Specified DAC sampling frequency. Maximum value that can be set is 60 GHz. 
+* `sampling_freq`: Specified DAC sampling frequency. Maximum value that can be set is 15 MHz.
 * `mem_address`: Address of the array's first element written to DAC
-* `mem_size`: Number of array elements
+* `mem_size`: Number of array elements.
 * `wave_mode`: 
     * `SENSEDU_DAC_MODE_CONTINUOUS_WAVE` 
     * `SENSEDU_DAC_MODE_SINGLE_WAVE`
     * `SENSEDU_DAC_MODE_BURST_WAVE`
-* `burst_num`: Number of instances of specified LUT. 
+* `burst_num`: Number of instances of specified LUT.
 
 #### Notes
 {: .no_toc}
