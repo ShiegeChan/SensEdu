@@ -26,7 +26,7 @@ If you are still not sure what to do, feel free to open a [discussion](https://g
 ## How to Contribute
 
 ### Report Bugs
-Found a bug or unexpected behavior?  Help us fix it:
+Found a bug or unexpected behaviour?  Help us fix it:
 1. Search for existing [issue] to avoid duplicates
 2. Create a new [issue] with `bug` label, providing:
    1. Steps to reproduce

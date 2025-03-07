@@ -9,7 +9,7 @@ nav_order: 3
 {: .fs-8 .fw-500 .no_toc}
 ---
 
-We are excited to see the innovative ways you are utilizing SensEdu. By submitting your project, you have the opportunity to have it listed as a showcase for SensEdu functionality and included in the main repository.
+We are excited to see the innovative ways in which you are utilizing SensEdu. By submitting your project, you have the opportunity to have it listed as a showcase for SensEdu functionality and included in the main repository.
 {: .fw-500}
 
 To submit your project, please follow these steps:

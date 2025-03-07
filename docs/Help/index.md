@@ -19,12 +19,12 @@ If you have tried the above and are still stuck, it is a good time to ask for he
 
 ## Contact us
 
-The best way to contact us it via [Discussion]. If you want to keep things private, you can contact [me] or other contributors from the SensEdu team.
+The best way to contact us is via [Discussion]. If you want to keep things private, you can contact [me] or other contributors from the SensEdu team.
 
 When asking for help:
 * Avoid vague questions like "it doesn't work"
 * Try to give as much details as possible. Tell us what you have tried, required steps to recreate your issue
-* Provide details about your hardware setup. 
+* Provide details about your hardware setup
 * Add screenshots
 
 Your details will help us greatly to answer your question!
