@@ -174,12 +174,12 @@ void loop() {
     SensEdu_ADC_Start(adc2);
 
     // wait for the data from ADC1
-    while(!SensEdu_DMA_GetADCTransferStatus(ADC1));
-    SensEdu_DMA_ClearADCTransferStatus(ADC1);
+    while(!SensEdu_ADC_GetTransferStatus(ADC1));
+    SensEdu_ADC_ClearTransferStatus(ADC1);
 
     // wait for the data from ADC2
-    while(!SensEdu_DMA_GetADCTransferStatus(ADC2));
-    SensEdu_DMA_ClearADCTransferStatus(ADC2);
+    while(!SensEdu_ADC_GetTransferStatus(ADC2));
+    SensEdu_ADC_ClearTransferStatus(ADC2);
 
     if(!LOCAL_XCORR) {
         // just send the data bunch of bits first both channels from adc1 and then both channels from adc2
