@@ -55,7 +55,7 @@ For educational purposes, the documentation is aimed not only at developers but 
 
 If you are an experienced embedded systems developer, feel free to optimize library code for better performance.
 
-1. Review the [library wiki section]({% link Library/index.md %}) and [naming convention]({% link Contributing/index.md %}#library-contributions)
+1. Review the [library wiki section]({% link Library/index.md %}) and [Library Contributions]({% link Contributing/library.md %})
 2. Assign yourself an [issue] to ensure collaboration with others who are working on the same feature and to avoid duplicates
 3. Create a fork and develop your feature
 4. Submit a [Pull Request] (PR) and ask for a review
@@ -98,4 +98,4 @@ Thank You to All Contributors!
 [issue]: https://github.com/ShiegeChan/SensEdu/issues
 [issues]: https://github.com/ShiegeChan/SensEdu/issues
 [discussion]: https://github.com/ShiegeChan/SensEdu/discussions
-
+[Pull Request]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request
