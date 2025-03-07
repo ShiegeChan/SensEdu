@@ -48,17 +48,19 @@ Clear documentation is essential for our educational purposes, help us:
 
 Check [Documentation Contributions]({% link Contributing/docs.md %}) for detailed instructions.
 
-{: .warning}
+{: .note}
 For educational purposes, the documentation is aimed not only at developers but at beginner students as well. Try to avoid logical skips, use simple language and add diagrams, image or code examples!
 
 ### Improve Code
+
+If you are an experienced embedded systems developer, feel free to optimize library code for better performance.
 
 1. Review the [library wiki section]({% link Library/index.md %}) and [naming convention]({% link Contributing/index.md %}#library-contributions)
 2. Assign yourself an [issue] to ensure collaboration with others who are working on the same feature and to avoid duplicates
 3. Create a fork and develop your feature
 4. Submit a [Pull Request] (PR) and ask for a review
 
-{: .warning}
+{: .note}
 Try to keep PRs small, focusing on one feature/fix per PR.
 
 ### Submit Project
@@ -68,15 +70,6 @@ Projects are much appreciated even if they are quite similar to already develope
 * Radar speed gun
 * FSK (Frequency-Shift Keying) modulated communication between multiple boards
 * Weather station with barometric pressure sensor
-
-## Library Contributions
-
-Please follow naming convention used throught the code. Some of it described in [library main page]({% link Library/index.md %}). Be careful with usign new timers and dma streams, make sure they are free. Read through developers notes for each peripheral you want to modify.
-
-If you are an experienced embedded systems developer, feel free to optimize library code for better performance.
-
-{: .warning}
-Before pushing your library changes, make sure that **ALL** examples are working properly
 
 
 ## Roadmap

@@ -9,13 +9,13 @@ nav_order: 1
 {: .fs-8 .fw-500 .no_toc}
 ---
 
-Documentation is written using Markdown files that are rendered and transformed into a static website using [Jekyll] and its template [Just the Docs].
+We highly appreciate any suggestions for improvements to enhance the clarity of our documentation. Documentation is written using Markdown files that are rendered and transformed into a static website using [Jekyll] and its template [Just the Docs].
 {: .fw-500}
 
 - TOC
 {:toc}
 
-### Add new pages
+### Add New Pages
 
 Each respective tab on the website has its corresponding folder (e.g., `~\docs\Library\` for the library section). In this folder, there is always an `index.md` file that corresponds to the main page for this tab. Each subpage can be named arbitrarily (e.g., `page.md`) and must reference the parent page in the file header using the `parent` field.
 
@@ -48,7 +48,7 @@ Other syntax is standard for Markdown with modifiers added by Just the Docs. Fol
 * <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" target="_blank">Basic writing and formatting syntax</a>
 * <a href="https://just-the-docs.com/" target="_blank">Just the Docs page</a>.
 
-### Wiki hosting
+### Wiki Hosting
 
 When you edit the wiki, it is advised to observe your changes on the finished rendered webpage. You can host it locally by following these steps:
 
