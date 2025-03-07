@@ -80,7 +80,7 @@ typedef struct {
 * `mem_address`: DMA buffer address in memory (first element of the array)
 * `mem_size`: DMA buffer size
 
-#### Notes
+#### Notes {#adc_table_id}
 {: .no_toc}
 
 Be aware of which pins you can use with selected ADC. Table below shows ADC connections. For example, you can't access `ADC3` with pin `A7`, cause it is only connected to `ADC1`. 
@@ -584,8 +584,7 @@ The ADC clock is routed from the PLL2 clock and set to $$25\text{MHz}$$ for each
 
 $$T_{CONV} = (2.5 \text{ cycles} + 8.5 \text{ cycles}) * \frac{1}{f_{\text{adc_ker_ck}}} = 11 \text{ cycles} * \frac{1}{25\text{MHz}} = 440\text{ns}$$
 
-SensEdu is configured to x2 oversampling (basically, averaging), so we require around $$880\text{ns}$$ per one ADC conversion, which theoretically gives us a maximum $$1136\text{kS/sec}$$ sampling rate. However, in reality, this rate could be lower due to various additional delays. We assume a maximum sampling rate of $$500\text{kS/sec}$$, but it needs to be additionally tested and confirmed.
-
+SensEdu is configured to x2 oversampling (basically, averaging), so we require around $$880\text{ns}$$ per one ADC conversion, which theoretically gives us a maximum $$1136\text{kS/sec}$$ sampling rate. However, in reality, this rate is expected to be lower due to various additional delays. Based on our practical testing of the ADC sampling rate, we have concluded that the maximum achievable sampling rate is $$550\text{kS/sec}$$. Any attempt to increase this rate further results in a decrease in the actual sampling rate.
 
 ### Initialization
 
@@ -657,7 +656,16 @@ const uint16_t memory4adc_size = 128; // multiple of __SCB_DCACHE_LINE_SIZE/2
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
 ```
 
+### Reading ADC Data
 
+The STM32H7 microcontroller is equipped with three ADC modules, each capable of accessing multiple channels (refer to the [table] above). Reading the ADC values from a single channel is straightforward, as the data is stored consecutively in an array. 
+
+
+However, when reading data from multiple channels within a single ADC module, users must exercise caution. The data for each channel is interleaved in the array, meaning that the data for each channel is stored one after the other, rather than all data from first channel followed by all data from second channel, and so forth. This structure is illustrated clearly in the following figure giving an example of using two channels with one ADC module. 
+
+![]({{site.baseurl}}/assets/images/ADC_Data_Flow.png)
+
+[table]: /SensEdu/Library/ADC/#adc_table_id
 [this issue]: https://github.com/ShiegeChan/SensEdu/issues/8
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
 [Manual Page]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf

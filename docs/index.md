@@ -79,4 +79,4 @@ Thank You to All Contributors!
 [Just the Docs]: https://github.com/just-the-docs/just-the-docs/tree/main
 [STM32H747]: https://www.st.com/en/microcontrollers-microprocessors/stm32h747-757.html
 [Arduino GIGA R1 WiFi]: https://docs.arduino.cc/hardware/giga-r1-wifi/
-[KiCAD]: https://www.kicad.org/
+[KiCad]: https://www.kicad.org/
