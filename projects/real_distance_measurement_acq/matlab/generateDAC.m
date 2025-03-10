@@ -10,8 +10,8 @@ clc;
  t = 0:(0.000000001):0.000315;
  ts = 0:(1/fs):0.000315;
  
- %y = generate_speaker_sig(t) .* 65535;
- ys = generate_speaker_sig(ts) .* 65535;
+ y = (generate_speaker_signal(f, t, 10, 0.4) .* 65535) + 32767; % shifting the signal from negative starting range to 0 start range
+ ys = (generate_speaker_signal(f, ts, 10, 0.4) .* 65535) + 32767;
 
  res = dec2hex(round(ys));
 
@@ -30,10 +30,10 @@ clc;
  figure;
  plot(t, y);
  hold on;
- plot(ts, ys, 'LineWidth', 2);
+ plot(ts, ys, '.-');
  hold on;
  plot(ts, round(ys));
  hold off;
  legend("y", "ys", "round ys")
 
- %save("Measurements\test_xcorr_dac_wave.mat", "ys");
+ save("test_xcorr_dac_wave.mat", "ys");
