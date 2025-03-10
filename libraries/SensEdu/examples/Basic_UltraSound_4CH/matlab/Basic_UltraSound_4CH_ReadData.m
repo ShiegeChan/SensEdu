@@ -11,7 +11,7 @@ ITERATIONS = 10000;
 
 ACTIVATE_PLOTS = true;
 
-DATA_LENGTH = 64*32*2; % make sure to match this number with firmware
+DATA_LENGTH = 16*128*2; % make sure to match this number with firmware
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
