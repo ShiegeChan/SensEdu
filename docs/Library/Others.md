@@ -19,4 +19,4 @@ bla bla bla
 
 ### basic ultrasonic example
 
-[link_name]: https:://link
+[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf

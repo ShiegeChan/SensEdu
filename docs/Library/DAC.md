@@ -27,6 +27,19 @@ The SensEdu library has advanced features accounting for ease of use and code ef
 
 Each of the methods are usefull for different applications. 
 
+## Errors
+
+Main DAC error code is `0x30xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+
+An overview of possible errors for DAC:
+* `0x3000`:
+* `0x3001`:
+* `0x3002`:
+
+An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
+* `0x30A0`:
+* `0x30A1`:
+
 ## Structs
 
 ### SensEdu_DAC_Settings
@@ -286,7 +299,87 @@ To send a continuous sine wave, the only modification would be DAC mode paramete
 
 ## Developer Notes
 
-info about internal things, like taken streams, channels and etc.
-if you want link, include it like this: [link_name]. and link itself at the bottom
+### DMA Streams
 
-[link_name]: https:://link
+Each DAC channel occupies one DMA Stream:
+* **Channel 1**: DMA1_Stream2
+* **Channel 2**: DMA1_Stream3
+
+{: .warning }
+Avoid reusing occupied DMA streams. Refer to [STM32H747 Reference Manual] to find free available streams.
+
+### Cache Coherence
+
+When using DAC with DMA, you need to be aware of cache coherence problems. By default, the processor’s data cache (D-Cache) boosts memory access speed, but this can conflict with DMA operations. The DMA controller transfers data directly between memory and peripherals without CPU involvement. The issue arises when CPU interact with memory handled by DMA, the processor might read outdated data stored in cache instead of the actual data in memory, as it is not aware of DMA transfers. 
+
+You can think that it shouldn't be a problem for DAC, since the data is written from memory to peripheral, CPU doesn't read anything. The problem arises, because default Arduino **MPU** (Memory Protection Unit) configuration enables write-back policy for writing operations. There are two possible policies:
+* **Write-through policy (WT)**: Data is written to both cache and memory
+* **Write-back policy (WB)**: Data is written to the cache first
+
+That means if you use WB policy and update DAC buffer (waveform), DMA may not see updates **unless the cache is explicitly cleaned**.
+
+There are two ways to fix this:
+1. Cache Cleaning
+2. MPU Configuration
+
+{: .warning}
+SensEdu uses MPU Configuration for the DAC.
+
+#### Cache Cleaning
+{: .no_toc}
+
+After updating the DAC buffer, explicitly clean the cache to force writes to physical memory. Use the CMSIS function `SCB_CleanDCache_by_Addr(mem_addr, mem_size)` with the following parameters:
+* `mem_addr`: Memory address of the DAC buffer
+* `mem_size`: Memory size **in bytes**
+
+```c
+// Update Buffer
+for (uint16_t i = 0; i < buf_size; i++) {
+    buf[i] = i;
+}
+// Clean Cache and Start DAC
+SCB_CleanDCache_by_Addr((uint16_t*)buf, sizeof(buf));
+SensEdu_DAC_Enable(DAC_CH1);
+```
+
+The cache cleaning procedure applies to the entire cache line. Therefore, it is essential to align your DAC buffer to the cache line and ensure its size is a multiple of the cache line size. For the STM32H747, the cache line is 32 bytes long and is defined in the macro `__SCB_DCACHE_LINE_SIZE`. For a `uint16_t` array, this means the number of elements must be a multiple of 16 (each element is 2 bytes). For example. valid sizes include 16, 32, 64, etc. Alignment is achieved using the `__attribute__` directive:
+
+```c
+const uint16_t buf_size = 128; // multiple of __SCB_DCACHE_LINE_SIZE/2
+__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t buf[buf_size];
+```
+
+#### MPU Configuration
+{: .no_toc}
+
+To avoid manual cache maintenance, configure the MPU to mark the DAC buffer’s memory region as non-cacheable. This bypasses the cache entirely, ensuring DMA always accesses physical memory.
+
+First, you need to ensure the correct buffer size. It must be a power of two (starting at 32 bytes) and aligned to its size. From STM32CubeMX MPU screenshot, you can see an example of proper sizes. 
+
+![]({{site.baseurl}}/assets/images/MPU_size.png)
+
+The SensEdu library automates this with the `SENSEDU_DAC_BUFFER(name, user_size)` macro:
+* `name`: Variable name to access the buffer later in code
+* `user_size`: buffer size **in uint16_t**
+
+```c
+const uint16_t buf_size = 50;
+SENSEDU_DAC_BUFFER(buf, buf_size);
+for (uint16_t i = 0; i < buf_size; i++) {
+    buf[i] = i;
+}
+```
+
+{: .warning}
+The `SENSEDU_DAC_BUFFER` macro allows **any** user-defined size. The library internally adjusts it to meet MPU requirements.
+
+After buffer allocation, during `DMA_DACInit()` the library configures the MPU region using internal function `LL_MPU_ConfigRegion()` to enforce non-cacheable and non-bufferable memory region.
+
+
+[//]:### something else
+
+[//]:info about internal things, like taken streams, channels and etc.
+[//]:if you want link, include it like this: [link_name]. and link itself at the bottom
+
+[//]:[link_name]: https:://link
+[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf

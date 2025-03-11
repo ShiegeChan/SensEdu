@@ -122,6 +122,7 @@ If you still have any issues or have further questions, please reach out to us i
 
 
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
+[STM32H747 Datasheet]: https://www.st.com/resource/en/datasheet/stm32h747ag.pdf
 [ARMv7-M Architecture Reference Manual]: https://developer.arm.com/documentation/ddi0403/latest/
 [GitHub Discussions]: https://github.com/ShiegeChan/SensEdu/discussions
 

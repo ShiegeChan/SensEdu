@@ -16,6 +16,14 @@ Timers allow precise event scheduling, such as creating delays or setting sampli
 - TOC
 {:toc}
 
+## Errors
+
+Main timers error code is `0x10xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+
+An overview of possible errors for timers:
+* `0x1000`: No Errors
+* `0x1001`: Unexpected DAC frequency. Maximum possible is 60MHz, refer to [these calculations]({% link Library/Timers.md %}#frequency-settings) for more details
+
 ## Functions
 
 ### SensEdu_TIMER_DelayInit
@@ -83,7 +91,7 @@ Timer allocation:
 * **TIM4**: DAC sampling 
 
 {: .warning }
-Avoid reusing occupied timers. Refere to [STM32H747 Reference Manual] to find free available timers. Be aware, future updates will assign dedicated timers to each ADC/DAC separately, which may occupy your custom timer.
+Avoid reusing occupied timers. Refer to [STM32H747 Reference Manual] to find free available timers. Be aware, future updates will assign dedicated timers to each ADC/DAC separately, which may occupy your custom timer.
 
 ### Frequency settings
 
@@ -111,4 +119,4 @@ Prescaler is set to its minimum value to achieve the finest frequency adjustment
 {: .warning }
 When a user specifies a frequency for a DAC or ADC, the target value is automatically rounded to the nearest achievable frequency dictated by the timer's step. The lower target frequency, the higher the achievable precision.
 
-[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/
+[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf

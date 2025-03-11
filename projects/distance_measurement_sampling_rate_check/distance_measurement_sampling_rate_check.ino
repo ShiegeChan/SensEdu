@@ -58,7 +58,7 @@ SensEdu_ADC_Settings adc1_settings = {
     .pin_num = adc1_mic_num,
 
     .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sampling_freq = 600000,
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)adc1_data,
@@ -71,7 +71,7 @@ SensEdu_ADC_Settings adc2_settings = {
     .pin_num = adc2_mic_num,
 
     .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sampling_freq = 600000,
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)&adc2_data,
@@ -199,6 +199,7 @@ void loop() {
     Serial.write((const uint8_t *) &distance[1], 4);
     Serial.write((const uint8_t *) &distance[2], 4);
     Serial.write((const uint8_t *) &distance[3], 4);
+    
 
     // check errors
     lib_error = SensEdu_GetError();
