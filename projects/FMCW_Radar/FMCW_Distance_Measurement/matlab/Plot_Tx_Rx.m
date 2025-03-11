@@ -1,4 +1,6 @@
-%% Plot_Tx_Rx.m Two ADC Data Streams with power spectrum calculation in real time
+%% Plot_Tx_Rx.m Plot Mic ADC and DAC to ADC Data with power spectrum
+%% ADC1 = DAC (to ADC) data
+%% ADC2 = MIC DATA
 clear;
 close all;
 clc;
@@ -19,7 +21,7 @@ fprintf("Starting real-time dual ADC data acquisition...\n");
 % Initialize Figure for Real-Time Data Plots in Full Screen
 figure('Name', 'Real-Time ADC Signals and Power Spectra', 'Color', 'k', 'WindowState', 'maximized');
 
-% Subplot for ADC2 Signal (Top Left)
+% Subplot for Mic Signal (Top Left)
 subplot(3, 2, 1); 
 Mic_ADC_plot = plot(nan(1, 1), 'r');
 xlim([0, 2048]);
@@ -35,7 +37,7 @@ ax.Title.Color = 'w';
 ax.XLabel.Color = 'w';
 ax.YLabel.Color = 'w';
 
-% Subplot for ADC2 High-Passed Signal (Top Right)
+% Subplot for Mic High-Passed Signal (Top Right)
 subplot(3, 2, 2); 
 adc2_filt_plot = plot(nan(1, 1), 'r');
 xlim([0, 2048]);
@@ -51,7 +53,7 @@ ax.Title.Color = 'w';
 ax.XLabel.Color = 'w';
 ax.YLabel.Color = 'w';
 
-% Subplot for ADC1 Signal (Middle Left)
+% Subplot for DAC to ADC Signal (Middle Left)
 subplot(3, 2, 3); 
 DAC_ADC_plot = plot(nan(1, 1), 'g');
 xlim([0, 2048]);
@@ -67,7 +69,7 @@ ax.Title.Color = 'w';
 ax.XLabel.Color = 'w';
 ax.YLabel.Color = 'w';
 
-% Subplot for ADC1 High-Passed Signal (Middle Right)
+% Subplot for DAC to ADC High-Passed Signal (Middle Right)
 subplot(3, 2, 4); 
 adc1_filt_plot = plot(nan(1, 1), 'g');
 xlim([0, 2048]);
@@ -83,13 +85,13 @@ ax.Title.Color = 'w';
 ax.XLabel.Color = 'w';
 ax.YLabel.Color = 'w';
 
-% Subplot for ADC2 PSD (Bottom Left)
+% Subplot for Mic Signal Power Spectrum(Bottom Left)
 subplot(3, 2, 5); 
 adc2_psd_plot = plot(nan(1, 1), 'r');
-xticks(0:5000:250000); % Set tick positions at 1 kHz intervals (adjust as needed)
+xticks(0:5000:250000);
 xlabel("Frequency (Hz)");
 ylabel("Power (dB)");
-title("Power Spectrum of ADC2");
+title("Power Spectrum of Mic Data");
 grid on;
 ax = gca;
 ax.XColor = 'w';
@@ -98,13 +100,13 @@ ax.Title.Color = 'w';
 ax.XLabel.Color = 'w';
 ax.YLabel.Color = 'w';
 
-% Subplot for ADC1 PSD (Bottom Right)
+% Subplot for Dac to ADC Signal Power Spectrum(Bottom Right)
 subplot(3, 2, 6); 
 adc1_psd_plot = plot(nan(1, 1), 'g');
-xticks(0:5000:250000); % Set tick positions at 1 kHz intervals (adjust as needed)
+xticks(0:5000:250000);
 xlabel("Frequency (Hz)");
 ylabel("Power (dB)");
-title("Power Spectrum of ADC1");
+title("Power Spectrum of DAC ADC Data");
 grid on;
 ax = gca;
 ax.XColor = 'w';
@@ -114,46 +116,46 @@ ax.XLabel.Color = 'w';
 ax.YLabel.Color = 'w';
 
 for it = 1:ITERATIONS
-    % 1. Trigger ADC data acquisition
+    % Trigger ADC data acquisition
     write(arduino, 't', "char");
     
-    % 2. Retrieve size header for ADC2 data
-    adc_byte_length = read_total_length(arduino);      % Total length of ADC data in bytes
+    % Retrieve size header for ADC data
+    adc_byte_length = read_total_length(arduino);    % Total length of ADC data in bytes
     ADC_DATA_LENGTH = adc_byte_length / 2;           % Total number of ADC samples
 
-    % 3. Retrieve ADC2 data
-    adc1_data = read_data(arduino, ADC_DATA_LENGTH);   % Retrieve ADC2 data
+    % Retrieve ADC1 data
+    adc1_data = read_data(arduino, ADC_DATA_LENGTH);
 
-    % 4. Retrieve ADC1 data
-    adc2_data = read_data(arduino, ADC_DATA_LENGTH);   % Retrieve ADC1 data
+    % Retrieve ADC2 data
+    adc2_data = read_data(arduino, ADC_DATA_LENGTH);
     
-    % 5. High-Pass Filter on ADC2 and ADC1 Data
+    % High-Pass Filter on ADC1 and ADC2 data
     adc1_data_filt = highpass(adc1_data, 30000, SAMPLING_RATE);
     adc2_data_filt = highpass(adc2_data, 30000, SAMPLING_RATE);
 
-    % 6. Compute PSD using Periodogram for both ADC2 and ADC1
+    % Compute PSD using Periodogram for both ADC1 and ADC2
     [p_adc1, f_adc1] = periodogram(adc1_data_filt, rectwin(length(adc2_data_filt)), [], SAMPLING_RATE);
     [p_adc2, f_adc2] = periodogram(adc2_data_filt, rectwin(length(adc1_data_filt)), [], SAMPLING_RATE);
 
 
-    % 7. Update plots in real time
+    % Update plots in real time
     if ACTIVATE_PLOTS
-        % Update ADC2 raw data plot
+        % Update DAC to ADC data plot
         set(DAC_ADC_plot, 'YData', adc1_data);
 
-        % Update ADC2 high-passed data plot
+        % Update DAC to ADC high-passed data plot
         set(adc1_filt_plot, 'YData', adc1_data_filt);
 
-        % Update ADC1 raw data plot
+        % Update Mic data plot
         set(Mic_ADC_plot, 'YData', adc2_data);
 
-        % Update ADC1 high-passed data plot
+        % Update Mic high-passed data plot
         set(adc2_filt_plot, 'YData', adc2_data_filt);
 
-        % Update ADC2 PSD plot
+        % Update DAC to ADC Power Spectrum plot
         set(adc1_psd_plot, 'XData', f_adc1, 'YData', p_adc1);
 
-        % Update ADC1 PSD plot
+        % Update Mic Power Spectrum plot
         set(adc2_psd_plot, 'XData', f_adc2, 'YData', p_adc2);
 
         % Refresh the plots

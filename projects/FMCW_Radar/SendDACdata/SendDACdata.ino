@@ -6,8 +6,6 @@
 
 // serial_send_array((const uint8_t *)data, sizeof(data)); // second argument in bytes
 
-// for this poor implementation, make sure data is multiple of 32
-
 // send serial data in 32 byte chunks
 void serial_send_array(const uint8_t* data, size_t size) {
     const size_t chunk_size = 32;
