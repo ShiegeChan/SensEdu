@@ -19,7 +19,7 @@ uint8_t error_led = D86;
 #define LOCAL_XCORR     true    // doing xcorr on the microcontroller
 #define XCORR_DEBUG     true    // sending only distance w/o other data
 
-#define BAN_DISTANCE	25		    // min distance [cm] - how many self reflections cancelled
+#define BAN_DISTANCE	20		    // min distance [cm] - how many self reflections cancelled
 #define ACTUAL_SAMPLING_RATE 244000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
 #define STORE_BUF_SIZE  64 * 32     // 2400 for 1 measurement per second. 
                             	    // only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)
@@ -36,6 +36,7 @@ arm_fir_instance_f32 Fir_filt;  // creating an object instance
 
 ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
+
 
 const uint8_t adc1_mic_num = 2; // 2 microphones for adc1
 const uint8_t adc2_mic_num = 2; // 2 microphones for adc2
@@ -79,13 +80,13 @@ SensEdu_ADC_Settings adc2_settings = {
 };
 
 /********************************************* DAC **************************************************/
+DAC_Channel* dac_channel = DAC_CH2;
 // lut settings are in SineLUT.h
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
-SensEdu_DAC_Settings dac1_settings = {DAC_CH1, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
+SensEdu_DAC_Settings dac1_settings = {dac_channel, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
     SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num}; // specifying burst mode 
-
 
 
 /* -------------------------------------------------------------------------- */
@@ -96,6 +97,7 @@ const uint16_t air_speed = 343; // m/s
 
 // e.g. 25cm ban means 0.25*2/343 time ban, then multiply by sample rate
 const uint32_t banned_sample_num = ((BAN_DISTANCE*2*ACTUAL_SAMPLING_RATE)/air_speed)/100; 
+
 
 /* -------------------------------------------------------------------------- */
 /*                              Global Structure                              */
@@ -167,9 +169,9 @@ void loop() {
 	#endif
     
     // start dac->adc sequence
-    SensEdu_DAC_Enable(DAC_CH1);
-    while(!SensEdu_DAC_GetBurstCompleteFlag(DAC_CH1)); // wait for dac to finish sending the burst
-    SensEdu_DAC_ClearBurstCompleteFlag(DAC_CH1); 
+    SensEdu_DAC_Enable(dac_channel);
+    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_channel)); // wait for dac to finish sending the burst
+    SensEdu_DAC_ClearBurstCompleteFlag(dac_channel); 
     SensEdu_ADC_Start(adc1);
     SensEdu_ADC_Start(adc2);
 

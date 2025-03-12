@@ -43,7 +43,8 @@
   <img src="https://ik.imagekit.io/vladysor/SensEdu/UltraSoundDistanceMeasurements.png?updatedAt=1737991669929" width="49%">
   <img src="https://ik.imagekit.io/vladysor/SensEdu/xcorr.png?updatedAt=1737991668627" width="49%">
   <img src="https://ik.imagekit.io/vladysor/SensEdu/WiFi_comms.png?updatedAt=1737991665342" width="49%">
-  <img src="https://ik.imagekit.io/vladysor/SensEdu/ChirpSignalGen.png?updatedAt=1737991666448" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/ChirpSignalGen.png?updatedAt=1741772505954" width="49%">
+  <img src="https://ik.imagekit.io/vladysor/SensEdu/FMCW.png?updatedAt=1741703584379">
 </p>
 
 
@@ -68,8 +69,9 @@ To get started, you can explore the hardware interface by following the examples
 
 In the `projects/` directory, you will find several complete projects designed for this board, including:
 * **Ultrasonic Distance Measurements** *(in progress)*
+* **Chirp Signal Generation**
+* **FMCW Radar** (in progress)
 * **Ultrasonic FSK Communication** *(coming soon)*
-* **Chirp Radio Wave Generation** *(coming soon)*
 * **Weather Station** *(coming soon)*
 * **WiFi MATLAB Communication** *(coming soon)*
 

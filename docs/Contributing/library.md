@@ -71,8 +71,8 @@ typedef struct {
 } ChannelSelector
 ```
 * **Functions:** 
-  * **Private:** `snake_case`
-  * **Public:** `PascalCase`
+  * *Private:* `snake_case`
+  * *Public:* `PascalCase`
 
 ```c
 static void configure_clock(void);
