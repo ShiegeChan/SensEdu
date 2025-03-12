@@ -6,12 +6,8 @@
 
 #define TIM_FREQ        240000000
 #define DAC_PRESC_FREQ  120000000       // Desired freq after prescaler for DAC
+#define ADC_PRESC_FREQ  60000000        // Desired freq after prescaler for ADC
 
-static const uint32_t freq_reference = 10000000;
-static const uint32_t allowed_freqs[] = {10000000, 5000000, 2500000, 2000000, 1250000, 1000000, 625000, 500000,
-    312500, 250000, 156250, 125000, 80000, 78125, 62500, 40000, 31250, 20000, 16000, 15625, 
-    10000, 8000, 5000, 4000, 3200, 2500, 2000, 1600, 1250, 1000};
-static uint32_t sampling_rate = 0;
 
 static TIMER_ERROR error = TIMER_ERROR_NO_ERRORS;
 static volatile uint8_t delay_flag = 0;
@@ -32,9 +28,9 @@ void SensEdu_TIMER_DelayInit(void) {
     tim2_delay_init();
 }
 
-void SensEdu_TIMER_Delay_us(uint32_t delay_value) {
+void SensEdu_TIMER_Delay_us(uint32_t delay_us) {
     delay_flag = 1;
-    WRITE_REG(TIM2->ARR, delay_value);
+    WRITE_REG(TIM2->ARR, delay_us);
     WRITE_REG(TIM2->CNT, 0U);
     SET_BIT(TIM2->CR1, TIM_CR1_CEN);
     while(delay_flag == 1);
@@ -72,19 +68,17 @@ void TIMER_DAC1Disable(void) {
 }
 
 void TIMER_ADC1SetFreq(uint32_t freq) {
-    int32_t freq_diff = 2147483647; // max int32 value
-    uint8_t closest_freq_index = 0;
-    for (uint8_t i = 0; i < sizeof(allowed_freqs)/sizeof(allowed_freqs[0]); i++) {
-        int32_t temp_diff = freq - allowed_freqs[i];
-        temp_diff = abs(temp_diff);
-        if (temp_diff < freq_diff) {
-            freq_diff = temp_diff;
-            closest_freq_index = i;
-        }
+    if (freq < 0 || freq > (TIM_FREQ/2)) {
+        //error = TIMER_ERROR_TIM1_BAD_SET_FREQUENCY;
+        return;
     }
+    // Calculate the timer values
+    uint32_t psc, arr;
+    calculate_timer_values(freq, &psc, &arr);
 
-    sampling_rate = allowed_freqs[closest_freq_index];
-    WRITE_REG(TIM1->ARR, (freq_reference/sampling_rate));
+    // Set the timer registers
+    WRITE_REG(TIM1->PSC, psc);
+    WRITE_REG(TIM1->ARR, arr);
 }
 
 void TIMER_DAC1SetFreq(uint32_t freq) {
@@ -94,7 +88,7 @@ void TIMER_DAC1SetFreq(uint32_t freq) {
         return;
     }
     float periodf = (float)DAC_PRESC_FREQ/freq;
-    uint32_t period = (uint32_t)lroundf(periodf);
+    uint32_t period = (uint32_t)lroundf(periodf); // period = ARR + 1
     WRITE_REG(TIM4->ARR, period - 1U);
 }
 
@@ -102,13 +96,45 @@ void TIMER_DAC1SetFreq(uint32_t freq) {
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
+
+
+void calculate_timer_values(uint32_t freq, uint32_t *PSC, uint32_t *ARR) {
+    // uint32_t PSC_MAX = 65535; // 2^16-1
+    // uint32_t ARR_MAX = 65535; 
+    uint32_t psc, arr; 
+    float min_error = 9999999; // very large number
+    uint32_t best_psc = 0, best_arr = 1;
+    
+    // go through psc values
+    for (psc = 1; psc <= 65535; psc++) {
+        // calculate arr value from the formula
+        arr = (uint32_t)((float)TIM_FREQ / (freq * (psc + 1)) - 1);
+
+        // check if it goes beyond the max limit
+        if (arr > 65535) continue;
+
+        // calculate the error between the desired frequency and frequency using the current parameters
+        float error = fabsf(freq - (float)TIM_FREQ / ((psc + 1) * (arr + 1)));
+
+        // update best parameters if the error is smaller
+        if (error < min_error) {
+            min_error = error;
+            best_psc = psc;
+            best_arr = arr;
+        }
+    }
+    // assign the values 
+    *PSC = best_psc;
+    *ARR = best_arr;
+}
+
 void tim1_adc1_init(void) {
     // Clock
     SET_BIT(RCC->APB2ENR, RCC_APB2ENR_TIM1EN);
 
     // Frequency settings
-    WRITE_REG(TIM1->PSC, 24U-1U); // 0.1us step (10MHz as reference)
-    TIMER_ADC1SetFreq(allowed_freqs[0]); // default max freq
+    WRITE_REG(TIM1->PSC, 2U - 1U); // default
+    WRITE_REG(TIM1->ARR, 60U - 1U); // default
 
     // update event is trigger output
     MODIFY_REG(TIM1->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
@@ -135,8 +161,8 @@ void tim4_dac1_init() {
     SET_BIT(RCC->APB1LENR, RCC_APB1LENR_TIM4EN);
 
     // Frequency settings
-    WRITE_REG(TIM4->PSC, (TIM_FREQ/DAC_PRESC_FREQ) - 1U);
-    WRITE_REG(TIM4->ARR, 120U - 1U);
+    WRITE_REG(TIM4->PSC, (TIM_FREQ/DAC_PRESC_FREQ) - 1U); // default
+    WRITE_REG(TIM4->ARR, 120U - 1U); // default
 
     // update event is trigger output
     MODIFY_REG(TIM4->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);

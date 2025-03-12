@@ -15,18 +15,21 @@ extern "C" {
 
 typedef enum {
     ADC_ERROR_NO_ERRORS = 0x00,
-    ADC_ERROR_WRONG_ADC = 0x01, // use only ADC1 or ADC2
-    ADC_ERROR_PLL_CONFIG = 0x02,
-    ADC_ERROR_ADC_CONFIG_VOLTAGE_REGULATOR = 0x03,
-    ADC_ERROR_ADC_DISABLE_FAIL = 0x04,
-    ADC_ERROR_ADC_ENABLE_FAIL = 0x05,
-    ADC_ERROR_PICKED_WRONG_CHANNEL = 0x06,
-    ADC_ERROR_WRONG_SEQUENCE = 0x07,
-    ADC_ERROR_SAMPLE_TIME_SETTING = 0x08,
-    ADC_ERROR_WRONG_OPERATION_MODE = 0x09,
-    ADC_ERROR_WRONG_DATA_MANAGEMENT_MODE = 0x0A,
-    ADC_ERROR_WRONG_INIT_SETTINGS_PARAMETERS = 0x0B,
-    ADC_ERROR_BAD_SAMPLING_FREQ = 0x0C
+    ADC_ERROR_ADC_INIT = 0x01,
+    ADC_ERROR_WRONG_ADC_INSTANCE = 0x02,
+    ADC_ERROR_ADC_DISABLE_FAIL = 0x03,
+    ADC_ERROR_ADC_ENABLE_FAIL = 0x04,
+    ADC_ERROR_PICKED_WRONG_CHANNEL = 0x05,
+    ADC_ERROR_INIT_PIN_NUMBER = 0x06,
+    ADC_ERROR_INIT_DMA_MEMORY = 0x07,
+    ADC_ERROR_INIT_SAMPLING_FREQ = 0x08,
+    ADC_ERROR_NOT_SUPPORTED_MODE = 0x09,
+
+    ADC_ERROR_PLL_CONFIG = 0xA0,
+    ADC_ERROR_WRONG_SEQUENCE = 0xA1,
+    ADC_ERROR_SAMPLE_TIME_SETTING = 0xA2,
+    ADC_ERROR_WRONG_OPERATION_MODE = 0xA3,
+    ADC_ERROR_WRONG_DATA_MANAGEMENT_MODE = 0xA4
 } ADC_ERROR;
 
 typedef enum {
@@ -57,11 +60,17 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings);
 void SensEdu_ADC_Enable(ADC_TypeDef* ADC);
 void SensEdu_ADC_Disable(ADC_TypeDef* ADC);
 void SensEdu_ADC_Start(ADC_TypeDef* ADC);
-uint16_t* SensEdu_ADC_ReadSingleSequence(ADC_TypeDef* ADC);
+
+uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* ADC);
+uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC);
+
+uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
+void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc);
 
 void SensEdu_ADC_ShortA4toA9(void);
 
 ADC_ERROR ADC_GetError(void);
+void ADC_TransferCompleteDMAinterrupt(ADC_TypeDef* adc);
 
 
 #ifdef __cplusplus

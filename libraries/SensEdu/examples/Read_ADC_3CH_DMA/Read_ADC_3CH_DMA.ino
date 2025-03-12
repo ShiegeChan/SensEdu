@@ -6,6 +6,7 @@ uint32_t cntr = 0;
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
+ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 3;
 uint8_t adc_pins[adc_pin_num] = {A0, A1, A2}; 
 // must be:
@@ -15,7 +16,7 @@ const uint16_t memory4adc_size = 64 * adc_pin_num; // allocate chunks of (4 * 32
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
 
 SensEdu_ADC_Settings adc_settings = {
-    .adc = ADC1,
+    .adc = adc,
     .pins = adc_pins,
     .pin_num = adc_pin_num,
 
@@ -40,8 +41,8 @@ void setup() {
     Serial.println("Started Initialization...");
 
     SensEdu_ADC_Init(&adc_settings);
-    SensEdu_ADC_Enable(ADC1);
-    SensEdu_ADC_Start(ADC1);
+    SensEdu_ADC_Enable(adc);
+    SensEdu_ADC_Start(adc);
 
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -65,7 +66,7 @@ void loop() {
     // DMA in background
 
     // Print transfered Data if available
-    if (SensEdu_DMA_GetADCTransferStatus(ADC1)) {
+    if (SensEdu_ADC_GetTransferStatus(adc)) {
         Serial.println("------");
         for (int i = 0; i < memory4adc_size; i+=3) {
             Serial.print("ADC value ");
@@ -85,8 +86,8 @@ void loop() {
         };
 
         // restart ADC
-        SensEdu_DMA_ClearADCTransferStatus(ADC1);
-        SensEdu_ADC_Start(ADC1);
+        SensEdu_ADC_ClearTransferStatus(adc);
+        SensEdu_ADC_Start(adc);
     }
 
     // check errors
