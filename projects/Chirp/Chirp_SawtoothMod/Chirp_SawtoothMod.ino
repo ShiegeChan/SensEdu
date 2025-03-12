@@ -4,9 +4,9 @@
 /*                                User Settings                               */
 /* -------------------------------------------------------------------------- */
 
-#define CHIRP_DURATION          0.001   // Duration of the chirp (in seconds)
-#define START_FREQUENCY         1000   // Start frequency (in Hz)
-#define END_FREQUENCY           30000  // Stop frequency (in Hz)
+#define CHIRP_DURATION          0.01   // Duration of the chirp (in seconds)
+#define START_FREQUENCY         30000   // Start frequency (in Hz)
+#define END_FREQUENCY           35000  // Stop frequency (in Hz)
 
 /* -------------------------------------------------------------------------- */
 /*                              Global Variables                              */
@@ -14,7 +14,7 @@
 
 static uint32_t lib_error = 0;
 static uint8_t increment_flag = 1; // Run time modification flag
-const float fs =  100 * END_FREQUENCY; // Sampling frequency
+const float fs =  20 * END_FREQUENCY; // Sampling frequency
 const float samples = fs * CHIRP_DURATION; // Number of samples
 const uint32_t samples_int = (uint32_t)samples;
 static SENSEDU_DAC_BUFFER(lut, samples_int); // Buffer for the chirp signal

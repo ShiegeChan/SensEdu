@@ -10,29 +10,28 @@ nav_order: 2
 {: .no_toc .fs-8 .fw-500}
 ---
 
-The **chirp signal generation project** aims at proviving basic code to generate **frequency modulated continuous waves (FMCW)** on the **SensEdu Shield** using the **Arduino Giga R1**. The projects provides two types of frequency modulation : **sawtooth** and **triangular**.
+## Table of contents
+{: .no_toc .text-delta }
+1. TOC
+{:toc}
 
-Chirp signals are encountered in numerous fields like radar & sonar systems, telecommunications, signal processing and more. You will find more information on the potential applications from our upcoming FMCW radar project.
+## Introduction
+
+The **chirp signal generation project**{: .text-green-000} aims at proviving basic code to generate **frequency modulated continuous waves (FMCW)** on the **SensEdu Shield**{: .text-green-000} using the **Arduino Giga R1**{: .text-green-000}. The projects provides two types of frequency modulation : **sawtooth** and **triangular**.
+
+FMCW, also called chirp signals, are encountered in numerous fields, like radar & sonar systems, telecommunications, signal processing and more. You will find more information on the potential applications from our upcoming FMCW radar project.
 
 <img src="{{site.baseurl}}/assets/images/Chirp_signal.png" alt="drawing" width="500"/>
 {: .text-center}
 
-Chirp signal sweeping from 100 Hz to 10 kHz
+_Chirp signal sweeping from 100 Hz to 10 kHz_
 {: .text-center}
 
 <img src="{{site.baseurl}}/assets/images/Chirp_spectro.png" alt="drawing" width="499"/>
 {: .text-center}
 
-Spectrogram of chirp sweeping from 100 Hz to 10 kHz
-{: .text-center}
-
-
-{: .fw-500}
-
-## Table of contents
-{: .no_toc .text-delta }
-1. TOC
-{:toc}
+_Spectrogram of chirp sweeping from 100 Hz to 10 kHz_
+{: .text-center .}
 
 ## Chirp Generation Function
 Arduino does not provide any built-in chirp signal function. There are workarounds using MATLAB's built-in chirp function but our idea was to create this signal directly in Arduino with the SensEdu library.
@@ -92,6 +91,14 @@ if (phase_deg_wrapped <= 90) {
         }
 ```
 
+For the triangular modulation, the array values are mirrored on the other half.
+
+```c
+for (int i = samples_int; i < samples_int * 2; i++) {
+        vChirp[i] = vChirp[samples_int * 2 - i - 1];    // Mirror the chirp signal
+    }
+```
+
 {: .warning }
 In this configuration, the first value of the chirp signal array is 0 (or 0 V in amplitude at DAC output). This initial value can be changed by modifying `sine_lut`.
 
@@ -126,7 +133,7 @@ Keep in mind this sampling frequency will also be the DAC's output frequency in 
 The `samples_int` is an integer representing the amount of samples for one period of the chirp signal. This value also represents the memory size in the `SENSEDU_DAC_BUFFER` and `SensEdu_DAC_Settings` functions.
 
 {: .warning }
-In this implementation, `samples_int` cannot exceed 7688.
+In this implementation, the size of the chirp array cannot exceed 7688 (array size = `samples_int` for sawtooth modulation & `samples_int*2` for triangular modulation).
 
 The values of the chirp are printed in the serial monitor.
 ```c
@@ -139,8 +146,6 @@ The values of the chirp are printed in the serial monitor.
         Serial.println(lut[i]);
     }
 ```
-
-
 
 [example link]: https://github.com/ShiegeChan/SensEdu
 [link1]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
