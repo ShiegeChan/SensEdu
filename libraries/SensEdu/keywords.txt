@@ -1,0 +1,62 @@
+#######################################
+# Syntax Coloring Map
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+SENSEDU_ERROR            KEYWORD1
+SENSEDU_DAC_BUFFER       KEYWORD1
+SENSEDU_ADC_BUFFER       KEYWORD1
+
+SENSEDU_DAC_MODE         KEYWORD1
+DAC_Channel              KEYWORD1
+SensEdu_DAC_Settings     KEYWORD1
+
+SENSEDU_ADC_CONVMODE     KEYWORD1
+SENSEDU_ADC_DMA          KEYWORD1
+SensEdu_ADC_Settings     KEYWORD1
+
+#######################################
+# Functions (KEYWORD2)
+#######################################
+
+SensEdu_DAC_Init                 	KEYWORD2
+SensEdu_DAC_Disable              	KEYWORD2
+SensEdu_DAC_GetBurstCompleteFlag 	KEYWORD2
+SensEdu_DAC_ClearBurstCompleteFlag 	KEYWORD2
+
+SensEdu_TIMER_DelayInit          	KEYWORD2
+SensEdu_TIMER_Delay_us           	KEYWORD2
+
+SensEdu_ADC_Init                 	KEYWORD2
+SensEdu_ADC_Enable               	KEYWORD2
+SensEdu_ADC_Disable              	KEYWORD2
+SensEdu_ADC_Start                	KEYWORD2
+SensEdu_ADC_ReadConversion       	KEYWORD2
+SensEdu_ADC_ReadSequence         	KEYWORD2
+SensEdu_ADC_GetTransferStatus    	KEYWORD2
+SensEdu_ADC_ClearTransferStatus  	KEYWORD2
+SensEdu_ADC_ShortA4toA9          	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+DAC_CH1                          	LITERAL1
+DAC_CH2                          	LITERAL1
+
+SENSEDU_DAC_MODE_CONTINUOUS_WAVE 	LITERAL1
+SENSEDU_DAC_MODE_SINGLE_WAVE     	LITERAL1
+SENSEDU_DAC_MODE_BURST_WAVE      	LITERAL1
+
+A8                               	LITERAL1
+A9                               	LITERAL1
+A10                              	LITERAL1
+A11                              	LITERAL1
+SENSEDU_ADC_MODE_ONE_SHOT        	LITERAL1
+SENSEDU_ADC_MODE_CONT            	LITERAL1
+SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED 	LITERAL1
+SENSEDU_ADC_DMA_CONNECT          	LITERAL1
+SENSEDU_ADC_DMA_DISCONNECT       	LITERAL1
