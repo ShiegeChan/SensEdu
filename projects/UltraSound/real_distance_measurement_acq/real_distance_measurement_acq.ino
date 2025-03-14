@@ -16,8 +16,8 @@ uint8_t error_led = D86;
 //#define LOCAL_XCORR     true    // doing xcorr on the microcontroller
 //#define XCORR_DEBUG     true    // sending only distance w/o other data
 
-#define BAN_DISTANCE	20		    // min distance [cm] - how many self reflections cancelled
-#define ACTUAL_SAMPLING_RATE 244000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
+#define BAN_DISTANCE	30		    // min distance [cm] - how many self reflections cancelled
+#define ACTUAL_SAMPLING_RATE 250000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
 #define STORE_BUF_SIZE  64 * 32     // 2400 for 1 measurement per second. 
                             	    // only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)
 
@@ -166,12 +166,12 @@ void loop() {
     SensEdu_ADC_Start(adc2);
 
     // Wait for the data from ADC1
-    while(!SensEdu_DMA_GetADCTransferStatus(adc1));
-    SensEdu_DMA_ClearADCTransferStatus(adc1);
+    while(!SensEdu_ADC_GetTransferStatus(adc1));
+    SensEdu_ADC_ClearTransferStatus(adc1);
 
     // Wait for the data from ADC2
-    while(!SensEdu_DMA_GetADCTransferStatus(adc2));
-    SensEdu_DMA_ClearADCTransferStatus(adc2);
+    while(!SensEdu_ADC_GetTransferStatus(adc2));
+    SensEdu_ADC_ClearTransferStatus(adc2);
 
     // Calculating distance for each microphone
     static uint32_t distance[4];

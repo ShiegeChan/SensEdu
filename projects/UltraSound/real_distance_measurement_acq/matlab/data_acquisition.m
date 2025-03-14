@@ -12,27 +12,28 @@ time_axis = zeros(1, ITERATIONS); % preallocation of time array
 
 %% Arduino Setup + Config
 % Serial port configuration 
-ARDUINO_PORT = 'COM9';
+ARDUINO_PORT = 'COM13';
 ARDUINO_BAUDRATE = 115200;
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate 
 
 %% Readings Loop
+pause(3);
 tic;
 for it = 1:ITERATIONS
     % Start the acquisition
     write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
     pom = read_distance_data(arduino, MIC_NUM);
-    if (any(pom < 0.2) && it > 1)
-        pom = dist_matrix(:, it-1);
-    end
+    % if (any(pom < 0.2) && it > 1)
+    %     pom = dist_matrix(:, it-1);
+    % end
     % Reading the distance measurements
     dist_matrix(:, it) = pom;
 end
 acquisition_time = toc;
 
 % save measurements
-file_name = sprintf('%s_%s.mat', "distance_data", datetime("now"));
+file_name = sprintf('%s_%s.mat', "distance_data_1_moving_zigzag", datetime("now"));
 file_name = strrep(file_name, ' ', '_');
 file_name = strrep(file_name, ':', '-');
 save(file_name, "dist_matrix", "time_axis");
