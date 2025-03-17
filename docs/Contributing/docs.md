@@ -46,7 +46,7 @@ If you have any images, place them into the `~\docs\assets\images\` folder and r
 
 Other syntax is standard for Markdown with modifiers added by Just the Docs. Follow these pages to explore the syntax further: 
 * <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" target="_blank">Basic writing and formatting syntax</a>
-* <a href="https://just-the-docs.com/" target="_blank">Just the Docs page</a>.
+* <a href="https://just-the-docs.com/" target="_blank">Just the Docs page</a>
 
 ### Wiki Hosting
 
