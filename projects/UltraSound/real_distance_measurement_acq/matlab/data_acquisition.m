@@ -51,5 +51,8 @@ for i = 1:MIC_NUM
     ylim([0 1])
     xlim([0 time_axis(end)])
     grid on
-
+    xlabel("time [s]");
+    ylabel("distance [m]")
+    title("Real distance measurements: MIC");
 end
+
