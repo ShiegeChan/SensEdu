@@ -27,52 +27,68 @@ FMCW radars are widely used for short range applications like automotive or dron
 This chapter explains the fundamentals of FMCW radars in order to better understand their magic. For more in-depth information, I would recommend [Marshall Bruner's YouTube channel](https://www.youtube.com/@MarshallBrunerRF) — it's a gem on the subject!
 
 ### Chirp Signal
-FMCW radars involves the continuous transmission and reception of a frequency modulated signal also known as chirp. We will call the transmitted signal **Tx**{: .text-purple-000} and we are using a sawtooth modulation. The sawtooth modulation linearly sweeps a bandwidth $$B$$ over the chirp period $$T_c$$.
+FMCW radars involves the continuous transmission and reception of a frequency modulated signal also known as chirp. We will call the transmitted signal **$$T_x$$**{: .text-blue-000} and we are using a sawtooth modulation. The sawtooth modulation linearly sweeps a bandwidth $$B$$ over the chirp period $$T_c$$.
 
-The transmitted signal is reflected from a static object and received by the radar. The received signal is called **Rx**{: .text-purple-000}. Below is a representation of Tx and Rx's frequency over time
+The transmitted signal is reflected from a static object and received by the radar. The received signal is called **$$R_x$$**{: .text-purple-000}. Below is a representation of $$T_x$$ and $$R_x$$'s amplitude and frequency over time.
 
-<!-- <img src="{{site.baseurl}}/assets/images/Tx.png" alt="drawing" width="300"/>
-{: .text-center} -->
-
-Tx and Rx's frequency as a function of time
+<img src="{{site.baseurl}}/assets/images/TxRxGraphs.gif" alt="drawing" width="800"/>
 {: .text-center}
 
-As we see, Rx is exactly the same signal as Tx but delayed by $$t_0$$, the time of flight (TOF). We can intuitively establish a relationship between $$t_0$$ and the distance to the object $$d$$ :
+
+$$T_x$$ and $$R_x$$'s Amplitude and Frequency as a Function of Time
+{: .text-center}
+
+As we see, $$R_x$$ is exactly the same signal as $$T_x$$ but delayed by $$t_0$$, the time of flight (TOF). We can intuitively establish a relationship between $$t_0$$ and the distance to the object $$d$$ :
 
 <div id="eq1" class="fs-5 text-center">
-  $$t_0 = \frac{2d}{c} \tag{1}$$
+  $$\boxed{t_0 = \frac{2d}{c}} \tag{1}$$
 </div>
 
 where $$c = 343 \, \text{m} \cdot \text{s}^{-1}$$ the speed of sound in air for $$T = 293 \, K$$
 
 ### Distance
-Where pulse radars measure time and TOF to evaluate distance, FMCW radars measure frequencies. Unfortunately, the TOF $$t_0$$ cannot be estimated directly since we are sending waves continuously but we have another valuable information : The beat frequency $$f_b$$.
+Where pulse radars measure time and TOF to evaluate distance, FMCW radars measure frequencies! The TOF $$t_0$$ cannot be estimated directly since we are sending waves continuously but we have another valuable information : The beat frequency $$f_b$$.
 
 The beat frequency is defined as the frequency equal to the difference between two sinusoids. $$f_b$$ appears in the figure below.
 
-<video muted controls playsinline>
-    <source src="{{site.baseurl}}/assets/videos/TxRx.webm" type="video/webm">
-    Video is broken.
-</video>
+<img src="{{site.baseurl}}/assets/images/fbeat.png" alt="drawing" width="800"/>
+{: .text-center}
 
-The beat frequency $$f_b$$ appears due to the slight delay between Tx and Rx
+The Beat Frequency $$f_b$$ appears due to the slight delay between $$T_x$$ and $$R_x$$
 {: .text-center}
 
 The geometrical approach is the simplest way to understand how to derive the distance from $$f_b$$. Let's define the slope of the chirp $$s$$ being $$s=\frac{B}{T_c}$$. Using the last figure and Eq [(1)](#eq1) we now have the following relationship :
 
 <div id="eq2" class="fs-5 text-center">
-  $$f_b = s t_0 = s \frac{2d}{c} \tag{2}$$
+  $$\boxed{f_b = s t_0 = s \frac{2d}{c}} \tag{2}$$
 </div>
 
 Thus, the distance can easily be derived :
 
 <div id="eq3" class="fs-5 text-center">
-  $$d = \frac{c f_b}{2s} \tag{3}$$
+  $$\boxed{d = \frac{c f_b}{2s}} \tag{3}$$
 </div>
 
 We know how to compute the distance, that's great! But how do we extract $$f_b$$ ...
 
 ### Beat frequency
+To extract the beat frequency we need to mix the $$T_x$$ and $$R_x$$. Mixing two signals is essentially multiplying them. Let's define $$f_T$$ and $$f_R$$ the instantaneous frequencies of our two signals and $$y_{mix}$$ the mixed signal (we disregard the phase of the signals as it is not relevant here).
+
+$$y_{mix}$$ is defined as :
+
+<div id="eq4" class="fs-5 text-center">
+  $$ 
+  y_{mix} = T_x \cdot R_x = \sin(2 \pi f_{T} t) \cdot \sin(2 \pi f_{R} t) \\
+  = \sin\big(2 \pi \textcolor{chartreuse}{\underbrace{\color{white}(f_T-f_R)}_{f_b}} t\big) + \sin\big(2 \pi \textcolor{red}{\underbrace{\color{white}(f_{T}+f_{R})}_{\text{HF component}}} t\big) \tag{4}
+  $$
+</div>
+
+The mixing operation produces two sinusoids :
+- One at the difference of the frequencies $$f_{T}-f_{R}$$
+- One at the sum of the frequencies $$f_{T}+f_{R}$$
+
+The HF component at $$f_{T}+f_{R}$$ can easily be removed with a low pass filter. The remaining signal is a simple sinudoid at the beat frequency $$f_b=f_{T}-f_{R}$$. Below is a representation of the mixing signal operation.
+
 
 
 ## Radar Design
