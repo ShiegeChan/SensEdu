@@ -24,7 +24,7 @@ FMCW radars are widely used for short range applications like automotive or dron
 {:toc}
 
 ## FMCW Radar Principle
-This chapter explains the fundamentals of FMCW radars in order to better understand their magic. For more in-depth information, I would recommend [Marshall Bruner's YouTube channel](https://www.youtube.com/@MarshallBrunerRF) — it's a gem on the subject!
+This chapter explains the fundamentals of FMCW radars in order to better understand their magic. For more in-depth information, I would recommend [Marshall Bruner's YouTube channel](https://www.youtube.com/@MarshallBrunerRF) — his channel is a gem on the subject! The animated graphs on this doc have been created with the [Manim Community](https://docs.manim.community/en/stable/index.html) python library and greatly inspired by Marshall Bruner's code.
 
 ### Chirp Signal
 FMCW radars involves the continuous transmission and reception of a frequency modulated signal also known as chirp. We will call the transmitted signal **$$T_x$$**{: .text-blue-000} and we are using a sawtooth modulation. The sawtooth modulation linearly sweeps a bandwidth $$B$$ over the chirp period $$T_c$$.
@@ -33,7 +33,6 @@ The transmitted signal is reflected from a static object and received by the rad
 
 <img src="{{site.baseurl}}/assets/images/TxRxGraphs.gif" alt="drawing" width="800"/>
 {: .text-center}
-
 
 $$T_x$$ and $$R_x$$'s Amplitude and Frequency as a Function of Time
 {: .text-center}
@@ -72,14 +71,16 @@ Thus, the distance can easily be derived :
 We know how to compute the distance, that's great! But how do we extract $$f_b$$ ...
 
 ### Beat frequency
-To extract the beat frequency we need to mix the $$T_x$$ and $$R_x$$. Mixing two signals is essentially multiplying them. Let's define $$f_T$$ and $$f_R$$ the instantaneous frequencies of our two signals and $$y_{mix}$$ the mixed signal (we disregard the phase of the signals as it is not relevant here).
+To extract the beat frequency we need to mix the $$T_x$$ and $$R_x$$. Mixing two signals is essentially multiplying them but it enables us to subtract in the frequency domain. Let's explain 
 
-$$y_{mix}$$ is defined as :
+If we freeze $$T_x$$ and $$R_x$$ at a given time, they're basically two pure sinusisuoids with different frequencies. Let's define $$f_T$$ and $$f_R$$ the instantaneous frequencies of our two signals and $$y_{mix}$$ the mixed signal (the phase of the signals is not relevant here).
+
+At a given time, $$y_{mix}$$ is defined as :
 
 <div id="eq4" class="fs-5 text-center">
   $$ 
   y_{mix} = T_x \cdot R_x = \sin(2 \pi f_{T} t) \cdot \sin(2 \pi f_{R} t) \\
-  = \sin\big(2 \pi \textcolor{chartreuse}{\underbrace{\color{white}(f_T-f_R)}_{f_b}} t\big) + \sin\big(2 \pi \textcolor{red}{\underbrace{\color{white}(f_{T}+f_{R})}_{\text{HF component}}} t\big) \tag{4}
+  = \frac{1}{2}\big[\cos\big(2 \pi \textcolor{chartreuse}{\underbrace{\color{white}(f_T-f_R)}_{f_b}} t\big) + \cos\big(2 \pi \textcolor{red}{\underbrace{\color{white}(f_{T}+f_{R})}_{\text{HF component}}} t\big)\big] \tag{4}
   $$
 </div>
 
@@ -87,7 +88,14 @@ The mixing operation produces two sinusoids :
 - One at the difference of the frequencies $$f_{T}-f_{R}$$
 - One at the sum of the frequencies $$f_{T}+f_{R}$$
 
-The HF component at $$f_{T}+f_{R}$$ can easily be removed with a low pass filter. The remaining signal is a simple sinudoid at the beat frequency $$f_b=f_{T}-f_{R}$$. Below is a representation of the mixing signal operation.
+The high frequency component HF at $$f_{T}+f_{R}$$ can easily be removed with a low pass filter. The remaining signal is a simple sinudoid at the beat frequency $$f_b=f_{T}-f_{R}$$. Below is a representation of the mixing signal operation.
+
+
+<img src="{{site.baseurl}}/assets/images/Mixing.gif" alt="drawing" width="800"/>
+{: .text-center}
+
+$$y_{mix}$$ is the product of $$T_x$$ and $$R_x$$
+{: .text-center}
 
 
 
