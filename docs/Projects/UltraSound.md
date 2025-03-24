@@ -35,7 +35,18 @@ The exact sampling rate is very important for exact measurement acquisition. Mak
 
 ### About the Sampling Rate
 
-In this project, the ADC sampling rate is set to 250 kHz. However, the measured sampling rate slightly differs from this value. To measure the real sampling rate, a MATLAB script *"measure_sampling_rate.m"* is provided. This value is defined as a preprocessor macro *"ACTUAL_SAMPLING_RATE"*. 
+In this project, the ADC sampling rate is set to 250 kHz.  
+
+#### How to change ADC Sampling Rate?
+Changing the ADC sampling rate correctly requires the following steps: 
+1. In .ino script - set "**.sampling_freq**" field of SensEdu_ADC_Settings structure 
+2. In .ino script - set "**ACTUAL_SAMPLING_RATE**" macro to the same value
+3. In "**generateDAC.m**" - set "**fs**" variable to match the wanted sampling frequency and generate a new LUT
+4. Copy the new LUT to the "**SineLUT.h**" file
+
+{: .note }
+Currently, the library *does not* support different sampling rates for different ADCs since all the ADCs use the same timer. 
+
 
 As for the DAC sampling rate, it is caluclated as frequency of the wave that is sent - in our case 32 kHz sine wave multiplied by the number of samples that the wave has for one cycle. 
 
@@ -113,6 +124,4 @@ This diagram depicts one iteration of PC receiving the data. This continues for 
 
 {: .important}
 Make sure that *PLOT_DETAILED_DATA* in MATLAB matches the value of *XCORR_DETAILS*, as well as to set *DATA_LENGTH* in MATLAB to be the same as *STORE_BUF_SIZE* macro. Make sure to choose the correct *ARDUINO_PORT* to match the real one. 
-
-
 
