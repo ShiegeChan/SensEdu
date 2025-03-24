@@ -35,7 +35,8 @@ SensEdu includes:
 
 You can find detailed information about each component in the [PCB Chapter]({% link PCB/index.md %}). With these components, you can build a variety of projects, such as:
 * Ultrasonic Distance Measurements
-* Radio Wave Generation
+* Chirp Signal Generation
+* FMCW Radars
 * Frequency Shift Keying (FSK) communication between multiple boards
 * Weather Stations
 

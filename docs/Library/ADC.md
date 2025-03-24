@@ -660,10 +660,10 @@ __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_
 
 The STM32H7 microcontroller is equipped with three ADC modules, each capable of accessing multiple channels (refer to the [table] above). Reading the ADC values from a single channel is straightforward, as the data is stored consecutively in an array. 
 
+However, when reading data from multiple channels within a single ADC module, users must use different approach. The data for each channel is interleaved in the array, meaning that the data for each channel is stored one after the other, rather than all data from first channel followed by all data from second channel, and so forth. This structure is illustrated clearly in the following figure giving an example of using two channels with one ADC module. 
 
-However, when reading data from multiple channels within a single ADC module, users must exercise caution. The data for each channel is interleaved in the array, meaning that the data for each channel is stored one after the other, rather than all data from first channel followed by all data from second channel, and so forth. This structure is illustrated clearly in the following figure giving an example of using two channels with one ADC module. 
-
-![]({{site.baseurl}}/assets/images/ADC_Data_Flow.png)
+<img src="{{site.baseurl}}/assets/images/ADC_Data_Flow.png" alt="drawing"/>
+{: .text-center}
 
 [table]: /SensEdu/Library/ADC/#adc_table_id
 [this issue]: https://github.com/ShiegeChan/SensEdu/issues/8

@@ -5,9 +5,12 @@ nav_order: 3
 permalink: /pcb/
 ---
 
-# SENSEDU PCB Designing
+# PCB Design
+{: .fs-8 .fw-500 .no_toc}
+---
 
-This project focuses on the design and development of a Printed Circuit Board (PCB) tailored for the Arduino GIGA R1. The objective is to create a versatile and efficient platform capable of accommodating a wide range of ultrasound applications, ensuring optimal performance and ease of integration. 
+SensEdu focuses on the design and development of a Printed Circuit Board (PCB) tailored for the Arduino GIGA R1. The objective is to create a versatile and efficient platform capable of accommodating a wide range of ultrasound applications, ensuring optimal performance and ease of integration.
+{: .fw-500}
 
 ## Overview
 This shield extends the Arduino Giga’s capabilities for ultrasound applications, including:
