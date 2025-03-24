@@ -19,26 +19,30 @@ The STM32H747 features one DAC module with two available channels:
 * ***Central Speaker***: connected to the first channel (channel 1) on `DAC0` pin 
 * ***Bottom Speaker*** connected to the second channel (channel 2) on `DAC1` pin
 
-The SensEdu library has advanced features accounting for ease of use and code efficiency. To specify the data to be sent, a lookup table (LUT) is used. Both channels of the DAC module are available. Moreover, there are 3 modes in which a waveform can be sent to the module: 
+To specify the data to be sent, a lookup table (LUT) is used. There are 3 available modes in which a waveform can be sent to the peripheral: 
 
-1. *burst mode* - sending LUT values for a specified number of times
-2. *single mode* - sending LUT values once (or single burst mode)
-3. *continuous mode* - sending LUT values continuously 
+1. *continuous mode* - sending LUT values continuously 
+2. *burst mode* - sending LUT values specified number of cycles
+3. *single mode* - sending LUT values once (single burst mode)
 
-Each of the methods are usefull for different applications. 
+Each of the methods are useful for different applications.
 
 ## Errors
 
 Main DAC error code is `0x30xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
 
 An overview of possible errors for DAC:
-* `0x3000`:
-* `0x3001`:
-* `0x3002`:
 
-An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
-* `0x30A0`:
-* `0x30A1`:
+* `0x3000`: No Errors
+* `0x3001`: DAC was initialized before initialization
+* `0x3002`: Passed DAC channel is not either `DAC_CH1` nor `DAC_CH2`
+* `0x3003`: Selected sampling frequency is too high. Maximum is around 15MHz
+* `0x3004`: Unexpected address or memory size for DMA
+* `0x3005`: In `SENSEDU_DAC_MODE_BURST_WAVE` expected `burst_num` is at least 1
+
+An overview of critical errors. They shouldn’t happen in normal user case and indicate some problems in library code:
+
+* `0x30A0`: DMA Underrun interrupt flag was raised: currently selected trigger is driving DAC channel conversion at a frequency higher than the DMA service capability rate (read more in section 27.4.8 of [Reference Manual])
 
 ## Structs
 
@@ -59,19 +63,19 @@ typedef struct {
 
 #### Fields
 {: .no_toc}
-* `dac_channel`: Selects the DAC channel (channel 1 or channel 2)
-* `sampling_freq`: Specified DAC sampling frequency. Maximum value that can be set is 15 MHz.
-* `mem_address`: Address of the array's first element written to DAC
-* `mem_size`: Number of array elements.
+* `dac_channel`: Selects the DAC channel (`DAC_CH1` or `DAC_CH2`)
+* `sampling_freq`: Specified DAC sampling frequency. Maximum value is around 15 MHz
+* `mem_address`: DMA buffer address in memory (first element of the array)
+* `mem_size`: DMA buffer size
 * `wave_mode`: 
-    * `SENSEDU_DAC_MODE_CONTINUOUS_WAVE` 
-    * `SENSEDU_DAC_MODE_SINGLE_WAVE`
-    * `SENSEDU_DAC_MODE_BURST_WAVE`
-* `burst_num`: Number of instances of specified LUT.
+    * `SENSEDU_DAC_MODE_CONTINUOUS_WAVE`: Continuous mode
+    * `SENSEDU_DAC_MODE_SINGLE_WAVE`: Single mode
+    * `SENSEDU_DAC_MODE_BURST_WAVE`: Burst mode
+* `burst_num`: Number of LUT cycles for `SENSEDU_DAC_MODE_BURST_WAVE` mode
 
 #### Notes
 {: .no_toc}
-`burst_num` is not zero only for `SENSEDU_DAC_MODE_BURST_WAVE` mode. 
+* `burst_num` is not ignored only for `SENSEDU_DAC_MODE_BURST_WAVE` mode. 
 
 
 ## Functions 
@@ -88,32 +92,35 @@ void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings);
 
 #### Notes
 {: .no_toc}
-* Additionally, initializes associated DMA and timer in ---- modes respectively. 
+* Initializes associated DMA and timer.
+
 
 ### SensEdu_DAC_Enable
-Powers on the DAC module. 
+Enables DAC module, wave transmission starts.
 ```c
 void SensEdu_DAC_Enable(DAC_Channel* dac_channel);
 ```
 #### Parameters
 {: .no_toc}
-* `dac_channel`: DAC Channel instance.
+* `dac_channel`: DAC Channel instance
 
+#### Notes
+{: .no_toc}
+* There is no separate `Enable` and `Start` function as for ADC.
 
 ### SensEdu_DAC_Disable
-Deactivates the DAC module. 
+Deactivates DAC module. 
 
 ```c
 void SensEdu_DAC_Disable(DAC_Channel* dac_channel);
 ```
 #### Parameters
 {: .no_toc}
-* `dac_channel`: DAC Channel instance. 
+* `dac_channel`: DAC Channel instance
 
 
 ### SensEdu_DAC_GetBurstCompleteFlag
-
-Returns the burst status flag of the DAC channel. If the sending mode is in "Burst Mode", the burst_complete flag will be set to `true`. 
+Returns the burst status flag of the DAC channel. When transfer is finished, it returns `1`.
 
 ```c
 uint8_t SensEdu_DAC_GetBurstCompleteFlag(DAC_Channel* dac_channel);
@@ -121,48 +128,19 @@ uint8_t SensEdu_DAC_GetBurstCompleteFlag(DAC_Channel* dac_channel);
 
 #### Parameters
 {: .no_toc}
-* `dac_channel`: DAC Channel instance. 
+* `dac_channel`: DAC Channel instance
+
+#### Returns
+{: .no_toc}
+* `burst_complete` flag: `1` indicates finished burst transfer
 
 
 ### SensEdu_DAC_ClearBurstCompleteFlag
 
-Resets the burst status flag of the DAC channel to its default value `false`. 
+Clears the burst status flag of the DAC channel to its default value `0`.
 
 ```c
 void SensEdu_DAC_ClearBurstCompleteFlag(DAC_Channel* dac_channel);
-```
-
-#### Parameters
-{: .no_toc}
-* `dac_channel`: DAC Channel instance. 
-
-### DAC_GetError
-Returns a variable of user-defined type DAC_ERROR which specifies a particular error that the DAC module can be in. 
-```c
-DAC_ERROR DAC_GetError(void);
-```
-
-### DAC_WriteDataManually
-Writing specified data to the different DAC module register depending on which channel is 
-selected. 
-
-```c
-void DAC_WriteDataManually(DAC_Channel* dac_channel, uint16_t data)
-```
-{: .note }
-For writing data to one of the channels, right-aligned data registers are used for both channels. 
-
-#### Parameters
-{: .no_toc}
-* `dac_channel`: DAC Channel instance. 
-* `data`: Data to be written to the selected DAC Channel. 
-
-### DAC_ReadCurrentOutputData
-
-Reads the DAC module register for selected DAC channel. 
-
-```c
-uint16_t DAC_ReadCurrentOutputData(DAC_Channel* dac_channel);
 ```
 
 #### Parameters
@@ -171,31 +149,125 @@ uint16_t DAC_ReadCurrentOutputData(DAC_Channel* dac_channel);
 
 ## Examples
 
+Examples are organized incrementally. Each builds on the previous one by introducing only new features or modifications. Refer to earlier examples for core functionality details.
+{: .fw-500}
+
+If you want to see complete examples, visit `\examples\` directory or open them via Arduino IDE by navigating to `File → Examples → SensEdu`.
+
 Each example uses a LUT with specified (16-bit) values and size. An example of defining a sine wave of 64 samples is shown in the following code snippet
 
 ```c
 const SENSEDU_DAC_BUFFER(buffer_name, buffer_size) = {...};
 ```
-where the first parameter of *SENSEDU_DAC_BUFFER* is the user-defined ***name*** to be used in the program code while the second parameter is the ***size*** of the LUT. 
+where the first parameter of `SENSEDU_DAC_BUFFER` is the user-defined ***name*** to be used in the program code while the second parameter is the ***size*** of the LUT. 
 
 {: .note}
-User can specify LUT size to be any positive integer. However, the real size of the DAC buffer has to be an integer devisible by integers raised by power of 2. See examples for more clarification. 
+User can specify LUT size to be any positive integer. However, the real size of the DAC buffer has to be an integer divisible by integers raised by power of 2. See more details in [MPU Configuration]({% link Library/DAC.md %}#mpu-configuration) section.
 
-### Send_DAC_Variable_Wave
+### Send_DAC_Single_Sine
 
-Example of modifying the predefined LUT during the program execution. 
+Transmitting a single instance of a predefined LUT with sine waveform.
 
-1. Define the initial LUT 
-2. Configure DAC channel
-3. Initialize and enable DAC channel
-4. Modify LUT in a loop while making sure it does not go out of bound
-5. Check for errors
-
+1. Include SensEdu library
+2. Declare DAC Buffer and initialize it with sine LUT
+3. Initialize the `SensEdu_DAC_Settings` struct with DAC parameters.
+4. Initialize `SensEdu_DAC_Init` with created struct
+5. Enable wave transmission `SensEdu_DAC_Enable`
 
 ```c
 #include <SensEdu.h>
 
-static uint32_t lib_error = 0;
+const uint16_t sine_lut_size = 64; // sine wave size
+const SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {
+    0x0000,0x000a,0x0027,0x0058,0x009c,0x00f2,0x0159,0x01d1,
+    0x0258,0x02ed,0x038e,0x043a,0x04f0,0x05ad,0x0670,0x0737,
+    0x0800,0x08c8,0x098f,0x0a52,0x0b0f,0x0bc5,0x0c71,0x0d12,
+    0x0da7,0x0e2e,0x0ea6,0x0f0d,0x0f63,0x0fa7,0x0fd8,0x0ff5,
+    0x0fff,0x0ff5,0x0fd8,0x0fa7,0x0f63,0x0f0d,0x0ea6,0x0e2e,
+    0x0da7,0x0d12,0x0c71,0x0bc5,0x0b0f,0x0a52,0x098f,0x08c8,
+    0x0800,0x0737,0x0670,0x05ad,0x04f0,0x043a,0x038e,0x02ed,
+    0x0258,0x01d1,0x0159,0x00f2,0x009c,0x0058,0x0027,0x000a
+};
+
+#define DAC_SINE_FREQ       32000                           // 32kHz
+#define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
+
+DAC_Channel* dac_ch = DAC_CH1;
+SensEdu_DAC_Settings dac_settings = {
+    .dac_channel = dac_ch, 
+    .sampling_freq = DAC_SAMPLE_RATE,
+    .mem_address = (uint16_t*)sine_lut,
+    .mem_size = sine_lut_size,
+    .wave_mode = SENSEDU_DAC_MODE_SINGLE_WAVE,
+    .burst_num = 0
+};
+
+void setup() {
+    SensEdu_DAC_Init(&dac_settings);
+}
+
+void loop() {
+    SensEdu_DAC_Enable(dac_ch);
+    delay(100);
+}
+```
+
+#### Notes
+{: .no_toc}
+* In this example wave is sent every 100ms.
+* If you put only `SensEdu_DAC_Enable` in setup, then the wave will be transmitted only once when you power up the board, so it is easily missable. If you want to see it with an oscilloscope, you could reset firmware by pressing `RST` button once on Arduino (do not press two times in succession, you will clear MCU firmware this way).
+
+
+### Send_DAC_Burst_Sine
+
+Transmitting a specified number of cycles of a predefined LUT with sine waveform, creating bursts.
+
+1. Follow single wave example [`Send_DAC_Single_Sine`]({% link Library/DAC.md %}#send_dac_single_sine)
+2. Change `wave_mode` to `SENSEDU_DAC_MODE_BURST_WAVE`
+3. Specify `burst_num` to desired cycle number
+
+```c
+// DAC configuration struct
+    .wave_mode = SENSEDU_DAC_MODE_BURST_WAVE,
+    .burst_num = 10
+```
+
+### Send_DAC_Const_Sine
+
+Transmitting a constant sine wave with predefined LUT.
+
+1. Follow single wave example [`Send_DAC_Single_Sine`]({% link Library/DAC.md %}#send_dac_single_sine)
+2. Change `wave_mode` to `SENSEDU_DAC_MODE_CONTINUOUS_WAVE`
+3. Enable DAC once in setup with `SensEdu_DAC_Enable`
+
+```c
+// DAC configuration struct
+    .wave_mode = SENSEDU_DAC_MODE_CONTINUOUS_WAVE,
+    ...
+
+void setup() {
+    SensEdu_DAC_Init(&dac_settings);
+    SensEdu_DAC_Enable(dac_ch);
+}
+
+void loop() {
+    // nothing
+}
+```
+
+### Send_DAC_Variable_Wave
+
+Transmitting wave constantly with LUT changes during the program execution (run-time modifications). For this specific example we use small DAC buffer (4 elements) to generate a triangular wave across whole 16-bit region.
+
+1. Include SensEdu library
+2. Declare DAC Buffer and initialize it with any values
+3. Initialize the `SensEdu_DAC_Settings` struct with DAC parameters for constant wave
+4. Initialize `SensEdu_DAC_Init` with created struct and enable the wave transmission `SensEdu_DAC_Enable`
+5. Modify LUT to create triangular shape by incrementing or decrementing each LUT element in a loop. When any value reaches 0 or 65535, change direction with `increment_flag`
+
+```c
+#include <SensEdu.h>
+
 static uint8_t increment_flag = 1; // run time modification flag
 
 const size_t lut_size = 4;
@@ -203,22 +275,19 @@ static SENSEDU_DAC_BUFFER(lut, lut_size) = {
     0x0000,0x0001,0x0002,0x0003
 };
 
+DAC_Channel* dac_ch = DAC_CH1;
+SensEdu_DAC_Settings dac_settings = {
+    .dac_channel = dac_ch, 
+    .sampling_freq = 64000*16, // ~1MHz sampling rate
+    .mem_address = (uint16_t*)lut,
+    .mem_size = lut_size,
+    .wave_mode = SENSEDU_DAC_MODE_CONTINUOUS_WAVE,
+    .burst_num = 0
+};
+
 void setup() {
-    Serial.begin(115200);
-    SensEdu_DAC_Settings dac_settings = {DAC_CH1, 64000*16, (uint16_t*)lut, lut_size, 
-        SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 0};
-
     SensEdu_DAC_Init(&dac_settings);
-    SensEdu_DAC_Enable(DAC_CH1);
-
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
-    }
-
-    Serial.println("Setup is successful.");
+    SensEdu_DAC_Enable(dac_ch);
 }
 
 void loop() {
@@ -231,71 +300,15 @@ void loop() {
         }
     }
 
-    // out of bounds checks
+    // increase\decrease change if out of bounds
     if (lut[0] == 0x0000) {
         increment_flag = 1;
     }
     if (lut[lut_size-1] == 0x0FFF) {
         increment_flag = 0;
     }
-    
-    // check errors
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
-    }
-}
-
-```
-
-### Send_DAC_Single_Sine
-
-Example of sending a single instance of a predefined LUT with sine waveform. 
-
-```c
-#include <SensEdu.h>
-
-uint32_t lib_error = 0;
-
-// DAC transfered symbols
-const size_t sine_lut_size = 64;
-const SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {0x0000,0x000a,0x0027,0x0058,0x009c,0x00f2,0x0159,0x01d1,0x0258,0x02ed,0x038e,0x043a,0x04f0,0x05ad,0x0670,0x0737,
-	0x0800,0x08c8,0x098f,0x0a52,0x0b0f,0x0bc5,0x0c71,0x0d12,0x0da7,0x0e2e,0x0ea6,0x0f0d,0x0f63,0x0fa7,0x0fd8,0x0ff5,
-	0x0fff,0x0ff5,0x0fd8,0x0fa7,0x0f63,0x0f0d,0x0ea6,0x0e2e,0x0da7,0x0d12,0x0c71,0x0bc5,0x0b0f,0x0a52,0x098f,0x08c8,
-	0x0800,0x0737,0x0670,0x05ad,0x04f0,0x043a,0x038e,0x02ed,0x0258,0x01d1,0x0159,0x00f2,0x009c,0x0058,0x0027,0x000a};
-
-void setup() {
-    Serial.begin(115200);
-    SensEdu_DAC_Settings dac_settings = {DAC_CH1, 32000*64, (uint16_t*)sine_lut, sine_lut_size, 
-        SENSEDU_DAC_MODE_SINGLE_WAVE, 0};
-
-    SensEdu_DAC_Init(&dac_settings);
-    SensEdu_DAC_Enable(DAC_CH1);
-
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
-    }
-    Serial.println("Setup is successful.");
-}
-
-void loop() {
-    // check errors
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
-    }
 }
 ```
-
-{: .note}
-To send a continuous sine wave, the only modification would be DAC mode parameter, choosing SENSEDU_DAC_MODE_CONTINUOUS_WAVE. Similarly, to send a burst wave, choose DAC mode to be SENSEDU_DAC_MODE_BURST_WAVE with specified number of bursts as the last parameter of dac_settings. 
 
 ## Developer Notes
 
@@ -376,10 +389,5 @@ The `SENSEDU_DAC_BUFFER` macro allows **any** user-defined size. The library int
 After buffer allocation, during `DMA_DACInit()` the library configures the MPU region using internal function `LL_MPU_ConfigRegion()` to enforce non-cacheable and non-bufferable memory region.
 
 
-[//]:### something else
-
-[//]:info about internal things, like taken streams, channels and etc.
-[//]:if you want link, include it like this: [link_name]. and link itself at the bottom
-
-[//]:[link_name]: https:://link
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
+[Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
