@@ -116,7 +116,7 @@ The PCB for this project was designed using [KiCad](https://kicad.org/), an open
 	The Infineon IM73A135V01XTSA1 is a high-performance MEMS Analog microphone designed for precise sound capture. It is particularly suitable for ultrasound applications due to its high Signal-to-Noise Ratio (SNR) and low Total Harmonic Distortion (THD).
 
 	<img src="{{site.baseurl}}/assets/images/Mikrophone.png" alt="drawing" width="250"/>
-  	{: .text-left}
+  {: .text-left}
 
 - **Quantity**: 4
 - **Key Features**:
