@@ -29,7 +29,7 @@ This chapter explains the fundamentals of FMCW radars in order to better underst
 ### Chirp Signal
 FMCW radars involves the continuous transmission and reception of a frequency modulated signal also known as chirp. We will call the transmitted signal **$$T_x$$**{: .text-blue-000} and we are using a sawtooth modulation. The sawtooth modulation linearly sweeps a bandwidth $$B$$ over the chirp period $$T_c$$.
 
-The transmitted signal is reflected from a static object and received by the radar. The received signal is called **$$R_x$$**{: .text-purple-000}. Below is a representation of $$T_x$$ and $$R_x$$'s amplitude and frequency over time.
+The transmitted signal is reflected from a static object and received by the radar. The received signal is called **$$R_x$$**{: .text-purple-000}. Below is a representation of $$T_x$$ and $$R_x$$'s amplitude and frequency over time :
 
 <img src="{{site.baseurl}}/assets/images/TxRxGraphs.gif" alt="drawing" width="800"/>
 {: .text-center}
@@ -49,7 +49,7 @@ where
 ### Distance
 Where pulse radars measure time and TOF to evaluate distance, FMCW radars measure frequencies! The TOF $$t_0$$ cannot be estimated directly since we are sending waves continuously but we have another valuable information : The beat frequency $$f_b$$.
 
-The beat frequency is defined as the frequency equal to the difference between two sinusoids. $$f_b$$ appears in the figure below.
+The beat frequency is defined as the frequency equal to the difference between two sinusoids. $$f_b$$ appears in the figure below :
 
 <img src="{{site.baseurl}}/assets/images/fbeat.png" alt="drawing" width="800"/>
 {: .text-center}
@@ -72,11 +72,11 @@ Thus, the distance can easily be derived :
 We know how to compute the distance, that's great! But how do we extract $$f_b$$ ...
 
 ### Beat frequency
-To extract the beat frequency we need to mix the $$T_x$$ and $$R_x$$. Mixing two signals is essentially multiplying them but it enables us to subtract in the frequency domain. Let's explain 
+To extract the beat frequency we need to mix the $$T_x$$ and $$R_x$$. Mixing two signals is essentially multiplying them but it enables us to subtract in the frequency domain.
 
-If we freeze $$T_x$$ and $$R_x$$ at a given time, they're basically two pure sinusisuoids with different frequencies. Let's define $$f_T$$ and $$f_R$$ the instantaneous frequencies of our two signals and $$y_{mix}$$ the mixed signal (the phase of the signals is not relevant here).
+If we freeze $$T_x$$ and $$R_x$$ at a given time, they're basically two sinusoids at different frequencies. Let's define $$f_T$$ and $$f_R$$ the instantaneous frequencies of our two signals where $$f_T>f_R$$ (the phase of the signals is not relevant here). We also define $$y_{mix}$$ the mixed signal.
 
-At a given time, $$y_{mix}$$ is defined as :
+At a given time, $$y_{mix}$$ is expressed as
 
 <div id="eq4" class="fs-5 text-center">
   $$ 
@@ -85,11 +85,11 @@ At a given time, $$y_{mix}$$ is defined as :
   $$
 </div>
 
-The mixing operation produces two sinusoids :
-- One at the difference of the frequencies $$f_{T}-f_{R}$$
-- One at the sum of the frequencies $$f_{T}+f_{R}$$
+The mixing operation produces a signal which is the sum of two sinusoids :
+- One at the frequency $$f_{T}-f_{R}$$
+- One at the frequency $$f_{T}+f_{R}$$
 
-The high frequency component HF at $$f_{T}+f_{R}$$ can easily be removed with a low pass filter. The remaining signal is a simple sinudoid at the beat frequency $$f_b=f_{T}-f_{R}$$. Below is a representation of the mixing signal operation.
+The high frequency component HF at $$f_{T}+f_{R}$$ can easily be removed with a low pass filter. The remaining signal is a simple sinudoid at the beat frequency $$f_b=f_{T}-f_{R}$$. Below is a representation of the mixing signal operation :
 
 
 <img src="{{site.baseurl}}/assets/images/Mixing.gif" alt="drawing" width="800"/>
@@ -100,7 +100,7 @@ $$y_{mix}$$ is the product of $$T_x$$ and $$R_x$$
 
 ### Distance Resolution & Max Range 
 
-Let's define two critical parameters regarding radar performance. Distance resolution defines the smallest distance at which a radar can separate two objects. The distance resolution $$\Delta d$$ is defined by
+Distance resolution and max range are two critical parameters regarding radar performance. Distance resolution defines the smallest distance at which a radar can separate two objects. The distance resolution $$\Delta d$$ is defined by
 
 <div id="eq5" class="fs-5 text-center">
   $$\fcolorbox{red}{#28242c}{$\displaystyle \Delta d = \frac{c}{2B}$} \tag{5}$$
@@ -132,16 +132,31 @@ For ultrasonic FMCW radars, the max range bottleneck is $$T_c$$. For regular FMC
 
 
 ## Radar Design
-{: .important}
-Due to mechanical coupling issues on the current SensEdu Shield, this radar implementation is quite rudimentary. The radar module will not be able to perform distance measurements on a single SensEdu Shield. The implementation requires two Arduino boards with SensEdu Shields and the radar measures the distance between the two boards.
 
-The following block diagram illustrates the architecture of the FMCW radar.
+{: .warning}
+Due to mechanical coupling issues on the current SensEdu Shield, this radar implementation is quite rudimentary. The radar module will not be able to perform distance measurements with a single SensEdu Shield. The implementation requires two Arduino boards with SensEdu Shields and the radar measures the distance between the two boards.
 
-<img src="{{site.baseurl}}/assets/images/.gif" alt="drawing" width="800"/>
+The following block diagram illustrates the architecture of the FMCW radar :
+
+<img src="{{site.baseurl}}/assets/images/RadarDesign.png" alt="drawing" width="800"/>
 {: .text-center}
 
 FMCW Radar Block Diagram
 {: .text-center}
+
+The chirp signal is generated in the transmitter shield and converted to an analog signal with the DAC. Tx is then doubled and follows 2 paths :
+
+- Tx is amplified and sent to the ultrasonic transducer
+- Tx is sent to the receiving shield by using a jump wire between the transmitter DAC pin and the receiver ADC1 pin.
+
+On the receiver shield, Tx goes through ADC1. The MEMS microphone receives a signal Rx which is amplified with a low noise amplifier (LNA) and goes through ADC2. This method is by no means optimal but it enables to send Tx and Rx signals to MATLAB from the same shield which simplifies signal synchronization. The Tx and Rx signals are sent from the receiver shield to MATLAB.
+
+The following signal processing is performed in MATLAB to measure the distance between the two shields:
+
+- Compute mixing operation between Tx and Rx
+- Compute FFT of mixed signal $$y_{mix}$$
+- Low-pass filter $$y_{mix}$$
+- Extract beat frequency and compute distance
 
 ## Code Implementation
 ### Send DAC and ADC data
