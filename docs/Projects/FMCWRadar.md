@@ -11,7 +11,7 @@ nav_order: 3
 ---
 
 {: .warning}
-This project is currently in its initial development phase and is subject to significant changes, updates, and improvements. The current state of the project does not represent the final working version, and some features may be incomplete.
+This project is currently in its initial development phase and is subject to significant changes, updates, and improvements. The project enables a rudimentary implementation of an FMCW radar and requires two Arduino boards with SensEdu Shields.
 
 The **FMCW Radar Project**{: .text-green-000} utilizes the **SensEdu Shield**{: .text-green-000} to perform **distance measurements**{: .text-green-000} using FMCW radar techniques.
 {:.fs-5}
@@ -37,14 +37,15 @@ The transmitted signal is reflected from a static object and received by the rad
 $$T_x$$ and $$R_x$$'s Amplitude and Frequency as a Function of Time
 {: .text-center}
 
-As we see, $$R_x$$ is exactly the same signal as $$T_x$$ but delayed by $$t_0$$, the time of flight (TOF). We can intuitively establish a relationship between $$t_0$$ and the distance to the object $$d$$ :
+As we see, $$R_x$$ is exactly the same signal as $$T_x$$ but delayed by $$t_0$$, the time of flight (TOF). We can intuitively establish a relationship between $$t_0$$ and the distance to the object :
 
 <div id="eq1" class="fs-5 text-center">
-  $$\boxed{t_0 = \frac{2d}{c}} \tag{1}$$
+  $$t_0 = \frac{2d}{c} \tag{1}$$
 </div>
 
-where $$c = 343 \, \text{m} \cdot \text{s}^{-1}$$ the speed of sound in air for $$T = 293 \, K$$
-
+where
+- $$c = 343 \, \text{m} \cdot \text{s}^{-1}$$ the speed of sound in air $$(T = 293 \, K)$$
+- $$d$$ is the distance to the object $$\text{(m)}$$
 ### Distance
 Where pulse radars measure time and TOF to evaluate distance, FMCW radars measure frequencies! The TOF $$t_0$$ cannot be estimated directly since we are sending waves continuously but we have another valuable information : The beat frequency $$f_b$$.
 
@@ -59,13 +60,13 @@ The Beat Frequency $$f_b$$ appears due to the slight delay between $$T_x$$ and $
 The geometrical approach is the simplest way to understand how to derive the distance from $$f_b$$. Let's define the slope of the chirp $$s$$ being $$s=\frac{B}{T_c}$$. Using the last figure and Eq [(1)](#eq1) we now have the following relationship :
 
 <div id="eq2" class="fs-5 text-center">
-  $$\boxed{f_b = s t_0 = s \frac{2d}{c}} \tag{2}$$
+  $$f_b = s t_0 = s \frac{2d}{c} \tag{2}$$
 </div>
 
 Thus, the distance can easily be derived :
 
 <div id="eq3" class="fs-5 text-center">
-  $$\boxed{d = \frac{c f_b}{2s}} \tag{3}$$
+  $$\fcolorbox{red}{#28242c}{$\displaystyle d = \frac{c f_b}{2s}$} \tag{3}$$
 </div>
 
 We know how to compute the distance, that's great! But how do we extract $$f_b$$ ...
@@ -80,7 +81,7 @@ At a given time, $$y_{mix}$$ is defined as :
 <div id="eq4" class="fs-5 text-center">
   $$ 
   y_{mix} = T_x \cdot R_x = \sin(2 \pi f_{T} t) \cdot \sin(2 \pi f_{R} t) \\
-  = \frac{1}{2}\big[\cos\big(2 \pi \textcolor{chartreuse}{\underbrace{\color{white}(f_T-f_R)}_{f_b}} t\big) + \cos\big(2 \pi \textcolor{red}{\underbrace{\color{white}(f_{T}+f_{R})}_{\text{HF component}}} t\big)\big] \tag{4}
+  = \frac{1}{2}\big[\cos\big(2 \pi \textcolor{chartreuse}{\underbrace{\color{white}(f_T-f_R)}_{f_b}} t\big) + \cos\big(2 \pi \textcolor{green}{\underbrace{\color{white}(f_{T}+f_{R})}_{\text{HF component}}} t\big)\big] \tag{4}
   $$
 </div>
 
@@ -97,9 +98,50 @@ The high frequency component HF at $$f_{T}+f_{R}$$ can easily be removed with a 
 $$y_{mix}$$ is the product of $$T_x$$ and $$R_x$$
 {: .text-center}
 
+### Distance Resolution & Max Range 
+
+Let's define two critical parameters regarding radar performance. Distance resolution defines the smallest distance at which a radar can separate two objects. The distance resolution $$\Delta d$$ is defined by
+
+<div id="eq5" class="fs-5 text-center">
+  $$\fcolorbox{red}{#28242c}{$\displaystyle \Delta d = \frac{c}{2B}$} \tag{5}$$
+</div>
+
+where
+
+- $$c$$ is the speed of sound $$\text{(m} \cdot \text{s}^{-1})$$
+
+- $$B$$ is the bandwidth of the chirp  $$\text{(Hz)}$$
+
+{: .highlight}
+Distance resolution is only dependent on the radar's bandwidth !
+
+For ultrasonic FMCW radars, the maximum range $$d_{max}$$ is heavily limited by $$T_c$$. The maximum range $$d_{max}$$ is defined by
+
+<div id="eq6" class="fs-5 text-center">
+  $$\fcolorbox{red}{#28242c}{$\displaystyle d_{\text{max}} = c \frac{T_c}{2}$} \tag{6}$$
+</div>
+
+where
+
+- $$c$$ is the speed of sound $$\text{(m} \cdot \text{s}^{-1})$$
+
+- $$T_c$$ is the period of the chirp  $$\text{(s)}$$
+
+{: .highlight}
+For ultrasonic FMCW radars, the max range bottleneck is $$T_c$$. For regular FMCW radars, it's usually the ADC sampling frequency.
 
 
 ## Radar Design
+{: .important}
+Due to mechanical coupling issues on the current SensEdu Shield, this radar implementation is quite rudimentary. The radar module will not be able to perform distance measurements on a single SensEdu Shield. The implementation requires two Arduino boards with SensEdu Shields and the radar measures the distance between the two boards.
+
+The following block diagram illustrates the architecture of the FMCW radar.
+
+<img src="{{site.baseurl}}/assets/images/.gif" alt="drawing" width="800"/>
+{: .text-center}
+
+FMCW Radar Block Diagram
+{: .text-center}
 
 ## Code Implementation
 ### Send DAC and ADC data
