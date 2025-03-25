@@ -12,6 +12,9 @@ permalink: /pcb/
 SensEdu focuses on the design and development of a Printed Circuit Board (PCB) tailored for the Arduino GIGA R1. The objective is to create a versatile and efficient platform capable of accommodating a wide range of ultrasound applications, ensuring optimal performance and ease of integration.
 {: .fw-500}
 
+- TOC
+{:toc}
+
 ## Overview
 This shield extends the Arduino Giga’s capabilities for ultrasound applications, including:
 
@@ -34,6 +37,7 @@ The PCB for this project was designed using [KiCad](https://kicad.org/), an open
   - **3D Viewer**: Visualize your board in 3D to check component placement and fit.
 
 ### Installation and Setup of KiCad
+{: .no_toc}
 1. **Download KiCad**:
    - Visit the [KiCad download page](https://kicad.org/download/).
    - Select your operating system (Windows, macOS, Linux) and download the installer.
@@ -65,7 +69,7 @@ The PCB for this project was designed using [KiCad](https://kicad.org/), an open
 
 
 ### PCB Layout
-### 4-Layer Stackup:
+### 4-Layer Stackup
 1. **Top Layer**: Signal routing for components.
 2. **Layer 2**: Solid ground plane (noise reduction).
 3. **Layer 3**: Power planes (3.3V, 2.5V, 1.25V).
@@ -88,6 +92,7 @@ The PCB for this project was designed using [KiCad](https://kicad.org/), an open
 
 ### Power Supply
 #### Key Components:
+{: .no_toc}
 - **Primary LDO ([Infineon TLS850C2TEV33ATMA1](https://www.infineon.com/dgdl/Infineon-TLS850C2TE%20V33-DataSheet-v01_00-EN.pdf?fileId=5546d46270c4f93e0170c58440fe1182))**:
   - Converts 5V (Arduino) or DC barrel jack (7–12V) to 3.3V for the shield.
   - Selected for low noise (22 µV RMS) and high PSRR (70 dB) to stabilize analog circuits.
@@ -97,10 +102,12 @@ The PCB for this project was designed using [KiCad](https://kicad.org/), an open
   - **[LT1790ACS6-1.25](https://www.analog.com/media/en/technical-documentation/data-sheets/1790fc.pdf)**: Provides 1.25V reference for amplifier outputs.
 
 #### Power Paths:
+{: .no_toc}
 - Barrel Jack (J10) → Jumper J18 → TLS850 LDO → 3.3V rail.
 - Arduino 5V → Jumper J18 → TLS850 LDO → 3.3V rail.
 
 #### Indicators:
+{: .no_toc}
 - Green LED lights when 3.3V is active.
 
 ### Sensors
@@ -194,12 +201,13 @@ The PCB for this project was designed using [KiCad](https://kicad.org/), an open
   - **Integration**: Operates with a single 3.3V supply, ensuring compatibility with the rest of the system.
 
 
-### Design Choices:
+### Design Choices
 - Ground plane isolates sensitive analog paths.
 - Short traces for amplifier inputs to minimize noise.
 
 ## Connections & Pinouts
 ### Key Headers/Jumpers:
+{: .no_toc}
 
 | Component | Function                                           |
 |:----------|:---------------------------------------------------|
