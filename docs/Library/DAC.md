@@ -161,7 +161,7 @@ const SENSEDU_DAC_BUFFER(buffer_name, buffer_size) = {...};
 ```
 where the first parameter of `SENSEDU_DAC_BUFFER` is the user-defined ***name*** to be used in the program code while the second parameter is the ***size*** of the LUT. 
 
-{: .note}
+{: .NOTE}
 User can specify LUT size to be any positive integer. However, the real size of the DAC buffer has to be an integer divisible by integers raised by power of 2. See more details in [MPU Configuration]({% link Library/DAC.md %}#mpu-configuration) section.
 
 ### Send_DAC_Single_Sine
@@ -318,7 +318,7 @@ Each DAC channel occupies one DMA Stream:
 * **Channel 1**: DMA1_Stream2
 * **Channel 2**: DMA1_Stream3
 
-{: .warning }
+{: .WARNING }
 Avoid reusing occupied DMA streams. Refer to [STM32H747 Reference Manual] to find free available streams.
 
 ### Cache Coherence
@@ -335,7 +335,7 @@ There are two ways to fix this:
 1. Cache Cleaning
 2. MPU Configuration
 
-{: .warning}
+{: .NOTE}
 SensEdu uses MPU Configuration for the DAC.
 
 #### Cache Cleaning
@@ -383,7 +383,7 @@ for (uint16_t i = 0; i < buf_size; i++) {
 }
 ```
 
-{: .warning}
+{: .NOTE}
 The `SENSEDU_DAC_BUFFER` macro allows **any** user-defined size. The library internally adjusts it to meet MPU requirements.
 
 After buffer allocation, during `DMA_DACInit()` the library configures the MPU region using internal function `LL_MPU_ConfigRegion()` to enforce non-cacheable and non-bufferable memory region.

@@ -12,7 +12,7 @@ permalink: /getting-started/
 Follow these steps to begin developing your projects with SensEdu.
 {: .fw-500}
 
-{: .note}
+{: .NOTE}
 *If you prefer video tutorials, we have an [installation guide] on YouTube (not yet).*
 
 **Step 1**{: .text-green-200} : Download and Install [Arduino IDE]

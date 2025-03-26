@@ -56,7 +56,7 @@ Blinks a LED using microsecond delays.
 3. Configure the LED pin as an `OUTPUT` using `pinMode()`
 4. Use alternating calls to `SensEdu_TIMER_Delay_us()` and `digitalWrite()` in the main loop to toggle the LED state.
 
-{: .note }
+{: .NOTE}
 On Arduino GIGA R1 the built-in LED is active-low: `LOW` = on, `HIGH` = off.
 
 ```c
@@ -116,7 +116,7 @@ Prescaler is set to its minimum value to achieve the finest frequency adjustment
 | 4   | 41.7ns | 24MHz     |
 | 5   | 50.0ns | 20MHz     |
 
-{: .warning }
+{: .NOTE }
 When a user specifies a frequency for a DAC or ADC, the target value is automatically rounded to the nearest achievable frequency dictated by the timer's step. The lower target frequency, the higher the achievable precision.
 
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf

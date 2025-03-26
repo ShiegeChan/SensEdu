@@ -122,7 +122,7 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings);
 {: .no_toc}
 * Initializes associated DMA and timer in `SENSEDU_ADC_DMA_CONNECT` and `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` modes respectively.
 
-{: .warning}
+{: .WARNING}
 Be careful to initialize each required ADC before enabling. Certain configuration is shared between multiple ADCs, which could be edited only if related ADCs are disabled.
 
 ```c
@@ -208,7 +208,7 @@ uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
 {: .no_toc}
 * `dma_complete` flag is automatically cleared by calling `SensEdu_ADC_Start()`
 
-{: .warning}
+{: .TIP}
 Avoid performing any actions without acknowledging this flag. It ensures that the data was completely transferred.
 
 
@@ -255,7 +255,7 @@ uint16_t SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC)
 * Consumes CPU cycles. Prefer DMA to free CPU for other tasks. For example, you can perform complex calculations on ADC values, while requesting the new set of data with DMA.
 * Refer to non-DMA examples like `Read_ADC_3CH`.
 
-{: .warning}
+{: .WARNING}
 Multi-channel CPU polling currently doesn't work in `SENSEDU_ADC_MODE_ONE_SHOT`. Use `SENSEDU_ADC_MODE_CONT` or `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`. If you want to look into this and have a try fixing it, refer to [this issue].
 
 
@@ -432,7 +432,7 @@ Continuously reads ADC conversions using DMA for a single analog pin, allowing e
 7. Check `dma_complete` using `SensEdu_ADC_GetTransferStatus()`. When `true`, read the buffer and perform operations (e.g., print values, compute something)
 8. Call `SensEdu_ADC_Start()` again to trigger a new DMA transfer
 
-{: .warning}
+{: .WARNING}
 In future releases cache alignment will be automated, allowing arbitrary buffer sizes with a command like `SENSEDU_ADC_BUFFER(memory4adc, memory4adc_size);`. You can contribute to this feature [here](https://github.com/ShiegeChan/SensEdu/issues/10).
 
 ```c
@@ -563,7 +563,7 @@ Each ADC occupies one DMA stream:
 * **ADC2**: DMA1_Stream5
 * **ADC3**: DMA1_Stream7
 
-{: .warning }
+{: .WARNING }
 Avoid reusing occupied DMA streams. Refer to [STM32H747 Reference Manual] to find free available streams.
 
 

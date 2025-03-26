@@ -12,10 +12,10 @@ permalink: /projects/
 The following section documents select projects developed by SensEdu contributors. These real-world examples demonstrate practical use cases of the platform and highlight its capabilities.
 {: .fw-500}
 
-{: .warning}
+{: .WARNING}
 Currently, this section is the main focus of our team. We aim to expand our collection of polished, fully documented projects to better illustrate SensEdu applications. Contributions are highly welcomed! If you’ve created a nice project, please consider adding it to both this wiki and our main repository by following [these guidelines]({% link Contributing/projects.md %}).
 
-{: .note}
+{: .NOTE}
 Most of the projects utilize SensEdu library, but it is not explicitly necessary, you can develop projects with standard or other custom Arduino GIGA R1 libraries.
 
 As detailed in the [PCB specifications]({% link PCB/index.md %}), all applications center around three core hardware components:
