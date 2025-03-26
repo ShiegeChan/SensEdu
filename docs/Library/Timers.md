@@ -90,7 +90,7 @@ Timer allocation:
 * **TIM2**: delays 
 * **TIM4**: DAC sampling 
 
-{: .warning }
+{: .WARNING }
 Avoid reusing occupied timers. Refer to [STM32H747 Reference Manual] to find free available timers. Be aware, future updates will assign dedicated timers to each ADC/DAC separately, which may occupy your custom timer.
 
 ### Frequency settings
