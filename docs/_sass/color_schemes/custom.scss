@@ -5,6 +5,7 @@ $body-background-color: #eff1f5 !default;
 $body-heading-color: #1e293b; // #1e293b
 $body-text-color: #4c4f69 !default;
 $link-color: #1e66f5;
+$warning-color: $red-300;
 // $nav-child-link-color: $grey-dk-100 !default;
 // $sidebar-color: $grey-lt-000 !default;
 // $base-button-color: #f7f7f7 !default;
@@ -14,5 +15,7 @@ $btn-primary-color: $blue-100;
 // $table-background-color: $white !default;
 // $search-background-color: $white !default;
 // $search-result-preview-color: $grey-dk-000 !default;
+
+@include alert(WARNING, $warning-color, "Warning");
 
 @import "./vendor/OneLightJekyll/syntax";

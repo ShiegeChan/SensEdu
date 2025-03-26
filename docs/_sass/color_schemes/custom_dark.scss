@@ -4,6 +4,7 @@ $body-background-color: $grey-dk-300; //$grey-dk-300;
 $body-heading-color: $grey-lt-300;
 //$body-text-color: $grey-lt-300;
 $link-color: #89b4fa;
+$warning-color: $yellow-300;
 // $nav-child-link-color: $grey-dk-000;
 // $sidebar-color: $grey-dk-300;
 // $base-button-color: $grey-dk-250;
@@ -15,5 +16,7 @@ $link-color: #89b4fa;
 // $search-background-color: $grey-dk-250;
 // $search-result-preview-color: $grey-dk-000;
 // $border-color: $grey-dk-200;
+
+@include alert(WARNING, $warning-color, "Warning");
 
 @import "./vendor/OneDarkJekyll/syntax"; // this is the one-dark-vivid atom syntax theme
