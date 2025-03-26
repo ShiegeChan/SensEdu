@@ -47,7 +47,7 @@ void SensEdu_ADC_Disable(ADC_TypeDef* ADC);
 void SensEdu_ADC_...
 ```
 
-{: .warning }
+{: .IMPORTANT }
 Lowercase functions (e.g., `configure_pll2()`) are private for source files. Non-prefixed with `SensEdu_` uppercase functions (e.g., `ADC_GetError()`) are used publically across the library, but not intended for user code. Avoid using them directly.
 
 ## Error Handling
@@ -86,7 +86,7 @@ Example:
 
 In the Arduino environment, call `SENSEDU_ERROR SensEdu_GetError();` to retrieve the latest error.
 
-{: .note }
+{: .TIP }
 It is recommended to check for errors after critical operations (e.g., during initialization) and periodically in the main loop if real-time performance allows.
 
 Below is an example of how to check for errors. Serial Monitor is being used to notify the programmer of any internal errors. Alternatively, you could use a LED (e.g., the on-board red LED on pin D86).

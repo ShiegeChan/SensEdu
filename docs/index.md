@@ -20,7 +20,7 @@ Based on the [STM32H747] Microcontroller and runs on the [Arduino GIGA R1 WiFi] 
 
 This project is completely open source and comes with quick support from the development team.
 
-{: .warning }
+{: .WARNING}
 SensEdu is still in its early development stages.
 The core functionality is available, but many additional features are in progress. If you like the project, consider [contributing]({% link Contributing/index.md %}). Any input from both experienced developers and beginners is highly appreciated!
 

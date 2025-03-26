@@ -15,4 +15,16 @@ $btn-primary-color: $blue-100;
 // $search-background-color: $white !default;
 // $search-result-preview-color: $grey-dk-000 !default;
 
+// alerts
+$warning-color: $red-300;
+$important-color: #e36209;
+$tip-color: #22863a;
+$note-color: #0594cb;
+
+@include alert(WARNING, $warning-color, "Warning");
+@include alert(IMPORTANT, $important-color, "Important");
+@include alert(TIP, $tip-color, "Tip");
+@include alert(NOTE, $note-color, "Note");
+
+
 @import "./vendor/OneLightJekyll/syntax";

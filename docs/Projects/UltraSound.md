@@ -30,7 +30,7 @@ The following data acquisition flow chart explains the algorithm.
 
 Since the microcontroller is ecquiped with three ADCs and we use four microphones, we use two ADCs - ADC1 and ADC2 accessing through two channels all four microphones. The ADC sampling rate is set to 250 kHz. 
 
-{: .important }
+{: .IMPORTANT }
 The exact sampling rate is very important for exact measurement acquisition. Make sure it matches throughout the code. 
 
 ### About the Sampling Rate
@@ -44,7 +44,7 @@ Changing the ADC sampling rate correctly requires the following steps:
 3. In "**generateDAC.m**" - set "**fs**" variable to match the wanted sampling frequency and generate a new LUT
 4. Copy the new LUT to the "**SineLUT.h**" file
 
-{: .note }
+{: .NOTE }
 Currently, the library *does not* support different sampling rates for different ADCs since all the ADCs use the same timer. 
 
 
@@ -71,7 +71,7 @@ Therefore, the time is what we need to compute the distance. The time is compute
 Cross-correlation method essentially compares two signals and detects the point at which they have the most similarity.
 In this case, the cross-correlation is performed between the output wave of the DAC and input wave of the ADC. 
 
-{: .note}
+{: .NOTE}
 For correct cross-correlation, DAC output signal has to have the same sampling rate as the ADC signal. Therefore, this signal is 
 additionally computed using the provided MATLAB script *"dac_wave_gen.m"*. Make sure to adjust the sampling rate in the script to the real sampling rate of 
 the ADC previously computed! 
@@ -84,7 +84,7 @@ There are two intersteps before the cross-correlation is performed:
 The ADC signal has values in range [0, 65535]. Therefore, we first rescale the signal to have the range [-1, 1] with each sample being 
 a 4-byte float value using the *"rescale_adc_wave"* function. 
 
-{: .note}
+{: .NOTE}
 Because of the way multi-channel ADC signals are stored in memory using SensEdu library, the channel number has to be passed to the function. 
 
 
@@ -106,7 +106,7 @@ $$
 Two modes are possible for sending the data depending on the value of preprocessor macro *"XCORR_DEBUG"*. Setting this value to *true*
 sends raw-, rescaled-, and filtered data with distance measurements to the PC. Otherwise, only the distance measurements will be sent to the PC.  
 
-{: .note}
+{: .NOTE}
 For faster measurements, cross-correlation is performed directly on the microcontroller. However, if the time-efficiency is not
 a requirement, setting preprocessor macro *"LOCAL_XCORR"* to *false* will directly send raw ADC data to the PC. 
 
@@ -122,6 +122,6 @@ Since we are using serial communication, the data is received one bit at a time.
 
 This diagram depicts one iteration of PC receiving the data. This continues for number of iterations that are specified in the MATLAB script. Then, the data is plotted for visualization.
 
-{: .important}
+{: .IMPORTANT}
 Make sure that *PLOT_DETAILED_DATA* in MATLAB matches the value of *XCORR_DETAILS*, as well as to set *DATA_LENGTH* in MATLAB to be the same as *STORE_BUF_SIZE* macro. Make sure to choose the correct *ARDUINO_PORT* to match the real one. 
 
