@@ -5,7 +5,6 @@ $body-background-color: #eff1f5 !default;
 $body-heading-color: #1e293b; // #1e293b
 $body-text-color: #4c4f69 !default;
 $link-color: #1e66f5;
-$warning-color: $red-300;
 // $nav-child-link-color: $grey-dk-100 !default;
 // $sidebar-color: $grey-lt-000 !default;
 // $base-button-color: #f7f7f7 !default;
@@ -16,6 +15,16 @@ $btn-primary-color: $blue-100;
 // $search-background-color: $white !default;
 // $search-result-preview-color: $grey-dk-000 !default;
 
+// alerts
+$note-color: $blue-100;
+$tip-color: $green-100;
+$important-color: $purple-200;
+$warning-color: $yellow-300;
+
+// rgba(253,229,229,255)
 @include alert(WARNING, $warning-color, "Warning");
+@include alert(NOTE, $note-color, "Note");
+@include alert(TIP, $tip-color, "Tip");
+@include alert(IMPORTANT, $important-color, "Important");
 
 @import "./vendor/OneLightJekyll/syntax";

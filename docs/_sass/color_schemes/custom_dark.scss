@@ -17,6 +17,16 @@ $warning-color: $yellow-300;
 // $search-result-preview-color: $grey-dk-000;
 // $border-color: $grey-dk-200;
 
+// alerts
+$note-color: $blue-000;
+$tip-color: $green-000;
+$important-color: $purple-000;
+$warning-color: $red-300;
+
 @include alert(WARNING, $warning-color, "Warning");
+@include alert(NOTE, $note-color, "Note");
+@include alert(TIP, $tip-color, "Tip");
+@include alert(IMPORTANT, $important-color, "Important");
+
 
 @import "./vendor/OneDarkJekyll/syntax"; // this is the one-dark-vivid atom syntax theme
