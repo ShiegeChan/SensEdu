@@ -12,7 +12,7 @@ permalink: /getting-started/
 Follow these steps to begin developing your projects with SensEdu.
 {: .fw-500}
 
-{: .note}
+{: .NOTE}
 *If you prefer video tutorials, we have an [installation guide] on YouTube (not yet).*
 
 **Step 1**{: .text-green-200} : Download and Install [Arduino IDE]
@@ -41,22 +41,27 @@ Follow these steps to begin developing your projects with SensEdu.
     Video is broken.
 </video>
 
----
+**Step 6**{: .text-green-200} : Navigate to `File → Examples → SensEdu` and select `Blink_Delay` example
 
-**Step 6**{: .text-green-200} : Open SensEdu example goinf to ..., then select arduino giga r1 board and port and try to run example. Open Serial monitor and you should see numbers running
+**Step 7**{: .text-green-200} : Select `Arduino Giga R1` board and corresponding COM port
 
-Now you are good to go, you can create an arduino sketch, include SensEdu.h and start developing. Look into other sensedu examples to explore its capablities and projects in `projects\` folder as well.
+**Step 8**{: .text-green-200} : Click **Upload** to compile and upload the sketch to your board. If the built-in LED starts blinking, the setup was successful!
 
-Read through Library section for better understanding of sensedu framework.
+<img src="{{site.baseurl}}/assets/images/select_install.png" alt="drawing"/>
+{: .text-center}
 
-If you still have any problems or questions, please refer to the Help section in this wiki
+<img src="{{site.baseurl}}/assets/images/demo_blink.gif" alt="drawing" width="507"/>
+{: .text-center}
 
+## Post-Setup
 
-Now you are ready, just include "SensEdu.h" into your arduino sketch
-
+Now that your setup is complete, you can start developing your projects with SensEdu! Here are some next steps to get started:
+* Explore the [Library]({% link Library/index.md %}) wiki section for detailed examples of each peripheral
+* Check out sample projects in `projects\` folder, and respective [Projects]({% link Projects/index.md %}) section
+* For troubleshooting or guidance, visit the [Help]({% link Help/index.md %}) section
 
 {: .note}
-If you want to start as developer and contribute to SensEdu, refer to Contributing page.
+If you are interested in contributing to SensEdu, visit the [Contributing]({% link Contributing/index.md %}) page and join our community!
 
 [Arduino IDE]: https://support.arduino.cc/hc/en-us/articles/360019833020-Download-and-install-Arduino-IDE
 [SensEdu release]: https://github.com/ShiegeChan/SensEdu/releases/

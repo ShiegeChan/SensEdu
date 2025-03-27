@@ -128,7 +128,7 @@ void dac_init(DAC_Channel* dac_channel) {
 
     // check for both channels
     if (READ_BIT(DAC1->CR, ((DAC_CR_EN1 << shift) | (DAC_CR_CEN1 << shift)))) { 
-        error = DAC_ERROR_ENABLED_BEFORE_INIT;
+        error = DAC_ERROR_ALREADY_ENABLED;
         return;
     }
 
@@ -169,24 +169,24 @@ dac_data* get_dac_data(DAC_Channel* dac_channel) {
 
 static DAC_ERROR check_settings(SensEdu_DAC_Settings* settings) {
     if (settings->dac_channel != DAC_CH1 && settings->dac_channel != DAC_CH2) {
-        return DAC_ERROR_INIT_FAILED;
+        return DAC_ERROR_WRONG_DAC_CHANNEL;
     } 
     
     if (settings->sampling_freq > 15000000) {
-        return DAC_ERROR_SAMPLING_FREQ_TOO_HIGH;
+        return DAC_ERROR_INIT_SAMPLING_FREQ_TOO_HIGH;
     } 
 
     if (settings->mem_address == 0x0000) {
-        return DAC_ERROR_INIT_FAILED;
+        return DAC_ERROR_INIT_DMA_MEMORY;
     } 
     
     if (settings->mem_address == 0) {
-        return DAC_ERROR_INIT_FAILED;
+        return DAC_ERROR_INIT_DMA_MEMORY;
     } 
 
     if (settings->wave_mode == SENSEDU_DAC_MODE_BURST_WAVE && settings->burst_num < 1) {
         settings->burst_num = 1; // be careful not to stuck in interrupt
-        return DAC_ERROR_INIT_FAILED;
+        return DAC_ERROR_INIT_CYCLE_NUM;
     }
 
     return DAC_ERROR_NO_ERRORS;

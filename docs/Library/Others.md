@@ -19,7 +19,7 @@ These examples illustrate more complex, yet fundamental, applications of multipl
 
 These examples demonstrate how to transmit a 32kHz ultrasonic wave at a constant sampling rate. The reflected wave is then captured and sent to a PC via Serial communication. Using MATLAB, you can visualize and potentially process the wave. By placing an object on top of the SensEdu, you can observe wave reflections.
 
-{: .warning}
+{: .IMPORTANT}
 To run these examples, you need to install [MATLAB].
 
 ### Basic_UltraSound
