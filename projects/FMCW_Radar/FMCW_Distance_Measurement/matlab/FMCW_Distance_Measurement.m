@@ -5,16 +5,18 @@ clear;
 close all;
 clc;
 
-% Radar system parameters
+%% Radar system parameters
+%Need to be the same as chirp parameters for correct distance computation!
+
 f1_start = 30000;         % Start frequency of transmitted chirp (Hz)
 f1_end = 35000;           % End frequency of transmitted chirp (Hz)
-Tc = 0.01;                  % Duration of one chirp (s)
-c = 345;                  % Speed of sound in air (m/s)
+Tc = 0.01;                % Duration of one chirp (s)
+c = 343;                  % Speed of sound in air for T=300K (m/s)
 
 %% Settings
 ARDUINO_PORT = 'COM4';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 10;        % Number of real-time ADC measurements
+ITERATIONS = 10000;        % Number of real-time ADC measurements
 SAMPLING_RATE = 250000;    % ADC Sampling rate
 ACTIVATE_PLOTS = true;     % Toggle plotting on/off
 
@@ -26,7 +28,7 @@ fprintf("Starting real-time dual ADC data acquisition...\n");
 
 
 % Initialize Figure for Real-Time Data Plots in Full Screen
-figure('Name', 'Real-Time ADC Signals and Power Spectra', 'Color', 'k', 'WindowState', 'maximized');
+figure('Name', 'Real-Time ADC Signals and Power Spectra', 'Color', 'w', 'WindowState', 'maximized');
 
 % Subplot for Mixed Signal(Top Left)
 subplot(3, 2, 3); 
@@ -36,12 +38,12 @@ xlabel("Sample #");
 ylabel("Amplitude");
 title("Mixed Tx & Rx Signal");
 grid on;
-ax = gca;
-ax.XColor = 'w';
-ax.YColor = 'w';
-ax.Title.Color = 'w';
-ax.XLabel.Color = 'w';
-ax.YLabel.Color = 'w';
+%ax = gca;
+%ax.XColor = 'w';
+%ax.YColor = 'w';
+%ax.Title.Color = 'w';
+%ax.XLabel.Color = 'w';
+%ax.YLabel.Color = 'w';
 
 % Subplot for Mic (ADC2) High-Passed Signal (Middle Left)
 subplot(3, 2, 1); 
@@ -52,12 +54,12 @@ xlabel("Sample #");
 ylabel("Amplitude");
 title("High-Passed Mic Data");
 grid on;
-ax = gca;
-ax.XColor = 'w';
-ax.YColor = 'w';
-ax.Title.Color = 'w';
-ax.XLabel.Color = 'w';
-ax.YLabel.Color = 'w';
+%ax = gca;
+%ax.XColor = 'w';
+%ax.YColor = 'w';
+%ax.Title.Color = 'w';
+%ax.XLabel.Color = 'w';
+%ax.YLabel.Color = 'w';
 
 % Subplot for DAC (to ADC1) High-Passed Signal (Middle Right)
 subplot(3, 2, 2); 
@@ -68,12 +70,12 @@ xlabel("Sample #");
 ylabel("Amplitude");
 title("High-Passed DAC ADC Data");
 grid on;
-ax = gca;
-ax.XColor = 'w';
-ax.YColor = 'w';
-ax.Title.Color = 'w';
-ax.XLabel.Color = 'w';
-ax.YLabel.Color = 'w';
+%ax = gca;
+%ax.XColor = 'w';
+%ax.YColor = 'w';
+%ax.Title.Color = 'w';
+%ax.XLabel.Color = 'w';
+%ax.YLabel.Color = 'w';
 
 % Subplot for Filtered Mixed Signal (Bottom Left)
 subplot(3, 2, 4); 
@@ -84,12 +86,12 @@ xlabel("Samples");
 ylabel("Amplitude");
 title("Filtered Mixed Signal");
 grid on;
-ax = gca;
-ax.XColor = 'w';
-ax.YColor = 'w';
-ax.Title.Color = 'w';
-ax.XLabel.Color = 'w';
-ax.YLabel.Color = 'w';
+%ax = gca;
+%ax.XColor = 'w';
+%ax.YColor = 'w';
+%ax.Title.Color = 'w';
+%ax.XLabel.Color = 'w';
+%x.YLabel.Color = 'w';
 
 % Subplot for Filtered Mixed Signal Power Spectrum(Bottom Right)
 subplot(3, 2, [5,6]); 
@@ -100,22 +102,22 @@ xlabel("Frequency (Hz)");
 ylabel("Power (dB)");
 title("Power Spectrum of Filtered Mixed Signal");
 grid on;
-ax = gca;
-ax.XColor = 'w';
-ax.YColor = 'w';
-ax.Title.Color = 'w';
-ax.XLabel.Color = 'w';
-ax.YLabel.Color = 'w';
+%ax = gca;
+%ax.XColor = 'w';
+%ax.YColor = 'w';
+%ax.Title.Color = 'w';
+%ax.XLabel.Color = 'w';
+%ax.YLabel.Color = 'w';
 
 % Add distance display
 distanceText = uicontrol('Style', 'text', ...
                          'Units', 'normalized', ...
                          'Position', [0.4, 0.95, 0.2, 0.03], ... % Center horizontally and vertically
-                         'String', 'Measured Distance = 0.0 cm', ... % Initial message
+                         'String', 'Measured Distance = 0 cm', ... % Initial message
                          'FontSize', 20, ...
                          'FontWeight', 'bold', ...
-                         'ForegroundColor', 'w', ...
-                         'BackgroundColor', 'k', ...
+                         'ForegroundColor', 'k', ...
+                         'BackgroundColor', 'w', ...
                          'HorizontalAlignment', 'center');
 
 
@@ -145,18 +147,18 @@ for it = 1:ITERATIONS
     [p_adc1, f_adc1] = periodogram(adc1_data_filt, rectwin(length(adc2_data_filt)), [], SAMPLING_RATE);
     [p_adc2, f_adc2] = periodogram(adc2_data_filt, rectwin(length(adc1_data_filt)), [], SAMPLING_RATE);
     [p_mix, f_mix] = periodogram(mixed_signal, [], [], SAMPLING_RATE);
-    [p_mix_filt, f_mix_filt] = periodogram(mixed_signal_filt, [], [], SAMPLING_RATE);
+    %[p_mix_filt, f_mix_filt] = periodogram(mixed_signal_filt, hamming(length(mixed_signal_filt)),[], SAMPLING_RATE);
+    [p_mix_filt, f_mix_filt] = pspectrum(mixed_signal_filt, SAMPLING_RATE);
 
     % Extract beat frequency
-    [p_fbeat,fbeat] = findpeaks(p_mix_filt,f_mix_filt,NPeaks=1,SortStr="descend");
+    [p_fbeat,fbeat] = findpeaks(p_mix_filt,f_mix_filt,NPeaks=1,SortStr="descend")
 
     % Calculate distance (distance is for one way and not roundtrip like
     % usual FMCW radar since we use 2 boards here)
     d = (fbeat * Tc * c) / (f1_end - f1_start);
-
+    
     % Update the distance display with the new value
-    set(distanceText, 'String', sprintf('Measured Distance = %.2f cm', d));
-
+    set(distanceText, 'String', sprintf('Measured Distance = %.0f cm', d*100));
 
     % Update plots in real time
     if ACTIVATE_PLOTS
