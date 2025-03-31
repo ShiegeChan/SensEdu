@@ -151,25 +151,51 @@ The following block diagram illustrates the architecture of the FMCW radar :
 FMCW Radar Block Diagram
 {: .text-center}
 
-The chirp signal is generated in the transmitter shield and converted to an analog signal with the DAC. Tx is then doubled and follows 2 paths :
+The chirp signal Tx is generated in the transmitter shield and converted to an analog signal with the DAC. Tx is then doubled and follows 2 paths :
 
 - Tx is amplified and sent to the ultrasonic transducer
 - Tx is sent to the receiving shield by using a jump wire between the transmitter DAC pin and the receiver ADC1 pin.
 
-On the receiver shield, Tx goes through ADC1. The MEMS microphone receives a signal Rx which is amplified with a low noise amplifier (LNA) and goes through ADC2. This method is by no means optimal but it enables to send Tx and Rx signals to MATLAB from the same shield which simplifies signal synchronization. The Tx and Rx signals are sent from the receiver shield to MATLAB.
+On the receiver shield, Tx goes through ADC1. The MEMS microphone receives a signal Rx which is amplified with a low noise amplifier (LNA) and goes through ADC2. This method is by no means optimal but it enables to send Tx and Rx signals to MATLAB from the same shield. The Tx and Rx signals are sent from the receiver shield to MATLAB.
 
-The following signal processing is performed in MATLAB to measure the distance between the two shields:
+The following signal processing is performed in MATLAB to measure the distance between the two shields :
 
 - Compute mixing operation between Tx and Rx
 - Compute FFT of mixed signal $$y_{mix}$$
 - Low-pass filter $$y_{mix}$$
-- Extract beat frequency and compute distance
+- Extract beat frequency and compute distance 
 
 ## Code Implementation
 {: .text-yellow-300}
 
-### Send DAC and ADC data
+For this implementation, 2 Arduino with SendEdu boards are required. Follow these steps to get setup :
+- Upload the `Chirp_SawtoothMod.ino` sketch from the [Chirp Project]({% link Projects/Chirp.md %}) to the transmitting board
+- Upload the `FMCW_Distance_Measurement.ino` sketch to the receiving board
+- Wire the DAC output `DAC0` from the transmitting board to the ADC1 of the receiving board (in this example pin `A7`).
+
+{: .IMPORTANT}
+Make sure to wire the DAC output of the transmitting board to the ADC1 of the receiving board ! 
+
+
+### Sending the ADC data to MATLAB
 {: .text-yellow-100}
+
+On the receiving board :
+- ADC1 receives the DAC data
+- ADC2 receives microphone #2 data
+
+The size header `adc_byte_length`  is sent to MATLAB to indicate the size of each ADC frame. The data from both ADCs is sent to MATLAB using the `serial_send_array` function.
+
+```c
+// Send ADC data (16-bit values, continuously)
+    uint32_t adc_byte_length = mic_data_size * 2; // ADC data size in bytes
+    Serial.write((uint8_t*)&adc_byte_length, sizeof(adc_byte_length));  // Send size header
+    serial_send_array((const uint8_t*)adc_dac_data, adc_byte_length);       // Transmit ADC1 data
+    serial_send_array((const uint8_t*)adc_mic_data, adc_byte_length);       // Transmit ADC2 data (Mic2 data)
+```
+
+
+
 
 ### Receiving the data
 {: .text-yellow-100}
