@@ -44,10 +44,11 @@ fprintf("Data acquisition completed in: %fsec\n", acquisition_time);
 arduino = [];
 
 %% Plotting the data
+close all
 figure
 for i = 1:MIC_NUM
     subplot(MIC_NUM, 1, i);
-    plot(time_axis, dist_matrix(i, :))
+    plot(time_axis, dist_matrix(i, :), 'LineWidth', 2)
     ylim([0 1])
     xlim([0 time_axis(end)])
     grid on
@@ -56,3 +57,5 @@ for i = 1:MIC_NUM
     title("Real distance measurements: MIC");
 end
 
+beautify_plot(gcf, 1);
+save_plot
