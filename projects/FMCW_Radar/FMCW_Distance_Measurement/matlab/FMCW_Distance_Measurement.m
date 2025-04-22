@@ -8,8 +8,8 @@ clc;
 %% Radar system parameters
 %Need to be the same as chirp parameters for correct distance computation!
 
-f1_start = 30000;         % Start frequency of transmitted chirp (Hz)
-f1_end = 35000;           % End frequency of transmitted chirp (Hz)
+f_start = 30000;         % Start frequency of transmitted chirp (Hz)
+f_end = 35000;           % End frequency of transmitted chirp (Hz)
 Tc = 0.01;                % Duration of one chirp (s)
 c = 343;                  % Speed of sound in air for T=300K (m/s)
 
@@ -30,7 +30,7 @@ fprintf("Starting real-time dual ADC data acquisition...\n");
 % Initialize Figure for Real-Time Data Plots in Full Screen
 figure('Name', 'Real-Time ADC Signals and Power Spectra', 'Color', 'w', 'WindowState', 'maximized');
 
-% Subplot for Mixed Signal(Top Left)
+% Subplot for Mixed Signal(Middle Left)
 subplot(3, 2, 3); 
 mixed_signal_plot = plot(nan(1, 1), 'r');
 %xlim([0, 2048]);
@@ -45,11 +45,11 @@ grid on;
 %ax.XLabel.Color = 'w';
 %ax.YLabel.Color = 'w';
 
-% Subplot for Mic (ADC2) High-Passed Signal (Middle Left)
+% Subplot for Mic (ADC2) High-Passed Signal (Top Left)
 subplot(3, 2, 1); 
 adc2_filt_plot = plot(nan(1, 1), 'r');
 %xlim([0, 2048]);
-ylim([-32818, 40000]); % High-pass filtered values
+ ylim([-32818, 40000]); % High-pass filtered values
 xlabel("Sample #");
 ylabel("Amplitude");
 title("High-Passed Mic Data");
@@ -61,7 +61,7 @@ grid on;
 %ax.XLabel.Color = 'w';
 %ax.YLabel.Color = 'w';
 
-% Subplot for DAC (to ADC1) High-Passed Signal (Middle Right)
+% Subplot for DAC (to ADC1) High-Passed Signal (Top Right)
 subplot(3, 2, 2); 
 adc1_filt_plot = plot(nan(1, 1), 'g');
 %xlim([0, 2048]);
@@ -77,7 +77,7 @@ grid on;
 %ax.XLabel.Color = 'w';
 %ax.YLabel.Color = 'w';
 
-% Subplot for Filtered Mixed Signal (Bottom Left)
+% Subplot for Filtered Mixed Signal (Middle Left)
 subplot(3, 2, 4); 
 mixed_signal_filt_plot = plot(nan(1, 1), 'r');
 %xticks(0:5000:100000);
@@ -127,12 +127,12 @@ for it = 1:ITERATIONS
     
     % Retrieve size header for ADC data
     adc_byte_length = read_total_length(arduino);      % Total length of ADC data in bytes
-    ADC_DATA_LENGTH = adc_byte_length / 2;                  % Total number of ADC samples
-
-    % Retrieve Mic ADC data
-    adc1_data = read_data(arduino, ADC_DATA_LENGTH);
+    ADC_DATA_LENGTH = adc_byte_length / 2;             % Total number of ADC samples
 
     % Retrieve DAC to ADC data
+    adc1_data = read_data(arduino, ADC_DATA_LENGTH);
+
+    % Retrieve Mic ADC data
     adc2_data = read_data(arduino, ADC_DATA_LENGTH); 
     
     % High-Pass Filter on ADC2 and ADC1 Data
@@ -155,7 +155,7 @@ for it = 1:ITERATIONS
 
     % Calculate distance (distance is for one way and not roundtrip like
     % usual FMCW radar since we use 2 boards here)
-    d = (fbeat * Tc * c) / (f1_end - f1_start);
+    d = (fbeat * Tc * c) / (f_end - f_start);
     
     % Update the distance display with the new value
     set(distanceText, 'String', sprintf('Measured Distance = %.0f cm', d*100));
