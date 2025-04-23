@@ -1,11 +1,12 @@
 #ifndef __DAC_H__
 #define __DAC_H__
 
+
+#include "libs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "libs.h"
 
 typedef enum {
     DAC_ERROR_NO_ERRORS = 0x00,

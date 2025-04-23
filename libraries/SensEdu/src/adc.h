@@ -1,11 +1,11 @@
 #ifndef __ADC_H__
 #define __ADC_H__
 
+#include "libs.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "libs.h"
 
 // redefine pure analog pins
 #define A8 (86u)
