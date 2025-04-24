@@ -1,15 +1,16 @@
 #ifndef __SENSEDU_H__
 #define __SENSEDU_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "libs.h"
 #include "adc.h"
 #include "dac.h"
 #include "timer.h"
 #include "dma.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum {
     SENSEDU_NO_ERRORS = 0x0000,
