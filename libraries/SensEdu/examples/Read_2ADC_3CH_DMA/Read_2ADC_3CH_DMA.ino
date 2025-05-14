@@ -12,7 +12,7 @@ uint8_t adc1_pins[adc1_pin_num] = {A0, A1, A2};
 uint8_t adc2_pins[adc2_pin_num] = {A4, A5, A6};
 
 // must be:
-// 1. multiple of 32 words (64 half-words) to ensure cache coherence
+// 1. multiple of 32 bytes to ensure cache coherence
 // 2. properly aligned
 const uint16_t memory4adc1_size = 64 * adc1_pin_num;
 const uint16_t memory4adc2_size = 64 * adc2_pin_num;
