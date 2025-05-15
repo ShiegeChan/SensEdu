@@ -71,8 +71,8 @@ typedef struct {
 } ChannelSelector
 ```
 * **Functions:** 
-  * **Private:** `snake_case`
-  * **Public:** `PascalCase`
+  * *Private:* `snake_case`
+  * *Public:* `PascalCase`
 
 ```c
 static void configure_clock(void);
@@ -116,5 +116,5 @@ Be cautious when using new timers and DMA streams, ensure they are available. Re
 If you create any new major functionality, make sure to provide an example that demonstrates its usage.
 {: .fw-500}
 
-{: .warning}
+{: .WARNING}
 Before pushing your changes to the library, verify that **all** examples work as intended to avoid unexpected errors.

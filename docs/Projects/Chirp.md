@@ -16,8 +16,9 @@ nav_order: 2
 {:toc}
 
 ## Introduction
+{: .text-yellow-300}
 
-The **chirp signal generation project**{: .text-green-000} aims at proviving basic code to generate **frequency modulated continuous waves (FMCW)** on the **SensEdu Shield**{: .text-green-000} using the **Arduino Giga R1**{: .text-green-000}. The projects provides two types of frequency modulation : **sawtooth** and **triangular**.
+The **Chirp Signal Generation Project**{: .text-green-000} aims at proviving basic code to generate **frequency modulated continuous waves (FMCW)** on the **SensEdu Shield**{: .text-green-000} using the **Arduino Giga R1**{: .text-green-000}. The projects provides two types of frequency modulation : **sawtooth** and **triangular**.
 
 FMCW, also called chirp signals, are encountered in numerous fields, like radar & sonar systems, telecommunications, signal processing and more. You will find more information on the potential applications from our upcoming FMCW radar project.
 
@@ -34,6 +35,7 @@ _Spectrogram of chirp sweeping from 100 Hz to 10 kHz_
 {: .text-center .}
 
 ## Chirp Generation Function
+{: .text-yellow-300}
 Arduino does not provide any built-in chirp signal function. There are workarounds using MATLAB's built-in chirp function but our idea was to create this signal directly in Arduino with the SensEdu library.
 
 The `generateSawtoothChirp` and `generateTriangularChirp` functions both calculate the values to generate a sawtooth chirp and triangular chirp respectively and copy these values to the DAC's buffer.
@@ -44,11 +46,13 @@ void generateTriangularChirp(uint16_t* array)
 ```
 
 ### Parameters
+{: .text-yellow-100}
 * `uint16_t* array` : A pointer to an array where the generated chirp signal will be stored.
 
 
 
 ### Description
+{: .text-yellow-100}
 The generate chirp functions use two arrays `lut_sine` and `vChirp` to calculate the chirp values :
 
 * `lut_sine` is a LUT containing the values of a quarter sine wave. The `x` variable defines the resolution of `lut_sine`. A larger `x` will result in a more detailed LUT with more values which in turn increases the precision of the chirp values which will be calculated.
@@ -99,7 +103,7 @@ for (int i = samples_int; i < samples_int * 2; i++) {
     }
 ```
 
-{: .warning }
+{: .NOTE }
 In this configuration, the first value of the chirp signal array is 0 (or 0 V in amplitude at DAC output). This initial value can be changed by modifying `sine_lut`.
 
 **Step 4**{: .text-blue-000} : Copy the chirp signal's values to the DAC buffer
@@ -114,6 +118,7 @@ In this configuration, the first value of the chirp signal array is 0 (or 0 V in
 ---
 
 ## Main code
+{: .text-yellow-300}
 Check out the [DAC]({% link Library/DAC.md %}) section for more information on the DAC library and different DAC related functions.
 
 The `Chirp_SawtoothMod.ino` and `Chirp_TriangularMod.ino` files contain the main code to generate the chirp signal, send the chirp signal to the DAC and enable the DAC.
@@ -127,12 +132,12 @@ The code contains the following user settings to adjust the chirp signal :
 A very important variable in the main code is the sampling frequency `fs`. Based on the Nyquist-Shannon sampling theorem, `fs` needs to be at least double the maximum frequency (or end frequency) of the chirp signal.
 Keep in mind this sampling frequency will also be the DAC's output frequency in the `SensEdu_DAC_Settings` function.
 
-{: .warning }
+{: .IMPORTANT }
 `fs` needs to be at least 2*END_FREQUENCY in order for the chirp signal to be generated properly.
 
 The `samples_int` is an integer representing the amount of samples for one period of the chirp signal. This value also represents the memory size in the `SENSEDU_DAC_BUFFER` and `SensEdu_DAC_Settings` functions.
 
-{: .warning }
+{: .IMPORTANT }
 In this implementation, the size of the chirp array cannot exceed 7688 (array size = `samples_int` for sawtooth modulation & `samples_int*2` for triangular modulation).
 
 The values of the chirp are printed in the serial monitor.

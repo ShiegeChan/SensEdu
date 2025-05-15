@@ -1,0 +1,74 @@
+// Alerts
+
+// An alert with a fixed title:
+// @include alert(IMPORTANT, $important-color, "!! " "Important");
+
+@mixin alert($name, $color, $title: null, $background-color: rgba($color, 0.1)) {
+  blockquote.#{$name} {
+    border-left: 4px solid $color;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+    padding-top: 0.6rem !important;
+    padding: 0.8rem;
+    margin-left: 0;
+    margin-right: 0;
+    background-color: $background-color;
+
+    > p:first-child {
+      margin-top: 0;
+    }
+
+    > p:last-child {
+      margin-bottom: 0;
+    }
+
+    @if $title {
+      &::before {
+        color: $color;
+        content: $title;
+        display: block;
+        
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.75em;
+        padding-bottom: 0.125rem;
+      }
+    } @else {
+      > p:first-child {
+        margin-top: 0;
+        margin-bottom: 0;
+        color: $color;
+        display: block;
+
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.75em;
+        padding-bottom: 0.125rem;
+      }
+
+      > p:nth-child(2) {
+        margin-top: 0;
+      }
+    }
+  }
+
+  p.#{$name} {
+    border-left: 4px solid $color;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08);
+    padding-top: 0.6rem !important;
+    padding: 0.8rem;
+    background-color: $background-color;
+
+    &::before {
+        color: $color;
+        content: $title;
+
+        text-transform: uppercase;
+        font-size: 0.8em;
+        padding-bottom: 0.175rem;
+        display: block;
+        font-weight: bold;
+    }
+  }
+}

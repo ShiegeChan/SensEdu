@@ -37,6 +37,9 @@ You can add an optional `math: mathjax` line to enable [MathJax] syntax on this 
 
 ### Syntax
 
+#### Images
+{: .no_toc}
+
 If you have any images, place them into the `~\docs\assets\images\` folder and reference them with `{{site.baseurl}}`. Below is an example with centering and width adjustment.
 
 ```md
@@ -44,9 +47,66 @@ If you have any images, place them into the `~\docs\assets\images\` folder and r
 {: .text-center}
 ```
 
+#### Callouts/Alerts
+{: .no_toc}
+
+SensEdu documentation utilizes a custom callout system suggested by [Peter Mosses] in the just-the-docs [PR #1602]. These callouts, referred to as Alerts, enhance customization options and allow distinct styling for light and dark themes.
+
+To use an Alert, simply add `{: .ALERT_NAME}` in the next line directly after the target text. By default, the following alerts are available:
+
+* Warning (`.WARNING`): Red
+* Important (`.IMPORTANT`): Orange/Yellow
+* Tip (`.TIP`): Green
+* Note (`.NOTE`): Blue
+
+```md
+This way you can define a tip alert!
+{: .TIP}
+```
+
+This way you can define a tip alert!
+{: .TIP}
+
+#### Creating own Alerts
+{: .no_toc}
+
+If you need custom alerts, you can define new styles by modifying the Sass files. Go to the folder `~\docs\_sass\color_schemes\`. Here you can find files `custom.scss` and `custom_dark.scss`, which contain colors for light and dark modes respectively.
+
+In each of this file define a new variable and assign a color with RGBA or HEX coding: `$new_alert_color:rgb(202, 52, 190);`. 
+
+Create a new alert `@include alert()` with the following arguments:
+* **Alert Code**: CUSTOM_ALERT is accessed by `.CUSTOM_ALERT` code
+* **Title Color**: Use previously defined variable `$new_alert_color`
+* **Title** (optional): Text displayed on top of the alert
+* **Background Color** (optional): A custom background color. By default the Title Color with 10% opacity is used.
+
+Below is a complete example for adding a new Error alert:
+
+```scss
+// Example with defined bg color for light theme, default 10% opacity for dark theme
+
+// custom.scss
+$error_color: rgb(190, 42, 178);
+$error_bg_color: rgb(207, 182, 205);
+
+@include alert(ERROR, $error_color, "Error", $error_bg_color);
+
+// custom_dark.scss
+$error_color: rgb(146, 94, 142);
+
+@include alert(ERROR, $error_color, "Error");
+```
+```md
+Unexpected Sampling Frequency
+{: .ERROR}
+```
+
+#### Others
+{: .no_toc}
+
 Other syntax is standard for Markdown with modifiers added by Just the Docs. Follow these pages to explore the syntax further: 
 * <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" target="_blank">Basic writing and formatting syntax</a>
-* <a href="https://just-the-docs.com/" target="_blank">Just the Docs page</a>.
+* <a href="https://just-the-docs.com/" target="_blank">Just the Docs page</a>
 
 ### Wiki Hosting
 
@@ -72,3 +132,5 @@ During installtion you will be asked which components to install, press `Enter` 
 [Jekyll]: https://jekyllrb.com/
 [Just the Docs]: https://just-the-docs.com/
 [MathJax]: https://www.mathjax.org/
+[Peter Mosses]: https://github.com/pdmosses
+[PR #1602]: https://github.com/just-the-docs/just-the-docs/pull/1602

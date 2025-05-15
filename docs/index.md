@@ -20,7 +20,7 @@ Based on the [STM32H747] Microcontroller and runs on the [Arduino GIGA R1 WiFi] 
 
 This project is completely open source and comes with quick support from the development team.
 
-{: .warning }
+{: .WARNING}
 SensEdu is still in its early development stages.
 The core functionality is available, but many additional features are in progress. If you like the project, consider [contributing]({% link Contributing/index.md %}). Any input from both experienced developers and beginners is highly appreciated!
 
@@ -35,7 +35,8 @@ SensEdu includes:
 
 You can find detailed information about each component in the [PCB Chapter]({% link PCB/index.md %}). With these components, you can build a variety of projects, such as:
 * Ultrasonic Distance Measurements
-* Radio Wave Generation
+* Chirp Signal Generation
+* FMCW Radars
 * Frequency Shift Keying (FSK) communication between multiple boards
 * Weather Stations
 

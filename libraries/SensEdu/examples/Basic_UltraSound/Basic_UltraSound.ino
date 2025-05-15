@@ -21,7 +21,7 @@ SensEdu_DAC_Settings dac_settings = {
 };
 
 /* ADC */
-const uint16_t mic_data_size = 64*32; // must be multiple of 64 for 16bit
+const uint16_t mic_data_size = 16*128; // must be multiple of 16 for 16bit
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t mic_data[mic_data_size]; // cache aligned
 
 ADC_TypeDef* adc = ADC1;

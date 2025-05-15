@@ -48,7 +48,7 @@ Clear documentation is essential for our educational purposes, help us:
 
 Check [Documentation Contributions]({% link Contributing/docs.md %}) for detailed instructions.
 
-{: .note}
+{: .IMPORTANT}
 For educational purposes, the documentation is aimed not only at developers but at beginner students as well. Try to avoid logical skips, use simple language and add diagrams, image or code examples!
 
 ### Improve Code
@@ -60,7 +60,7 @@ If you are an experienced embedded systems developer, feel free to optimize libr
 3. Create a fork and develop your feature
 4. Submit a [Pull Request] (PR) and ask for a review
 
-{: .note}
+{: .TIP}
 Try to keep PRs small, focusing on one feature/fix per PR.
 
 ### Submit Project
@@ -79,6 +79,7 @@ Projects are much appreciated even if they are quite similar to already develope
 - [ ] Ultrasonic measurements performance boost using DMA
 - [ ] Xcorr calibration algorithm
 - [ ] Improved Arduino-MATLAB serial communication
+- [ ] WiFi Arduino-MATLAB communication
 - [ ] Barometric sensor support
 - [ ] FMCW Radar
 

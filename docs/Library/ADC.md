@@ -29,7 +29,7 @@ An overview of possible errors for ADC:
 * `0x2002`: Passed ADC instance is not either `ADC1`, `ADC2` nor `ADC3`
 * `0x2003`: ADC failed to disable
 * `0x2004`: ADC failed to power up
-* `0x2005`: Selected pin for ADC is not reachable. Refer to the [table]({% link Library/ADC.md %}#notes) to find proper pins for each ADC instance
+* `0x2005`: Selected pin for ADC is not reachable. Refer to the [table] to find proper pins for each ADC instance
 * `0x2006`: Unexpected pin number during initialization. Must be at least 1
 * `0x2007`: Unexpected address or memory size for DMA
 * `0x2008`: Unexpected sampling frequency. Must be at least 1kHz
@@ -80,7 +80,7 @@ typedef struct {
 * `mem_address`: DMA buffer address in memory (first element of the array)
 * `mem_size`: DMA buffer size
 
-#### Notes {#adc_table_id}
+#### Notes {#adc_mapping}
 {: .no_toc}
 
 Be aware of which pins you can use with selected ADC. Table below shows ADC connections. For example, you can't access `ADC3` with pin `A7`, cause it is only connected to `ADC1`. 
@@ -122,7 +122,7 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings);
 {: .no_toc}
 * Initializes associated DMA and timer in `SENSEDU_ADC_DMA_CONNECT` and `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` modes respectively.
 
-{: .warning}
+{: .WARNING}
 Be careful to initialize each required ADC before enabling. Certain configuration is shared between multiple ADCs, which could be edited only if related ADCs are disabled.
 
 ```c
@@ -208,7 +208,7 @@ uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
 {: .no_toc}
 * `dma_complete` flag is automatically cleared by calling `SensEdu_ADC_Start()`
 
-{: .warning}
+{: .TIP}
 Avoid performing any actions without acknowledging this flag. It ensures that the data was completely transferred.
 
 
@@ -255,7 +255,7 @@ uint16_t SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC)
 * Consumes CPU cycles. Prefer DMA to free CPU for other tasks. For example, you can perform complex calculations on ADC values, while requesting the new set of data with DMA.
 * Refer to non-DMA examples like `Read_ADC_3CH`.
 
-{: .warning}
+{: .WARNING}
 Multi-channel CPU polling currently doesn't work in `SENSEDU_ADC_MODE_ONE_SHOT`. Use `SENSEDU_ADC_MODE_CONT` or `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`. If you want to look into this and have a try fixing it, refer to [this issue].
 
 
@@ -268,7 +268,7 @@ void SensEdu_ADC_ShortA4toA9(void);
 
 #### Notes
 {: .no_toc}
-* **In older board revisions**, microphone #2 is wired to pin `A9` (`PC3_C`), which is routed only to `ADC3`. This conflicts with project requiring x4 microphones, using `ADC1` and `ADC2` with x2 channels per ADC. To solve this problem, `_C` pins could be shorted to their `non_C` counterparts. This way pin `A4` (`PC3`) is bridged to `A9` (`PC3_C`), allowing microphone #2 to be accessed via any ADC, since `PC3` is shared between `ADC1` and `ADC2`. Refer to the table at [settings section]({% link Library/ADC.md %}#notes) for better understanding.
+* **In older board revisions**, microphone #2 is wired to pin `A9` (`PC3_C`), which is routed only to `ADC3`. This conflicts with project requiring x4 microphones, using `ADC1` and `ADC2` with x2 channels per ADC. To solve this problem, `_C` pins could be shorted to their `non_C` counterparts. This way pin `A4` (`PC3`) is bridged to `A9` (`PC3_C`), allowing microphone #2 to be accessed via any ADC, since `PC3` is shared between `ADC1` and `ADC2`. Refer to the [table] at settings section for better understanding.
 
 
 ## Examples
@@ -432,7 +432,7 @@ Continuously reads ADC conversions using DMA for a single analog pin, allowing e
 7. Check `dma_complete` using `SensEdu_ADC_GetTransferStatus()`. When `true`, read the buffer and perform operations (e.g., print values, compute something)
 8. Call `SensEdu_ADC_Start()` again to trigger a new DMA transfer
 
-{: .warning}
+{: .WARNING}
 In future releases cache alignment will be automated, allowing arbitrary buffer sizes with a command like `SENSEDU_ADC_BUFFER(memory4adc, memory4adc_size);`. You can contribute to this feature [here](https://github.com/ShiegeChan/SensEdu/issues/10).
 
 ```c
@@ -563,7 +563,7 @@ Each ADC occupies one DMA stream:
 * **ADC2**: DMA1_Stream5
 * **ADC3**: DMA1_Stream7
 
-{: .warning }
+{: .WARNING }
 Avoid reusing occupied DMA streams. Refer to [STM32H747 Reference Manual] to find free available streams.
 
 
@@ -658,14 +658,14 @@ __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_
 
 ### Reading ADC Data
 
-The STM32H7 microcontroller is equipped with three ADC modules, each capable of accessing multiple channels (refer to the [table] above). Reading the ADC values from a single channel is straightforward, as the data is stored consecutively in an array. 
+The STM32H7 microcontroller is equipped with three ADC modules, each capable of accessing multiple channels (refer to the ADC mapping [table] above). Reading the ADC values from a single channel is straightforward, as the data is stored consecutively in an array. 
 
+However, when reading data from multiple channels within a single ADC module, users must use different approach. The data for each channel is interleaved in the array, meaning that the data for each channel is stored one after the other, rather than all data from first channel followed by all data from second channel, and so forth. This structure is illustrated clearly in the following figure giving an example of using two channels with one ADC module. 
 
-However, when reading data from multiple channels within a single ADC module, users must exercise caution. The data for each channel is interleaved in the array, meaning that the data for each channel is stored one after the other, rather than all data from first channel followed by all data from second channel, and so forth. This structure is illustrated clearly in the following figure giving an example of using two channels with one ADC module. 
+<img src="{{site.baseurl}}/assets/images/ADC_Data_Flow.png" alt="drawing"/>
+{: .text-center}
 
-![]({{site.baseurl}}/assets/images/ADC_Data_Flow.png)
-
-[table]: /SensEdu/Library/ADC/#adc_table_id
+[table]: /SensEdu/Library/ADC/#adc_mapping
 [this issue]: https://github.com/ShiegeChan/SensEdu/issues/8
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
 [Manual Page]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf

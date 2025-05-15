@@ -115,9 +115,10 @@ void DMA_ADCEnable(ADC_TypeDef* adc) {
         error = DMA_ERROR_ADC_WRONG_INPUT;
     }
 
-    // check if the size is the multiple of D-Cache line size (32 words)
-    // 16bit - half words -> x2 multiplication
-    if ((config->memory_size % (__SCB_DCACHE_LINE_SIZE << 1)) != 0) {
+    // check if the size is the multiple of D-Cache line size (32 bytes)
+    // 16bit -> 2byte memory elements
+    // memory must be multiple of (32 bytes / 2 bytes) elements
+    if (((config->memory_size << 1) % __SCB_DCACHE_LINE_SIZE) != 0) {
         error = DMA_ERROR_MEMORY_WRONG_SIZE;
         return;
     }

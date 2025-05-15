@@ -176,21 +176,12 @@ void loop() {
     SensEdu_ADC_Start(adc2);
 
     // wait for the data from ADC1
-<<<<<<< HEAD:projects/ultrasound_distance_measurement/ultrasound_distance_measurement.ino
     while(!SensEdu_DMA_GetADCTransferStatus(adc1));
     SensEdu_DMA_ClearADCTransferStatus(adc1);
 
     // wait for the data from ADC2
     while(!SensEdu_DMA_GetADCTransferStatus(adc2));
     SensEdu_DMA_ClearADCTransferStatus(adc2);
-=======
-    while(!SensEdu_ADC_GetTransferStatus(ADC1));
-    SensEdu_ADC_ClearTransferStatus(ADC1);
-
-    // wait for the data from ADC2
-    while(!SensEdu_ADC_GetTransferStatus(ADC2));
-    SensEdu_ADC_ClearTransferStatus(ADC2);
->>>>>>> main:projects/distance_measurement_sampling_rate_check/distance_measurement_sampling_rate_check.ino
 
     if(!LOCAL_XCORR) {
         // just send the data bunch of bits first both channels from adc1 and then both channels from adc2

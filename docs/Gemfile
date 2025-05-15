@@ -12,3 +12,5 @@ group :jekyll_plugins do
     gem "jekyll-remote-theme"
     gem "jekyll-feed"
 end
+
+gem "sass-embedded", "1.83.4"
