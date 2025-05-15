@@ -154,7 +154,7 @@ Examples are organized incrementally. Each builds on the previous one by introdu
 
 If you want to see complete examples, visit `\examples\` directory or open them via Arduino IDE by navigating to `File → Examples → SensEdu`.
 
-Each example uses a LUT with specified (16-bit) values and size. An example of defining a sine wave of 64 samples is shown in the following code snippet
+Each example uses a LUT with specified (12-bit) values and size. An example of defining a sine wave of 64 samples is shown in the following code snippet
 
 ```c
 const SENSEDU_DAC_BUFFER(buffer_name, buffer_size) = {...};
@@ -257,7 +257,7 @@ void loop() {
 
 ### Send_DAC_Variable_Wave
 
-Transmitting wave constantly with LUT changes during the program execution (run-time modifications). For this specific example we use small DAC buffer (4 elements) to generate a triangular wave across whole 16-bit region.
+Transmitting wave constantly with LUT changes during the program execution (run-time modifications). For this specific example we use small DAC buffer (4 elements) to generate a triangular wave across whole 12-bit region.
 
 1. Include SensEdu library
 2. Declare DAC Buffer and initialize it with any values

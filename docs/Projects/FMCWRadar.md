@@ -57,7 +57,7 @@ Where pulse radars measure time and TOF to evaluate distance, FMCW radars measur
 
 The beat frequency is defined as the frequency equal to the difference between two sinusoids. $$f_b$$ appears in the figure below :
 
-<img src="{{site.baseurl}}/assets/images/FBeat.png" alt="drawing" width="800"/>
+<img src="{{site.baseurl}}/assets/images/fbeat.png" alt="drawing" width="800"/>
 {: .text-center}
 
 The Beat Frequency $$f_b$$ appears due to the slight delay between $$T_x$$ and $$R_x$$
