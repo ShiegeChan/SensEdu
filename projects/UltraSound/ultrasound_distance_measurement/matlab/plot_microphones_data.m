@@ -5,16 +5,16 @@ close all;
 clc;
 
 %% Settings
-ARDUINO_PORT = 'COM13';
+ARDUINO_PORT = 'COM4';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 500; 
-MIC_NUM = 4;
+ITERATIONS = 50; 
+MIC_NUM = 6;
+mic_name = {"MIC 1", "MIC 2", "MIC 4", "MIC 8", "MIC 6", "MIC 7"};
+VARIANCE_TEST = false; 
 
-VARIANCE_TEST = true;
-
-PLOT_DISTANCE = false;
-PLOT_DETAILED_DATA = false; % make sure to change this in .ino code as well
-PLOT_LIMIT = 1.2; % in meters
+PLOT_DISTANCE = true;
+PLOT_DETAILED_DATA = true; % make sure to change this in .ino code as well
+PLOT_LIMIT = 1; % in meters
 PLOT_FIX_X_AXIS = false; % fix x axis to certain amount of measurements
 PLOT_FIX_X_AXIS_NUM = 200; % multiple of 10!
 PLOT_TIME_AXIS = false; % replace measurements with time in x axis
@@ -32,7 +32,7 @@ data_mic1 = zeros(1, ITERATIONS);
 data_mic2 = zeros(1, ITERATIONS);
 data_mic3 = zeros(1, ITERATIONS);
 data_mic4 = zeros(1, ITERATIONS);
-detail_info = zeros(12, 2048, ITERATIONS);
+detail_info = zeros(18, 2048, ITERATIONS);
 
 x_axis = 1:PLOT_FIX_X_AXIS_NUM;
 x_shift = PLOT_FIX_X_AXIS_NUM/10;
@@ -56,11 +56,15 @@ for it = 1:ITERATIONS
     % Detailed data: raw microphone data | scaled and removed self
     % reflection | xcorr result
     
-    %details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, DATA_LENGTH, 3);
-    %detail_info(:,:,it) = details_matrix;
+    details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, DATA_LENGTH, 3);
+    detail_info(:,:,it) = details_matrix;
     
     % Reading distance directly from the mcu 
     dist_vector = read_mcu_xcorr(arduino, MIC_NUM);
+    % if(it > 1 && any(abs(dist_vector - dist_matrix(it-1)) > 0.2))
+    %     check_matrix()
+    % 
+    % end
     
 
     for i = 1:MIC_NUM
@@ -83,7 +87,7 @@ end
 arduino = [];
 
 % save measurements
-file_name = sprintf('%s_%s.mat', "measurements_variance_1", datetime("now"));
+file_name = sprintf('%s_%s.mat', "full_data", datetime("now"));
 file_name = strrep(file_name, ' ', '_');
 file_name = strrep(file_name, ':', '-');
 save(file_name, "dist_matrix", "time_axis");
@@ -95,6 +99,24 @@ for i = 2:(length(time_axis) - 1)
 end
 fprintf("Plots are activated: %s\n", mat2str(PLOT_DISTANCE));
 fprintf("average time between measurements: %fsec\n", buf);
+
+%% 
+for j = 1:ITERATIONS
+    plot_details(detail_info(:,:,j), MIC_NUM, 4);
+end
+%%
+figure
+for i = 1:MIC_NUM
+    plot(time_axis, dist_matrix(i, :), 'LineWidth', 2); hold on;
+end
+ylim([0 1])
+xlim([0 time_axis(end)])
+grid on
+xlabel("time [s]");
+ylabel("distance [m]")
+legend(mic_name);
+title("Microphone distance measurements")
+
 
 %% functions
 
@@ -154,7 +176,7 @@ function x_axis = plot_distance(dist_matrix, x_axis, is_x_fixed_axis, x_shift, i
             plot(x, temp);
         end
 
-        title(strcat("Microphone #", num2str(i)))
+        %title(mic_name(1, i));
         ylabel("Distance [m]")
         if is_x_time_axis
             xlabel("Time [sec]")
@@ -164,4 +186,6 @@ function x_axis = plot_distance(dist_matrix, x_axis, is_x_fixed_axis, x_shift, i
         ylim([0, y_limit]);
     end
 end
+
+
 

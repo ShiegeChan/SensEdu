@@ -13,10 +13,10 @@ uint8_t error_led = D86;
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 //#define SERIAL_OFF
-//#define LOCAL_XCORR     true    // doing xcorr on the microcontroller
-//#define XCORR_DEBUG     true    // sending only distance w/o other data
+#define LOCAL_XCORR     true    // doing xcorr on the microcontroller
+#define XCORR_DEBUG     true    // sending only distance w/o other data
 
-#define BAN_DISTANCE	30		    // min distance [cm] - how many self reflections cancelled
+#define BAN_DISTANCE    30	    // min distance [cm] - how many self reflections cancelled
 #define ACTUAL_SAMPLING_RATE 250000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
 #define STORE_BUF_SIZE  64 * 32     // 2400 for 1 measurement per second. 
                             	    // only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)
@@ -33,19 +33,25 @@ arm_fir_instance_f32 Fir_filt;  // creating an object instance
 
 ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
+ADC_TypeDef* adc3 = ADC3;
 
-const uint8_t adc1_mic_num = 2; // 2 microphones for adc1
-const uint8_t adc2_mic_num = 2; // 2 microphones for adc2
-uint8_t adc1_pins[adc1_mic_num] = {A5, A4}; // mic1 and mic2 are on adc1
-uint8_t adc2_pins[adc2_mic_num] = {A1, A6}; // mic3 and mic4 are on adc2
+const uint8_t adc1_mic_num = 2; // 3 microphones for adc1
+const uint8_t adc2_mic_num = 2; // 3 microphones for adc2
+const uint8_t adc3_mic_num = 2; // 2 microphones for adc3
+
+uint8_t adc1_pins[adc1_mic_num] = {A1, A3}; // mic1, mic2 are on adc1
+uint8_t adc2_pins[adc2_mic_num] = {A5, A10}; // mic4 and mic8 are on adc2
+uint8_t adc3_pins[adc3_mic_num] = {A6, A9}; // mic 6 and mic7 are on adc3
 
 // must be:
 // 1. multiple of 32 words (64 half-words) to ensure cache coherence
 // 2. properly aligned
 const uint16_t adc1_data_size = STORE_BUF_SIZE * adc1_mic_num; // 2048 * 2 = 64 * 32 * 2
 const uint16_t adc2_data_size = STORE_BUF_SIZE * adc2_mic_num;
+const uint16_t adc3_data_size = STORE_BUF_SIZE * adc3_mic_num;
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc1_data[adc1_data_size];
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc2_data[adc2_data_size];
+__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc3_data[adc3_data_size];
 
 
 SensEdu_ADC_Settings adc1_settings = {
@@ -72,6 +78,19 @@ SensEdu_ADC_Settings adc2_settings = {
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)&adc2_data,
     .mem_size = adc2_data_size
+};
+
+SensEdu_ADC_Settings adc3_settings = {
+    .adc = adc3,
+    .pins = adc3_pins,
+    .pin_num = adc3_mic_num,
+
+    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
+    .sampling_freq = 250000,
+    
+    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .mem_address = (uint16_t*)&adc3_data,
+    .mem_size = adc3_data_size
 };
 
 /********************* DAC ****************/
@@ -130,6 +149,10 @@ void setup() {
     SensEdu_ADC_Init(&adc2_settings);
     SensEdu_ADC_Enable(adc2);
 
+    /* ADC 3 */
+    SensEdu_ADC_Init(&adc3_settings);
+    SensEdu_ADC_Enable(adc3);
+
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         handle_error();
@@ -164,6 +187,7 @@ void loop() {
     // Start ADCs
     SensEdu_ADC_Start(adc1);
     SensEdu_ADC_Start(adc2);
+    SensEdu_ADC_Start(adc3);
 
     // Wait for the data from ADC1
     while(!SensEdu_ADC_GetTransferStatus(adc1));
@@ -173,12 +197,22 @@ void loop() {
     while(!SensEdu_ADC_GetTransferStatus(adc2));
     SensEdu_ADC_ClearTransferStatus(adc2);
 
+    // Wait for the data from ADC2
+    while(!SensEdu_ADC_GetTransferStatus(adc3));
+    SensEdu_ADC_ClearTransferStatus(adc3);
+
     // Calculating distance for each microphone
     static uint32_t distance[4];
-	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", main_obj_ptr->ban_flag) ;
+	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", main_obj_ptr->ban_flag);
     distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2", main_obj_ptr->ban_flag);
+    //distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "3", main_obj_ptr->ban_flag);
+
     distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "1", main_obj_ptr->ban_flag);
-    distance[3] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "2", main_obj_ptr->ban_flag);
+	distance[3] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "2", main_obj_ptr->ban_flag);
+
+    distance[4] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "1", main_obj_ptr->ban_flag);
+    distance[5] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "2", main_obj_ptr->ban_flag);
+    //distance[6] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "3", main_obj_ptr->ban_flag);
 
     // Sending the distance measurements
     
@@ -186,6 +220,10 @@ void loop() {
     Serial.write((const uint8_t *) &distance[1], 4);
     Serial.write((const uint8_t *) &distance[2], 4);
     Serial.write((const uint8_t *) &distance[3], 4);
+    Serial.write((const uint8_t *) &distance[4], 4);
+    Serial.write((const uint8_t *) &distance[5], 4);
+    //Serial.write((const uint8_t *) &distance[6], 4);
+    //Serial.write((const uint8_t *) &distance[7], 4);
 
     // check errors
     lib_error = SensEdu_GetError();
