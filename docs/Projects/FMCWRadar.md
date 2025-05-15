@@ -33,7 +33,7 @@ FMCW radars involves the continuous transmission and reception of a frequency mo
 
 The transmitted signal is reflected from a static object and received by the radar. The received signal is called <span style="color:#9c76ab !important">$$R_x$$</span>. Below is a representation of $$T_x$$ and $$R_x$$'s amplitude and frequency over time :
 
-<video autoplay loop>
+<video autoplay loop muted playsinline>
   <source src="{{site.baseurl}}/assets/videos/TxRx.mp4" type="video/mp4">
 </video>
 {: .text-center}
@@ -97,7 +97,7 @@ The mixing operation produces a signal which is the sum of two sinusoids :
 
 The high frequency component HF at $$f_{T}+f_{R}$$ can easily be removed with a low pass filter. The remaining signal is a simple sinudoid at the beat frequency $$f_b=f_{T}-f_{R}$$. Below is a representation of the mixing signal operation :
 
-<video autoplay loop>
+<video autoplay loop muted playsinline>
   <source src="{{site.baseurl}}/assets/videos/Mixing.mp4" type="video/mp4">
 </video>
 {: .text-center}
