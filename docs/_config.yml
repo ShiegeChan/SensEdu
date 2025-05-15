@@ -1,5 +1,5 @@
 title: SensEdu Shield
-description: SensEdu development shield
+description: An educational development board designed to simplify entry into RADAR and communications research. Runs on the Arduino GIGA R1 WiFi, providing industry-standard embedded development experience while remaining beginner-friendly. SensEdu is perfect for students looking for a smooth introduction to this field, offering an easy-to-understand yet highly modifiable software and hardware environment.
 theme: just-the-docs
 
 baseurl: "/SensEdu"

@@ -1,12 +1,13 @@
 #ifndef __DMA_H__
 #define __DMA_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "libs.h"
 #include "dac.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 // MPU calculations:
 //

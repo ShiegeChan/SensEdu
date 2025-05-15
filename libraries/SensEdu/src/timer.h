@@ -1,11 +1,12 @@
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
+
+#include "SensEdu.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "SensEdu.h"
 
 typedef enum {
     TIMER_ERROR_NO_ERRORS = 0x00,
