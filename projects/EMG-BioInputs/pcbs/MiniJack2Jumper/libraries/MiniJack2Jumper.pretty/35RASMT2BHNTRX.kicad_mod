@@ -1,0 +1,132 @@
+(footprint "35RASMT2BHNTRX"
+	(version 20240108)
+	(generator "pcbnew")
+	(generator_version "8.0")
+	(layer "F.Cu")
+	(property "Reference" "REF**"
+		(at -2.827075 -6.139495 0)
+		(layer "F.SilkS")
+		(uuid "a0a827d0-5485-41a4-8c24-d40f478abeb5")
+		(effects
+			(font
+				(size 1.000732 1.000732)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "SWITCHCRAFT_35RASMT2BHNTRX"
+		(at 10.52252 6.372545 0)
+		(layer "F.Fab")
+		(uuid "3d1d2063-3943-4ca7-8cf7-337f75c597e5")
+		(effects
+			(font
+				(size 1.001189 1.001189)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Footprint" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "3113ce42-0375-4de5-9de9-5af5a93b9ec9")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "4c7ec4c7-a508-43a7-80be-ae010bee63f1")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "b055f0e0-2824-4f01-ab9a-2893a281a453")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(fp_rect
+		(start -7.1 -5.4)
+		(end 7.6 5.4)
+		(stroke
+			(width 0.1524)
+			(type default)
+		)
+		(fill none)
+		(layer "F.CrtYd")
+		(uuid "658fde68-6db0-4e19-b413-9904c2512f04")
+	)
+	(pad "" np_thru_hole circle
+		(at -3.5 0)
+		(size 1.6 1.6)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu"
+			"In7.Cu" "In8.Cu" "In9.Cu" "In10.Cu" "In11.Cu" "In12.Cu" "In13.Cu" "In14.Cu"
+			"In15.Cu" "In16.Cu" "In17.Cu" "In18.Cu" "In19.Cu" "In20.Cu" "In21.Cu"
+			"In22.Cu" "In23.Cu" "In24.Cu" "In25.Cu" "In26.Cu" "In27.Cu" "In28.Cu"
+			"In29.Cu" "In30.Cu"
+		)
+		(uuid "76339ba5-ab30-4c79-bb27-f19c9fccfcb6")
+	)
+	(pad "" np_thru_hole circle
+		(at 3.5 0)
+		(size 1.6 1.6)
+		(drill 1.6)
+		(layers "*.Cu" "*.Mask" "In1.Cu" "In2.Cu" "In3.Cu" "In4.Cu" "In5.Cu" "In6.Cu"
+			"In7.Cu" "In8.Cu" "In9.Cu" "In10.Cu" "In11.Cu" "In12.Cu" "In13.Cu" "In14.Cu"
+			"In15.Cu" "In16.Cu" "In17.Cu" "In18.Cu" "In19.Cu" "In20.Cu" "In21.Cu"
+			"In22.Cu" "In23.Cu" "In24.Cu" "In25.Cu" "In26.Cu" "In27.Cu" "In28.Cu"
+			"In29.Cu" "In30.Cu"
+		)
+		(uuid "61e94e40-3967-45ac-b95e-daf464fed8b2")
+	)
+	(pad "1" smd rect
+		(at -2.7 -3.675)
+		(size 2.4 2.55)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(solder_mask_margin 0.102)
+		(uuid "1ff316f4-3361-4371-b2d6-5841b5cd37de")
+	)
+	(pad "4" smd rect
+		(at 4.7 3.675)
+		(size 2.9 2.55)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(solder_mask_margin 0.102)
+		(uuid "76d18f7d-84bd-400a-b419-5e503f3b6c88")
+	)
+	(pad "5" smd rect
+		(at -4.6 3.675)
+		(size 2.4 2.55)
+		(layers "F.Cu" "F.Paste" "F.Mask")
+		(solder_mask_margin 0.102)
+		(uuid "4027f874-5f4d-4f47-a071-0773327d1378")
+	)
+	(model "${KIPRJMOD}/libraries/3dmodels/35RASMT2BHNTRX.step"
+		(offset
+			(xyz -7 0 2.5)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 0 90)
+		)
+	)
+)

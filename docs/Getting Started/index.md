@@ -60,7 +60,7 @@ Now that your setup is complete, you can start developing your projects with Sen
 * Check out sample projects in `projects\` folder, and respective [Projects]({% link Projects/index.md %}) section
 * For troubleshooting or guidance, visit the [Help]({% link Help/index.md %}) section
 
-{: .note}
+{: .NOTE}
 If you are interested in contributing to SensEdu, visit the [Contributing]({% link Contributing/index.md %}) page and join our community!
 
 [Arduino IDE]: https://support.arduino.cc/hc/en-us/articles/360019833020-Download-and-install-Arduino-IDE
