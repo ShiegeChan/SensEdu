@@ -1,14 +1,15 @@
 #include "SensEdu.h"
 
-static uint32_t lib_error = 0; // lib error container
-static uint32_t error = 0x00FF; // error detector (00 to FF instantly)
+static uint32_t lib_error = 0x0000;     // lib error container
+static uint32_t error = 0x00FF;         // error detector (00 to FF instantly)
+static uint8_t  is_configured = 0x0;    // flag to denote when configuration data was already sent to PC
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 ADC_TypeDef* adc = ADC1;
 const uint8_t channel_count = 4;
-uint8_t adc_pins[channel_count] = {A0, A2, A11, A7}; 
+uint8_t adc_pins[channel_count] = {A0, A2, A11, A7};
 // must be:
 // 1. multiple of 32 bytes to ensure cache coherence
 // 2. properly aligned
@@ -42,27 +43,37 @@ void setup() {
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
-
-    // Send error "0" and then error code
-    // if smth is wrong in a lib
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        Serial.write((const uint8_t*) &error, 4);
-        Serial.write((const uint8_t*) &lib_error, 4);
-        delay(1000);
-    }
-
-    // Send total memory size
-    Serial.write((const uint8_t*) &mem_size, 2);
-
-    // Send channel count
-    Serial.write((const uint8_t*) &channel_count, 1);
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 void loop() {
+    // loop is triggered with character sent from PC
+    static char serial_buf = 0;
+    while (1) {
+        while (Serial.available() == 0); // Wait for a signal
+        serial_buf = Serial.read();
+        if (serial_buf == 'c') {
+            // config character
+            send_config(&mem_size, &channel_count);
+            return;
+        }
+        if (serial_buf == 'm') {
+            // measurement character
+            break;
+        }
+    }
+
+    // check errors
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        // Send error marker and then error code
+        Serial.write((const uint8_t*) &error, 4);
+        Serial.write((const uint8_t*) &lib_error, 4);
+        delay(1000);
+    }
+
     if (SensEdu_ADC_GetTransferStatus(adc)) {
         // iterate through all 4 channels
         for (uint8_t i = 0; i < channel_count; i++) {
@@ -76,12 +87,12 @@ void loop() {
         SensEdu_ADC_ClearTransferStatus(adc);
         SensEdu_ADC_Start(adc);
     }
+}
 
-    // check errors
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        Serial.write((const uint8_t*) &error, 4);
-        Serial.write((const uint8_t*) &lib_error, 4);
-        delay(1000);
-    }
+void send_config(const uint16_t* mem_size, const uint8_t* channel_count) {
+    // Send total memory size
+    Serial.write((const uint8_t*) mem_size, 2);
+
+    // Send channel count
+    Serial.write((const uint8_t*) channel_count, 1);
 }
