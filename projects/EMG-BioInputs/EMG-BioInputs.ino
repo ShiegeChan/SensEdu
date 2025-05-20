@@ -13,7 +13,7 @@ uint8_t adc_pins[channel_count] = {A0, A2, A11, A7};
 // must be:
 // 1. multiple of 32 bytes to ensure cache coherence
 // 2. properly aligned
-const uint16_t mem_size = channel_count*128; 
+const uint16_t mem_size = 16 * channel_count * 64; // multiple of 16 for 2 byte values
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t emg_data[mem_size];
 
 SensEdu_ADC_Settings adc_settings = {
@@ -21,8 +21,8 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = adc_pins,
     .pin_num = channel_count,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT,
-    .sampling_freq = 0,
+    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
+    .sampling_freq = 10000,
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)emg_data,
@@ -74,19 +74,21 @@ void loop() {
         delay(1000);
     }
 
-    if (SensEdu_ADC_GetTransferStatus(adc)) {
-        // iterate through all 4 channels
-        for (uint8_t i = 0; i < channel_count; i++) {
-            // rearrange data properly
-            for (uint16_t j = 0; j < mem_size/channel_count; j++) {
-                Serial.write((const uint8_t *) &emg_data[i + channel_count*j], 2);
-            }
-        }
+    // wait till ADC is ready
+    while(!SensEdu_ADC_GetTransferStatus(adc));
 
-        // restart ADC
-        SensEdu_ADC_ClearTransferStatus(adc);
-        SensEdu_ADC_Start(adc);
+    // send data
+    for (uint8_t i = 0; i < channel_count; i++) {
+        // rearrange data properly
+        for (uint16_t j = 0; j < mem_size/channel_count; j++) {
+            Serial.write((const uint8_t *) &emg_data[i + channel_count*j], 2);
+        }
     }
+
+    // restart ADC
+    SensEdu_ADC_ClearTransferStatus(adc);
+    SensEdu_ADC_Start(adc);
+    
 }
 
 void send_config(const uint16_t* mem_size, const uint8_t* channel_count) {
