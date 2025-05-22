@@ -1,24 +1,20 @@
-
 /*------------------------------------------------------------------*/
 /*                     MAIN MEASUREMENT FUNCTION                    */
 /*------------------------------------------------------------------*/
-uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint16_t* mic_array, size_t mic_array_size, const char* channel, uint8_t ban_flag) {
-    // Rescale from [0, (2^16-1)] to [-1, 1] and filter around 32 kHz
-	rescale_adc_wave(xcorr_buf, mic_array, channel, mic_array_size);
 
-    // remove self reflections from a dataset
+
+uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint16_t* mic_array, size_t mic_array_size, const char* channel, uint8_t adc_ch_num, uint8_t ban_flag) {
+	rescale_adc_wave(xcorr_buf, mic_array, channel, mic_array_size, adc_ch_num);
+	// remove self reflections from a dataset
 	if (ban_flag == 1) {
 		for (uint32_t i = 0; i < banned_sample_num; i++) {
 			xcorr_buf[i] = 0;
 		}
 	}
-
-    // Perform cross-correlation algorithm
     custom_xcorr(xcorr_buf, dac_wave, STORE_BUF_SIZE);
-
-    // Calculate the distance of the object
 	uint32_t peak_index = 0;
 	float biggest = 0.0f;
+
 	for (uint32_t i = 0; i < STORE_BUF_SIZE; i++) {
 		if (xcorr_buf[i] > biggest) {
 			biggest = xcorr_buf[i];
@@ -26,11 +22,10 @@ uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint1
 		}
 	}
 	uint16_t sr = ACTUAL_SAMPLING_RATE/1000; // kS/sec  sample rate
-	//uint16_t c = 343; // speed in air
+	uint16_t c = 343; // speed in air
 	// (lag_samples * sample_time) * air_speed / 2
-    // peak index is in kilosamples. This math manover makes the samples come in micrometers 
-	uint32_t distance = ((peak_index * 1000 * air_speed) / sr) >> 1; // in micrometers
-    return distance;
+	uint32_t distance = ((peak_index * 1000 * c) / sr) >> 1; // in micrometers
+    return distance;   
 }
 
 
@@ -54,6 +49,7 @@ void custom_xcorr(float* xcorr_buf, const uint16_t* dac_wave, uint32_t adc_data_
         xcorr_buf[m] = sum; 
     }
 }
+
 
 /*------------------------------------------------------------------*/
 /*                     BANDPASS FILTERING FUNCTION                  */
@@ -81,25 +77,51 @@ void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
 /*                     RESCALING FUNCTION                           */
 /*------------------------------------------------------------------*/
 
-void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* channel, size_t adc_data_length) {
+void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* channel, size_t adc_data_length, uint8_t adc_channel_num) {
     // 0:65535 -> -1:1
     float sum = 0.0f;
     uint32_t cnt = 0;
     char ch = channel[0];
     clear_float_buf(rescaled_adc_wave, STORE_BUF_SIZE);
-    if(ch=='1') {
-        for(uint32_t i = 0; i < 2 * STORE_BUF_SIZE; i+=2) {
-            rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
-            sum += rescaled_adc_wave[cnt];
-            cnt++;
-        }
+
+    switch(adc_channel_num) {
+        case 2:
+            if(ch=='1') {
+                for(uint32_t i = 0; i < 2 * STORE_BUF_SIZE; i+=2) {
+                    rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+                    cnt++;
+                }
+            }
+            else if(ch=='2') {
+                for(uint32_t i = 1; i < 2 * STORE_BUF_SIZE; i+=2) {
+                    rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+                    cnt++;
+                }
+            }
+            break;
+        case 3:
+            if(ch=='1') {
+                for(uint32_t i = 0; i < 2 * STORE_BUF_SIZE; i+=3) {
+                    rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+                    cnt++;
+                }
+            }
+            else if(ch=='2') {
+                for(uint32_t i = 1; i < 2 * STORE_BUF_SIZE; i+=3) {
+                    rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+                    cnt++;
+                }
+            }
+            else if(ch=='3') {
+                for(uint32_t i = 2; i < 2 * STORE_BUF_SIZE; i+=3) {
+                    rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+                    cnt++;
+                }
+            }
+            break;
+        default:
+            break;
     }
-    else if(ch=='2') {
-        for(uint32_t i = 1; i < 2 * STORE_BUF_SIZE; i+=2) {
-            rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
-            sum += rescaled_adc_wave[cnt];
-            cnt++;
-        }
-    }
-    filter_32kHz_wave(rescaled_adc_wave, STORE_BUF_SIZE);
+    
+    filter_32kHz_wave(rescaled_adc_wave, STORE_BUF_SIZE);   
 }

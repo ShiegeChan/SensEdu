@@ -35,13 +35,13 @@ ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
 ADC_TypeDef* adc3 = ADC3;
 
-const uint8_t adc1_mic_num = 2; // 3 microphones for adc1
-const uint8_t adc2_mic_num = 2; // 3 microphones for adc2
-const uint8_t adc3_mic_num = 2; // 2 microphones for adc3
+const uint8_t adc1_mic_num = 3; // 3 microphones for adc1
+const uint8_t adc2_mic_num = 2; // 2 microphones for adc2
+const uint8_t adc3_mic_num = 3; // 3 microphones for adc3
 
-uint8_t adc1_pins[adc1_mic_num] = {A1, A3}; // mic1, mic2 are on adc1
+uint8_t adc1_pins[adc1_mic_num] = {A1, A3, A4}; // mic1, mic2 are on adc1
 uint8_t adc2_pins[adc2_mic_num] = {A5, A10}; // mic4 and mic8 are on adc2
-uint8_t adc3_pins[adc3_mic_num] = {A6, A9}; // mic 6 and mic7 are on adc3
+uint8_t adc3_pins[adc3_mic_num] = {A6, A8, A9}; // mic 6 and mic5 mic7 are on adc3
 
 // must be:
 // 1. multiple of 32 words (64 half-words) to ensure cache coherence
@@ -134,7 +134,7 @@ void setup() {
     // initializing the filter
     arm_fir_init_f32(&Fir_filt, FILTER_TAP_NUM, filter_taps, firStateBuffer, FILTER_BLOCK_LENGTH); 
     
-    SensEdu_ADC_ShortA4toA9(); // in order to use ADC1 for mic2
+    //SensEdu_ADC_ShortA4toA9(); // in order to use ADC1 for mic2
 
     Serial.begin(115200); // 14400 bytes/sec -> 7200 samples/sec -> 2400 samples/sec for 1 mic
 
@@ -203,16 +203,16 @@ void loop() {
 
     // Calculating distance for each microphone
     static uint32_t distance[4];
-	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", main_obj_ptr->ban_flag);
-    distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2", main_obj_ptr->ban_flag);
-    //distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "3", main_obj_ptr->ban_flag);
+	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", adc1_mic_num, main_obj_ptr->ban_flag);
+    distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2", adc1_mic_num, main_obj_ptr->ban_flag);
+    distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "3", adc1_mic_num, main_obj_ptr->ban_flag);
 
-    distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "1", main_obj_ptr->ban_flag);
-	distance[3] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "2", main_obj_ptr->ban_flag);
+    distance[3] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "1", adc2_mic_num, main_obj_ptr->ban_flag);
+	distance[4] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "2", adc2_mic_num, main_obj_ptr->ban_flag);
 
-    distance[4] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "1", main_obj_ptr->ban_flag);
-    distance[5] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "2", main_obj_ptr->ban_flag);
-    //distance[6] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "3", main_obj_ptr->ban_flag);
+    distance[5] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "1", adc3_mic_num, main_obj_ptr->ban_flag);
+    distance[6] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "2", adc3_mic_num, main_obj_ptr->ban_flag);
+    distance[7] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "3", adc3_mic_num, main_obj_ptr->ban_flag);
 
     // Sending the distance measurements
     
@@ -222,8 +222,8 @@ void loop() {
     Serial.write((const uint8_t *) &distance[3], 4);
     Serial.write((const uint8_t *) &distance[4], 4);
     Serial.write((const uint8_t *) &distance[5], 4);
-    //Serial.write((const uint8_t *) &distance[6], 4);
-    //Serial.write((const uint8_t *) &distance[7], 4);
+    Serial.write((const uint8_t *) &distance[6], 4);
+    Serial.write((const uint8_t *) &distance[7], 4);
 
     // check errors
     lib_error = SensEdu_GetError();
