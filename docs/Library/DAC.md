@@ -29,20 +29,20 @@ Each of the methods are useful for different applications.
 
 ## Errors
 
-Main DAC error code is `0x30xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+Main DAC error code is `0x40xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
 
 An overview of possible errors for DAC:
 
-* `0x3000`: No Errors
-* `0x3001`: DAC was initialized before initialization
-* `0x3002`: Passed DAC channel is not either `DAC_CH1` nor `DAC_CH2`
-* `0x3003`: Selected sampling frequency is too high. Maximum is around 15MHz
-* `0x3004`: Unexpected address or memory size for DMA
-* `0x3005`: In `SENSEDU_DAC_MODE_BURST_WAVE` expected `burst_num` is at least 1
+* `0x4000`: No Errors
+* `0x4001`: DAC was initialized before initialization
+* `0x4002`: Passed DAC channel is not either `DAC_CH1` nor `DAC_CH2`
+* `0x4003`: Selected sampling frequency is too high. Maximum is around 15MHz
+* `0x4004`: Unexpected address or memory size for DMA
+* `0x4005`: In `SENSEDU_DAC_MODE_BURST_WAVE` expected `burst_num` is at least 1
 
 An overview of critical errors. They shouldn’t happen in normal user case and indicate some problems in library code:
 
-* `0x30A0`: DMA Underrun interrupt flag was raised: currently selected trigger is driving DAC channel conversion at a frequency higher than the DMA service capability rate (read more in section 27.4.8 of [Reference Manual])
+* `0x40A0`: DMA Underrun interrupt flag was raised: currently selected trigger is driving DAC channel conversion at a frequency higher than the DMA service capability rate (read more in section 27.4.8 of [Reference Manual])
 
 ## Structs
 
