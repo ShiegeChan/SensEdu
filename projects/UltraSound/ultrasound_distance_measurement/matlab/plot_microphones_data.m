@@ -87,10 +87,10 @@ end
 arduino = [];
 
 % save measurements
-file_name = sprintf('%s_%s.mat', "full_data", datetime("now"));
+file_name = sprintf('%s_%s.mat', "no_object", datetime("now"));
 file_name = strrep(file_name, ' ', '_');
 file_name = strrep(file_name, ':', '-');
-save(file_name, "dist_matrix", "time_axis");
+save(file_name, "dist_matrix", "detail_info", "time_axis");
 
 % calculate average time between measurements
 buf = time_axis(2) - time_axis(1);
@@ -100,7 +100,7 @@ end
 fprintf("Plots are activated: %s\n", mat2str(PLOT_DISTANCE));
 fprintf("average time between measurements: %fsec\n", buf);
 
-%% 
+%%
 for j = 1:ITERATIONS
     plot_details(detail_info(:,:,j), MIC_NUM, 4);
 end
@@ -117,6 +117,18 @@ ylabel("distance [m]")
 legend(mic_name);
 title("Microphone distance measurements")
 
+%%
+figure
+for i = 1:MIC_NUM
+    plot(time_axis, dist_matrix(i, :), 'LineWidth', 2); hold on;
+end
+ylim([0 1])
+xlim([0 time_axis(end)])
+grid on
+xlabel("time [s]");
+ylabel("distance [m]")
+legend(mic_name);
+title("Microphone distance measurements")
 
 %% functions
 

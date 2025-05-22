@@ -19,6 +19,7 @@ uint8_t error_led = D86;
 
 #define LOCAL_XCORR     true    // doing xcorr on the microcontroller
 #define XCORR_DEBUG     true    // sending only distance w/o other data
+#define POST_FILTER_THRESHOLD 1.0
 
 #define BAN_DISTANCE	20		    // min distance [cm] - how many self reflections cancelled
 #define ACTUAL_SAMPLING_RATE 250000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
@@ -123,6 +124,8 @@ typedef struct {
 	uint8_t ban_flag; // activate self reflections ban
 	char serial_read_buf;
     float xcorr_buffer[STORE_BUF_SIZE]; // use same buffer for several functions for memory saving
+    float modified_xcorr_buffer[STORE_BUF_SIZE]; // use same buffer for several functions for memory saving
+    uint8_t trust;
     
 } SenseduBoard;
 
@@ -210,16 +213,16 @@ void loop() {
 
     // Calculating distance for each microphone
     static uint32_t distance[4];
-	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", main_obj_ptr->ban_flag);
-    distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2", main_obj_ptr->ban_flag);
-    //distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "3", main_obj_ptr->ban_flag);
+	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
+    distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
+    distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "3", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
 
-    distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "1", main_obj_ptr->ban_flag);
-	distance[3] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "2", main_obj_ptr->ban_flag);
+    distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "1", 2, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
+	distance[3] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "2", 2, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
 
-    distance[4] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "1", main_obj_ptr->ban_flag);
-    distance[5] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "2", main_obj_ptr->ban_flag);
-    //distance[6] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "3", main_obj_ptr->ban_flag);
+    distance[4] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "1", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
+    distance[5] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "2", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
+    distance[6] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "3", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
 
     // Sending the distance measurements
     
@@ -229,8 +232,8 @@ void loop() {
     Serial.write((const uint8_t *) &distance[3], 4);
     Serial.write((const uint8_t *) &distance[4], 4);
     Serial.write((const uint8_t *) &distance[5], 4);
-    //Serial.write((const uint8_t *) &distance[6], 4);
-    //Serial.write((const uint8_t *) &distance[7], 4);
+    Serial.write((const uint8_t *) &distance[6], 4);
+    Serial.write((const uint8_t *) &distance[7], 4);
 
     // check errors
     lib_error = SensEdu_GetError();
