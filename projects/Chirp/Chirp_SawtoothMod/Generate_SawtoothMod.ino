@@ -5,14 +5,13 @@ const float Pi = 3.14159; // pi
 void generateSawtoothChirp(uint16_t* array) {
 
     float lut_sine[90 * x]; // Quarter-wave LUT for sine values
-    float vChirp; // Chirp signal array
+    float vChirp; // Chirp signal value
     float phase_deg; // Phase angle in degrees
     float phase_rad; // Phase angle in radians
     float phase_deg_wrapped; // Wrapped phase angle
-    float sK = (END_FREQUENCY - START_FREQUENCY) / CHIRP_DURATION; // Chirp rate
-    int P=round(CHIRP_DURATION*(START_FREQUENCY+sK*CHIRP_DURATION/2)); // Condition for int number of cycles
-    int END_FREQUENCY_ADJUSTED = 2*P/(CHIRP_DURATION) - START_FREQUENCY; // Adjusted end frequency for int number of cycles
-    sK = (END_FREQUENCY_ADJUSTED - START_FREQUENCY) / CHIRP_DURATION; // Adjusted chirp rate
+    int N = round((START_FREQUENCY + END_FREQUENCY) / 2.0 * CHIRP_DURATION); // Closest integer number of cycles
+    int END_FREQUENCY_ADJUSTED = 2*N/CHIRP_DURATION - START_FREQUENCY; // Adjusted end frequency for int number of cycles
+    float sK = (END_FREQUENCY_ADJUSTED - START_FREQUENCY) / CHIRP_DURATION; // Adjusted chirp rate
     
     // Generate the quarter-wave sine LUT
     for (int i = 0; i < 90 * x; i++) {
