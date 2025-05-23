@@ -22,12 +22,20 @@ uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint1
     if (XCORR_DEBUG)
 	    serial_send_array((const uint8_t*)xcorr_buf, xcorr_buf_size, "b", 1);
 
-	uint32_t peak_index = 0;
+	return calculate_distance(xcorr_buf);
+}
+
+/*------------------------------------------------------------------*/
+/*                     CALCULATE DISTANCES                          */
+/*------------------------------------------------------------------*/
+
+uint32_t calculate_distance(float *signal) {
+    uint32_t peak_index = 0;
 	float biggest = 0.0f;
 
 	for (uint32_t i = 0; i < STORE_BUF_SIZE; i++) {
-		if (xcorr_buf[i] > biggest) {
-			biggest = xcorr_buf[i];
+		if (signal[i] > biggest) {
+			biggest = signal[i];
 			peak_index = i;
 		}
 	}
