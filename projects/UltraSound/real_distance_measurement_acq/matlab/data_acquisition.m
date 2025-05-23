@@ -25,10 +25,10 @@ for it = 1:ITERATIONS
     write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
     pom = read_distance_data(arduino, MIC_NUM);
-    % if (it > 1 && pom())
-    %     pom = dist_matrix(:, it-1);
-    % end
-    % Reading the distance measurements
+    if (it > 1 && abs(pom(1))> 1.2*abs(pom(1)))
+        pom = dist_matrix(:, it-1);
+    end
+    %Reading the distance measurements
     dist_matrix(:, it) = pom;
 end
 acquisition_time = toc;

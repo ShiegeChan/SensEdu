@@ -68,7 +68,7 @@ SensEdu_ADC_Settings adc1_settings = {
     .sampling_freq = 250000,
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
-    .mem_address = (uint16_t*)adc1_data,
+    .mem_address = (uint16_t*)&adc1_data,
     .mem_size = adc1_data_size
 };
 
@@ -212,7 +212,7 @@ void loop() {
     SensEdu_ADC_ClearTransferStatus(adc3);
 
     // Calculating distance for each microphone
-    static uint32_t distance[4];
+    static uint32_t distance[8];
 	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
     distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
     distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "3", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
@@ -220,9 +220,9 @@ void loop() {
     distance[3] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "1", 2, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
 	distance[4] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc2_data, sizeof(adc2_data), "2", 2, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
 
-    distance[4] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "1", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
-    distance[5] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "2", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
-    distance[6] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "3", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
+    distance[5] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "1", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
+    distance[6] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "2", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
+    distance[7] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc3_data, sizeof(adc3_data), "3", 3, main_obj_ptr->ban_flag, main_obj_ptr->modified_xcorr_buffer, main_obj_ptr->trust);
 
     // Sending the distance measurements
     

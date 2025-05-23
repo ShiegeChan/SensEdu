@@ -7,7 +7,7 @@ clc;
 %% Settings
 ARDUINO_PORT = 'COM4';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 50; 
+ITERATIONS = 100; 
 MIC_NUM = 8;
 mic_name = {"MIC 1", "MIC 2", "MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
 VARIANCE_TEST = false; 
@@ -50,7 +50,7 @@ for it = 1:ITERATIONS
     
     % Detailed data: raw microphone data | scaled and removed self
     % reflection | xcorr result
-    
+
     details_matrix = read_mcu_xcorr_details(arduino, MIC_NUM, DATA_LENGTH, 3);
     detail_info(:,:,it) = details_matrix;
     
@@ -60,7 +60,6 @@ for it = 1:ITERATIONS
     %     check_matrix()
     % 
     % end
-    
 
     for i = 1:MIC_NUM
         dist_matrix(i, it) = dist_vector(i);
