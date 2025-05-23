@@ -8,8 +8,8 @@ clc;
 ARDUINO_PORT = 'COM4';
 ARDUINO_BAUDRATE = 115200;
 ITERATIONS = 50; 
-MIC_NUM = 6;
-mic_name = {"MIC 1", "MIC 2", "MIC 4", "MIC 8", "MIC 6", "MIC 7"};
+MIC_NUM = 8;
+mic_name = {"MIC 1", "MIC 2", "MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
 VARIANCE_TEST = false; 
 
 PLOT_DISTANCE = true;
@@ -27,12 +27,7 @@ DATA_LENGTH = 64 * 32;
 %% Readings Loop
 
 dist_matrix = zeros(MIC_NUM, ITERATIONS);
-
-data_mic1 = zeros(1, ITERATIONS);
-data_mic2 = zeros(1, ITERATIONS);
-data_mic3 = zeros(1, ITERATIONS);
-data_mic4 = zeros(1, ITERATIONS);
-detail_info = zeros(18, 2048, ITERATIONS);
+detail_info = zeros(24, 2048, ITERATIONS);
 
 x_axis = 1:PLOT_FIX_X_AXIS_NUM;
 x_shift = PLOT_FIX_X_AXIS_NUM/10;
