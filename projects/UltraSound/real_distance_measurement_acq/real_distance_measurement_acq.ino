@@ -202,7 +202,7 @@ void loop() {
     SensEdu_ADC_ClearTransferStatus(adc3);
 
     // Calculating distance for each microphone
-    static uint32_t distance[4];
+    static uint32_t distance[8];
 	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", adc1_mic_num, main_obj_ptr->ban_flag);
     distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2", adc1_mic_num, main_obj_ptr->ban_flag);
     distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "3", adc1_mic_num, main_obj_ptr->ban_flag);

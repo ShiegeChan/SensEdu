@@ -101,19 +101,19 @@ void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* 
             break;
         case 3:
             if(ch=='1') {
-                for(uint32_t i = 0; i < 2 * STORE_BUF_SIZE; i+=3) {
+                for(uint32_t i = 0; i < 3 * STORE_BUF_SIZE; i+=3) {
                     rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
                     cnt++;
                 }
             }
             else if(ch=='2') {
-                for(uint32_t i = 1; i < 2 * STORE_BUF_SIZE; i+=3) {
+                for(uint32_t i = 1; i < 3 * STORE_BUF_SIZE; i+=3) {
                     rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
                     cnt++;
                 }
             }
             else if(ch=='3') {
-                for(uint32_t i = 2; i < 2 * STORE_BUF_SIZE; i+=3) {
+                for(uint32_t i = 2; i < 3 * STORE_BUF_SIZE; i+=3) {
                     rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
                     cnt++;
                 }
