@@ -2,7 +2,6 @@
 
 static uint32_t lib_error = 0x0000;     // lib error container
 static uint32_t error = 0x00FF;         // error detector (00 to FF instantly)
-static uint8_t  is_configured = 0x0;    // flag to denote when configuration data was already sent to PC
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
@@ -33,7 +32,6 @@ SensEdu_ADC_Settings adc_settings = {
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
 void setup() {
-
     // doesn't boot without opened serial monitor
     Serial.begin(115200);
     while (!Serial) {
