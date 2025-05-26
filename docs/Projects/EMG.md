@@ -33,12 +33,24 @@ Circuit for each of the amplifier:
 <img src="{{site.baseurl}}/assets/images/amp_circuit.png" alt="drawing"/>
 {: .text-center}
 
+Electrode mapping:
+* Tip: Red
+* Ring: Blue
+* Sleeve: Black
+
 ## Test
 
 WASD Dark Souls for 4 channels?
 
+## capacitive input
+ignore some of the first samples for ADC stabilization
+
+https://devzone.nordicsemi.com/f/nordic-q-a/80796/adc---first-read-is-always-wrong/336435
 
 
+## Good Resources:
+* https://www.nature.com/articles/s41597-022-01484-2
+* 
 
 [AD8222]: https://www.analog.com/en/products/ad8222.html?doc=ad8222-KGD.pdf
 [datasheet]: https://www.analog.com/media/en/technical-documentation/data-sheets/AD8222.pdf
