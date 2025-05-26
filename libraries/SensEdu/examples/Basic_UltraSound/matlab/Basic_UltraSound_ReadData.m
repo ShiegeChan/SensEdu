@@ -20,13 +20,13 @@ arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
 data = zeros(1,ITERATIONS);
 time_axis = zeros(1,ITERATIONS);
 
-tic;
 for it = 1:ITERATIONS
     % Data readings
     write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
-
+    tic
     data = read_data(arduino, DATA_LENGTH);
+    toc
     plot_data(data);
 end
 

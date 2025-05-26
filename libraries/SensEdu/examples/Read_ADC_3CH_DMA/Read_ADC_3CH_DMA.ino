@@ -10,7 +10,7 @@ ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 3;
 uint8_t adc_pins[adc_pin_num] = {A0, A1, A2}; 
 // must be:
-// 1. multiple of 32 words (64 half-words) to ensure cache coherence
+// 1. multiple of 32 bytes to ensure cache coherence
 // 2. properly aligned
 const uint16_t memory4adc_size = 64 * adc_pin_num; // allocate chunks of (4 * 32) * number of channels
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
