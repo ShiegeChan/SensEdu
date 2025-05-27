@@ -12,7 +12,7 @@ uint8_t adc_pins[channel_count] = {A0, A2, A11, A7};
 // must be:
 // 1. multiple of 32 bytes to ensure cache coherence
 // 2. properly aligned
-const uint16_t mem_size = 16 * channel_count * 64; // multiple of 16 for 2 byte values
+const uint16_t mem_size = 16 * channel_count * 256; // multiple of 16 for 2 byte values
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t emg_data[mem_size];
 
 SensEdu_ADC_Settings adc_settings = {
@@ -79,7 +79,7 @@ void loop() {
     for (uint8_t i = 0; i < channel_count; i++) {
         // rearrange data properly
         for (uint16_t j = 0; j < mem_size/channel_count; j++) {
-            Serial.write((const uint8_t *) &emg_data[i + channel_count*j], 2);
+            Serial.write((const uint8_t *) &emg_data[i + (channel_count*j)], 2);
         }
     }
 
