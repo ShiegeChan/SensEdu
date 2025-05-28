@@ -15,8 +15,15 @@ uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint1
 			xcorr_buf[i] = 0;
 		}
 	}
+
     if (XCORR_DEBUG)
         serial_send_array((const uint8_t*)xcorr_buf, xcorr_buf_size, "b", 1);
+
+    if (!object_detected(xcorr_buf, STORE_BUF_SIZE)) {
+        if (XCORR_DEBUG)
+	        serial_send_array((const uint8_t*)xcorr_buf, xcorr_buf_size, "b", 1);
+        return 0;
+    }
 
     custom_xcorr(xcorr_buf, dac_wave, STORE_BUF_SIZE);
     if (XCORR_DEBUG)
@@ -140,4 +147,15 @@ void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* 
             break;
     }
     filter_32kHz_wave(rescaled_adc_wave, STORE_BUF_SIZE);   
+}
+
+/*------------------------------------------------------------------*/
+/*                     OBJECT DETECTION FUNCTION                    */
+/*------------------------------------------------------------------*/
+
+uint8_t object_detected(float* signal, uint32_t signal_length) {
+    for (int32_t i = 0; i < signal_length; i++) {
+        if(signal[i] > POST_FILTER_THRESHOLD) return 1;
+    }
+    return 0;
 }

@@ -2,7 +2,6 @@
 // 1. Arduino Giga 4.2.1
 #include "SensEdu.h"
 #include "CMSIS_DSP.h"
-#include "SineLUT.h"
 #include "FilterTaps.h"
 #include "DACWave.h" // contains wave and its size
 #include "Ringing.h"
@@ -103,10 +102,10 @@ SensEdu_ADC_Settings adc3_settings = {
 DAC_Channel* dac_channel = DAC_CH1;
 // lut settings are in SineLUT.h
 #define DAC_SINE_FREQ     	32000                           // 32kHz
-#define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
-
-SensEdu_DAC_Settings dac_settings = {dac_channel, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
-    SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num}; // specifying burst mode 
+#define DAC_SAMPLE_RATE     DAC_SINE_FREQ * dac_wave_size   // 64 samples per one sine cycle
+#define DAC_CYCLE_NUM 10
+SensEdu_DAC_Settings dac_settings = {dac_channel, DAC_SAMPLE_RATE, (uint16_t*)dac_wave, dac_wave_size, 
+    SENSEDU_DAC_MODE_BURST_WAVE, DAC_CYCLE_NUM}; // specifying burst mode 
 
 /* -------------------------------------------------------------------------- */
 /*                                  Constants                                 */

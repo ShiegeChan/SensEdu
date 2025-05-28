@@ -5,9 +5,9 @@ close all;
 clc;
 
 %% Settings
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM20';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 100; 
+ITERATIONS = 500; 
 MIC_NUM = 8;
 mic_name = {"MIC 1", "MIC 2", "MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
 VARIANCE_TEST = false; 
@@ -20,7 +20,7 @@ PLOT_FIX_X_AXIS_NUM = 200; % multiple of 10!
 PLOT_TIME_AXIS = false; % replace measurements with time in x axis
 
 %% Arduino Setup + Config
-arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
+arduino = serialport (ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
 DATA_LENGTH = 64 * 32; 
 
 
@@ -113,6 +113,7 @@ title("Microphone distance measurements")
 
 %%
 figure
+
 for i = 1:MIC_NUM
     plot(time_axis, dist_matrix(i, :), 'LineWidth', 2); hold on;
 end
