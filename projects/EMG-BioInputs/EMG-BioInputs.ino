@@ -7,12 +7,12 @@ static uint32_t error = 0x00FF;         // error detector (00 to FF instantly)
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 ADC_TypeDef* adc = ADC1;
-const uint8_t channel_count = 4;
-uint8_t adc_pins[channel_count] = {A0, A2, A11, A7};
+const uint8_t channel_count = 1;
+uint8_t adc_pins[channel_count] = {A11};
 // must be:
 // 1. multiple of 32 bytes to ensure cache coherence
 // 2. properly aligned
-const uint16_t mem_size = 16 * channel_count * 64; // multiple of 16 for 2 byte values
+const uint16_t mem_size = 16 * channel_count * 128; // multiple of 16 for 2 byte values
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t emg_data[mem_size];
 
 SensEdu_ADC_Settings adc_settings = {
@@ -21,7 +21,7 @@ SensEdu_ADC_Settings adc_settings = {
     .pin_num = channel_count,
 
     .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 10000,
+    .sampling_freq = 4000,
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)emg_data,
