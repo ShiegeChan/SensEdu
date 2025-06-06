@@ -8,7 +8,7 @@ uint32_t cntr = 0;
 /* -------------------------------------------------------------------------- */
 
 // must be:
-// 1. multiple of 32 words (64 half-words) to ensure cache coherence
+// 1. multiple of 32 bytes to ensure cache coherence
 // 2. properly aligned
 const uint16_t memory4adc_size = 128;
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t memory4adc[memory4adc_size];
