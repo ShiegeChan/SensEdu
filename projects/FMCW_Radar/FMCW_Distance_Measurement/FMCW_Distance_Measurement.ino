@@ -10,16 +10,16 @@
 /* -------------------------------------------------------------------------- */
 
 // ADC Sampling
-const uint16_t mic_data_size = 16384; // ADC buffer size, must be a multiple of 16
+const uint16_t mic_data_size = 32768; // ADC buffer size, must be a multiple of 16
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc_dac_data[mic_data_size]; // cache aligned
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc_mic_data[mic_data_size]; // cache aligned
 
 // ADC-DMA Hardware Settings
-ADC_TypeDef* adc_dac = ADC1;
-ADC_TypeDef* adc_mic = ADC2;
+ADC_TypeDef* adc_dac = ADC3;
+ADC_TypeDef* adc_mic = ADC1;
 const uint8_t mic_num = 1;
-uint8_t adc_dac_pins[mic_num] = {A7};
-uint8_t adc_mic2_pins[mic_num] = {A4};
+uint8_t adc_dac_pins[mic_num] = {A8}; 
+uint8_t adc_mic3_pins[mic_num] = {A1};
 
 SensEdu_ADC_Settings adc1_settings = {
     .adc = adc_dac,
@@ -36,7 +36,7 @@ SensEdu_ADC_Settings adc1_settings = {
 
 SensEdu_ADC_Settings adc2_settings = {
     .adc = adc_mic,
-    .pins = adc_mic2_pins,
+    .pins = adc_mic3_pins,
     .pin_num = mic_num,
 
     .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
@@ -79,7 +79,7 @@ void handle_error() {
 void setup() {
     // Initialize Serial Communication
     Serial.begin(115200);
-    SensEdu_ADC_ShortA4toA9();
+    /* SensEdu_ADC_ShortA4toA9(); */
 
     // Initialize ADC
     SensEdu_ADC_Init(&adc1_settings);

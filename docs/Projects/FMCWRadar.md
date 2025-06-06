@@ -107,7 +107,7 @@ $$y_{mix}$$ is the product of $$T_x$$ and $$R_x$$
 
 ### Distance Resolution & Max Range 
 
-Distance resolution and max range are two critical parameters regarding radar performance. Distance resolution defines the smallest distance at which a radar can separate two objects. The distance resolution $$\Delta d$$ is defined by
+Distance resolution and max range are two critical parameters regarding radar performance. Distance resolution defines the smallest distance between two objects that the radar can detect as distinct targets. The distance resolution $$\Delta d$$ is defined by
 
 <div id="eq5" class="fs-5 text-center">
   $$\fcolorbox{red}{}{$\displaystyle \Delta d = \frac{c}{2B}$} \tag{5}$$

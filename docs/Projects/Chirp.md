@@ -137,9 +137,6 @@ Keep in mind this sampling frequency will also be the DAC's output frequency in 
 
 The `samples_int` is an integer representing the amount of samples for one period of the chirp signal. This value also represents the memory size in the `SENSEDU_DAC_BUFFER` and `SensEdu_DAC_Settings` functions.
 
-{: .IMPORTANT }
-In this implementation, the size of the chirp array cannot exceed 7688 (array size = `samples_int` for sawtooth modulation & `samples_int*2` for triangular modulation).
-
 The values of the chirp are printed in the serial monitor.
 ```c
 // Print the chirp signal LUT
