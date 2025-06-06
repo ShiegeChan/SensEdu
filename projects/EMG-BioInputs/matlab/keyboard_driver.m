@@ -25,11 +25,11 @@ FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
 DEFAULT_OFFSET = 127;
 
 % Decision Block
-CALIBRATION_LOOPS = 15; % make sure that HISTORY_LOOPS is equals or bigger than calibration loops
+CALIBRATION_LOOPS = 10; % make sure that HISTORY_LOOPS is equals or bigger than calibration loops
 PRESS_THRESHOLD = 80;
 
 % Plotting
-PLOT_ON = false;
+PLOT_ON = true;
 
 %% Sanity Checks
 if (HISTORY_LOOPS < CALIBRATION_LOOPS)
@@ -89,16 +89,13 @@ while(true)
     write(arduino, 'm', "char"); % measurement
     
     % Measurements
-    for j = 1:channel_count
-        for i = 1:data_length
-            raw_data(j, i) = typecast_uint8_data(read(arduino, 2, 'uint8'));
-        end
-    end
+    raw_data = read_data(arduino, channel_count, data_length);
 
     % Processing
     for j = 1:channel_count
         %  cut and filter
         processed_data(j,:) = data_cut_and_filter(raw_data(j,:), taps, filter_delay, CUT_RAW_SAMPLES, cut_filtered_samples);
+
         % abs
         processed_data(j,:) = abs(processed_data(j,:));
 
@@ -121,7 +118,7 @@ while(true)
 
         if calibration_counter == CALIBRATION_LOOPS
             for j = 1:channel_count
-                press_threshold(j) = 1.5*mean(mean(processed_history(j,:,end-CALIBRATION_LOOPS+1:end)));
+                press_threshold(j) = 2*mean(mean(processed_history(j,:,end-CALIBRATION_LOOPS+1:end)));
             end
             is_calibrated = true;
             fprintf("Calibration finished.\n");
@@ -130,7 +127,7 @@ while(true)
 
     for j = 1:channel_count
         if is_calibrated == true
-            keys_status(j) = press_key(processed_data(j,:), press_threshold(j), keys(j), keys_status(j), robot);
+            %keys_status(j) = press_key(processed_data(j,:), press_threshold(j), keys(j), keys_status(j), robot);
         end
     end
 
@@ -145,6 +142,7 @@ while(true)
     % Plotting
     if PLOT_ON == true
         figure(1);
+        %plot_data(raw_data, 1:data_length, false);
         %plot_data(raw_data - mean(raw_data(3,:)), 1:data_length);
         %processed_data_x = 1:(data_length);
         %processed_data_x = processed_data_x((CUT_RAW_SAMPLES+1+cut_filtered_samples):(end-filter_delay));
@@ -160,6 +158,30 @@ end
 arduino = [];
 
 %% functions
+function data_by_channel = read_data(arduino, channel_count, data_length)
+    chunk_size = 64; % in bytes
+    total_length = channel_count*data_length*2; % in bytes
+
+    raw_data_8bit = zeros(total_length/chunk_size, chunk_size);
+    raw_data_16bit = zeros(total_length/chunk_size, chunk_size/2);
+    
+    % readings
+    for i = 1:(total_length/chunk_size)
+        raw_data_8bit(i, :) = read(arduino, chunk_size, 'uint8');
+        raw_data_16bit(i, :) = typecast_uint8(raw_data_8bit(i, :));
+    end
+    
+
+    % rearrange by channel
+    combined_raw_data = reshape(raw_data_16bit', 1, []);
+    data_by_channel = reshape(combined_raw_data, channel_count, []);
+end
+
+function casted_data = typecast_uint8(data)
+    reshaped_data = reshape(data, 2, []);
+    casted_data = bitshift(uint16(reshaped_data(2, :)), 8) + uint16(reshaped_data(1, :));
+end
+
 function casted_data = typecast_uint8_data(data)
     % recalculated data by byte position
     byte_length = length(data);
@@ -185,6 +207,7 @@ function new_key_status = press_key(data, PRESS_THRESHOLD, key, key_status, robo
     %figure(5);
     %plot(data);
 
+
     new_key_status = key_status;
     if (any(data > PRESS_THRESHOLD))
         if key_status == false
@@ -193,13 +216,13 @@ function new_key_status = press_key(data, PRESS_THRESHOLD, key, key_status, robo
             robot.delay(50);
             robot.mouseRelease(key);
             %new_key_status = true;
-            fprintf("Button Pressed.\n");
+            fprintf(datestr(datetime('now'), 'HH:MM:SS') + " - Button Pressed.\n");
         end
     else
         if key_status == true
             robot.mouseRelease(key);
             new_key_status = false;
-            fprintf("Button Released.\n");
+            fprintf(datestr(datetime('now'), 'HH:MM:SS') + " - Button Released.\n");
         end
     end
 end
@@ -243,7 +266,8 @@ function plot_one_electrode(y_vector, x_vector)
     plot(x_vector, y_vector);
     %xlim([-200, x_vector(end) + 200]);
     %ylim([-2e3, 2e3]);
-    ylim([-500, 500]);
+    %ylim([-500, 500]);
+    ylim([-1000, 1000]);
     xlabel("sample");
     ylabel("ADC value");
 end
