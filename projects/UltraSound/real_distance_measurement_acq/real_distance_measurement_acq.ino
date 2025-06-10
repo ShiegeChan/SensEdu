@@ -94,7 +94,7 @@ SensEdu_ADC_Settings adc3_settings = {
 };
 
 /********************* DAC ****************/
-DAC_Channel* dac_channel = DAC_CH1;
+DAC_Channel* dac_channel = DAC_CH2;
 // lut settings are in SineLUT.h
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
@@ -202,7 +202,7 @@ void loop() {
     SensEdu_ADC_ClearTransferStatus(adc3);
 
     // Calculating distance for each microphone
-    static uint32_t distance[4];
+    static uint32_t distance[6];
 	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", main_obj_ptr->ban_flag);
     distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2", main_obj_ptr->ban_flag);
     //distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "3", main_obj_ptr->ban_flag);

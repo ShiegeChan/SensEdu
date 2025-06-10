@@ -4,7 +4,7 @@ clear;
 close all;
 
 %% Data Acquisition parameters
-ITERATIONS = 500; 
+ITERATIONS = 200; 
 MIC_NUM = 6;
 mic_name = {"MIC 1", "MIC 2", "MIC 4", "MIC 8", "MIC 6", "MIC 7"};
 DATA_LENGTH = 64 * 32;
@@ -13,7 +13,7 @@ time_axis = zeros(1, ITERATIONS); % preallocation of time array
 
 %% Arduino Setup + Config
 % Serial port configuration 
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM20';
 ARDUINO_BAUDRATE = 115200;
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate 
 
@@ -34,7 +34,7 @@ end
 acquisition_time = toc;
 
 % save measurements
-file_name = sprintf('%s_%s.mat', "xxlboard", datetime("now"));
+file_name = sprintf('%s_%s.mat', "Measurements\xxlboard", datetime("now"));
 file_name = strrep(file_name, ' ', '_');
 file_name = strrep(file_name, ':', '-');
 save(file_name, "dist_matrix", "time_axis");
