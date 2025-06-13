@@ -1,0 +1,209 @@
+%% keyboard_driver.m
+clear;
+close all;
+clc;
+
+%% Settings
+% Arduino
+ARDUINO_PORT = 'COM8';
+ARDUINO_BAUDRATE = 115200;
+
+% Processing
+BUFFER_DURATION_MS = 1000; % buffer for proper digital filtering
+
+CUT_RAW_SAMPLES = 8;   % removes couple of first readings
+                       % they are error prone due to ADC input having a high capacitance
+
+FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
+
+% Plotting
+PLOT_ON = true;
+
+%% Keyboard
+import java.awt.Robot;
+import java.awt.event.*;
+robot = java.awt.Robot();
+robot.delay(2000);
+
+keys = [InputEvent.BUTTON1_DOWN_MASK, InputEvent.BUTTON1_DOWN_MASK, InputEvent.BUTTON1_DOWN_MASK, KeyEvent.VK_ALT];
+keys_status = [false, false, false, false];
+
+%% Arduino Connection
+arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
+
+%% Configuration
+write(arduino, 'c', "char"); % config
+mem_size = typecast_uint8(read(arduino, 2, 'uint8'));
+
+if (isempty(mem_size) || mem_size == 0xFFFF)
+    error_msg = ['Couldn''t read configuration parameters from firmware.\n', ...
+                 'Probable cause - internal firmware error.\n', ...
+                 'Reset the board and pay attention to error message to see the firmware error code.\n' ...
+                 'https://shiegechan.github.io/SensEdu/Library/ADC/#errors\n' ...
+                 'Look for corresponding error code in the wiki.'];
+    error(error_msg, mem_size);
+end
+
+channel_n = typecast_uint8(read(arduino, 2, 'uint8'));
+fs = double(typecast_uint8(read(arduino, 2, 'uint8')));
+
+data_length = double(mem_size/channel_n);
+meas_duration_ms = 1000*(data_length/fs);
+
+%% Initialization
+% Buffer Init
+meas_n = BUFFER_DURATION_MS/meas_duration_ms; % number of measurements in one buffer
+samples_per_meas_after_cut = data_length - CUT_RAW_SAMPLES;
+buffer = zeros(channel_n, samples_per_meas_after_cut*meas_n);
+
+% Filter
+load(FILTER_TAPS_FILENAME);
+filter_delay = (length(taps) - 1)/2; % cut FIR delay
+cut_filtered_samples = filter_delay; % cut some additional samples for better signal quality
+                                     % be careful with data trimming: 
+                                     % delay appears on signal end
+                                     % additional cut on signal start
+% Processed Plotting
+processed_x = 1:size(buffer,2);
+processed_x = processed_x((cut_filtered_samples+1):(end-filter_delay));
+
+%% Main Loop
+counter = 1;
+while(true)
+    % Trigger
+    write(arduino, 'm', "char"); % measurement
+
+    % Measurements
+    new_meas = read_data(arduino, channel_n, data_length);
+    check_firmware_error(new_meas, channel_n);
+
+    % Update Buffer
+    new_meas = new_meas(:, (CUT_RAW_SAMPLES+1):end);
+    buffer = [buffer(:, samples_per_meas_after_cut+1:end), new_meas];
+
+    % Processing
+    filtered_buffer = filter_dataset(buffer, taps);
+    filtered_buffer = filtered_buffer(:,(filter_delay+1+cut_filtered_samples):end);
+    rectified_buffer = rectify_dataset(filtered_buffer);
+    enveloped_buffer = envelope_dataset(rectified_buffer, fs);
+
+    % Plotting
+    if PLOT_ON == true
+        figure(1);
+        plot_data(processed_x, buffer, rectified_buffer, enveloped_buffer);
+    end
+end
+
+% set COM port back free
+arduino = [];
+
+%% functions
+function data_by_channel = read_data(arduino, channel_n, data_length)
+    chunk_size = 64; % in bytes
+    total_length = channel_n*data_length*2; % in bytes
+
+    raw_data_8bit = zeros(total_length/chunk_size, chunk_size);
+    raw_data_16bit = zeros(total_length/chunk_size, chunk_size/2);
+    
+    % readings
+    for i = 1:(total_length/chunk_size)
+        raw_data_8bit(i, :) = read(arduino, chunk_size, 'uint8');
+        raw_data_16bit(i, :) = typecast_uint8(raw_data_8bit(i, :));
+    end
+    
+
+    % rearrange by channel
+    combined_raw_data = reshape(raw_data_16bit', 1, []);
+    data_by_channel = reshape(combined_raw_data, channel_n, []);
+end
+
+function casted_data = typecast_uint8(data)
+    reshaped_data = reshape(data, 2, []);
+    casted_data = bitshift(uint16(reshaped_data(2, :)), 8) + uint16(reshaped_data(1, :));
+end
+
+function check_firmware_error(data, channel_n)
+    % error code is 0x0000FFFF
+    % LSB first, so expected 0xFFFF, then 0x0000
+    % due to channel data rearrangement if channel_n > 1, second part
+    % expected to be in different column
+
+    error_flag = 0;
+    if data(1,1) == 0xFFFF
+        error_flag = 1;
+    end
+    
+    if error_flag == 1
+        if channel_n == 1
+            if data(1,2) ~= 0x0000
+                error_flag = 0;
+            end
+        else
+            if data(2,1) ~= 0x0000
+                error_flag = 0;
+            end
+        end
+    end
+
+    if error_flag == 1
+        error(['Internal Firmware Error. Code: %s. Reset the board before proceeding.\n' ...
+            'https://shiegechan.github.io/SensEdu/Library/ADC/#errors\nLook for corresponding error code in the wiki.'], string(dec2hex(data(1,3))));
+    end
+end
+
+function new_key_status = press_key(data, PRESS_THRESHOLD, key, key_status, robot)
+    %figure(5);
+    %plot(data);
+
+
+    new_key_status = key_status;
+    if (any(data > PRESS_THRESHOLD))
+        if key_status == false
+            % press only if isn't already pressed (fix this for better pushing)
+            robot.mousePress(key);
+            robot.delay(50);
+            robot.mouseRelease(key);
+            %new_key_status = true;
+            fprintf(datestr(datetime('now'), 'HH:MM:SS') + " - Button Pressed.\n");
+        end
+    else
+        if key_status == true
+            robot.mouseRelease(key);
+            new_key_status = false;
+            fprintf(datestr(datetime('now'), 'HH:MM:SS') + " - Button Released.\n");
+        end
+    end
+end
+
+function filtered_dataset = filter_dataset(dataset, taps)
+    filtered_dataset = zeros(size(dataset));
+    for i = 1:size(dataset,1)
+        filtered_dataset(i,:) = filter(taps, 1, dataset(i,:));
+    end
+end
+
+function rectified_dataset = rectify_dataset(dataset)
+    rectified_dataset = abs(dataset);
+end
+
+function enveloped_dataset = envelope_dataset(dataset, fs)
+    envelope_cutoff = 15;  % LP filter in Hz
+    [b_env, a_env] = butter(4, envelope_cutoff / (fs / 2), 'low');
+
+    enveloped_dataset = zeros(size(dataset));
+    for i = 1:size(dataset,1)
+        enveloped_dataset(i,:)  = filtfilt(b_env, a_env, dataset(i,:));
+    end
+end
+
+function plot_data(processed_x, buffer, rectified_buffer, enveloped_buffer)
+    for i = 1:size(buffer,1)
+        subplot(1,size(buffer,1),i);
+        plot(buffer(i,:) - mean(buffer(i,:)));
+        hold on;
+        plot(processed_x, rectified_buffer(i,:));
+        plot(processed_x, enveloped_buffer(i,:), 'r', 'linewidth', 2.5);
+        ylim([-600,800]);
+        hold off;
+    end
+end

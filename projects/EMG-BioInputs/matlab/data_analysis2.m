@@ -33,7 +33,6 @@ end
 offset = mean(buffer);
 
 %% UPDATE DATA
-
 for i = 26:50
     % Update buffer
     new_meas = raw_history(channel, (CUT_RAW_SAMPLES+1):end, i);
@@ -54,6 +53,7 @@ for i = 26:50
     [b_env, a_env] = butter(4, envelope_cutoff / (fs / 2), 'low');  % Design Butterworth filter
     enveloped_buffer  = filtfilt(b_env, a_env, processed_buffer);     % Apply zero-phase filtering
 
+    % add maybe FFT for additional analysis
 
     figure(1);
     plot(buffer - offset);

@@ -7,7 +7,7 @@
 % 6. improve reading loop
 % 7. implement button long press
 
-%% keyboard_driver.m
+%% keyboard_driver_old.m
 clear;
 close all;
 clc;
