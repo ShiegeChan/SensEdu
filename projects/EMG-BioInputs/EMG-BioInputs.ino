@@ -7,12 +7,13 @@ static uint32_t error = 0x0000FFFF;     // error detector (0000 to FFFF instantl
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 ADC_TypeDef* adc = ADC1;
-const uint16_t channel_count = 1;
-uint8_t adc_pins[channel_count] = {A0};
+const uint16_t channel_count = 4;
+uint8_t adc_pins[channel_count] = {A0, A2, A11, A7};
+const uint16_t sampling_rate = 25600;
 // must be:
 // 1. multiple of 32 bytes to ensure cache coherence
 // 2. properly aligned
-const uint16_t mem_size = 16 * channel_count * 128; // multiple of 16 for 2 byte values
+const uint16_t mem_size = 16 * channel_count * 64; // multiple of 16 for 2 byte values
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t emg_data[mem_size];
 
 SensEdu_ADC_Settings adc_settings = {
@@ -21,7 +22,7 @@ SensEdu_ADC_Settings adc_settings = {
     .pin_num = channel_count,
 
     .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 4000,
+    .sampling_freq = sampling_rate,
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)emg_data,
@@ -54,7 +55,7 @@ void loop() {
         serial_buf = Serial.read();
         if (serial_buf == 'c') {
             // config character
-            send_config(&mem_size, &channel_count);
+            send_config(&mem_size, &channel_count, &sampling_rate);
             return;
         }
         if (serial_buf == 'm') {
@@ -86,12 +87,10 @@ void loop() {
     
 }
 
-void send_config(const uint16_t* mem_size, const uint16_t* channel_count) {
-    // Send total memory size
+void send_config(const uint16_t* mem_size, const uint16_t* channel_count, const uint16_t* sampling_rate) {
     Serial.write((const uint8_t*) mem_size, 2);
-
-    // Send channel count
     Serial.write((const uint8_t*) channel_count, 2);
+    Serial.write((const uint8_t*) sampling_rate, 2);
 }
 
 void transfer_serial_data(uint16_t* data, const uint16_t data_length, const uint16_t chunk_size_byte) {

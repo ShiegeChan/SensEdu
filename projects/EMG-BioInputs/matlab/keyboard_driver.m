@@ -18,7 +18,7 @@ ARDUINO_PORT = 'COM8';
 ARDUINO_BAUDRATE = 115200;
 
 % Processing
-HISTORY_LOOPS = 15;
+HISTORY_LOOPS = 50;
 CUT_RAW_SAMPLES = 8;   % removes couple of first readings
                        % they are error prone due to ADC input having a high capacitance
 FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
@@ -29,7 +29,8 @@ CALIBRATION_LOOPS = 10; % make sure that HISTORY_LOOPS is equals or bigger than 
 PRESS_THRESHOLD = 80;
 
 % Plotting
-PLOT_ON = true;
+PLOT_HISTORY = true;
+PLOT_SINGLE = true;
 
 %% Sanity Checks
 if (HISTORY_LOOPS < CALIBRATION_LOOPS)
@@ -68,7 +69,9 @@ if (isempty(mem_size) || mem_size == 0xFFFF)
 end
 
 channel_count = typecast_uint8(read(arduino, 2, 'uint8'));
+sampling_rate = typecast_uint8(read(arduino, 2, 'uint8'));
 data_length = mem_size/channel_count;
+meas_time_us = 1000*(double(data_length)/double(sampling_rate));
 
 %% Prepare Data Arrays
 raw_data = zeros(channel_count, data_length);
@@ -90,6 +93,7 @@ processed_history2_x = processed_history_x;
 processed_data2 = processed_data;
 
 %% Main Loop
+tic;
 is_calibrated = false;
 is_calibration_started = false;
 press_threshold = zeros(1, channel_count);
@@ -148,19 +152,21 @@ while(true)
     processed_history(:,:,end) = processed_data(:,:);
     processed_history2(:, :, 1:end-1) = processed_history2(:, :, 2:end);
     processed_history2(:,:,end) = processed_data2(:,:);
+    
+    toc;
 
     % Plotting
-    if PLOT_ON == true
+    if PLOT_HISTORY == true
         figure(1);
-        %plot_data(raw_data, 1:data_length, false);
-        %plot_data(raw_data - mean(raw_data(3,:)), 1:data_length);
-        %processed_data_x = 1:(data_length);
-        %processed_data_x = processed_data_x((CUT_RAW_SAMPLES+1+cut_filtered_samples):(end-filter_delay));
-        %plot_data(processed_data, processed_data_x, true);
-
         plot_dataset(raw_history(:,:,:), 1:(data_length*HISTORY_LOOPS), true, false);
         plot_dataset(processed_history(:,:,:), processed_history_x, false, true);
-        %plot_dataset(processed_history2(:,:,:), processed_history_x, false, true);
+    end
+    if PLOT_SINGLE == true
+        figure(2);
+        plot_data(raw_data, 1:data_length, true, false);
+        processed_data_x = 1:(data_length);
+        processed_data_x = processed_data_x((CUT_RAW_SAMPLES+1+cut_filtered_samples):(end-filter_delay));
+        plot_data(processed_data, processed_data_x, false, true);
     end
 end
 

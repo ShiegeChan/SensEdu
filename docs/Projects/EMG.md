@@ -47,6 +47,18 @@ ignore some of the first samples for ADC stabilization
 
 https://devzone.nordicsemi.com/f/nordic-q-a/80796/adc---first-read-is-always-wrong/336435
 
+## history
+A 1-second history allows the filter to capture multiple cycles of low-frequency components, such as 10Hz (1 cycle every 100ms) or even lower frequencies (e.g., motion artifacts below 10Hz). This improves:
+
+The filter's ability to attenuate noise and artifacts.
+The preservation of desired signal components, especially in the lower frequency band.
+
+A longer history allows low-pass filters (used in envelope detection) to smooth the rectified signal over a larger time frame, resulting in a more robust and stable envelope.
+For example, a 5Hz low-pass filter requires at least 200ms of data for one full cycle. With a 1-second history, the envelope will be less sensitive to short-term fluctuations or noise.
+
+ Sliding Overlapping Windows
+
+Use a 1-second buffer for filtering and envelope detection, but process overlapping chunks (e.g., update every 40ms). This ensures that decisions are updated frequently without sacrificing the filtering accuracy of the longer window.
 
 ## Good Resources:
 * https://www.nature.com/articles/s41597-022-01484-2
