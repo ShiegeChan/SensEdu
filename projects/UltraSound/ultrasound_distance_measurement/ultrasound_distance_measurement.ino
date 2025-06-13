@@ -142,7 +142,7 @@ void setup() {
     // initializing the filter
     arm_fir_init_f32(&Fir_filt, FILTER_TAP_NUM, filter_taps, firStateBuffer, FILTER_BLOCK_LENGTH); 
     
-    SensEdu_ADC_ShortA4toA9(); // in order to use ADC1 for mic2
+    //SensEdu_ADC_ShortA4toA9(); // in order to use ADC1 for mic2
 
     Serial.begin(115200); // 14400 bytes/sec -> 7200 samples/sec -> 2400 samples/sec for 1 mic
 
