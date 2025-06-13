@@ -20,7 +20,7 @@ ARDUINO_BAUDRATE = 115200;
 % Processing
 HISTORY_LOOPS = 15;
 CUT_RAW_SAMPLES = 8;   % removes couple of first readings
-                        % they are error prone due to input having a high capacitance
+                       % they are error prone due to ADC input having a high capacitance
 FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
 DEFAULT_OFFSET = 127;
 
@@ -57,8 +57,17 @@ cut_filtered_samples = filter_delay; % cut some additional samples for better si
 
 %% Configuration
 write(arduino, 'c', "char"); % config
-mem_size = typecast_uint8_data(read(arduino, 2, 'uint8'));
-channel_count = typecast_uint8_data(read(arduino, 1, 'uint8'));
+mem_size = typecast_uint8(read(arduino, 2, 'uint8'));
+if (isempty(mem_size) || mem_size == 0xFFFF)
+    error_msg = ['Couldn''t read configuration parameters from firmware.\n', ...
+                 'Probable cause - internal firmware error.\n', ...
+                 'Reset the board and pay attention to error message to see the firmware error code.\n' ...
+                 'https://shiegechan.github.io/SensEdu/Library/ADC/#errors\n' ...
+                 'Look for corresponding error code in the wiki.'];
+    error(error_msg, mem_size);
+end
+
+channel_count = typecast_uint8(read(arduino, 2, 'uint8'));
 data_length = mem_size/channel_count;
 
 %% Prepare Data Arrays
@@ -90,6 +99,7 @@ while(true)
     
     % Measurements
     raw_data = read_data(arduino, channel_count, data_length);
+    check_firmware_error(raw_data, channel_count);
 
     % Processing
     for j = 1:channel_count
@@ -182,14 +192,33 @@ function casted_data = typecast_uint8(data)
     casted_data = bitshift(uint16(reshaped_data(2, :)), 8) + uint16(reshaped_data(1, :));
 end
 
-function casted_data = typecast_uint8_data(data)
-    % recalculated data by byte position
-    byte_length = length(data);
-    shifts = 0:(byte_length - 1);
-    shifted_data = data .* 2.^(shifts * 8);
+function check_firmware_error(data, channel_count)
+    % error code is 0x0000FFFF
+    % LSB first, so expected 0xFFFF, then 0x0000
+    % due to channel data rearrangement if channel_count > 1, second part
+    % expected to be in different column
+
+    error_flag = 0;
+    if data(1,1) == 0xFFFF
+        error_flag = 1;
+    end
     
-    % sum separate bytes to calculate single number
-    casted_data = sum(shifted_data);
+    if error_flag == 1
+        if channel_count == 1
+            if data(1,2) ~= 0x0000
+                error_flag = 0;
+            end
+        else
+            if data(2,1) ~= 0x0000
+                error_flag = 0;
+            end
+        end
+    end
+
+    if error_flag == 1
+        error(['Internal Firmware Error. Code: %s. Reset the board before proceeding.\n' ...
+            'https://shiegechan.github.io/SensEdu/Library/ADC/#errors\nLook for corresponding error code in the wiki.'], string(dec2hex(data(1,3))));
+    end
 end
 
 function processed_dataset = data_cut_and_filter(data, taps, filter_delay, cut_raw_samples, cut_filtered_samples)

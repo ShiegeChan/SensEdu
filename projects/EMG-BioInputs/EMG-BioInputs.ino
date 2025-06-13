@@ -1,14 +1,14 @@
 #include "SensEdu.h"
 
-static uint32_t lib_error = 0x0000;     // lib error container
-static uint32_t error = 0x00FF;         // error detector (00 to FF instantly)
+static uint16_t lib_error = 0x0000;     // lib error container
+static uint32_t error = 0x0000FFFF;     // error detector (0000 to FFFF instantly)
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 ADC_TypeDef* adc = ADC1;
-const uint8_t channel_count = 4;
-uint8_t adc_pins[channel_count] = {A0, A2, A11, A7};
+const uint16_t channel_count = 1;
+uint8_t adc_pins[channel_count] = {A0};
 // must be:
 // 1. multiple of 32 bytes to ensure cache coherence
 // 2. properly aligned
@@ -68,8 +68,8 @@ void loop() {
     while (lib_error != 0) {
         // Send error marker and then error code
         Serial.write((const uint8_t*) &error, 4);
-        for (uint16_t i = 0; i < (mem_size/2 - 1); i++) {
-            Serial.write((const uint8_t*) &lib_error, 4);
+        for (uint16_t i = 0; i < (mem_size - 2); i++) {
+            Serial.write((const uint8_t*) &lib_error, 2);
         }
         delay(1000);
     }
@@ -86,12 +86,12 @@ void loop() {
     
 }
 
-void send_config(const uint16_t* mem_size, const uint8_t* channel_count) {
+void send_config(const uint16_t* mem_size, const uint16_t* channel_count) {
     // Send total memory size
     Serial.write((const uint8_t*) mem_size, 2);
 
     // Send channel count
-    Serial.write((const uint8_t*) channel_count, 1);
+    Serial.write((const uint8_t*) channel_count, 2);
 }
 
 void transfer_serial_data(uint16_t* data, const uint16_t data_length, const uint16_t chunk_size_byte) {
