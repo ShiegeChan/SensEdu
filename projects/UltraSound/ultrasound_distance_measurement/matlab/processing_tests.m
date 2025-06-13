@@ -1,13 +1,14 @@
-for i = 1:50
+%%
+for i = 1:80
     figure;
     subplot(4,1,1);
-    plot(dist_matrix(5,i), '*-', 'LineWidth', 6);
+    plot(dist_matrix(8,i), '*-', 'LineWidth', 6);
     subplot(4,1,2);
-    plot(detail_info(13,:,i));
+    plot(detail_info(22,:,i));
     subplot(4,1,3);
-    plot(detail_info(14,:,i));
+    plot(detail_info(23,:,i));
     subplot(4,1,4);
-    plot(detail_info(15,:,i));
+    plot(detail_info(24,:,i));
 end
 %% processing
 raw = detail_info(13,:,15);
@@ -46,4 +47,6 @@ xlabel('Frequency (Hz)');
 ylabel('Amplitude');
 xlim([0 Fs/2]);      % Display up to Nyquist frequency
 grid on;
+
+
 

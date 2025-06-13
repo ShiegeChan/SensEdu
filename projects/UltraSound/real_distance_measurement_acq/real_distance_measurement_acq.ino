@@ -16,7 +16,7 @@ uint8_t error_led = D86;
 #define LOCAL_XCORR     true    // doing xcorr on the microcontroller
 #define XCORR_DEBUG     true    // sending only distance w/o other data
 
-#define BAN_DISTANCE    30	    // min distance [cm] - how many self reflections cancelled
+#define BAN_DISTANCE    20	    // min distance [cm] - how many self reflections cancelled
 #define ACTUAL_SAMPLING_RATE 250000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
 #define STORE_BUF_SIZE  64 * 32     // 2400 for 1 measurement per second. 
                             	    // only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)
@@ -94,7 +94,7 @@ SensEdu_ADC_Settings adc3_settings = {
 };
 
 /********************* DAC ****************/
-DAC_Channel* dac_channel = DAC_CH1;
+DAC_Channel* dac_channel = DAC_CH2;
 // lut settings are in SineLUT.h
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
@@ -202,7 +202,7 @@ void loop() {
     SensEdu_ADC_ClearTransferStatus(adc3);
 
     // Calculating distance for each microphone
-    static uint32_t distance[4];
+    static uint32_t distance[6];
 	distance[0] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "1", main_obj_ptr->ban_flag);
     distance[1] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "2", main_obj_ptr->ban_flag);
     //distance[2] = get_distance_measurement(main_obj_ptr->xcorr_buffer, sizeof(main_obj_ptr->xcorr_buffer), adc1_data, sizeof(adc1_data), "3", main_obj_ptr->ban_flag);

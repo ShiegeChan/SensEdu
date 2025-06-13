@@ -5,11 +5,11 @@ close all;
 clc;
 
 %% Settings
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM20';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 50; 
-MIC_NUM = 6;
-mic_name = {"MIC 1", "MIC 2", "MIC 4", "MIC 8", "MIC 6", "MIC 7"};
+ITERATIONS = 80; 
+MIC_NUM = 8;
+mic_name = {"MIC 1", "MIC 2","MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
 VARIANCE_TEST = false; 
 
 PLOT_DISTANCE = true;
@@ -21,7 +21,7 @@ PLOT_TIME_AXIS = false; % replace measurements with time in x axis
 
 %% Arduino Setup + Config
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
-DATA_LENGTH = 64 * 32; 
+DATA_LENGTH = 32 * 32; 
 
 
 %% Readings Loop
@@ -32,22 +32,22 @@ data_mic1 = zeros(1, ITERATIONS);
 data_mic2 = zeros(1, ITERATIONS);
 data_mic3 = zeros(1, ITERATIONS);
 data_mic4 = zeros(1, ITERATIONS);
-detail_info = zeros(18, 2048, ITERATIONS);
+detail_info = zeros(MIC_NUM*3, 1024, ITERATIONS);
 
 x_axis = 1:PLOT_FIX_X_AXIS_NUM;
 x_shift = PLOT_FIX_X_AXIS_NUM/10;
 
 time_axis = zeros(1, ITERATIONS);
-
+pause(6);
 tic;
 
 for it = 1:ITERATIONS
-    if VARIANCE_TEST == true
-        if (mod(it,100) == 0)
-            fprintf("Please change position\n");
-            pause(180);
-        end
-    end
+    % if VARIANCE_TEST == true
+    %     if (mod(it,100) == 0)
+    %         fprintf("Please change position\n");
+    %         pause(180);
+    %     end
+    % end
 
     % Data readings
     write(arduino, 't', "char"); % trigger arduino measurement
@@ -72,14 +72,14 @@ for it = 1:ITERATIONS
     end
 
     % Data plotting
-    if PLOT_DISTANCE==true
-        subplot_x_size = 1;
-        if PLOT_DETAILED_DATA == true
-            subplot_x_size = 4;   
-            plot_details(details_matrix, MIC_NUM, 4);
-        end
-        x_axis = plot_distance(dist_matrix, x_axis, PLOT_FIX_X_AXIS, x_shift, PLOT_TIME_AXIS, time_axis, PLOT_LIMIT, MIC_NUM, it, subplot_x_size);
-    end
+    % if PLOT_DISTANCE==true
+    %     subplot_x_size = 1;
+    %     if PLOT_DETAILED_DATA == true
+    %         subplot_x_size = 4;   
+    %         plot_details(details_matrix, MIC_NUM, 4);
+    %     end
+    %     x_axis = plot_distance(dist_matrix, x_axis, PLOT_FIX_X_AXIS, x_shift, PLOT_TIME_AXIS, time_axis, PLOT_LIMIT, MIC_NUM, it, subplot_x_size);
+    % end
 
 end
 
@@ -87,7 +87,7 @@ end
 arduino = [];
 
 % save measurements
-file_name = sprintf('%s_%s.mat', "no_object", datetime("now"));
+file_name = sprintf('%s_%s.mat', "ball", datetime("now"));
 file_name = strrep(file_name, ' ', '_');
 file_name = strrep(file_name, ':', '-');
 save(file_name, "dist_matrix", "detail_info", "time_axis");
@@ -97,20 +97,52 @@ buf = time_axis(2) - time_axis(1);
 for i = 2:(length(time_axis) - 1)
     buf = mean([buf, (time_axis(i+1) - time_axis(i))]);
 end
-fprintf("Plots are activated: %s\n", mat2str(PLOT_DISTANCE));
+fprintf("Plots are activated: %s\n", mat2str(PLOT_DISTANCE)); 
 fprintf("average time between measurements: %fsec\n", buf);
 
 %%
-for j = 1:ITERATIONS
-    plot_details(detail_info(:,:,j), MIC_NUM, 4);
-end
+% for j = 1:ITERATIONS
+%     plot_details(detail_info(:,:,j), MIC_NUM, 4);
+% end
+x_axis = plot_distance(dist_matrix, x_axis, PLOT_FIX_X_AXIS, x_shift, PLOT_TIME_AXIS, time_axis, PLOT_LIMIT, MIC_NUM, it, 1);
 %%
+m1_dist = dist_matrix(1,:);
+m2_dist = dist_matrix(2,:);
+m3_dist = dist_matrix(3,:);
+m4_dist = dist_matrix(4,:);
+m8_dist = dist_matrix(8,:);
+m6_dist = dist_matrix(6,:);
+m5_dist = dist_matrix(5,:);
+m7_dist = dist_matrix(7,:);
+
+dist_matrix = [m1_dist; m2_dist; m3_dist; m4_dist; m8_dist; m6_dist; m5_dist; m7_dist];
+
 figure
-for i = 1:MIC_NUM
-    plot(time_axis, dist_matrix(i, :), 'LineWidth', 2); hold on;
+for i = 1:8
+    switch i
+        case 1
+            m = "o";
+        case 2
+            m = "^";
+        case 3
+            m = "square";
+        case 4
+            m = "diamond";
+        case 5
+            m = "v";
+        case 6
+            m = "hexagram";
+        case 7
+            m = "pentagram";
+        case 8
+            m = ">";
+    end
+
+    plot(dist_matrix(i, :), 'LineWidth', 2, 'Marker', m); hold on;
+
 end
 ylim([0 1])
-xlim([0 time_axis(end)])
+%xlim([0 time_axis(end)])
 grid on
 xlabel("time [s]");
 ylabel("distance [m]")

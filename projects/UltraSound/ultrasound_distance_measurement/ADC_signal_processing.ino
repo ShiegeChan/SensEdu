@@ -5,7 +5,7 @@
 
 
 uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint16_t* mic_array, size_t mic_array_size, const char* channel, uint8_t adc_ch_num, uint8_t ban_flag, float* modified_xcorr_buf, uint8_t trust) {
-	rescale_adc_wave(xcorr_buf, mic_array, channel, mic_array_size);
+	rescale_adc_wave(xcorr_buf, mic_array, channel, mic_array_size, adc_ch_num);
     if (XCORR_DEBUG)
         serial_send_array((const uint8_t*)mic_array, mic_array_size, channel, adc_ch_num);
 
@@ -18,19 +18,12 @@ uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint1
     if (XCORR_DEBUG)
         serial_send_array((const uint8_t*)xcorr_buf, xcorr_buf_size, "b", 1);
 
-    if (!object_detected(xcorr_buf, STORE_BUF_SIZE)) {
-        if (XCORR_DEBUG)
-	        serial_send_array((const uint8_t*)xcorr_buf, xcorr_buf_size, "b", 1);
-        return 0;
-    }
     custom_xcorr(xcorr_buf, dac_wave, STORE_BUF_SIZE);
-
     if (XCORR_DEBUG)
 	    serial_send_array((const uint8_t*)xcorr_buf, xcorr_buf_size, "b", 1);
-
 	
     // new logic
-    float calculated_distance = calculate_distance(xcorr_buf);
+    /*float calculated_distance = calculate_distance(xcorr_buf);
 
     xcorr_modification_logic(xcorr_buf, modified_xcorr_buf);
     float assumed_distance = calculate_distance(modified_xcorr_buf);
@@ -43,9 +36,9 @@ uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint1
     else {
         trust = 0;
         return calculated_distance;
-    }
-
-    
+    }*/
+    float calculated_distance = calculate_distance(xcorr_buf);
+    return calculated_distance;
 }
 
 
@@ -96,34 +89,52 @@ void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
 /*------------------------------------------------------------------*/
 /*                     RESCALING FUNCTION                           */
 /*------------------------------------------------------------------*/
-
-void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* channel, size_t adc_data_length) {
+void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, const char* channel, size_t adc_data_length, uint8_t adc_channel_num) {
     // 0:65535 -> -1:1
-    float sum = 0.0f;
-    uint32_t cnt = 0;
     char ch = channel[0];
+    uint32_t cnt = 0;
     clear_float_buf(rescaled_adc_wave, STORE_BUF_SIZE);
-    if(ch=='1') {
-        for(uint32_t i = 0; i < 2 * STORE_BUF_SIZE; i+=2) {
-            rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
-            cnt++;
-        }
-    }
-    else if(ch=='2') {
-        for(uint32_t i = 1; i < 2 * STORE_BUF_SIZE; i+=2) {
-            rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
-            cnt++;
-        }
-    }
-    else if(ch=='3') {
-        for(uint32_t i = 2; i < 2 * STORE_BUF_SIZE; i+=2) {
-            rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
-            cnt++;
-        }
+
+    switch(adc_channel_num) {
+        case 2:
+            if(ch=='1') {
+                for(uint32_t i = 0; i < 2 * STORE_BUF_SIZE; i+=2) {
+                    rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+                    cnt++;
+                }
+            }
+            else if(ch=='2') {
+                for(uint32_t i = 1; i < 2 * STORE_BUF_SIZE; i+=2) {
+                    rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+                    cnt++;
+                }
+            }
+            break;
+        case 3:
+            if(ch=='1') {
+                for(uint32_t i = 0; i < 3 * STORE_BUF_SIZE; i+=3) {
+                    rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+                    cnt++;
+                }
+            }
+            else if(ch=='2') {
+                for(uint32_t i = 1; i < 3 * STORE_BUF_SIZE; i+=3) {
+                    rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+                    cnt++;
+                }
+            }
+            else if(ch=='3') {
+                for(uint32_t i = 2; i < 3 * STORE_BUF_SIZE; i+=3) {
+                    rescaled_adc_wave[cnt] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+                    cnt++;
+                }
+            }
+            break;
+        default:
+            break;
     }
     filter_32kHz_wave(rescaled_adc_wave, STORE_BUF_SIZE);   
 }
-
 /*------------------------------------------------------------------*/
 /*                     OBJECT DETECTION FUNCTION                    */
 /*------------------------------------------------------------------*/
@@ -155,7 +166,7 @@ void xcorr_modification_logic(float* xcorr_buf, float* xcorr_buf_modified) {
     float buf_value = 0.0;
     for(uint16_t i = 0; i < STORE_BUF_SIZE; i++) {
         if(i < 400) {
-            buf_value = 0.25 * xcorr_buf[i];
+            buf_value = 0.25 * xcorr_buf[i] + xcorr_buf[i];
         }
         else buf_value = xcorr_buf[i];
         xcorr_buf_modified[i] = buf_value;
