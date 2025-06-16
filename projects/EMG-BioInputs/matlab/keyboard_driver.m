@@ -17,13 +17,13 @@ CUT_RAW_SAMPLES = 8;   % removes couple of first readings
 FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
 
 % Plotting
-PLOT_ON = false;
+PLOT_ON = true;
 
 % Saving
-SAVE_ON = true;
+SAVE_ON = false;
 FOLDERNAME = "measurements";
-SETNAME = "MusclesSet3";
-IS_OVERWRITE = false;
+SETNAME = "LastMuscleSet";
+IS_OVERWRITE = true;
 
 %% Keyboard
 import java.awt.Robot;
@@ -78,10 +78,19 @@ plotting_offsets = zeros(1, channel_n);
 % Saving Sequence
 prepare_save_folders(FOLDERNAME, SETNAME, IS_OVERWRITE);
 
+% Thresholds
+current_max = zeros(channel_n, 1);
+all_history_max = zeros(channel_n, 1);
+last_5sec_max = zeros(channel_n, 1);
+last_1min_max = zeros(channel_n, 1);
+
+last_5sec_max_values = zeros(channel_n, 5*(1000/meas_duration_ms));
+last_1min_max_values = zeros(channel_n, 1*60*(1000/meas_duration_ms));
+
 %% Main Loop
 counter = 1;
 save_loop = 1;
-tic;
+%tic;
 while(true)
     % Trigger
     write(arduino, 'm', "char"); % measurement
@@ -104,26 +113,37 @@ while(true)
     if is_buffer_filled == false
         if counter < meas_n
             counter = counter + 1;
+            continue;
         else
             is_buffer_filled = true;
             plotting_offsets = mean(buffer,2);
-            save_data(FOLDERNAME, SETNAME, save_loop, processed_x, buffer, plotting_offsets, rectified_buffer, enveloped_buffer);
-            save_loop = save_loop + 1;
         end
     end
 
+    % Correct MAX values
+    % you can try prctile(data, 95) as alternative
+    loop_max = max(enveloped_buffer, [], 2);
+    all_history_max = max([all_history_max, loop_max], [], 2);
+    last_1min_max_values = [last_1min_max_values(:, 2:end), loop_max];
+    last_1min_max = max(last_1min_max_values, [], 2);
+    last_5sec_max_values = [last_5sec_max_values(:, 2:end), loop_max];
+    last_5sec_max = max(last_5sec_max_values, [], 2);
+    current_max = adjust_current_max(all_history_max, last_1min_max, last_5sec_max);
+
     % Save Data
-    if is_buffer_filled == true
-        save_data(FOLDERNAME, SETNAME, save_loop, processed_x, buffer, plotting_offsets, rectified_buffer, enveloped_buffer);
+    if SAVE_ON == true
+        save_data(FOLDERNAME, SETNAME, save_loop, processed_x, buffer, plotting_offsets, rectified_buffer, enveloped_buffer, ...
+            current_max, all_history_max, last_1min_max, last_5sec_max);
         save_loop = save_loop + 1;
     end
     
     % Plotting
-    if PLOT_ON == true && is_buffer_filled == true
+    if PLOT_ON == true
         figure(1);
         plot_data(processed_x, buffer, plotting_offsets, rectified_buffer, enveloped_buffer);
+        plot_max(size(buffer, 2), current_max, all_history_max, last_1min_max, last_5sec_max);
     end
-    toc;
+    %toc;
 end
 
 % set COM port back free
@@ -257,10 +277,33 @@ function prepare_save_folders(foldername, setname, is_overwrite)
     end
 end
 
-function save_data(foldername, setname, buffer_num, processed_x, buffer, buffer_plotting_offsets, rectified_buffer, enveloped_buffer)
+function save_data(foldername, setname, buffer_num, processed_x, buffer, buffer_plotting_offsets, rectified_buffer, enveloped_buffer, ...
+    current_max, all_history_max, last_1min_max, last_5sec_max)
     subfolder_path = sprintf("%s\\%s", foldername, setname);
     full_filename = sprintf("%s\\%d_%s.mat", subfolder_path, buffer_num, datetime("now"));
     full_filename = strrep(full_filename, ' ', '_');
     full_filename = strrep(full_filename, ':', '-');
-    save(full_filename, "processed_x", "buffer", "buffer_plotting_offsets", "rectified_buffer", "enveloped_buffer");
+    save(full_filename, "processed_x", "buffer", "buffer_plotting_offsets", "rectified_buffer", "enveloped_buffer", ...
+        "current_max", "all_history_max", "last_1min_max", "last_5sec_max");
+end
+
+function current_max = adjust_current_max(all_history_max, last_1min_max, last_5sec_max)
+    current_max = 0.2.*all_history_max + 0.3.*last_1min_max + 0.5*last_5sec_max;
+    for i = 1:size(all_history_max, 1)
+        if current_max(i) < (0.25*all_history_max(i))
+            current_max(i) = 0.25*all_history_max(i);
+        end
+    end
+end
+
+function plot_max(max_index, current_max, all_history_max, last_1min_max, last_5sec_max)
+    for i = 1:size(current_max, 1)
+        subplot(1,size(current_max, 1),i);
+        hold on;
+        plot([1,max_index], [current_max(i), current_max(i)], 'color', '#29505d', 'linewidth', 2.5);
+        plot([1,max_index], [all_history_max(i), all_history_max(i)], 'color', '#010f1c', 'linewidth', 2.5);
+        plot([1,max_index], [last_1min_max(i), last_1min_max(i)], 'color', '#304529', 'linewidth', 2.5);
+        plot([1,max_index], [last_5sec_max(i), last_5sec_max(i)], 'color', '#4a6741', 'linewidth', 2.5);
+        hold off;
+    end
 end
