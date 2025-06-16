@@ -17,7 +17,13 @@ CUT_RAW_SAMPLES = 8;   % removes couple of first readings
 FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
 
 % Plotting
-PLOT_ON = true;
+PLOT_ON = false;
+
+% Saving
+SAVE_ON = true;
+FOLDERNAME = "measurements";
+SETNAME = "MusclesSet3";
+IS_OVERWRITE = false;
 
 %% Keyboard
 import java.awt.Robot;
@@ -55,6 +61,7 @@ meas_duration_ms = 1000*(data_length/fs);
 meas_n = BUFFER_DURATION_MS/meas_duration_ms; % number of measurements in one buffer
 samples_per_meas_after_cut = data_length - CUT_RAW_SAMPLES;
 buffer = zeros(channel_n, samples_per_meas_after_cut*meas_n);
+is_buffer_filled = false;
 
 % Filter
 load(FILTER_TAPS_FILENAME);
@@ -66,9 +73,15 @@ cut_filtered_samples = filter_delay; % cut some additional samples for better si
 % Processed Plotting
 processed_x = 1:size(buffer,2);
 processed_x = processed_x((cut_filtered_samples+1):(end-filter_delay));
+plotting_offsets = zeros(1, channel_n);
+
+% Saving Sequence
+prepare_save_folders(FOLDERNAME, SETNAME, IS_OVERWRITE);
 
 %% Main Loop
 counter = 1;
+save_loop = 1;
+tic;
 while(true)
     % Trigger
     write(arduino, 'm', "char"); % measurement
@@ -87,11 +100,30 @@ while(true)
     rectified_buffer = rectify_dataset(filtered_buffer);
     enveloped_buffer = envelope_dataset(rectified_buffer, fs);
 
-    % Plotting
-    if PLOT_ON == true
-        figure(1);
-        plot_data(processed_x, buffer, rectified_buffer, enveloped_buffer);
+    % Buffer State
+    if is_buffer_filled == false
+        if counter < meas_n
+            counter = counter + 1;
+        else
+            is_buffer_filled = true;
+            plotting_offsets = mean(buffer,2);
+            save_data(FOLDERNAME, SETNAME, save_loop, processed_x, buffer, plotting_offsets, rectified_buffer, enveloped_buffer);
+            save_loop = save_loop + 1;
+        end
     end
+
+    % Save Data
+    if is_buffer_filled == true
+        save_data(FOLDERNAME, SETNAME, save_loop, processed_x, buffer, plotting_offsets, rectified_buffer, enveloped_buffer);
+        save_loop = save_loop + 1;
+    end
+    
+    % Plotting
+    if PLOT_ON == true && is_buffer_filled == true
+        figure(1);
+        plot_data(processed_x, buffer, plotting_offsets, rectified_buffer, enveloped_buffer);
+    end
+    toc;
 end
 
 % set COM port back free
@@ -196,14 +228,39 @@ function enveloped_dataset = envelope_dataset(dataset, fs)
     end
 end
 
-function plot_data(processed_x, buffer, rectified_buffer, enveloped_buffer)
+function plot_data(processed_x, buffer, buffer_plotting_offsets, rectified_buffer, enveloped_buffer)
     for i = 1:size(buffer,1)
         subplot(1,size(buffer,1),i);
-        plot(buffer(i,:) - mean(buffer(i,:)));
+        plot(buffer(i,:) - buffer_plotting_offsets(i));
         hold on;
         plot(processed_x, rectified_buffer(i,:));
         plot(processed_x, enveloped_buffer(i,:), 'r', 'linewidth', 2.5);
         ylim([-600,800]);
+        %legend(["Raw Data (centered)", "Filtered and Rectified", "Envelope"]);
         hold off;
     end
+end
+
+function prepare_save_folders(foldername, setname, is_overwrite)
+    if ~isfolder(foldername)
+        mkdir(foldername);
+    end
+
+    subfolder_path = sprintf("%s\\%s", foldername, setname);
+    if ~isfolder(subfolder_path)
+        mkdir(subfolder_path);
+    elseif is_overwrite == true
+        rmdir(subfolder_path, 's');
+        mkdir(subfolder_path);
+    else
+        error("Measurement Set with this name already exists.\nChange SETNAME or put IS_OVERWRITE to 'true'", subfolder_path);
+    end
+end
+
+function save_data(foldername, setname, buffer_num, processed_x, buffer, buffer_plotting_offsets, rectified_buffer, enveloped_buffer)
+    subfolder_path = sprintf("%s\\%s", foldername, setname);
+    full_filename = sprintf("%s\\%d_%s.mat", subfolder_path, buffer_num, datetime("now"));
+    full_filename = strrep(full_filename, ' ', '_');
+    full_filename = strrep(full_filename, ':', '-');
+    save(full_filename, "processed_x", "buffer", "buffer_plotting_offsets", "rectified_buffer", "enveloped_buffer");
 end
