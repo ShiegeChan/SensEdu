@@ -4,7 +4,7 @@ clear;
 close all;
 
 %% Data Acquisition parameters
-ITERATIONS = 300; 
+ITERATIONS = 60; 
 MIC_NUM = 8;
 mic_name = {"MIC 1", "MIC 2","MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
 DATA_LENGTH = 32 * 32;
@@ -78,9 +78,9 @@ beautify_plot(gcf, 1);
 figure
 for i = 1:MIC_NUM
     subplot(MIC_NUM, 1, i);
-    plot(time_axis, dist_matrix(i, :), 'LineWidth', 2)
-    ylim([0 1])
-    xlim([0 time_axis(end)])
+    plot(dist_matrix(i, :), 'LineWidth', 2)
+    %ylim([0 1])
+    %xlim([0 time_axis(end)])
     grid on
     xlabel("time [s]");
     ylabel("distance [m]")
@@ -93,7 +93,7 @@ save_plot
 %%
 figure
 for i = 1:MIC_NUM
-    plot(time_axis, dist_matrix(i, :), 'LineWidth', 2); hold on;
+    plot(dist_matrix(i, :), 'LineWidth', 2); hold on;
 end
 hold off;
 

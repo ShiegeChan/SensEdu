@@ -24,21 +24,21 @@ function beautify_plot(figHandle, box)
 
             % Set labels and title to use LaTeX
             if ~isempty(ax.XLabel.String)
-                set(ax.XLabel, 'Interpreter', 'latex', 'FontSize', 14);
+                set(ax.XLabel, 'Interpreter', 'latex', 'FontSize', 11);
             end
             if ~isempty(ax.YLabel.String)
-                set(ax.YLabel, 'Interpreter', 'latex', 'FontSize', 14);
+                set(ax.YLabel, 'Interpreter', 'latex', 'FontSize', 11);
             end
             if ~isempty(ax.ZLabel.String)
-                set(ax.ZLabel, 'Interpreter', 'latex', 'FontSize', 14);
+                set(ax.ZLabel, 'Interpreter', 'latex', 'FontSize', 11);
             end
             if ~isempty(ax.Title.String)
-                set(ax.Title, 'Interpreter', 'latex', 'FontSize', 15);
+                set(ax.Title, 'Interpreter', 'latex', 'FontSize', 12);
             end
 
             % Set legend properties
             if ~isempty(ax.Legend)
-                set(ax.Legend, 'Interpreter', 'latex', 'FontSize', 12);
+                set(ax.Legend, 'Interpreter', 'latex', 'FontSize', 9);
             end
 
             % Set grid

@@ -5,7 +5,6 @@
 #include "SineLUT.h"
 #include "FilterTaps.h"
 #include "DACWave.h" // contains wave and its size
-
 uint32_t lib_error = 0;
 uint8_t error_led = D86;
 
@@ -14,7 +13,7 @@ uint8_t error_led = D86;
 /* -------------------------------------------------------------------------- */
 //#define SERIAL_OFF
 
-#define BAN_DISTANCE    20	    // min distance [cm] - how many self reflections cancelled
+#define BAN_DISTANCE    22	    // min distance [cm] - how many self reflections cancelled
 #define ACTUAL_SAMPLING_RATE 250000 // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
 #define STORE_BUF_SIZE  32 * 32     // 2400 for 1 measurement per second. 
                             	    // only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)

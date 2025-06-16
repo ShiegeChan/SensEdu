@@ -1,19 +1,19 @@
 % EXTENDED KALMAN FILTER IMPLEMENTATION 
-clear all
+%clear all
 clc
-%close all
+close all
 %% Algorithm
 %-----------------SETTINGS----------------------------%
 REAL_MEASUREMENTS = true; % true if real measurement data used
-SPEAKER = 2; % 1 - speaker1 (ch1), 2 - speaker2(ch 2)
+SPEAKER = 1; % 1 - speaker1 (ch1), 2 - speaker2(ch 2)
 scale_fac = 1; % for microphone position tweaking
-
-
+MIC_NUM = 8;
+mic_name = {"MIC 1", "MIC 2","MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
 m1 = [-0.09, 0.09, 0.0];
 m2 = [-0.09, 0.0, 0.0];
 m3 = [-0.09, -0.09, 0.0];
 m4 = [0.0, -0.09, 0.0];
-m5 = [-0.09, 0.09, 0.0];
+m5 = [0.09, -0.09, 0.0];
 m6 = [0.09, 0.0, 0.0];
 m7 = [0.09, 0.09, 0.0];
 m8 = [0.00, 0.09, 0.0];
@@ -30,24 +30,29 @@ end
 %---------------PREPROCESSING REAL MEASUREMENTS-----------------------%
 
 if (REAL_MEASUREMENTS == true)
-    load("good measurements for tracking\matlab.mat");
+%    load("good measurements for tracking\xxlboard_ball_ball_13-Jun-2025_10-50-40_very_good.mat");
     %[dist_matrix, time_axis] = preprocess_real_measurements(measurement_data);
+    dist_outliers = dist_matrix;
+    dist_matrix = outlier_rejection(dist_matrix);
+
+    pos_init_estimate = [0.05; 0.05; 0.2];
+
+else
+    % NON RANDOM TRAJECTORY 
+    % Precomputation of trajectory to track
+    % pos_true = single_pendulum_traj(tspan);
+    pos_true = generate_object_trajectory(tspan, "squared", 0.2);
+    % Having the ideal intial estimate
+    pos_init_estimate = pos_true(:, 1); % The starting point of trajectory
+
 end
 
 % 1 INITIALIZATION
-dtau = 0.02; % s
-N = 299;
+dtau = 0.03; % s
+N = size(dist_matrix, 2) - 1;
 simTime = N * dtau; % s
 tspan = 0:dtau:simTime;
 
-%%%%%% NON RANDOM TRAJECTORY 
-% Precomputation of trajectory to track
-% pos_true = single_pendulum_traj(tspan);
- pos_true = generate_object_trajectory(tspan, "squared", 0.2);
-
-% Having the ideal intial estimate
-%pos_init_estimate = pos_true(:, 1); % The starting point of trajectory
-pos_init_estimate = [0.05; 0.05; 0.2];
 
 x_hat = [pos_init_estimate; 1e-3; 1e-3; 1e-3]; % [x; y; z; vx; vy; vz] initial states
 
@@ -69,14 +74,14 @@ P =  eye(6) * (sigma_p^2);
 % process noise covariance matrix (related to our model which is not PERFECT!)
 I = eye(3); % identity matrix 3x3
 % 0.3 good, go back to it
-sigma_q = 3e-1; 
+sigma_q = 0.2; 
 Q = dtau * [sigma_q^2 * I, (sigma_q^2/2)*dtau*I; 
            (sigma_q^2/2)*dtau*I, (sigma_q^2/3)*dtau^2*I]; 
 
 % measurement noise covariance matrix
 % uncorrelated measurements
 % expected uncertainty that you have with the sensor measurements
-sigma_r = 0.1^2; % standard deviation -> variance is sigma_r^2
+sigma_r = 0.05^2; % standard deviation -> variance is sigma_r^2
 R = diag(ones(1, size(microphones,1))*sigma_r);
 
 % Defining a container to put the measurements in for each step
@@ -136,38 +141,23 @@ end
 
 %% Plot the position
 % Plot the results - position
+close
+plot_trajectory(state_history, microphones, REAL_MEASUREMENTS, 0);
+save_plot("Figures\3d_trajectory");
+%% Plot the measurements
+close;
+plot_measurements(dist_matrix);
+save_plot("Figures\measurements");
+%% Plot gain matrix
+close 
+plot_gain_matrix(K_vec);
+save_plot("Figures\kalman_gain");
 
-figure;
-plot3(state_history(1, :), state_history(2, :), state_history(3, :), "LineWidth", 1.5);
-hold on;
-plot3(state_history(1, 1), state_history(2, 1), state_history(3, 1), 'kx', LineWidth=2); % First predicted point
-hold on;
-if REAL_MEASUREMENTS == false
-    plot3(pos_true(1, 1:50), pos_true(2, 1:50), pos_true(3, 1:50), LineWidth=2); % First predicted point
-end
-
-for i=1:size(microphones,1)
-    hold on;
-    m = microphones_no_off(i,:);
-    plot3(m(1), m(2), m(3), 'kx', LineWidth=2); 
-end
-xlabel('[m]');
-title('Object Tracking with EKF');
-%legend('True Trajectory', 'Estimated Trajectory', 'Starting Point', sprintf('dtau %.3f', dtau), sprintf('sigma_p %f', sigma_p), sprintf('sigma_q %f', sigma), sprintf('sigma_r %f', sigma_r),  'Location', 'best');
-legend('True Trajectory', 'Starting Point', 'Location', 'best');
-grid on;
-
-
-%% measurements
-figure
-for i = 1:6
-    plot(y_vec(i, :), 'LineWidth', 2); hold on;
-end
-ylim([0 1])
-xlim([0 time_axis(end)])
-grid on
-xlabel("time [s]");
-ylabel("distance [m]")
-legend(mic_name);
-title("Microphone distance measurements")
-
+%% Plot error matrix
+close 
+plot_error_matrix(err_vec, MIC_NUM);
+save_plot("Figures\error");
+%% Plot difference between dist with and w/o outliers
+close
+plot_measurements(dist_outliers);
+save_plot("Figures\outliers");

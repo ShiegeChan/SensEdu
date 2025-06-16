@@ -17,19 +17,28 @@ uint32_t get_distance_measurement(float* xcorr_buf, size_t xcorr_buf_size, uint1
     custom_xcorr(xcorr_buf, dac_wave, STORE_BUF_SIZE);
 
     // Calculate the distance of the object
-	uint32_t peak_index = 0;
+	uint32_t peak_index = 0, pocni = 0, cnt = 0;
 	float biggest = 0.0f;
-	for (uint32_t i = 0; i < STORE_BUF_SIZE; i++) {
-		if (xcorr_buf[i] > biggest) {
-			biggest = xcorr_buf[i];
-			peak_index = i;
-		}
-	}
-	uint16_t sr = ACTUAL_SAMPLING_RATE/1000; // kS/sec  sample rate
-	//uint16_t c = 343; // speed in air
-	// (lag_samples * sample_time) * air_speed / 2
-    // peak index is in kilosamples. This math manover makes the samples come in micrometers 
-	uint32_t distance = ((peak_index * 1000 * air_speed) / sr) >> 1; // in micrometers
+    uint16_t sr = ACTUAL_SAMPLING_RATE/1000; // kS/sec  sample rate
+    uint32_t distance = 0;
+    while(cnt!=STORE_BUF_SIZE) {
+        for (uint32_t i = pocni; i < STORE_BUF_SIZE; i++) {
+            if (xcorr_buf[i] > biggest) {
+                biggest = xcorr_buf[i];
+                peak_index = i;
+            }
+        }
+        
+        //uint16_t c = 343; // speed in air
+        // (lag_samples * sample_time) * air_speed / 2
+        // peak index is in kilosamples. This math manover makes the samples come in micrometers 
+        distance = ((peak_index * 1000 * air_speed) / sr) >> 1; // in micrometers
+        if (abs((distance / 1000000) - BAN_DISTANCE/100) > 0.0000001) {
+            return distance;
+        }
+        pocni = peak_index + 10; // offset it so it can get a real size
+        cnt++;
+    }
     return distance;
 }
 
