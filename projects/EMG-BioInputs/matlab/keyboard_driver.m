@@ -22,7 +22,7 @@ PLOT_ON = true;
 % Saving
 SAVE_ON = false;
 FOLDERNAME = "measurements";
-SETNAME = "LastMuscleSet";
+SETNAME = "MuscleSet4";
 IS_OVERWRITE = true;
 
 %% Keyboard
@@ -76,21 +76,28 @@ processed_x = processed_x((cut_filtered_samples+1):(end-filter_delay));
 plotting_offsets = zeros(1, channel_n);
 
 % Saving Sequence
-prepare_save_folders(FOLDERNAME, SETNAME, IS_OVERWRITE);
+if SAVE_ON == true
+    prepare_save_folders(FOLDERNAME, SETNAME, IS_OVERWRITE);
+end
 
-% Thresholds
+% Maximum Values
+threshold_analyzed_x = round(1/4 * size(processed_x, 2)):round(3/4 * size(processed_x, 2));
 current_max = zeros(channel_n, 1);
 all_history_max = zeros(channel_n, 1);
-last_5sec_max = zeros(channel_n, 1);
+last_1sec_max = zeros(channel_n, 1);
 last_1min_max = zeros(channel_n, 1);
 
-last_5sec_max_values = zeros(channel_n, 5*(1000/meas_duration_ms));
+last_1sec_max_values = zeros(channel_n, 1*(1000/meas_duration_ms));
 last_1min_max_values = zeros(channel_n, 1*60*(1000/meas_duration_ms));
+
+% Thresholds
+press_thresholds = zeros(channel_n, 1);
+release_thresholds = zeros(channel_n, 1);
 
 %% Main Loop
 counter = 1;
 save_loop = 1;
-%tic;
+tic;
 while(true)
     % Trigger
     write(arduino, 'm', "char"); % measurement
@@ -122,18 +129,23 @@ while(true)
 
     % Correct MAX values
     % you can try prctile(data, 95) as alternative
-    loop_max = max(enveloped_buffer, [], 2);
+    % analyze only middle of the envelope for increased precision
+    loop_max = max(enveloped_buffer(:,threshold_analyzed_x), [], 2);
     all_history_max = max([all_history_max, loop_max], [], 2);
     last_1min_max_values = [last_1min_max_values(:, 2:end), loop_max];
     last_1min_max = max(last_1min_max_values, [], 2);
-    last_5sec_max_values = [last_5sec_max_values(:, 2:end), loop_max];
-    last_5sec_max = max(last_5sec_max_values, [], 2);
-    current_max = adjust_current_max(all_history_max, last_1min_max, last_5sec_max);
+    last_1sec_max_values = [last_1sec_max_values(:, 2:end), loop_max];
+    last_1sec_max = max(last_1sec_max_values, [], 2);
+    current_max = adjust_current_max(all_history_max, last_1min_max, last_1sec_max);
+    
+    % Thresholds
+    press_thresholds = 0.2.*current_max;
+    release_thresholds = 0.1.*current_max;
 
     % Save Data
     if SAVE_ON == true
         save_data(FOLDERNAME, SETNAME, save_loop, processed_x, buffer, plotting_offsets, rectified_buffer, enveloped_buffer, ...
-            current_max, all_history_max, last_1min_max, last_5sec_max);
+            current_max, all_history_max, last_1min_max, last_1sec_max);
         save_loop = save_loop + 1;
     end
     
@@ -141,9 +153,11 @@ while(true)
     if PLOT_ON == true
         figure(1);
         plot_data(processed_x, buffer, plotting_offsets, rectified_buffer, enveloped_buffer);
-        plot_max(size(buffer, 2), current_max, all_history_max, last_1min_max, last_5sec_max);
+        %plot_max(size(buffer, 2), current_max, all_history_max, last_1min_max, last_1sec_max);
+        plot_thresholds(size(buffer, 2), current_max, press_thresholds, release_thresholds);
+        plot_keys(); % here put square wave that represents pressed and released keys
     end
-    %toc;
+    toc;
 end
 
 % set COM port back free
@@ -249,11 +263,11 @@ function enveloped_dataset = envelope_dataset(dataset, fs)
 end
 
 function plot_data(processed_x, buffer, buffer_plotting_offsets, rectified_buffer, enveloped_buffer)
-    for i = 1:size(buffer,1)
+    for i = 3
         subplot(1,size(buffer,1),i);
-        plot(buffer(i,:) - buffer_plotting_offsets(i));
-        hold on;
-        plot(processed_x, rectified_buffer(i,:));
+        %plot(buffer(i,:) - buffer_plotting_offsets(i));
+        %hold on;
+        %plot(processed_x, rectified_buffer(i,:));
         plot(processed_x, enveloped_buffer(i,:), 'r', 'linewidth', 2.5);
         ylim([-600,800]);
         %legend(["Raw Data (centered)", "Filtered and Rectified", "Envelope"]);
@@ -278,17 +292,17 @@ function prepare_save_folders(foldername, setname, is_overwrite)
 end
 
 function save_data(foldername, setname, buffer_num, processed_x, buffer, buffer_plotting_offsets, rectified_buffer, enveloped_buffer, ...
-    current_max, all_history_max, last_1min_max, last_5sec_max)
+    current_max, all_history_max, last_1min_max, last_1sec_max)
     subfolder_path = sprintf("%s\\%s", foldername, setname);
     full_filename = sprintf("%s\\%d_%s.mat", subfolder_path, buffer_num, datetime("now"));
     full_filename = strrep(full_filename, ' ', '_');
     full_filename = strrep(full_filename, ':', '-');
     save(full_filename, "processed_x", "buffer", "buffer_plotting_offsets", "rectified_buffer", "enveloped_buffer", ...
-        "current_max", "all_history_max", "last_1min_max", "last_5sec_max");
+        "current_max", "all_history_max", "last_1min_max", "last_1sec_max");
 end
 
-function current_max = adjust_current_max(all_history_max, last_1min_max, last_5sec_max)
-    current_max = 0.2.*all_history_max + 0.3.*last_1min_max + 0.5*last_5sec_max;
+function current_max = adjust_current_max(all_history_max, last_1min_max, last_1sec_max)
+    current_max = 0.0.*all_history_max + 0.3.*last_1min_max + 0.7*last_1sec_max;
     for i = 1:size(all_history_max, 1)
         if current_max(i) < (0.25*all_history_max(i))
             current_max(i) = 0.25*all_history_max(i);
@@ -296,14 +310,25 @@ function current_max = adjust_current_max(all_history_max, last_1min_max, last_5
     end
 end
 
-function plot_max(max_index, current_max, all_history_max, last_1min_max, last_5sec_max)
+function plot_max(max_index, current_max, all_history_max, last_1min_max, last_1sec_max)
     for i = 1:size(current_max, 1)
         subplot(1,size(current_max, 1),i);
         hold on;
         plot([1,max_index], [current_max(i), current_max(i)], 'color', '#29505d', 'linewidth', 2.5);
         plot([1,max_index], [all_history_max(i), all_history_max(i)], 'color', '#010f1c', 'linewidth', 2.5);
         plot([1,max_index], [last_1min_max(i), last_1min_max(i)], 'color', '#304529', 'linewidth', 2.5);
-        plot([1,max_index], [last_5sec_max(i), last_5sec_max(i)], 'color', '#4a6741', 'linewidth', 2.5);
+        plot([1,max_index], [last_1sec_max(i), last_1sec_max(i)], 'color', '#4a6741', 'linewidth', 2.5);
+        hold off;
+    end
+end
+
+function plot_thresholds(max_index, current_max, press_thresholds, release_thresholds)
+    for i = 3
+        subplot(1,size(current_max, 1),i);
+        hold on;
+        plot([1,max_index], [current_max(i), current_max(i)], 'color', '#000000', 'linewidth', 2.5);
+        plot([1,max_index], [press_thresholds(i), press_thresholds(i)], 'color', '#6B8E23', 'linewidth', 2.5);
+        plot([1,max_index], [release_thresholds(i), release_thresholds(i)], 'color', '#FF8C00', 'linewidth', 2.5);
         hold off;
     end
 end
