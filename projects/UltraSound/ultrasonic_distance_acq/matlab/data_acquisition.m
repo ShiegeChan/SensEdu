@@ -2,7 +2,7 @@
 % reads config data and then ADC mics meassurements from Arduino
 clear;
 close all;
-
+addpath("plot scripts\", "kf algorithm\");
 %% Data Acquisition parameters
 ITERATIONS = 80; 
 MIC_NUM = 4;
