@@ -5,7 +5,7 @@ close all;
 clc;
 
 %% Settings
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM20';
 ARDUINO_BAUDRATE = 115200;
 ITERATIONS = 10000;
 
