@@ -72,7 +72,7 @@ In the `projects/` directory, you will find several complete projects designed f
 * **Chirp Signal Generation**
 * **FMCW Radar** (in progress)
 * **Ultrasonic FSK Communication** *(coming soon)*
-* **Weather Station** *(coming soon)*
+* **Weather Station** (in progress)
 * **WiFi MATLAB Communication** *(coming soon)*
 
 Detailed explanations for each project are available in the "Projects" section of the <a href="https://shiegechan.github.io/SensEdu/projects/" target="_blank">Documentation</a>.
@@ -83,7 +83,28 @@ Detailed explanations for each project are available in the "Projects" section o
 If you would like to contribute, please open a pull request!
 You can also suggest improvements or check already opened <a href="https://github.com/ShiegeChan/SensEdu/issues" target="_blank">issues</a> to help fix bugs or add new features.
 
+## Acknowledgments
+
+SensEdu was made possible thanks to these freely available tools:
+
+* [Arduino] and [Arduino IDE 2.x]
+* [XENSIV™ Digital Pressure Sensor Arduino Library]
+* [STM32H747 Documentation] and [STM32CubeMX]
+* [Jekyll] and [Just the Docs] template
+* [KiCAD]
+
 
 ## License
 
 * [**GPL-3.0 license**](https://github.com/ShiegeChan/SensEdu/blob/main/LICENSE)
+
+[Arduino IDE 2.x]: https://github.com/arduino/arduino-ide
+[Arduino]: https://www.arduino.cc/
+[XENSIV™ Digital Pressure Sensor Arduino Library]: https://github.com/Infineon/arduino-xensiv-dps3xx
+[STM32H747 Documentation]: https://www.st.com/en/microcontrollers-microprocessors/stm32h747-757/documentation.html
+[STM32CubeMX]: https://www.st.com/en/development-tools/stm32cubemx.html
+[Jekyll]: https://jekyllrb.com/
+[Just the Docs]: https://github.com/just-the-docs/just-the-docs/tree/main
+[STM32H747]: https://www.st.com/en/microcontrollers-microprocessors/stm32h747-757.html
+[Arduino GIGA R1 WiFi]: https://docs.arduino.cc/hardware/giga-r1-wifi/
+[KiCad]: https://www.kicad.org/

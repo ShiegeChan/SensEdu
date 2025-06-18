@@ -1,6 +1,6 @@
 %% FMCW_Distance_Measurement.m 
-%% ADC1 = DAC (to ADC) data
-%% ADC2 = MIC DATA
+%% adc3 = DAC (to ADC) data
+%% adc1 = MIC DATA
 clear;
 close all;
 clc;
@@ -8,13 +8,14 @@ clc;
 %% Radar system parameters
 %Need to be the same as chirp parameters for correct distance computation!
 
-f1_start = 30000;         % Start frequency of transmitted chirp (Hz)
-f1_end = 35000;           % End frequency of transmitted chirp (Hz)
-Tc = 0.01;                % Duration of one chirp (s)
-c = 343;                  % Speed of sound in air for T=300K (m/s)
+f_start = 30000;         % Start frequency of transmitted chirp (Hz)
+f_end = 35000;           % End frequency of transmitted chirp (Hz)
+Tc = 0.01;              % Duration of one chirp (s)
+c = 343;                 % Speed of sound in air for T=300K (m/s)
+%d_cor = -0.05;            % Distance correction (m)   
 
 %% Settings
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM13';
 ARDUINO_BAUDRATE = 115200;
 ITERATIONS = 10000;        % Number of real-time ADC measurements
 SAMPLING_RATE = 250000;    % ADC Sampling rate
@@ -30,7 +31,7 @@ fprintf("Starting real-time dual ADC data acquisition...\n");
 % Initialize Figure for Real-Time Data Plots in Full Screen
 figure('Name', 'Real-Time ADC Signals and Power Spectra', 'Color', 'w', 'WindowState', 'maximized');
 
-% Subplot for Mixed Signal(Top Left)
+% Subplot for Mixed Signal(Middle Left)
 subplot(3, 2, 3); 
 mixed_signal_plot = plot(nan(1, 1), 'r');
 %xlim([0, 2048]);
@@ -45,11 +46,11 @@ grid on;
 %ax.XLabel.Color = 'w';
 %ax.YLabel.Color = 'w';
 
-% Subplot for Mic (ADC2) High-Passed Signal (Middle Left)
+% Subplot for Mic (adc1) High-Passed Signal (Top Left)
 subplot(3, 2, 1); 
-adc2_filt_plot = plot(nan(1, 1), 'r');
+adc1_filt_plot = plot(nan(1, 1), 'r');
 %xlim([0, 2048]);
-ylim([-32818, 40000]); % High-pass filtered values
+ ylim([-32818, 40000]); % High-pass filtered values
 xlabel("Sample #");
 ylabel("Amplitude");
 title("High-Passed Mic Data");
@@ -61,9 +62,9 @@ grid on;
 %ax.XLabel.Color = 'w';
 %ax.YLabel.Color = 'w';
 
-% Subplot for DAC (to ADC1) High-Passed Signal (Middle Right)
+% Subplot for DAC (to adc3) High-Passed Signal (Top Right)
 subplot(3, 2, 2); 
-adc1_filt_plot = plot(nan(1, 1), 'g');
+adc3_filt_plot = plot(nan(1, 1), 'g');
 %xlim([0, 2048]);
 ylim([-32818, 32818]); % High-pass filtered values
 xlabel("Sample #");
@@ -77,7 +78,7 @@ grid on;
 %ax.XLabel.Color = 'w';
 %ax.YLabel.Color = 'w';
 
-% Subplot for Filtered Mixed Signal (Bottom Left)
+% Subplot for Filtered Mixed Signal (Middle Left)
 subplot(3, 2, 4); 
 mixed_signal_filt_plot = plot(nan(1, 1), 'r');
 %xticks(0:5000:100000);
@@ -127,35 +128,38 @@ for it = 1:ITERATIONS
     
     % Retrieve size header for ADC data
     adc_byte_length = read_total_length(arduino);      % Total length of ADC data in bytes
-    ADC_DATA_LENGTH = adc_byte_length / 2;                  % Total number of ADC samples
-
-    % Retrieve Mic ADC data
-    adc1_data = read_data(arduino, ADC_DATA_LENGTH);
+    ADC_DATA_LENGTH = adc_byte_length / 2;             % Total number of ADC samples
 
     % Retrieve DAC to ADC data
-    adc2_data = read_data(arduino, ADC_DATA_LENGTH); 
+    adc3_data = read_data(arduino, ADC_DATA_LENGTH);
+
+    % Retrieve Mic ADC data
+    adc1_data = read_data(arduino, ADC_DATA_LENGTH); 
     
-    % High-Pass Filter on ADC2 and ADC1 Data
+    % High-Pass Filter on adc1 and adc3 Data
+    adc3_data_filt = highpass(adc3_data, 30000, SAMPLING_RATE);
     adc1_data_filt = highpass(adc1_data, 30000, SAMPLING_RATE);
-    adc2_data_filt = highpass(adc2_data, 30000, SAMPLING_RATE);
 
     % Frequency mixing (multiply Tx and Rx signals)
-    mixed_signal = adc1_data_filt .* adc2_data_filt;
+    mixed_signal = adc3_data_filt .* adc1_data_filt;
     mixed_signal_filt = lowpass(mixed_signal, 5000, SAMPLING_RATE);
 
-    % Compute PSD using Periodogram for both ADC2 and ADC1
-    [p_adc1, f_adc1] = periodogram(adc1_data_filt, rectwin(length(adc2_data_filt)), [], SAMPLING_RATE);
-    [p_adc2, f_adc2] = periodogram(adc2_data_filt, rectwin(length(adc1_data_filt)), [], SAMPLING_RATE);
+    % Compute PSD using Periodogram for both adc1 and adc3
+    [p_adc3, f_adc3] = periodogram(adc3_data_filt, rectwin(length(adc1_data_filt)), [], SAMPLING_RATE);
+    [p_adc1, f_adc1] = periodogram(adc1_data_filt, rectwin(length(adc3_data_filt)), [], SAMPLING_RATE);
     [p_mix, f_mix] = periodogram(mixed_signal, [], [], SAMPLING_RATE);
-    %[p_mix_filt, f_mix_filt] = periodogram(mixed_signal_filt, hamming(length(mixed_signal_filt)),[], SAMPLING_RATE);
-    [p_mix_filt, f_mix_filt] = pspectrum(mixed_signal_filt, SAMPLING_RATE);
+    [p_mix_filt, f_mix_filt] = periodogram(mixed_signal_filt, hamming(length(mixed_signal_filt)),[], SAMPLING_RATE);
+    %[p_mix_filt, f_mix_filt] = pspectrum(mixed_signal_filt, SAMPLING_RATE);
 
     % Extract beat frequency
     [p_fbeat,fbeat] = findpeaks(p_mix_filt,f_mix_filt,NPeaks=1,SortStr="descend")
 
     % Calculate distance (distance is for one way and not roundtrip like
     % usual FMCW radar since we use 2 boards here)
-    d = (fbeat * Tc * c) / (f1_end - f1_start);
+    d = (fbeat * Tc * c) / (f_end - f_start);
+
+    %Real distance (with distance correction)
+   % d_real = d + d_cor;
     
     % Update the distance display with the new value
     set(distanceText, 'String', sprintf('Measured Distance = %.0f cm', d*100));
@@ -166,13 +170,13 @@ for it = 1:ITERATIONS
         set(mixed_signal_plot, 'YData', mixed_signal);
 
         % Update DAC to ADC Data
-        set(adc1_filt_plot, 'YData', adc1_data_filt);
+        set(adc3_filt_plot, 'YData', adc3_data_filt);
 
         % Update Mixed Signal Power Spectrum
         %set(mixed_signal_PS, 'XData', f_mix,'YData', p_mix);
 
         % Update Mic Data plot
-        set(adc2_filt_plot, 'YData', adc2_data_filt);
+        set(adc1_filt_plot, 'YData', adc1_data_filt);
 
         % Update Filtered Mixed Signal plot
         set(mixed_signal_filt_plot, 'YData', mixed_signal_filt);
