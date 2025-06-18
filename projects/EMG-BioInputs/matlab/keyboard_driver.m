@@ -25,6 +25,10 @@ FOLDERNAME = "measurements";
 SETNAME = "MuscleSet";
 IS_OVERWRITE = true;
 
+% Maximum Values
+SHORT_MAXIMUM_SEC = 1;
+LONG_MAXIMUM_SEC = 60;
+
 % Thresholds
 PRESS_RANGE_PERCENTAGE = 0.2;
 RELEASE_RANGE_PERCENTAGE = 0.1;
@@ -91,8 +95,8 @@ all_history_max = zeros(channel_n, 1);
 last_1sec_max = zeros(channel_n, 1);
 last_1min_max = zeros(channel_n, 1);
 
-last_1sec_max_values = zeros(channel_n, 1*(1000/meas_duration_ms));
-last_1min_max_values = zeros(channel_n, 1*60*(1000/meas_duration_ms));
+last_1sec_max_values = zeros(channel_n, SHORT_MAXIMUM_SEC*(1000/meas_duration_ms)); % for initial calcs we use ideal duration per measurement
+last_1min_max_values = zeros(channel_n, LONG_MAXIMUM_SEC*(1000/meas_duration_ms));  % they are recalibrated after couple of first cycles
 
 % Thresholds
 press_thresholds = zeros(channel_n, 1);
@@ -124,10 +128,14 @@ keys_plotting_x = wrev(keys_plotting_x);
 keys_plotting_x = keys_plotting_x(2:end);
 keys_plotting_y = zeros(channel_n, numel(keys_plotting_x));
 
+% Timings
+exec_durations = zeros(1,250);
+exec_counter = 1;
+are_timings_corrected = false;
+
 %% Main Loop
 counter = 1;
 save_loop = 1;
-tic;
 while(true)
     % Trigger
     write(arduino, 'm', "char"); % measurement
@@ -154,6 +162,7 @@ while(true)
         else
             is_buffer_filled = true;
             plotting_offsets = mean(buffer,2);
+            tic;
         end
     end
 
@@ -192,7 +201,23 @@ while(true)
         keys_plotting_y = [keys_plotting_y(:, 3:end), keys_state', keys_state'];
         plot_keys(keys_plotting_x, keys_plotting_y);
     end
-    toc;
+
+    % Timings
+    if are_timings_corrected == false
+        exec_durations(exec_counter) = toc;
+        exec_counter = exec_counter + 1;
+        if exec_counter > size(exec_durations, 2)
+            exec_duration = mean(diff(exec_durations(2:end)))*1000; % ignore first one due to "tic" position
+            short_vals_size = round(SHORT_MAXIMUM_SEC*(1000/exec_duration));
+            last_1sec_max_values = last_1sec_max_values(:, (end-short_vals_size+1):end);
+            long_vals_size = round(LONG_MAXIMUM_SEC*(1000/exec_duration));
+            last_1min_max_values = last_1min_max_values(:, (end-long_vals_size+1):end);
+            fprintf("Expected ideal duration per measurement: %dms\n" + ...
+                "Real duration per measurement: %dms\n" + ...
+                "Threshold calculations are corrected accordingly.\n", meas_duration_ms, round(exec_duration));
+            are_timings_corrected = true;
+        end
+    end
 end
 
 % set COM port back free
