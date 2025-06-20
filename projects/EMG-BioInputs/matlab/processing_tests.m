@@ -1,6 +1,6 @@
 %% processing_tests.m
 clear;
-close all;
+%close all;
 clc;
 
 %% Include
@@ -11,7 +11,7 @@ addpath(genpath('./plotting/'));
 %% Settings
 % Loading
 FOLDERNAME = "measurements";
-SETNAME = "MuscleSet";
+SETNAME = "DarkSouls_1rolls";
 MEASUREMENT_SIZE = 1016; % take cut sample number from keyboard_driver
 fs = 25600;
 channel_n = 4;
@@ -19,8 +19,8 @@ channel_n = 4;
 % Processing
 FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
 
-PRESS_RANGE_PERCENTAGE = 0.2;
-RELEASE_RANGE_PERCENTAGE = 0.1;
+PRESS_RANGE_PERCENTAGE = 0.25;
+RELEASE_RANGE_PERCENTAGE = 0.2;
 
 %% Initialization
 % load buffer
@@ -41,6 +41,7 @@ processed_x = 1:size(buffer,2);
 processed_x = processed_x((cut_filtered_samples+1):(end-filter_delay));
 
 % maximum values
+current_max = zeros(channel_n, 1);
 threshold_analyzed_x = round(1/4 * size(processed_x, 2)):round(3/4 * size(processed_x, 2));
 
 % keys
@@ -69,6 +70,10 @@ keys_plotting_y = zeros(channel_n, numel(keys_plotting_x));
 
 %% Main Loop
 while(true)
+    if file_index == 13
+        %pause(1e-6);
+    end
+
     % Update Buffer
     new_meas = raw_data(:, (end-MEASUREMENT_SIZE+1):end);
     raw_data = raw_data(:, (1:(end-MEASUREMENT_SIZE)));
@@ -95,7 +100,7 @@ while(true)
     last_1min_max = max(last_1min_max_values, [], 2);
     last_1sec_max_values = [last_1sec_max_values(:, 2:end), loop_max];
     last_1sec_max = max(last_1sec_max_values, [], 2);
-    current_max = adjust_current_max(all_history_max, last_1min_max, last_1sec_max);
+    current_max = adjust_current_max(current_max, all_history_max, last_1min_max, last_1sec_max);
     
     % Thresholds
     press_thresholds = PRESS_RANGE_PERCENTAGE.*current_max;

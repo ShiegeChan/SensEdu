@@ -25,18 +25,18 @@ FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
 PLOT_ON = false;
 
 % Saving
-SAVE_ON = true;
+SAVE_ON = false;
 FOLDERNAME = "measurements";
-SETNAME = "MuscleSet";
-IS_OVERWRITE = true;
+SETNAME = "DarkSouls_2rolls";
+IS_OVERWRITE = false;
 
 % Maximum Values
 SHORT_MAXIMUM_SEC = 1;
 LONG_MAXIMUM_SEC = 60;
 
 % Thresholds
-PRESS_RANGE_PERCENTAGE = 0.2;
-RELEASE_RANGE_PERCENTAGE = 0.1;
+PRESS_RANGE_PERCENTAGE = 0.25;
+RELEASE_RANGE_PERCENTAGE = 0.2;
 
 %% Keyboard
 import java.awt.Robot;
@@ -44,9 +44,10 @@ import java.awt.event.*;
 robot = java.awt.Robot();
 robot.delay(2000);
 
-keys = [InputEvent.BUTTON1_DOWN_MASK, InputEvent.BUTTON1_DOWN_MASK, InputEvent.BUTTON1_DOWN_MASK, InputEvent.BUTTON1_DOWN_MASK];
+%keys = [InputEvent.BUTTON1_DOWN_MASK, InputEvent.BUTTON1_DOWN_MASK, InputEvent.BUTTON1_DOWN_MASK, InputEvent.BUTTON1_DOWN_MASK];
+keys = [KeyEvent.VK_SPACE, KeyEvent.VK_SPACE, KeyEvent.VK_SPACE, KeyEvent.VK_SPACE];
 keys_state = zeros(1, numel(keys));
-
+ 
 %% Arduino Connection
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
 
@@ -180,7 +181,7 @@ while(true)
     last_1min_max = max(last_1min_max_values, [], 2);
     last_1sec_max_values = [last_1sec_max_values(:, 2:end), loop_max];
     last_1sec_max = max(last_1sec_max_values, [], 2);
-    current_max = adjust_current_max(all_history_max, last_1min_max, last_1sec_max);
+    current_max = adjust_current_max(current_max, all_history_max, last_1min_max, last_1sec_max);
     
     % Thresholds
     press_thresholds = PRESS_RANGE_PERCENTAGE.*current_max;
