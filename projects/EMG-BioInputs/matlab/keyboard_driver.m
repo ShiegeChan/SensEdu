@@ -22,13 +22,13 @@ CUT_RAW_SAMPLES = 8;   % removes couple of first readings
 FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
 
 % Plotting
-PLOT_ON = true;
+PLOT_ON = false;
 
 % Saving
-SAVE_ON = false;
+SAVE_ON = true;
 FOLDERNAME = "measurements";
 SETNAME = "MuscleSet";
-IS_OVERWRITE = false;
+IS_OVERWRITE = true;
 
 % Maximum Values
 SHORT_MAXIMUM_SEC = 1;
@@ -194,7 +194,7 @@ while(true)
     % Save Data
     if SAVE_ON == true
         if save_counter > (meas_n-1)
-            save_data(FOLDERNAME, SETNAME, save_loop, buffer, all_history_max, last_1min_max, last_1sec_max);
+            save_data(FOLDERNAME, SETNAME, save_loop, buffer, all_history_max, last_1min_max_values, last_1sec_max_values);
             save_loop = save_loop + 1;
             save_counter = 0;
         end
@@ -302,10 +302,10 @@ function prepare_save_folders(foldername, setname, is_overwrite)
     end
 end
 
-function save_data(foldername, setname, buffer_num, raw_data, all_history_max, last_1min_max, last_1sec_max)
+function save_data(foldername, setname, buffer_num, raw_data, all_history_max, last_1min_max_values, last_1sec_max_values)
     subfolder_path = sprintf("%s\\%s", foldername, setname);
     full_filename = sprintf("%s\\%d_%s.mat", subfolder_path, buffer_num, datetime("now"));
     full_filename = strrep(full_filename, ' ', '_');
     full_filename = strrep(full_filename, ':', '-');
-    save(full_filename, "raw_data", "all_history_max", "last_1min_max", "last_1sec_max");
+    save(full_filename, "raw_data", "all_history_max", "last_1min_max_values", "last_1sec_max_values");
 end
