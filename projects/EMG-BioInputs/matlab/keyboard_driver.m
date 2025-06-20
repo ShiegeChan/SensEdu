@@ -1,7 +1,12 @@
 %% keyboard_driver.m
 clear;
-%close all;
+close all;
 clc;
+
+%% Include
+addpath(genpath('./processing/'));
+addpath(genpath('./keys/'));
+addpath(genpath('./plotting/'));
 
 %% Settings
 % Arduino
@@ -17,13 +22,13 @@ CUT_RAW_SAMPLES = 8;   % removes couple of first readings
 FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
 
 % Plotting
-PLOT_ON = false;
+PLOT_ON = true;
 
 % Saving
-SAVE_ON = true;
+SAVE_ON = false;
 FOLDERNAME = "measurements";
 SETNAME = "MuscleSet";
-IS_OVERWRITE = true;
+IS_OVERWRITE = false;
 
 % Maximum Values
 SHORT_MAXIMUM_SEC = 1;
@@ -129,7 +134,7 @@ keys_plotting_x = keys_plotting_x(2:end);
 keys_plotting_y = zeros(channel_n, numel(keys_plotting_x));
 
 % Timings
-exec_durations = zeros(1,100);
+exec_durations = zeros(1,200);
 exec_counter = 1;
 are_timings_corrected = false;
 
@@ -281,41 +286,6 @@ function check_firmware_error(data, channel_n)
     end
 end
 
-function filtered_dataset = filter_dataset(dataset, taps)
-    filtered_dataset = zeros(size(dataset));
-    for i = 1:size(dataset,1)
-        filtered_dataset(i,:) = filter(taps, 1, dataset(i,:));
-    end
-end
-
-function rectified_dataset = rectify_dataset(dataset)
-    rectified_dataset = abs(dataset);
-end
-
-function enveloped_dataset = envelope_dataset(dataset, fs)
-    envelope_cutoff = 20;  % LP filter in Hz
-    [b_env, a_env] = butter(4, envelope_cutoff / (fs / 2), 'low');
-
-    enveloped_dataset = zeros(size(dataset));
-    for i = 1:size(dataset,1)
-        enveloped_dataset(i,:)  = filtfilt(b_env, a_env, dataset(i,:));
-    end
-end
-
-function plot_data(processed_x, buffer, buffer_plotting_offsets, rectified_buffer, enveloped_buffer)
-    for i = 3
-        %subplot(1,size(buffer,1),i);
-        %plot(buffer(i,:) - buffer_plotting_offsets(i));
-        %hold on;
-        plot(processed_x, rectified_buffer(i,:));
-        hold on;
-        plot(processed_x, enveloped_buffer(i,:), 'r', 'linewidth', 2.5);
-        ylim([-600,800]);
-        %legend(["Raw Data (centered)", "Filtered and Rectified", "Envelope"]);
-        hold off;
-    end
-end
-
 function prepare_save_folders(foldername, setname, is_overwrite)
     if ~isfolder(foldername)
         mkdir(foldername);
@@ -332,77 +302,10 @@ function prepare_save_folders(foldername, setname, is_overwrite)
     end
 end
 
-save_data(FOLDERNAME, SETNAME, save_loop, processed_x, buffer, all_history_max, last_1min_max, last_1sec_max);
-
-function save_data(foldername, setname, buffer_num, buffer, all_history_max, last_1min_max, last_1sec_max)
+function save_data(foldername, setname, buffer_num, raw_data, all_history_max, last_1min_max, last_1sec_max)
     subfolder_path = sprintf("%s\\%s", foldername, setname);
     full_filename = sprintf("%s\\%d_%s.mat", subfolder_path, buffer_num, datetime("now"));
     full_filename = strrep(full_filename, ' ', '_');
     full_filename = strrep(full_filename, ':', '-');
-    save(full_filename, "buffer", "all_history_max", "last_1min_max", "last_1sec_max");
-end
-
-function current_max = adjust_current_max(all_history_max, last_1min_max, last_1sec_max)
-    current_max = 0.0.*all_history_max + 0.3.*last_1min_max + 0.7*last_1sec_max;
-    for i = 1:size(all_history_max, 1)
-        %limit = 0.25*all_history_max(i);
-        limit = 150; % hard coded value here is less error prone
-        if current_max(i) < limit
-            current_max(i) = limit;
-        end
-    end
-end
-
-function plot_max(max_index, current_max, all_history_max, last_1min_max, last_1sec_max)
-    for i = 1:size(current_max, 1)
-        %subplot(1,size(current_max, 1),i);
-        hold on;
-        plot([1,max_index], [current_max(i), current_max(i)], 'color', '#29505d', 'linewidth', 2.5);
-        plot([1,max_index], [all_history_max(i), all_history_max(i)], 'color', '#010f1c', 'linewidth', 2.5);
-        plot([1,max_index], [last_1min_max(i), last_1min_max(i)], 'color', '#304529', 'linewidth', 2.5);
-        plot([1,max_index], [last_1sec_max(i), last_1sec_max(i)], 'color', '#4a6741', 'linewidth', 2.5);
-        hold off;
-    end
-end
-
-function plot_thresholds(max_index, current_max, press_thresholds, release_thresholds)
-    for i = 3
-        %subplot(1,size(current_max, 1),i);
-        hold on;
-        plot([1,max_index], [current_max(i), current_max(i)], 'color', '#000000', 'linewidth', 2.5);
-        plot([1,max_index], [press_thresholds(i), press_thresholds(i)], 'color', '#6B8E23', 'linewidth', 2.5);
-        plot([1,max_index], [release_thresholds(i), release_thresholds(i)], 'color', '#FF8C00', 'linewidth', 2.5);
-        hold off;
-    end
-end
-
-function keys_actions = analyze_keys_state(data, press_thresholds, release_thresholds)
-    released_states = any(data < release_thresholds, 2)';
-    pressed_states = any(data > press_thresholds, 2)';
-    keys_actions = [released_states; pressed_states];
-end
-
-function keys_state = release_keys(robot, keys, keys_state, keys_release)
-    to_release = find(keys_state == 1 & keys_release == 1);
-    for i = to_release
-        robot.mouseRelease(keys(i));
-        keys_state(i) = 0;
-    end
-end
-
-function keys_state = press_keys(robot, keys, keys_state, keys_press)
-    to_press = find(keys_state == 0 & keys_press == 1);
-    for i = to_press
-        %robot.mousePress(keys(i));
-        keys_state(i) = 1;
-    end
-end
-
-function plot_keys(keys_plotting_x, keys_plotting_y)
-    for i = 3 % 1:size(keys_plotting_y, 1)
-        %subplot(1,size(keys_plotting_y, 1),i);
-        hold on;
-        plot(keys_plotting_x, 200.*keys_plotting_y(i,:), 'color', '#29505d', 'linewidth', 2.5);
-        hold off;
-    end
+    save(full_filename, "raw_data", "all_history_max", "last_1min_max", "last_1sec_max");
 end
