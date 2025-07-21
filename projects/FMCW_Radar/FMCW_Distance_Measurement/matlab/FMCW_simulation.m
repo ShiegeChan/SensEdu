@@ -1,13 +1,13 @@
 % Parameters for the transmitted chirp (Tx)
 f1_start = 30000;         % Start frequency of transmitted chirp (Hz)
-f1_end = 40000;           % End frequency of transmitted chirp (Hz)
+f1_end = 35000;           % End frequency of transmitted chirp (Hz)
 
 % Radar system parameters
 c = 343;                  % Speed of sound in air (m/s)
-distance = 0.52;             % Distance to object (meters)
-fs = 250000;              % Sampling frequency (Hz)
-T = 0.02;                  % Duration of one chirp (s)
-num_chirps = 4;           % Number of chirps in the overall signal
+distance = 3.5;             % Distance to object (meters)
+fs = 150000;              % Sampling frequency (Hz)
+T = 0.025;                 % Duration of one chirp (s)
+num_chirps = 1;           % Number of chirps in the overall signal
 
 % Derived parameters for delay
 delay_time = 2 * distance / c;         % Time delay (seconds)
@@ -24,21 +24,21 @@ Tx_chirp = repmat(one_chirp, 1, num_chirps);
 n_samples = length(Tx_chirp);            % Total number of samples
 
 % Apply cyclic delay to simulate the received chirp
-Rx_chirp = circshift(Tx_chirp, delay_samples); % Received signal delayed w.r.t. transmitted signal
+Rx_chirp = circshift(Tx_chirp, delay_samples); % Received signal (delayed Tx)
 
 % Frequency mixing (multiply Tx and Rx chirps)
 mixed_signal = Tx_chirp .* Rx_chirp;
 
 % Filtering the mixed signal with a low-pass filter
-cutoff_frequency = 12000; % Low-pass filter cutoff
+cutoff_frequency = 6000; % Low-pass filter cutoff /!\ Needs to be higher than the bandwidth
 filtered_signal = lowpass(mixed_signal, cutoff_frequency, fs);
 
 % Perform FFT to analyze the mixed and filtered signals
 N = length(mixed_signal);    % Number of samples for FFT
 disp(N);
 frequencies = (0:N-1)*(fs/N);% Frequency axis
-Y = fft(mixed_signal);       % FFT of mixed signal
-Y_filtered = fft(filtered_signal); % FFT of filtered signal
+Y = fft(mixed_signal);       % DFT of mixed signal
+Y_filtered = fft(filtered_signal); % DFT of filtered signal
 
 % Generate time vector for plotting
 t_total = (0:n_samples-1) / fs; % Time vector for all chirps
@@ -53,7 +53,7 @@ subplot(2, 1, 1);
 plot(t_total, Tx_chirp, 'b', 'LineWidth', 1.5);
 xlabel('Time (s)');
 ylabel('Amplitude');
-title('Transmitted Chirp (Tx)');
+title('$\bf{Transmitted \ Chirp - T_{x}(t)}$','interpreter','latex');
 grid on;
 
 % Received Chirp (Rx)
@@ -61,8 +61,11 @@ subplot(2, 1, 2);
 plot(t_total, Rx_chirp, 'r', 'LineWidth', 1.5);
 xlabel('Time (s)');
 ylabel('Amplitude');
-title(['Received Chirp (Rx) with Delay (distance = ', num2str(distance), ' m)']);
+title('$\bf{Received \ Chirp - R_{x}(t)}$','Interpreter','latex');
 grid on;
+fontsize(16,"points");
+
+
 
 % --- Plot mixed signal and filtered mixed signal on another figure ---
 figure(2);
@@ -74,39 +77,53 @@ subplot(2, 1, 1);
 plot(t_total, mixed_signal, 'k', 'LineWidth', 1.5);
 xlabel('Time (s)');
 ylabel('Amplitude');
-title('Mixed Signal (Unfiltered)');
+title('$\bf{Mixed \ Signal - \chi(t)}$','Interpreter','latex');
 grid on;
+fontsize(16,"points");
 
 % Filtered Mixed Signal
 subplot(2, 1, 2);
 plot(t_total, filtered_signal, 'g', 'LineWidth', 1.5);
 xlabel('Time (s)');
 ylabel('Amplitude');
-title('Filtered Mixed Signal (Low-Pass, 12 kHz Cutoff)');
+title('$\bf{Filtered \ Mixed \ Signal - \chi_{filt}(t)}$','Interpreter','latex');
 grid on;
+fontsize(16,"points");
+orient('landscape');
+%print('Mix_simulation.pdf','-dpdf', '-fillpage');
 
-% --- Plot FFTs of the mixed signal (unfiltered and filtered) on another figure ---
+
+
+
+
+
+% --- Plot DFTs of the mixed signal (unfiltered and filtered) on another figure ---
 figure(3);
 set(gcf, 'WindowState', 'maximized'); % Fullscreen plot
 clf;
 
-% FFT of Mixed Signal (Unfiltered)
+% DFT of Mixed Signal (Unfiltered)
 subplot(2, 1, 1);
 plot(frequencies(1:floor(N/2)), abs(Y(1:floor(N/2))), 'b', 'LineWidth', 1.5);
 xlabel('Frequency (Hz)');
-ylabel('|FFT(Mixed Signal)|');
-xlim([0 100000]);
-title('FFT of Mixed Signal (Unfiltered)');
+ylabel('$|DFT(\chi(t))|$','Interpreter','latex');
+%xlim([0 100000]);
+title('$\bf{DFT\ of\ \ Mixed \ Signal - \chi(t)}$','Interpreter','latex');
 grid on;
+fontsize(16,"points");
 
-% FFT of Filtered Mixed Signal
+% DFT of Filtered Mixed Signal
 subplot(2, 1, 2);
 plot(frequencies(1:floor(N/2)), abs(Y_filtered(1:floor(N/2))), 'r', 'LineWidth', 1.5);
 xlabel('Frequency (Hz)');
-ylabel('|FFT(Filtered Signal)|');
-xlim([0 10000]);
-title('FFT of Filtered Mixed Signal (12 kHz Cutoff)');
+ylabel('$|DFT(\chi_{filt}(t))|$','Interpreter','latex');
+xlim([0 5000]);
+title('$\bf{DFT\ of\ Filtered \ Mixed \ Signal - \chi_{filt}(t)}$','Interpreter','latex');
 grid on;
+fontsize(16,"points");
+print('DFT_simulation_bad.pdf','-dpdf', '-fillpage');
+
+
 
 % Display the detected beat frequency from the filtered signal
 [~, peak_index] = max(abs(Y_filtered(1:floor(N/2))));
