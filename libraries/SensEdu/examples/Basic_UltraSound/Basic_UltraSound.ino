@@ -10,7 +10,7 @@
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
-DAC_Channel* dac_ch = DAC_CH1;
+DAC_Channel* dac_ch = DAC_CH2;
 SensEdu_DAC_Settings dac_settings = {
     .dac_channel = dac_ch, 
     .sampling_freq = DAC_SAMPLE_RATE,
