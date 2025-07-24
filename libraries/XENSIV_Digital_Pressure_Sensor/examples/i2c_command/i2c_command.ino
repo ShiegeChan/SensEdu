@@ -10,8 +10,6 @@
 // Dps3xx Object
 Dps3xx Dps3xxPressureSensor = Dps3xx();
 
-float T_offset=0;    //temperature offset
-
 void setup()
 {
   Serial.begin(9600);
@@ -25,7 +23,7 @@ void setup()
    * Use the line below instead of the one above to use the default I2C address.
    * if you are using the Pressure 3 click Board, you need 0x76
    */
-  Dps3xxPressureSensor.begin(Wire1);
+  Dps3xxPressureSensor.begin(Wire);
 
   Serial.println("Init complete!");
 }
@@ -34,7 +32,7 @@ void loop()
 {
   float temperature;
   float pressure;
-  uint8_t oversampling = 0;
+  uint8_t oversampling = 7;
   int16_t ret;
   Serial.println();
 
@@ -61,8 +59,8 @@ void loop()
   else
   {
     Serial.print("Temperature: ");
-    Serial.print(temperature+T_offset);
-    Serial.println("°C");
+    Serial.print(temperature);
+    Serial.println(" degrees of Celsius");
   }
 
   /*
@@ -85,5 +83,5 @@ void loop()
   }
 
   // Wait some time
-  delay(5000);
+  delay(500);
 }

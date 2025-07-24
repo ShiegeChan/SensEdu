@@ -141,23 +141,20 @@ For ultrasonic FMCW radars, the max range bottleneck is $$T_c$$. For regular FMC
 ## Radar Design
 {: .text-yellow-300}
 
-{: .WARNING}
-Due to mechanical coupling issues on the current SensEdu Shield, this radar implementation will not be able to perform distance measurements with a single SensEdu Shield. The implementation requires two Arduino boards with SensEdu Shields and the radar measures the distance between the two boards.
-
 The following block diagram illustrates the architecture of the FMCW radar :
 
-<img src="{{site.baseurl}}/assets/images/RadarDesign.png" alt="drawing" width="800"/>
+<img src="{{site.baseurl}}/assets/images/Radar.png" alt="drawing" width="800"/>
 {: .text-center}
 
 FMCW Radar Block Diagram
 {: .text-center}
 
-The chirp signal Tx is generated in the transmitter shield and converted to an analog signal with the DAC. Tx is then doubled and follows 2 paths :
+The chirp signal Tx is generated and converted to an analog signal with the DAC. Tx is then doubled and follows 2 paths :
 
 - Tx is amplified and sent to the ultrasonic transducer
-- Tx is sent to the receiving shield by using a jump wire between the transmitter DAC pin and the receiver ADC1 pin.
+- Tx is sent to ADC3 by using a jump wire between the DAC pin and the receiver ADC3 pin (A8).
 
-On the receiver shield, Tx goes through ADC1. The MEMS microphone receives a signal Rx which is amplified with a low noise amplifier (LNA) and goes through ADC2. This method is by no means optimal but it enables to send Tx and Rx signals to MATLAB from the same shield. The Tx and Rx signals are sent from the receiver shield to MATLAB.
+The MEMS microphone receives a signal Rx which is amplified with a low noise amplifier (LNA) and goes through ADC1. The digital Tx and Rx signals are both sent to MATLAB.
 
 The following signal processing is performed in MATLAB to measure the distance between the two shields :
 
@@ -169,21 +166,15 @@ The following signal processing is performed in MATLAB to measure the distance b
 ## Code Implementation
 {: .text-yellow-300}
 
-For this implementation, 2 Arduino with SendEdu boards are required. Follow these steps to get setup :
-- Upload the `Chirp_SawtoothMod.ino` sketch from the [Chirp Project]({% link Projects/Chirp.md %}) to the transmitting board
-- Upload the `FMCW_Distance_Measurement.ino` sketch to the receiving board
-- Wire the DAC output `DAC0` from the transmitting board to the ADC1 of the receiving board. The default script uses analog pin `A7` to connect to ADC1. Check out the [ADC]({% link Library/ADC.md %}) section of the documentation for more details on the available ADCs for each analog pin.
-
 {: .IMPORTANT}
-Make sure to wire the DAC output of the transmitting board to the ADC1 of the receiving board ! 
+Make sure to wire the DAC output to ADC3 (analog pin `A8`).
 
 
 ### Sending the ADC data and receiving in MATLAB
 {: .text-yellow-100}
 
-On the receiving board :
-- ADC1 receives the DAC data
-- ADC2 receives microphone #2 data
+- ADC3 receives the DAC data
+- ADC1 receives the microphone #3 data
 
 A size header `adc_byte_length`  is sent to MATLAB to indicate the size of each ADC frame in bytes. Since ADCs are 16-bit, each data is coded with 2 bytes. The data from both ADCs is sent to MATLAB using the `serial_send_array` function.
 
@@ -191,18 +182,13 @@ A size header `adc_byte_length`  is sent to MATLAB to indicate the size of each 
 // Send ADC data (16-bit values, continuously)
     uint32_t adc_byte_length = mic_data_size * 2; // ADC data size in bytes
     Serial.write((uint8_t*)&adc_byte_length, sizeof(adc_byte_length));  // Send size header
-    serial_send_array((const uint8_t*)adc_dac_data, adc_byte_length);       // Transmit ADC1 data
-    serial_send_array((const uint8_t*)adc_mic_data, adc_byte_length);       // Transmit ADC2 data (Mic2 data)
+    serial_send_array((const uint8_t*)adc_dac_data, adc_byte_length);       // Transmit ADC3 data
+    serial_send_array((const uint8_t*)adc_mic_data, adc_byte_length);       // Transmit ADC1 data (Mic3 data)
 ```
 
 An important variable is `mic_data_size` which must be a multiple of 32 because `serial_send_array` sends data by chunks of 32-bytes. `mic_data_size` will also define the amount of samples used for the plots in MATLAB.
 
 The bigger the value of `mic_data_size`, the more latency when you run the MATLAB distance measurement script but the more signal will be displayed on the plots.
-
-{: .NOTE}
-Increasing `mic_data_size` won't affect distance resolution since the latter only depends on the chirp bandwidth.
-
-In MATLAB, the `read_data` function is used to retrieve the data from both ADCs.
 
 ```c
 // Retrieve size header for ADC data
@@ -210,10 +196,10 @@ In MATLAB, the `read_data` function is used to retrieve the data from both ADCs.
     ADC_DATA_LENGTH = adc_byte_length / 2;             // Total number of ADC samples
 
     // Retrieve DAC to ADC data
-    adc1_data = read_data(arduino, ADC_DATA_LENGTH);
+    adc3_data = read_data(arduino, ADC_DATA_LENGTH);
 
     // Retrieve Mic ADC data
-    adc2_data = read_data(arduino, ADC_DATA_LENGTH); 
+    adc1_data = read_data(arduino, ADC_DATA_LENGTH); 
 ```
 
 
@@ -221,22 +207,24 @@ In MATLAB, the `read_data` function is used to retrieve the data from both ADCs.
 {: .text-yellow-100}
 
 
-After sending the data to MATLAB, the data can be processed and the distance is eventually computed. Here are the different steps in order to compute the distance in MATLAB.
+After sending the data to MATLAB, the data can be processed and the distance is eventually computed. It is worth noting that a high-pass FIR filter has also been applied to the mixed signal in MATLAB. This is to attenuate low frequencies (15 Hz to 46 Hz) in the spectrum coming from the transducer's signal directly received by the microphone. These frequencies don't correspond to an object's reflection and thus need to be mitigated. This is important to mitigate the right amount of reflections
 
-**Step 1**{: .text-blue-000} : High pass filter Tx (`adc1_data`) and Rx (`adc2_data`) to clean up the signals
+Here are the different steps in order to compute the distance in MATLAB.
+
+**Step 1**{: .text-blue-000} : High pass filter Tx (`adc3_data`) and Rx (`adc1_data`) to clean up the signals
 
 ```c
+    adc3_data_filt = highpass(adc3_data, 30000, SAMPLING_RATE);
     adc1_data_filt = highpass(adc1_data, 30000, SAMPLING_RATE);
-    adc2_data_filt = highpass(adc2_data, 30000, SAMPLING_RATE);
 ```
 
-**Step 2**{: .text-blue-000} : Mix Tx and Rx
+**Step 2**{: .text-blue-000} : Mix Tx and Rx using sample-by-sample multiplication
 
 ```c
-    mixed_signal = adc1_data_filt .* adc2_data_filt;
+    mixed_signal = adc3_data_filt .* adc1_data_filt;
 ```
 
-**Step 3**{: .text-blue-000} : Lowpass the mixed signal at 5 kHz to only keep the low frequency component
+**Step 3**{: .text-blue-000} : Low-pass filter the mixed signal at 5 kHz to remove the unwanted high frequency component
 
 ```c
     mixed_signal_filt = lowpass(mixed_signal, 5000, SAMPLING_RATE);
@@ -257,11 +245,19 @@ After sending the data to MATLAB, the data can be processed and the distance is 
 **Step 6**{: .text-blue-000} : Compute the distance
 
 ```c
-    d = (fbeat * Tc * c) / (f_end - f_start);
+    d = (fbeat * Tc * c) / (2*(f_end - f_start));
 ```
 
-{: .NOTE}
-The distance formula used in this configuration is for a one-way and not roundtrip because the signal travels between the two board. The usual formula differs by a factor of 2.
-
 {: .IMPORTANT}
-Make sure the parameters in MATLAB match the parameters of the chirp you are sending (f_start, f_end, Tc, etc...). 
+Make sure the parameters in MATLAB match the parameters of the chirp you are sending (f_start, f_end, Tc, etc...).
+
+After running the MATLAB code, you should see the following display. This example is with an object placed at 50 cm from the board and using the following radar parameters :
+- f_start = 30.5 kHz
+- f_end = 35.5 kHz
+- Tc = 40 ms
+
+<img src="{{site.baseurl}}/assets/images/Measurement.png" alt="drawing" width="800"/>
+{: .text-center}
+
+Measurement display in MATLAB
+{: .text-center}

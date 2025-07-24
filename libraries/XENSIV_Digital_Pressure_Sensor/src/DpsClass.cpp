@@ -75,6 +75,8 @@ void DpsClass::begin(SPIClass &bus, int32_t chipSelect, uint8_t threeWire)
     m_spibus->endTransaction();
 
     // Switch to 3-wire mode if necessary
+    // do not use writeByteBitfield or check option to set SPI mode!
+    // Reading is not possible until SPI-mode is valid
     if (threeWire)
     {
         m_threeWire = 1U;

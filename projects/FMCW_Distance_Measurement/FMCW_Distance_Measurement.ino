@@ -1,16 +1,20 @@
 #include <SensEdu.h>
-//IMPORTANT : This FMCW distance measurement example is meant to be used with 2 arduino boards : One transmitting the chirp, one receiving.
-//This script should be used for the receiving Arduino.
-//Use the Chirp_SawtoothMod script on the transmitting Arduino.
-//In this example, DAC1 of the transmitting Arduino has to be connected to the A7 pin on the receiving arduino to acquire the transmitted signal.  
+//NOTE : 
 
+/* -------------------------------------------------------------------------- */
+/*                                User Settings                               */
+/* -------------------------------------------------------------------------- */
+
+#define CHIRP_DURATION          0.04   // Duration of the chirp (in seconds)
+#define START_FREQUENCY         30500   // Start frequency (in Hz)
+#define END_FREQUENCY           35500  // Stop frequency (in Hz)
 
 /* -------------------------------------------------------------------------- */
 /*                                 Settings                                   */
 /* -------------------------------------------------------------------------- */
 
 // ADC Sampling
-const uint16_t mic_data_size = 32768; // ADC buffer size, must be a multiple of 16
+const uint16_t mic_data_size = 14400; // ADC buffer size, must be a multiple of 16
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc_dac_data[mic_data_size]; // cache aligned
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc_mic_data[mic_data_size]; // cache aligned
 
@@ -47,6 +51,18 @@ SensEdu_ADC_Settings adc2_settings = {
     .mem_size = mic_data_size
 };
 
+//DAC settings
+static uint8_t increment_flag = 1; // Run time modification flag
+const float fs =  10 * END_FREQUENCY; // Sampling frequency
+const float samples = fs * CHIRP_DURATION; // Number of samples
+const uint32_t samples_int = (uint32_t)samples;
+static SENSEDU_DAC_BUFFER(lut, samples_int); // Buffer for the chirp signal
+
+SensEdu_DAC_Settings dac1_settings = {
+    DAC_CH2, fs, (uint16_t*)lut, samples_int,
+    SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 1
+};
+
 
 // Error Handling
 uint8_t error_led = D86; // Error indicator LED pin
@@ -79,13 +95,29 @@ void handle_error() {
 void setup() {
     // Initialize Serial Communication
     Serial.begin(115200);
-    /* SensEdu_ADC_ShortA4toA9(); */
+    while(!Serial);
 
     // Initialize ADC
     SensEdu_ADC_Init(&adc1_settings);
     SensEdu_ADC_Init(&adc2_settings);
     SensEdu_ADC_Enable(adc_dac);
     SensEdu_ADC_Enable(adc_mic);
+
+    // Generate the chirp signal
+    generateSawtoothChirp(lut);
+
+    // Print the chirp signal LUT
+    Serial.println("start of the Chirp LUT");
+    for (int i = 0 ; i < samples_int; i++) { // loop for the LUT size
+        Serial.print("value ");
+        Serial.print(i+1);
+        Serial.print(" of the Chirp LUT: ");
+        Serial.println(lut[i]);
+    }
+    
+    // Initialize DAC
+    SensEdu_DAC_Init(&dac1_settings);
+    SensEdu_DAC_Enable(DAC_CH2);
 
     // Setup Error LED
     pinMode(error_led, OUTPUT);
@@ -129,8 +161,8 @@ void loop() {
     // Send ADC data (16-bit values, continuously)
     uint32_t adc_byte_length = mic_data_size * 2; // ADC data size in bytes
     Serial.write((uint8_t*)&adc_byte_length, sizeof(adc_byte_length));  // Send size header
-    serial_send_array((const uint8_t*)adc_dac_data, adc_byte_length);       // Transmit ADC1 data
-    serial_send_array((const uint8_t*)adc_mic_data, adc_byte_length);       // Transmit ADC2 data (Mic2 data)
+    serial_send_array((const uint8_t*)adc_dac_data, adc_byte_length);       // Transmit ADC3 data
+    serial_send_array((const uint8_t*)adc_mic_data, adc_byte_length);       // Transmit ADC1 data (Mic2 data)
 
     // Check for errors during the process
     lib_error = SensEdu_GetError();

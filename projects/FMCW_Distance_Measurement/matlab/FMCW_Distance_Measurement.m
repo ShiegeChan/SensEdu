@@ -8,11 +8,10 @@ clc;
 %% Radar system parameters
 %Need to be the same as chirp parameters for correct distance computation!
 
-f_start = 30000;         % Start frequency of transmitted chirp (Hz)
-f_end = 35000;           % End frequency of transmitted chirp (Hz)
-Tc = 0.01;              % Duration of one chirp (s)
+f_start = 30500;         % Start frequency of transmitted chirp (Hz)
+f_end = 35500;           % End frequency of transmitted chirp (Hz)
+Tc = 0.040;              % Duration of one chirp (s)
 c = 343;                 % Speed of sound in air for T=300K (m/s)
-%d_cor = -0.05;            % Distance correction (m)   
 
 %% Settings
 ARDUINO_PORT = 'COM13';
@@ -37,8 +36,9 @@ mixed_signal_plot = plot(nan(1, 1), 'r');
 %xlim([0, 2048]);
 xlabel("Sample #");
 ylabel("Amplitude");
-title("Mixed Tx & Rx Signal");
+title("Mixed Signal");
 grid on;
+fontsize(16,"points");
 %ax = gca;
 %ax.XColor = 'w';
 %ax.YColor = 'w';
@@ -53,8 +53,9 @@ adc1_filt_plot = plot(nan(1, 1), 'r');
  ylim([-32818, 40000]); % High-pass filtered values
 xlabel("Sample #");
 ylabel("Amplitude");
-title("High-Passed Mic Data");
+title("Mic Data (Rx)");
 grid on;
+fontsize(16,"points");
 %ax = gca;
 %ax.XColor = 'w';
 %ax.YColor = 'w';
@@ -63,14 +64,15 @@ grid on;
 %ax.YLabel.Color = 'w';
 
 % Subplot for DAC (to adc3) High-Passed Signal (Top Right)
-subplot(3, 2, 2); 
+subplot(3, 2, 2);
 adc3_filt_plot = plot(nan(1, 1), 'g');
 %xlim([0, 2048]);
 ylim([-32818, 32818]); % High-pass filtered values
 xlabel("Sample #");
 ylabel("Amplitude");
-title("High-Passed DAC ADC Data");
+title("DAC Data (Tx)");
 grid on;
+fontsize(16,"points");
 %ax = gca;
 %ax.XColor = 'w';
 %ax.YColor = 'w';
@@ -87,6 +89,7 @@ xlabel("Samples");
 ylabel("Amplitude");
 title("Filtered Mixed Signal");
 grid on;
+fontsize(16,"points");
 %ax = gca;
 %ax.XColor = 'w';
 %ax.YColor = 'w';
@@ -100,9 +103,10 @@ mixed_signal_filt_PS = plot(nan(1, 1), 'g');
 %xticks(0:5000:250000);
 xlim([0, 5000]);
 xlabel("Frequency (Hz)");
-ylabel("Power (dB)");
+ylabel("Power/Hz");
 title("Power Spectrum of Filtered Mixed Signal");
 grid on;
+fontsize(16,"points");
 %ax = gca;
 %ax.XColor = 'w';
 %ax.YColor = 'w';
@@ -110,11 +114,21 @@ grid on;
 %ax.XLabel.Color = 'w';
 %ax.YLabel.Color = 'w';
 
-% Add distance display
+% Add distance & beat frequency display
 distanceText = uicontrol('Style', 'text', ...
                          'Units', 'normalized', ...
                          'Position', [0.4, 0.95, 0.2, 0.03], ... % Center horizontally and vertically
-                         'String', 'Measured Distance = 0 cm', ... % Initial message
+                         'String', 'Distance = 0 cm', ... % Initial message
+                         'FontSize', 20, ...
+                         'FontWeight', 'bold', ...
+                         'ForegroundColor', 'k', ...
+                         'BackgroundColor', 'w', ...
+                         'HorizontalAlignment', 'center');
+
+fbeatText = uicontrol('Style', 'text', ...
+                         'Units', 'normalized', ...
+                         'Position', [0, 0.05, 0.2, 0.03], ... 
+                         'String', 'Beat Frequency= 0 kHz', ...
                          'FontSize', 20, ...
                          'FontWeight', 'bold', ...
                          'ForegroundColor', 'k', ...
@@ -142,27 +156,37 @@ for it = 1:ITERATIONS
 
     % Frequency mixing (multiply Tx and Rx signals)
     mixed_signal = adc3_data_filt .* adc1_data_filt;
+    
+    %Low-pass filter to remove high frequency component
     mixed_signal_filt = lowpass(mixed_signal, 5000, SAMPLING_RATE);
 
-    % Compute PSD using Periodogram for both adc1 and adc3
-    [p_adc3, f_adc3] = periodogram(adc3_data_filt, rectwin(length(adc1_data_filt)), [], SAMPLING_RATE);
-    [p_adc1, f_adc1] = periodogram(adc1_data_filt, rectwin(length(adc3_data_filt)), [], SAMPLING_RATE);
+    %High-Pass FIR filter for coupling signal between Tx and Rx
+    Fstop = 50;              % Stopband Frequency
+    Fpass = 300;             % Passband Frequency
+    Dstop = 0.01;            % Stopband Attenuation
+    Dpass = 0.057501127785;  % Passband Ripple
+    dens  = 20;              % Density Factor
+
+    [N, Fo, Ao, W] = firpmord([Fstop, Fpass]/(SAMPLING_RATE/2), [0 1], [Dstop, Dpass]);
+    b  = firpm(N, Fo, Ao, W, {dens});
+    HP = dfilt.dffir(b);
+
+    mixed_signal_filt = filter(HP, mixed_signal_filt);
+
+    % Compute PSD
     [p_mix, f_mix] = periodogram(mixed_signal, [], [], SAMPLING_RATE);
     [p_mix_filt, f_mix_filt] = periodogram(mixed_signal_filt, hamming(length(mixed_signal_filt)),[], SAMPLING_RATE);
-    %[p_mix_filt, f_mix_filt] = pspectrum(mixed_signal_filt, SAMPLING_RATE);
 
     % Extract beat frequency
     [p_fbeat,fbeat] = findpeaks(p_mix_filt,f_mix_filt,NPeaks=1,SortStr="descend")
 
     % Calculate distance (distance is for one way and not roundtrip like
     % usual FMCW radar since we use 2 boards here)
-    d = (fbeat * Tc * c) / (f_end - f_start);
-
-    %Real distance (with distance correction)
-   % d_real = d + d_cor;
+    d = (fbeat * Tc * c) / (2*(f_end - f_start))
     
-    % Update the distance display with the new value
-    set(distanceText, 'String', sprintf('Measured Distance = %.0f cm', d*100));
+    % Update the distance & beat frequency display with the new value
+    set(distanceText, 'String', sprintf('Distance = %.0f cm', d*100));
+    set(fbeatText, 'String', sprintf('Beat Frequency = %.0f Hz', fbeat));
 
     % Update plots in real time
     if ACTIVATE_PLOTS
