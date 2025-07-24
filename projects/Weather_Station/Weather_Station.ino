@@ -8,11 +8,8 @@
 /*                                User Settings                               */
 /* -------------------------------------------------------------------------- */
 
-#define GET_INSIDE                1000            // in hPa
-#define VERY_CLOUDY               1005            // in hPa
-#define CLOUDY                    1010            // in hPa
-#define PARTLY_CLOUDY             1015            // in hPa 
-#define ALMOST_CLEAR              1020            // in hPa
+#define NORMAL_PRESSURE           1009            // in hPa
+#define HIGH_PRESSURE             1022            // in hPa
 #define T_OFFSET                  0               // Temperature offset for accurate temperature display
 
 /* -------------------------------------------------------------------------- */
@@ -23,11 +20,14 @@ float altitude = 0;             // Altitude in meters (user-defined)
 float temperature;
 float pressure;
 float seaLevelPressure;
+float humidity;
 int16_t ret;
 
 // Dps3xx Object
 Dps3xx Dps3xxPressureSensor = Dps3xx();
-uint8_t oversampling = 0;       // Value from 0 to 7
+uint8_t oversampling = 5;       /* Value from 0 to 7, the Dps 3xx will perform 2^oversampling internal
+    temperature measurements and combine them to one result with higher precision
+    measurements with higher precision take more time, consult datasheet for more information */
 
 /* -------------------------------------------------------------------------- */
 /*                                 Functions                                  */
@@ -38,24 +38,24 @@ float calculateSeaLevelPressure(float p, float t) {
   return p * pow((1 - (0.0065 * altitude) / (t + 273.15)), -5.257);
 }
 
-// Function to predict weather based on sea-level pressure
-void WeatherStat(float seaLevelPressure) {
-  if (seaLevelPressure < GET_INSIDE * 100) {
-    Serial.println("Weather Status: possible rain or storms :(");
+//TODO : Function to predict weather based on sea-level pressure evolution
+
+/* This function is not implemented correctly yet as it only predicts weather based on
+instant measurement. It should measure the rate of change in pressure over time
+(e.g. in hPa/hour) to predict weather. The rate should be measured by comparing an
+initial pressure measurement with the current measurement.
+This function should also include a humidity parameter from the humidity sensor to
+help predict weather more accurately*/
+
+void WeatherPredict(float seaLevelPressure) {
+  if (seaLevelPressure < NORMAL_PRESSURE * 100) {
+    Serial.println("Weather Status: possible rain or storm :(");
   }
-  else if (seaLevelPressure < VERY_CLOUDY * 100) {
-    Serial.println("Weather Status: very cloudy :/");
+  else if (seaLevelPressure < HIGH_PRESSURE * 100) {
+    Serial.println("Weather Status: Fair weather");
   } 
-  else if (seaLevelPressure < CLOUDY * 100) {
-    Serial.println("Weather Status: cloudy :|");
-  } 
-  else if (seaLevelPressure < PARTLY_CLOUDY * 100) {
-    Serial.println("Weather Status: partly cloudy");
-  }
-  else if (seaLevelPressure < ALMOST_CLEAR * 100) {
-    Serial.println("Weather Status: almost clear sky");
-  } else {
-    Serial.println("Weather Status: clear sky :)");
+  else {
+    Serial.println("Weather Status: clear sky, calm weather");
   }
 }
 
@@ -67,15 +67,17 @@ void setup()
   Serial.begin(9600);
   while (!Serial); // Wait for Serial Monitor to connect
 
-  /*
-   * Call begin to initialize Dps3xxPressureSensor
-   * The parameter 0x76 is the bus address. The default address is 0x77 and does not need to be given.
-   * Dps3xxPressureSensor.begin(Wire, 0x76);
-   * Use the line below instead of the one above to use the default I2C address.
-   * if you are using the Pressure 3 click Board, you need 0x76
-   */
-  Dps3xxPressureSensor.begin(Wire1);
+  Dps3xxPressureSensor.begin(Wire1);      /* Call begin to initialize Dps3xxPressureSensor
+  using the default 0x77 bus adress of the sensor. The default adress
+  does not need to be specified. */
+   
+  //Dps3xxPressureSensor.begin(Wire1, 0x76);   
+  //Use the above line instead to use the secondary I2C address 0x76.
+  //In this case a jumper has to be added on SensEdu between J19 and LOW to pull SDO pin to GND.
 
+  //TODO : Initilize SHT35 humidity sensor with Wire1
+  //I2C adress by default is 0x44 (logic low)
+   
   Serial.println("Init complete!");
 
   // Ask the user to input the altitude
@@ -103,15 +105,6 @@ void loop()
 {
   Serial.println();
 
-  /*
-   * lets the Dps3xx perform a Single temperature measurement with the last (or standard) configuration
-   * The result will be written to the parameter temperature
-   * ret = Dps3xxPressureSensor.measureTempOnce(temperature);
-   * the commented line below does exactly the same as the one above, but you can also config the precision
-   * oversampling can be a value from 0 to 7
-   * the Dps 3xx will perform 2^oversampling internal temperature measurements and combine them to one result with higher precision
-   * measurements with higher precision take more time, consult datasheet for more information
-   */
   ret = Dps3xxPressureSensor.measureTempOnce(temperature, oversampling);
 
   if (ret != 0)
@@ -130,10 +123,6 @@ void loop()
     Serial.println("°C");
   }
 
-  /*
-   * Pressure measurement behaves like temperature measurement
-   * ret = Dps3xxPressureSensor.measurePressureOnce(pressure);
-   */
   ret = Dps3xxPressureSensor.measurePressureOnce(pressure, oversampling);
   if (ret != 0)
   {
@@ -155,9 +144,11 @@ void loop()
     Serial.print(seaLevelPressure / 100);
     Serial.println(" hPa");
   }
+
+  //TODO : Function to read humidity sensor data
   
-  WeatherStat(seaLevelPressure);
+  WeatherPredict(seaLevelPressure);
 
   // Wait some time
-  delay(5000);
+  delay(300000);
 }
