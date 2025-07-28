@@ -70,9 +70,10 @@ To get started, you can explore the hardware interface by following the examples
 In the `projects/` directory, you will find several complete projects designed for this board, including:
 * **Ultrasonic Distance Measurements** *(in progress)*
 * **Chirp Signal Generation**
-* **FMCW Radar** (in progress)
-* **Ultrasonic FSK Communication** *(coming soon)*
-* **Weather Station** *(coming soon)*
+* **FMCW Radar** *(in progress)*
+* **Doppler Radar** *(coming soon)*
+* **FSK Communication** *(coming soon)*
+* **Weather Station** *(in progress)*
 * **WiFi MATLAB Communication** *(coming soon)*
 
 Detailed explanations for each project are available in the "Projects" section of the <a href="https://shiegechan.github.io/SensEdu/projects/" target="_blank">Documentation</a>.
