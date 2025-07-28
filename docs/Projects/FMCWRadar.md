@@ -33,7 +33,7 @@ FMCW radars involves the continuous transmission and reception of a frequency mo
 
 The transmitted signal is reflected from a static object and received by the radar. The received signal is called <span style="color:#9c76ab !important">$$R_x$$</span>. Below is a representation of $$T_x$$ and $$R_x$$'s amplitude and frequency over time :
 
-<video autoplay loop>
+<video autoplay loop muted playsinline>
   <source src="{{site.baseurl}}/assets/videos/TxRx.mp4" type="video/mp4">
 </video>
 {: .text-center}
@@ -57,10 +57,10 @@ Where pulse radars measure time and TOF to evaluate distance, FMCW radars measur
 
 The beat frequency is defined as the frequency equal to the difference between two sinusoids. $$f_b$$ appears in the figure below :
 
-<img src="{{site.baseurl}}/assets/images/FBeat.png" alt="drawing" width="800"/>
+<img src="{{site.baseurl}}/assets/images/fbeat.png" alt="drawing" width="800"/>
 {: .text-center}
 
-The Beat Frequency $$f_b$$ appears due to the slight delay between $$T_x$$ and $$R_x$$**
+The Beat Frequency $$f_b$$ appears due to the slight delay between $$T_x$$ and $$R_x$$
 {: .text-center}
 
 The geometrical approach is the simplest way to understand how to derive the distance from $$f_b$$. Let's define the slope of the chirp $$s$$ being $$s=\frac{B}{T_c}$$. Using the last figure and Eq [(1)](#eq1) we now have the following relationship :
@@ -97,7 +97,7 @@ The mixing operation produces a signal which is the sum of two sinusoids :
 
 The high frequency component HF at $$f_{T}+f_{R}$$ can easily be removed with a low pass filter. The remaining signal is a simple sinudoid at the beat frequency $$f_b=f_{T}-f_{R}$$. Below is a representation of the mixing signal operation :
 
-<video autoplay loop>
+<video autoplay loop muted playsinline>
   <source src="{{site.baseurl}}/assets/videos/Mixing.mp4" type="video/mp4">
 </video>
 {: .text-center}
@@ -107,7 +107,7 @@ $$y_{mix}$$ is the product of $$T_x$$ and $$R_x$$
 
 ### Distance Resolution & Max Range 
 
-Distance resolution and max range are two critical parameters regarding radar performance. Distance resolution defines the smallest distance at which a radar can separate two objects. The distance resolution $$\Delta d$$ is defined by
+Distance resolution and max range are two critical parameters regarding radar performance. Distance resolution defines the smallest distance between two objects that the radar can detect as distinct targets. The distance resolution $$\Delta d$$ is defined by
 
 <div id="eq5" class="fs-5 text-center">
   $$\fcolorbox{red}{}{$\displaystyle \Delta d = \frac{c}{2B}$} \tag{5}$$
@@ -139,24 +139,22 @@ For ultrasonic FMCW radars, the max range bottleneck is $$T_c$$. For regular FMC
 
 
 ## Radar Design
-
-{: .WARNING}
-Due to mechanical coupling issues on the current SensEdu Shield, this radar implementation will not be able to perform distance measurements with a single SensEdu Shield. The implementation requires two Arduino boards with SensEdu Shields and the radar measures the distance between the two boards.
+{: .text-yellow-300}
 
 The following block diagram illustrates the architecture of the FMCW radar :
 
-<img src="{{site.baseurl}}/assets/images/RadarDesign.png" alt="drawing" width="800"/>
+<img src="{{site.baseurl}}/assets/images/Radar.png" alt="drawing" width="800"/>
 {: .text-center}
 
 FMCW Radar Block Diagram
 {: .text-center}
 
-The chirp signal Tx is generated in the transmitter shield and converted to an analog signal with the DAC. Tx is then doubled and follows 2 paths :
+The chirp signal Tx is generated and converted to an analog signal with the DAC. Tx is then doubled and follows 2 paths :
 
 - Tx is amplified and sent to the ultrasonic transducer
-- Tx is sent to the receiving shield by using a jump wire between the transmitter DAC pin and the receiver ADC1 pin.
+- Tx is sent to ADC3 by using a jump wire between the DAC pin and the receiver ADC3 pin (A8).
 
-On the receiver shield, Tx goes through ADC1. The MEMS microphone receives a signal Rx which is amplified with a low noise amplifier (LNA) and goes through ADC2. This method is by no means optimal but it enables to send Tx and Rx signals to MATLAB from the same shield. The Tx and Rx signals are sent from the receiver shield to MATLAB.
+The MEMS microphone receives a signal Rx which is amplified with a low noise amplifier (LNA) and goes through ADC1. The digital Tx and Rx signals are both sent to MATLAB.
 
 The following signal processing is performed in MATLAB to measure the distance between the two shields :
 
@@ -168,37 +166,98 @@ The following signal processing is performed in MATLAB to measure the distance b
 ## Code Implementation
 {: .text-yellow-300}
 
-For this implementation, 2 Arduino with SendEdu boards are required. Follow these steps to get setup :
-- Upload the `Chirp_SawtoothMod.ino` sketch from the [Chirp Project]({% link Projects/Chirp.md %}) to the transmitting board
-- Upload the `FMCW_Distance_Measurement.ino` sketch to the receiving board
-- Wire the DAC output `DAC0` from the transmitting board to the ADC1 of the receiving board (in this example pin `A7`).
-
 {: .IMPORTANT}
-Make sure to wire the DAC output of the transmitting board to the ADC1 of the receiving board ! 
+Make sure to wire the DAC output to ADC3 (analog pin `A8`).
 
 
-### Sending the ADC data to MATLAB
+### Sending the ADC data and receiving in MATLAB
 {: .text-yellow-100}
 
-On the receiving board :
-- ADC1 receives the DAC data
-- ADC2 receives microphone #2 data
+- ADC3 receives the DAC data
+- ADC1 receives the microphone #3 data
 
-The size header `adc_byte_length`  is sent to MATLAB to indicate the size of each ADC frame. The data from both ADCs is sent to MATLAB using the `serial_send_array` function.
+A size header `adc_byte_length`  is sent to MATLAB to indicate the size of each ADC frame in bytes. Since ADCs are 16-bit, each data is coded with 2 bytes. The data from both ADCs is sent to MATLAB using the `serial_send_array` function.
 
 ```c
 // Send ADC data (16-bit values, continuously)
     uint32_t adc_byte_length = mic_data_size * 2; // ADC data size in bytes
     Serial.write((uint8_t*)&adc_byte_length, sizeof(adc_byte_length));  // Send size header
-    serial_send_array((const uint8_t*)adc_dac_data, adc_byte_length);       // Transmit ADC1 data
-    serial_send_array((const uint8_t*)adc_mic_data, adc_byte_length);       // Transmit ADC2 data (Mic2 data)
+    serial_send_array((const uint8_t*)adc_dac_data, adc_byte_length);       // Transmit ADC3 data
+    serial_send_array((const uint8_t*)adc_mic_data, adc_byte_length);       // Transmit ADC1 data (Mic3 data)
+```
+
+An important variable is `mic_data_size` which must be a multiple of 32 because `serial_send_array` sends data by chunks of 32-bytes. `mic_data_size` will also define the amount of samples used for the plots in MATLAB.
+
+The bigger the value of `mic_data_size`, the more latency when you run the MATLAB distance measurement script but the more signal will be displayed on the plots.
+
+```c
+// Retrieve size header for ADC data
+    adc_byte_length = read_total_length(arduino);      // Total length of ADC data in bytes
+    ADC_DATA_LENGTH = adc_byte_length / 2;             // Total number of ADC samples
+
+    // Retrieve DAC to ADC data
+    adc3_data = read_data(arduino, ADC_DATA_LENGTH);
+
+    // Retrieve Mic ADC data
+    adc1_data = read_data(arduino, ADC_DATA_LENGTH); 
 ```
 
 
-
-
-### Receiving the data
+### Data processing in MATLAB & Distance computation
 {: .text-yellow-100}
 
-## Distance computation
-{: .text-yellow-300}
+
+After sending the data to MATLAB, the data can be processed and the distance is eventually computed. It is worth noting that a high-pass FIR filter has also been applied to the mixed signal in MATLAB. This is to attenuate low frequencies (15 Hz to 46 Hz) in the spectrum coming from the transducer's signal directly received by the microphone. These frequencies don't correspond to an object's reflection and thus need to be mitigated. This is important to mitigate the right amount of reflections
+
+Here are the different steps in order to compute the distance in MATLAB.
+
+**Step 1**{: .text-blue-000} : High pass filter Tx (`adc3_data`) and Rx (`adc1_data`) to clean up the signals
+
+```c
+    adc3_data_filt = highpass(adc3_data, 30000, SAMPLING_RATE);
+    adc1_data_filt = highpass(adc1_data, 30000, SAMPLING_RATE);
+```
+
+**Step 2**{: .text-blue-000} : Mix Tx and Rx using sample-by-sample multiplication
+
+```c
+    mixed_signal = adc3_data_filt .* adc1_data_filt;
+```
+
+**Step 3**{: .text-blue-000} : Low-pass filter the mixed signal at 5 kHz to remove the unwanted high frequency component
+
+```c
+    mixed_signal_filt = lowpass(mixed_signal, 5000, SAMPLING_RATE);
+```
+
+**Step 4**{: .text-blue-000} : Compute the power spectrum density (PSD) of the mixed filtered signal
+
+```c
+    [p_mix_filt, f_mix_filt] = pspectrum(mixed_signal_filt, SAMPLING_RATE);
+```
+
+**Step 5**{: .text-blue-000} : Extract the beat frequency from the PSD of the mixed filtered signal
+
+```c
+    [p_fbeat,fbeat] = findpeaks(p_mix_filt,f_mix_filt,NPeaks=1,SortStr="descend");
+```
+
+**Step 6**{: .text-blue-000} : Compute the distance
+
+```c
+    d = (fbeat * Tc * c) / (2*(f_end - f_start));
+```
+
+{: .IMPORTANT}
+Make sure the parameters in MATLAB match the parameters of the chirp you are sending (f_start, f_end, Tc, etc...).
+
+After running the MATLAB code, you should see the following display. This example is with an object placed at 50 cm from the board and using the following radar parameters :
+- f_start = 30.5 kHz
+- f_end = 35.5 kHz
+- Tc = 40 ms
+
+<img src="{{site.baseurl}}/assets/images/Measurement.png" alt="drawing" width="800"/>
+{: .text-center}
+
+Measurement display in MATLAB
+{: .text-center}
