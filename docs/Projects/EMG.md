@@ -25,40 +25,41 @@ This page will guide you step-by-step through the required setup and knowledge t
 
 ## Biological Background
 
-First, we need to understand what we are trying to measure.
-
-The most important thing that we need to look at is called [Neuromuscular Junction](https://en.wikipedia.org/wiki/Neuromuscular_junction) (NMJ). It is a specialized [synapse](https://en.wikipedia.org/wiki/Synapse) that connects [motor neurons](https://www.simplypsychology.org/motor-neuron.html) and skeletal muscle fibers. It is the main part that is responsible for converting our neural signals to muscle contraction. Let's break it down how NMJ works.
+First, we need to establish an understand of what we are trying to measure.
 
 {: .TIP}
 Highly recommended to watch the video [Neuromuscular Junction](https://youtu.be/_k6QINRcdV4?si=TG5Yw0wvDcTJtR6G) by [Byte Size Med].
 
-The signal path starts with motor neuron sending electrical signal called [Action Potential] to the NMJ. In response, a bunch of voltage gated sodium channels gets activated, and sodium (positive charged ion) enters the cell. Cell's membrane gets depolarized and it activated calcium flow into the cell. Calcium causes little containers with [neurotransmitters](https://en.wikipedia.org/wiki/Neurotransmitter) called [vesicles](https://en.wikipedia.org/wiki/Synaptic_vesicle) to fuse with the membrane and release neurotransmitters [Acetylcholine](https://en.wikipedia.org/wiki/Acetylcholine) (ACh).
+The most important structure that we need to focus on is the [Neuromuscular Junction](https://en.wikipedia.org/wiki/Neuromuscular_junction) (NMJ). This is a specialized [synapse](https://en.wikipedia.org/wiki/Synapse) that acts as a communication bridge between [motor neurons](https://www.simplypsychology.org/motor-neuron.html) and skeletal muscle fibers. The NMJ plays a fundamental role in converting neural signals into muscle contraction. Let's break down its working principle step by step.
+
+The process begins with a motor neuron transmitting an electrical signal called an [Action Potential]. This signal travels along neuron's [axon](https://en.wikipedia.org/wiki/Axon) until it reaches the NMJ. It activates **voltage-gated sodium channels**, which allow positively charged sodium ions (Na⁺) enter the cell. The influx of sodium causes the cell membrane to become *"less negatively charged"*, a change known as **depolarization**.
+
+Continuous depolarization of the cell membrane subsequently activates **voltage-gated calcium channels**. Calcium ions (Ca²⁺) flow into the cell which triggers [little containers](https://en.wikipedia.org/wiki/Synaptic_vesicle) with [neurotransmitters](https://en.wikipedia.org/wiki/Neurotransmitter) to fuse with the membrane and release [Acetylcholine](https://en.wikipedia.org/wiki/Acetylcholine) (ACh).
 
 <img src="{{site.baseurl}}/assets/images/NMJ1.png" alt="drawing"/>
 {: .text-center .mb-1}
 
-[Exocytosis](https://en.wikipedia.org/wiki/Exocytosis) (source: [Byte Size Med])
+[Exocytosis](https://en.wikipedia.org/wiki/Exocytosis) process at the Neuromuscular Junction (source: [Byte Size Med])
 {: .text-center .mt-0}
 
-ACh travels through synaptic space and binds to its receptors. In response to a neurotransmitter, [ligand-gated ion channels](https://en.wikipedia.org/wiki/Ligand-gated_ion_channel) allow different ions to enter the muscle cell, which causes membrane depolarization. Which causes resting voltage of a membrane at around -90mV to go up.
+Acetylcholine travels across the synaptic space and binds to specialized receptors on the muscle cell's membrane. These receptors, also known as [ligand-gated ion channels](https://en.wikipedia.org/wiki/Ligand-gated_ion_channel), respond to the chemical messenger (neurotransmitter) by opening and allowing ions to enter the muscle cell. This process triggers membrane **depolarization**, causing  the resting membrane potential of the muscle cell (normally at around -90mV) to become less negative.
 
 <img src="{{site.baseurl}}/assets/images/NMJ2.png" alt="drawing"/>
 {: .text-center .mb-1}
 
-Depolarization due to opened ligand-gated ion channels (source: [Byte Size Med])
+[Depolarization](https://en.wikipedia.org/wiki/Depolarization) caused by the opening of ligand-gated ion channels (source: [Byte Size Med])
 {: .text-center .mt-0}
 
-With a lot of this neurotransmitters, the voltage goes up more and more and at certain point reaches the threshold at around -50mV, where voltage-gated sodium channels are opened, causing sodium to rush into the cell. It finishes the muscle depolarization and generates an Action Potential on a muscle membrane which gets propagated along the muscle membrane and causing muscle contraction.
+As more ACh molecules bind to their receptors, the membrane voltage continues to rise. Once it reaches a threshold of approximately -50 mV, **voltage-gated sodium channels** open, allowing sodium ions (Na⁺) to rush into the muscle cell. This influx of sodium completes the process of membrane depolarization and generates an **Action Potential**. This electrical signal propagates along the muscle membrane, eventually leading to a muscle contraction.
 
 <img src="{{site.baseurl}}/assets/images/NMJ3.png" alt="drawing"/>
 {: .text-center .mb-1}
 
-[Excitation Contraction Coupling](https://www.sciencedirect.com/topics/medicine-and-dentistry/excitation-contraction-coupling) (source: [Byte Size Med])
+[Excitation-Contraction Coupling](https://www.sciencedirect.com/topics/medicine-and-dentistry/excitation-contraction-coupling) (source: [Byte Size Med])
 {: .text-center .mt-0}
 
 {: .NOTE}
-If you get lost, the main takeaway: we are basically converting neural electrical signal to chemical and then back to electrical signal in a muscle. It propagated along muscle fibers and causes contractions.
-This electrical signal is called [Action Potential], which we can measure.
+If you feel overwhelmed by the details, the main takeaway: a neural electrical signal is converted to a chemical signal and then back into electrical signal in the muscle. The sequence **Neural Action Potential** → **Acetylcholine Release** → **Muscle Action Potential**. The muscle action potential then propagates along the muscle cell membrane and ultimately triggers muscle contraction.<br><br>The most important point is that this **muscle action potential can be measured**, providing valuable information about muscle activity.
 
 ## Hardware Setup
 
