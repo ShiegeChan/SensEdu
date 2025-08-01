@@ -25,7 +25,7 @@ This page will guide you step-by-step through the required setup and knowledge t
 
 ## Biological Background
 
-First, we need to establish an understand of what we are trying to measure.
+First, we need to establish an understanding of what we are trying to measure.
 
 {: .TIP}
 Highly recommended to watch the video [Neuromuscular Junction](https://youtu.be/_k6QINRcdV4?si=TG5Yw0wvDcTJtR6G) by [Byte Size Med].
@@ -61,10 +61,94 @@ As more ACh molecules bind to their receptors, the membrane voltage continues to
 {: .NOTE}
 If you feel overwhelmed by the details, the main takeaway: a neural electrical signal is converted to a chemical signal and then back into electrical signal in the muscle. The sequence **Neural Action Potential** → **Acetylcholine Release** → **Muscle Action Potential**. The muscle action potential then propagates along the muscle cell membrane and ultimately triggers muscle contraction.<br><br>The most important point is that this **muscle action potential can be measured**, providing valuable information about muscle activity.
 
+## Recording Action Potentials
+
+Action Potentials can be recorded using different methods:
+* **Invasive Needle EMG**: Inserting electrodes directly into the muscle, enabling highly precise and localized recordings. It is widely used in clinical applications and treatments where precision and measurement quality are critical.
+* **Non-invasive Surface EMG**: Placing electrodes on the skin above the muscle. This approach improves patient comfort and simplifies repeatable studies, making it ideal for educational purposes. However, sEMG has significant precision **limitations due to the layers of skin and fat** between the electrodes and the muscle. These limitations make it challenging to differentiate the activity of individual muscle fibers and to record signals from small muscles, like ones around the fingers.
+
+{: .NOTE}
+In SensEdu we use surface EMG. From now on, whenever we mention EMG or electrodes, we are referring to sEMG and surface electrodes, respectively.
+
 ## Hardware Setup
+
+This section describes all necessary connections and hardware details required for proper setup and writing the script for MCU. Below you can find a Figure of how the whole system would look like.
+
+<img src="{{site.baseurl}}/assets/images/EMG_Block.png" alt="drawing"/>
+{: .text-center .mb-1}
+
+EMG BioInputs System Architecture
+{: .text-center .mt-0}
+
+### Electrodes Connectivity
+
+It is possible to connect **up to x4 EMG probes** into female 4-Pin 2.54 headers: **J9**, **J11**, **J12**, **J20**.
+
+<img src="{{site.baseurl}}/assets/images/EMG_Headers.png" alt="drawing"/>
+{: .text-center .mb-1}
+
+SensEdu input headers (red dots mark the 1st pin)
+{: .text-center .mt-0}
+
+Typical electrode consists of 3 connectors: **Reference**, **Positive Input**, and **Negative Input**. So in reference to 4-Pin headers the connection would look like this. Notice that the voltage pin is not connected to anything.
+
+| Electrode Connector | Signal | Header Pin |
+|:--------------------|:-------|:-----------|
+| Negative Input      |   –IN  | 2nd Pin    |
+| Positive Input      |   +IN  | 3rd Pin    |
+| Reference           |   GND  | 4th Pin    |
+
+{: .WARNING}
+Most electrodes that you can buy use various connectors that cannot directly be connected to typical headers like on SensEdu. So, you need to come up how to make this connection soldering, either by soldering, building adapters or buying ones.
+
+In our example we used the next electrodes:
+
+| Manufacturer | Product Title | Product Code | Datasheet | Store |
+|:-------------|:--------------|:-------------|:----------|:------|
+| SparkFun Electronics | Electrode Pads | 12970 | [link](https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/2277/CAB-12970_Web.pdf) | [link](https://www.digikey.at/de/products/detail/sparkfun-electronics/12970/6833933?gclsrc=aw.ds&gad_source=1&gad_campaignid=20265439570&gclid=CjwKCAjwqKzEBhANEiwAeQaPVawVKSgXTIiVYtlIXGx7Bx94wvNKO64lkmGlu8jQ0lByNxnXmPGLFhoCgNcQAvD_BwE) |
+| MTG Imiella Medizintechnik | Liquid Gel Disposable Electrodes for ECG (Ø40mm) | S40LG | [link](https://static.mercateo.com/ec/2c36d66dd9904e92ad9e3075734affb2/pdf/106366.pdf?v=2297) | [link](https://www.mercateo.at/p/2768-028002/Einmal_Klebeelektroden_40_mm_Liquid_Gel_30_Stueck.html) |
+
+These specific electrodes use a mini-jack connector. To make the usage of these electrodes more convenient, we designed a simple PCB adapter called **MiniJack2Jumper**. All PCB source files, including the Gerber files, can be found in the directory: `/Projects/EMG-BioInputs/pcbs/MiniJack2Jumper`.  
+
+<img src="{{site.baseurl}}/assets/images/EMG_MiniJack2Jumper.png" alt="drawing"/>
+{: .text-center .mb-1}
+
+MiniJack2Jumper adapter: Schematics, PCB view, 3D view, and real-life view
+{: .text-center .mt-0}
+
+So in out case the final setup would look like this:
+
+<img src="{{site.baseurl}}/assets/images/amp_circuit.png" alt="drawing"/>
+{: .text-center .mb-1}
+
+Final electrodes setup
+{: .text-center .mt-0}
+
+### Amplifier Circuit
+
+As a base of the circuit SensEdu offers Dual-Channel Instrumentation Amplifier [AD8222](https://www.analog.com/media/en/technical-documentation/data-sheets/ad8222.pdf). On the shield we have x2 of them, which allows to have **up to x4 EMG channels**. All channels are accessible from female 2.54mm sockets:
+* J9: 1st Channel of U5 -> outputs MIC5 - A0 - ADC12_INP4
+* J11: 2nd Channel of U5 -> outputs MIC6 - A2 - ADC12_INP9
+* J12: 1st Channel of U6 -> outputs MIC7 - A11 - ADC12_INP0
+* J20: 2nd Channel of U6 -> outputs MIC8 - A7 - ADC1_INP16
+
+refer to table in arduino
+
+Give here details about ADCs for arduino sketch.
+
+<img src="{{site.baseurl}}/assets/images/amp_circuit.png" alt="drawing"/>
+{: .text-center .mb-1}
+
+SensEdu Amplification Circuit
+{: .text-center .mt-0}
 
 anplifier, script, basic circuit, converter, all required elements
 
+### Data transfer
+
+Page 2747 Figure 793 of [STM32H747 Reference Manual] OTG_FS and USB0 at [Arduino GIGA R1 Schematics].
+
+### Arduino Sketch
 
 ## Signal Processing
 
@@ -141,3 +225,6 @@ https://www.bu.edu/nmrc/files/2010/06/103.pdf
 [Action Potential]: (https://en.wikipedia.org/wiki/Action_potential)
 [AD8222]: https://www.analog.com/en/products/ad8222.html?doc=ad8222-KGD.pdf
 [datasheet]: https://www.analog.com/media/en/technical-documentation/data-sheets/AD8222.pdf
+[STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
+
+[Arduino GIGA R1 Schematics]: https://docs.arduino.cc/resources/schematics/ABX00063-schematics.pdf
