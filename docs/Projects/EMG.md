@@ -126,33 +126,11 @@ Electrode connection to SensEdu
 
 ### Amplifier Circuit
 
-As a base of the circuit SensEdu offers Dual-Channel Instrumentation Amplifier [AD8222](https://www.analog.com/media/en/technical-documentation/data-sheets/ad8222.pdf). On the shield we have x2 of them, which allows having **up to x4 EMG channels**. All channels are accessible from female 2.54mm sockets:
-* J9: 1st Channel of U5 → outputs MIC5 - A0 - ADC12_INP4
-* J11: 2nd Channel of U5 → outputs MIC6 - A2 - ADC12_INP9
-* J12: 1st Channel of U6 → outputs MIC7 - A11 - ADC12_INP0
-* J20: 2nd Channel of U6 → outputs MIC8 - A7 - ADC1_INP16
-
-refer to table in Arduino
-
-Give here details about ADCs for Arduino sketch.
-
-<img src="{{site.baseurl}}/assets/images/amp_circuit.png"/>
-{: .text-center .mb-1}
-
-SensEdu Amplification Circuit
-{: .text-center .mt-0 .fw-500}
-
-Amplifier, script, basic circuit, converter, all required elements
+### ADC Configuration
 
 ### Data transfer
 
-Page 2747 Figure 793 of [STM32H747 Reference Manual] OTG_FS and USB0 at [Arduino GIGA R1 Schematics].
-
-### Arduino Sketch
-
 ## Signal Processing
-
-MATLAB magic
 
 ## Testing
 
@@ -160,66 +138,12 @@ MATLAB magic
 
 ## Possible improvements
 
-## Sources
-
-## Appendix: data recordings for improvements
-
-
-SensEdu is equipped with x2 [AD8222] Instrumentation Amplifier ([datasheet]).
-
-Each Amplifier is dual-channel, so we have 4 channels in total. All channels are accessible from the following Jumpers:
-* J9: 1st Channel of U5 → outputs MIC5 - A0 - ADC12_INP4
-* J11: 2nd Channel of U5 → outputs MIC6 - A2 - ADC12_INP9
-* J12: 1st Channel of U6 → outputs MIC7 - A11 - ADC12_INP0
-* J20: 2nd Channel of U6 → outputs MIC8 - A7 - ADC1_INP16
-
-Refer to the [ADC mapping table](/SensEdu/Library/ADC/#adc_mapping) for better understanding.
-
-Circuit for each of the amplifier:
-
-<img src="{{site.baseurl}}/assets/images/amp_circuit.png"/>
-{: .text-center}
-
-Electrode mapping:
-* Tip: Red
-* Ring: Blue
-* Sleeve: Black
-
-## Test
-
-WASD Dark Souls for 4 channels?
-
-## Capacitive input
-ignore some of the first samples for ADC stabilization
-
-https://devzone.nordicsemi.com/f/nordic-q-a/80796/adc---first-read-is-always-wrong/336435
-
-## History
-A 1-second history allows the filter to capture multiple cycles of low-frequency components, such as 10Hz (1 cycle every 100ms) or even lower frequencies (e.g., motion artifacts below 10Hz). This improves:
-
-The filter's ability to attenuate noise and artifacts.
-The preservation of desired signal components, especially in the lower frequency band.
-
-A longer history allows low-pass filters (used in envelope detection) to smooth the rectified signal over a larger time frame, resulting in a more robust and stable envelope.
-For example, a 5Hz low-pass filter requires at least 200ms of data for one full cycle. With a 1-second history, the envelope will be less sensitive to short-term fluctuations or noise.
-
- Sliding Overlapping Windows
-
-Use a 1-second buffer for filtering and envelope detection, but process overlapping chunks (e.g., update every 40ms). This ensures that decisions are updated frequently without sacrificing the filtering accuracy of the longer window.
-
-## Good study on perfect high pass value
-https://www.bu.edu/nmrc/files/2010/06/103.pdf
-
-## Good Resources:
+## Resources:
 * https://www.nature.com/articles/s41597-022-01484-2
 
 ## Sources:
 * https://youtu.be/_k6QINRcdV4?si=rnil7B-ZlqmRCGSN
 * https://youtu.be/ApaPlKPb4ek?si=rHncr0b2XipqN83i
-
-## Improvements
-* Implement filtering in hardware, you can extend SensEdu with another custom shield which will make half of current signal processing unnecessary greatly reducing latency and required computations. In addition, use right leg drive to decrease noise and offset.
-* mkm
 
 [Byte Size Med]: https://www.youtube.com/channel/UCZghvlgylH3r_CWfA18eFRg
 [Action Potential]: (https://en.wikipedia.org/wiki/Action_potential)
