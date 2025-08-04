@@ -28,7 +28,7 @@ This page will guide you step-by-step through the required setup and knowledge t
 First, we need to establish an understanding of what we are trying to measure.
 
 {: .TIP}
-Highly recommended to watch the video [Neuromuscular Junction](https://youtu.be/_k6QINRcdV4?si=TG5Yw0wvDcTJtR6G) by [Byte Size Med].
+Highly recommended watching the video [Neuromuscular Junction](https://youtu.be/_k6QINRcdV4?si=TG5Yw0wvDcTJtR6G) by [Byte Size Med].
 
 The most important structure that we need to focus on is the [Neuromuscular Junction](https://en.wikipedia.org/wiki/Neuromuscular_junction) (NMJ). This is a specialized [synapse](https://en.wikipedia.org/wiki/Synapse) that acts as a communication bridge between [motor neurons](https://www.simplypsychology.org/motor-neuron.html) and skeletal muscle fibers. The NMJ plays a fundamental role in converting neural signals into muscle contraction. Let's break down its working principle step by step.
 
@@ -36,27 +36,27 @@ The process begins with a motor neuron transmitting an electrical signal called 
 
 Continuous depolarization of the cell membrane subsequently activates **voltage-gated calcium channels**. Calcium ions (Ca²⁺) flow into the cell which triggers [little containers](https://en.wikipedia.org/wiki/Synaptic_vesicle) with [neurotransmitters](https://en.wikipedia.org/wiki/Neurotransmitter) to fuse with the membrane and release [Acetylcholine](https://en.wikipedia.org/wiki/Acetylcholine) (ACh).
 
-<img src="{{site.baseurl}}/assets/images/NMJ1.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/NMJ1.png"/>
 {: .text-center .mb-1}
 
 [Exocytosis](https://en.wikipedia.org/wiki/Exocytosis) process at the Neuromuscular Junction (source: [Byte Size Med])
-{: .text-center .mt-0}
+{: .text-center .mt-0 .fw-500}
 
-Acetylcholine travels across the synaptic space and binds to specialized receptors on the muscle cell's membrane. These receptors, also known as [ligand-gated ion channels](https://en.wikipedia.org/wiki/Ligand-gated_ion_channel), respond to the chemical messenger (neurotransmitter) by opening and allowing ions to enter the muscle cell. This process triggers membrane **depolarization**, causing  the resting membrane potential of the muscle cell (normally at around -90mV) to become less negative.
+Acetylcholine travels across the synaptic space and binds to specialized receptors on the muscle cell's membrane. These receptors, also known as [ligand-gated ion channels](https://en.wikipedia.org/wiki/Ligand-gated_ion_channel), respond to the chemical messenger (neurotransmitter) by opening and allowing ions to enter the muscle cell. This process triggers membrane **depolarization**, causing the resting membrane potential of the muscle cell (normally at around -90mV) to become less negative.
 
-<img src="{{site.baseurl}}/assets/images/NMJ2.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/NMJ2.png"/>
 {: .text-center .mb-1}
 
 [Depolarization](https://en.wikipedia.org/wiki/Depolarization) caused by the opening of ligand-gated ion channels (source: [Byte Size Med])
-{: .text-center .mt-0}
+{: .text-center .mt-0 .fw-500}
 
 As more ACh molecules bind to their receptors, the membrane voltage continues to rise. Once it reaches a threshold of approximately -50 mV, **voltage-gated sodium channels** open, allowing sodium ions (Na⁺) to rush into the muscle cell. This influx of sodium completes the process of membrane depolarization and generates an **Action Potential**. This electrical signal propagates along the muscle membrane, eventually leading to a muscle contraction.
 
-<img src="{{site.baseurl}}/assets/images/NMJ3.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/NMJ3.png"/>
 {: .text-center .mb-1}
 
 [Excitation-Contraction Coupling](https://www.sciencedirect.com/topics/medicine-and-dentistry/excitation-contraction-coupling) (source: [Byte Size Med])
-{: .text-center .mt-0}
+{: .text-center .mt-0 .fw-500}
 
 {: .NOTE}
 If you feel overwhelmed by the details, the main takeaway: a neural electrical signal is converted to a chemical signal and then back into electrical signal in the muscle. The sequence **Neural Action Potential** → **Acetylcholine Release** → **Muscle Action Potential**. The muscle action potential then propagates along the muscle cell membrane and ultimately triggers muscle contraction.<br><br>The most important point is that this **muscle action potential can be measured**, providing valuable information about muscle activity.
@@ -72,25 +72,25 @@ In SensEdu we use surface EMG. From now on, whenever we mention EMG or electrode
 
 ## Hardware Setup
 
-This section describes all necessary connections and hardware details required for proper setup and writing the script for MCU. Below you can find a Figure of how the whole system would look like.
+This section describes the necessary connections and hardware details required for the proper setup of the EMG BioInputs system and writing the script for MCU. Below is an illustration of the overall system architecture.
 
-<img src="{{site.baseurl}}/assets/images/EMG_Block.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/EMG_Block.png"/>
 {: .text-center .mb-1}
 
 EMG BioInputs System Architecture
-{: .text-center .mt-0}
+{: .text-center .mt-0 .fw-500}
 
 ### Electrodes Connectivity
 
-It is possible to connect **up to x4 EMG probes** into female 4-Pin 2.54 headers: **J9**, **J11**, **J12**, **J20**.
+The system supports **up to 4 EMG probes**, which can be connected via female 4-Pin 2.54 headers: **J9**, **J11**, **J12**, and **J20**. 
 
-<img src="{{site.baseurl}}/assets/images/EMG_Headers.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/EMG_Headers.png"/>
 {: .text-center .mb-1}
 
 SensEdu input headers (red dots mark the 1st pin)
-{: .text-center .mt-0}
+{: .text-center .mt-0 .fw-500}
 
-Typical electrode consists of 3 connectors: **Reference**, **Positive Input**, and **Negative Input**. So in reference to 4-Pin headers the connection would look like this. Notice that the voltage pin is not connected to anything.
+A typical electrode consists of 3 connectors: **Reference**, **Positive Input**, and **Negative Input**. Below is a table detailing how these connectors correspond to the pins on the headers. Note that the voltage pin (1st pin) on the headers is not used in this connection.
 
 | Electrode Connector | Signal | Header Pin |
 |:--------------------|:-------|:-----------|
@@ -99,50 +99,50 @@ Typical electrode consists of 3 connectors: **Reference**, **Positive Input**, a
 | Reference           |   GND  | 4th Pin    |
 
 {: .WARNING}
-Most electrodes that you can buy use various connectors that cannot directly be connected to typical headers like on SensEdu. So, you need to come up how to make this connection soldering, either by soldering, building adapters or buying ones.
+Most commercially available electrodes use connectors that are not directly compatible with typical 2.54 headers. For specific chosen electrode you will need a solution how to make this connection possible via soldering, custom adapters, or ready-made solutions.
 
-In our example we used the next electrodes:
+In our example, we used the following electrodes:
 
 | Manufacturer | Product Title | Product Code | Datasheet | Store |
 |:-------------|:--------------|:-------------|:----------|:------|
 | SparkFun Electronics | Electrode Pads | 12970 | [link](https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/2277/CAB-12970_Web.pdf) | [link](https://www.digikey.at/de/products/detail/sparkfun-electronics/12970/6833933?gclsrc=aw.ds&gad_source=1&gad_campaignid=20265439570&gclid=CjwKCAjwqKzEBhANEiwAeQaPVawVKSgXTIiVYtlIXGx7Bx94wvNKO64lkmGlu8jQ0lByNxnXmPGLFhoCgNcQAvD_BwE) |
 | MTG Imiella Medizintechnik | Liquid Gel Disposable Electrodes for ECG (Ø40mm) | S40LG | [link](https://static.mercateo.com/ec/2c36d66dd9904e92ad9e3075734affb2/pdf/106366.pdf?v=2297) | [link](https://www.mercateo.at/p/2768-028002/Einmal_Klebeelektroden_40_mm_Liquid_Gel_30_Stueck.html) |
 
-These specific electrodes use a mini-jack connector. To make the usage of these electrodes more convenient, we designed a simple PCB adapter called **MiniJack2Jumper**. All PCB source files, including the Gerber files, can be found in the directory: `/Projects/EMG-BioInputs/pcbs/MiniJack2Jumper`.  
+These electrodes use a mini-jack connector. To simplify the connection, we designed a simple PCB adapter called **MiniJack2Jumper**. This adapter is inserted vertically into the SensEdu header, providing a mini-jack socket and eliminating the need for soldering. All PCB source files, including Gerbers and BOM, are available in the directory: `/Projects/EMG-BioInputs/pcbs/MiniJack2Jumper`. To replicate our setup, you can use archive `MiniJack2Jumper/manufacturing/MiniJack2Jumper-Gerber.zip` to order the PCB from any cheap Chinese manufacturer. The cost typically ranges from $15–$30 depending on shipping.
 
-<img src="{{site.baseurl}}/assets/images/EMG_MiniJack2Jumper.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/EMG_MiniJack2Jumper.png"/>
 {: .text-center .mb-1}
 
 MiniJack2Jumper adapter: Schematics, PCB view, 3D view, and real-life view
-{: .text-center .mt-0}
+{: .text-center .mt-0 .fw-500}
 
-So in out case the final setup would look like this:
+After connecting the electrodes using the MiniJack2Jumper adapter, the final setup looks as follows:
 
-<img src="{{site.baseurl}}/assets/images/amp_circuit.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/EMG_Electrode_Connection.png"/>
 {: .text-center .mb-1}
 
-Final electrodes setup
-{: .text-center .mt-0}
+Electrode connection to SensEdu
+{: .text-center .mt-0 .fw-500}
 
 ### Amplifier Circuit
 
-As a base of the circuit SensEdu offers Dual-Channel Instrumentation Amplifier [AD8222](https://www.analog.com/media/en/technical-documentation/data-sheets/ad8222.pdf). On the shield we have x2 of them, which allows to have **up to x4 EMG channels**. All channels are accessible from female 2.54mm sockets:
-* J9: 1st Channel of U5 -> outputs MIC5 - A0 - ADC12_INP4
-* J11: 2nd Channel of U5 -> outputs MIC6 - A2 - ADC12_INP9
-* J12: 1st Channel of U6 -> outputs MIC7 - A11 - ADC12_INP0
-* J20: 2nd Channel of U6 -> outputs MIC8 - A7 - ADC1_INP16
+As a base of the circuit SensEdu offers Dual-Channel Instrumentation Amplifier [AD8222](https://www.analog.com/media/en/technical-documentation/data-sheets/ad8222.pdf). On the shield we have x2 of them, which allows having **up to x4 EMG channels**. All channels are accessible from female 2.54mm sockets:
+* J9: 1st Channel of U5 → outputs MIC5 - A0 - ADC12_INP4
+* J11: 2nd Channel of U5 → outputs MIC6 - A2 - ADC12_INP9
+* J12: 1st Channel of U6 → outputs MIC7 - A11 - ADC12_INP0
+* J20: 2nd Channel of U6 → outputs MIC8 - A7 - ADC1_INP16
 
-refer to table in arduino
+refer to table in Arduino
 
-Give here details about ADCs for arduino sketch.
+Give here details about ADCs for Arduino sketch.
 
-<img src="{{site.baseurl}}/assets/images/amp_circuit.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/amp_circuit.png"/>
 {: .text-center .mb-1}
 
 SensEdu Amplification Circuit
-{: .text-center .mt-0}
+{: .text-center .mt-0 .fw-500}
 
-anplifier, script, basic circuit, converter, all required elements
+Amplifier, script, basic circuit, converter, all required elements
 
 ### Data transfer
 
@@ -152,7 +152,7 @@ Page 2747 Figure 793 of [STM32H747 Reference Manual] OTG_FS and USB0 at [Arduino
 
 ## Signal Processing
 
-matlab magic
+MATLAB magic
 
 ## Testing
 
@@ -168,16 +168,16 @@ matlab magic
 SensEdu is equipped with x2 [AD8222] Instrumentation Amplifier ([datasheet]).
 
 Each Amplifier is dual-channel, so we have 4 channels in total. All channels are accessible from the following Jumpers:
-* J9: 1st Channel of U5 -> outputs MIC5 - A0 - ADC12_INP4
-* J11: 2nd Channel of U5 -> outputs MIC6 - A2 - ADC12_INP9
-* J12: 1st Channel of U6 -> outputs MIC7 - A11 - ADC12_INP0
-* J20: 2nd Channel of U6 -> outputs MIC8 - A7 - ADC1_INP16
+* J9: 1st Channel of U5 → outputs MIC5 - A0 - ADC12_INP4
+* J11: 2nd Channel of U5 → outputs MIC6 - A2 - ADC12_INP9
+* J12: 1st Channel of U6 → outputs MIC7 - A11 - ADC12_INP0
+* J20: 2nd Channel of U6 → outputs MIC8 - A7 - ADC1_INP16
 
 Refer to the [ADC mapping table](/SensEdu/Library/ADC/#adc_mapping) for better understanding.
 
 Circuit for each of the amplifier:
 
-<img src="{{site.baseurl}}/assets/images/amp_circuit.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/amp_circuit.png"/>
 {: .text-center}
 
 Electrode mapping:
@@ -189,12 +189,12 @@ Electrode mapping:
 
 WASD Dark Souls for 4 channels?
 
-## capacitive input
+## Capacitive input
 ignore some of the first samples for ADC stabilization
 
 https://devzone.nordicsemi.com/f/nordic-q-a/80796/adc---first-read-is-always-wrong/336435
 
-## history
+## History
 A 1-second history allows the filter to capture multiple cycles of low-frequency components, such as 10Hz (1 cycle every 100ms) or even lower frequencies (e.g., motion artifacts below 10Hz). This improves:
 
 The filter's ability to attenuate noise and artifacts.
@@ -207,7 +207,7 @@ For example, a 5Hz low-pass filter requires at least 200ms of data for one full 
 
 Use a 1-second buffer for filtering and envelope detection, but process overlapping chunks (e.g., update every 40ms). This ensures that decisions are updated frequently without sacrificing the filtering accuracy of the longer window.
 
-## good study on perfect high pass value
+## Good study on perfect high pass value
 https://www.bu.edu/nmrc/files/2010/06/103.pdf
 
 ## Good Resources:
