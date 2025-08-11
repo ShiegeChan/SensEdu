@@ -303,6 +303,208 @@ Second figure shows measurements with a flat object placed near the board. Here,
 
 <img src="{{site.baseurl}}/assets/images/basic_ultrasound_4ch_object.gif" alt="drawing"/>
 
+### Basic_UltraSound_WiFi
+
+Utilizes WiFi for data transmission.
+
+**Step 1**{: .text-blue-000} : Include the SensEdu and WiFi libraries.
+
+```c
+#include "SensEdu.h"
+#include <WiFi.h>
+```
+
+**Step 2**{: .text-blue-000} : Create a lookup table (LUT) that contains a sine wave.
+
+```c
+const uint16_t dac_cycle_num = 10; // sine cycles
+
+const uint16_t sine_lut_size = 64; // sine wave size
+const SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {
+    0x0000,0x000a,0x0027,0x0058,0x009c,0x00f2,0x0159,0x01d1,
+    0x0258,0x02ed,0x038e,0x043a,0x04f0,0x05ad,0x0670,0x0737,
+    0x0800,0x08c8,0x098f,0x0a52,0x0b0f,0x0bc5,0x0c71,0x0d12,
+    0x0da7,0x0e2e,0x0ea6,0x0f0d,0x0f63,0x0fa7,0x0fd8,0x0ff5,
+    0x0fff,0x0ff5,0x0fd8,0x0fa7,0x0f63,0x0f0d,0x0ea6,0x0e2e,
+    0x0da7,0x0d12,0x0c71,0x0bc5,0x0b0f,0x0a52,0x098f,0x08c8,
+    0x0800,0x0737,0x0670,0x05ad,0x04f0,0x043a,0x038e,0x02ed,
+    0x0258,0x01d1,0x0159,0x00f2,0x009c,0x0058,0x0027,0x000a
+};
+```
+
+**Step 3**{: .text-blue-000} : Initialize the `SensEdu_DAC_Settings` struct with DAC parameters. Refer to [DAC page]({% link Library/DAC.md %}#sensedu_dac_settings) for details.
+
+```c
+#define DAC_SINE_FREQ       32000                           // 32kHz
+#define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
+
+DAC_Channel* dac_ch = DAC_CH1;
+SensEdu_DAC_Settings dac_settings = {
+    .dac_channel = dac_ch, 
+    .sampling_freq = DAC_SAMPLE_RATE,
+    .mem_address = (uint16_t*)sine_lut,
+    .mem_size = sine_lut_size,
+    .wave_mode = SENSEDU_DAC_MODE_BURST_WAVE,
+    .burst_num = dac_cycle_num
+};
+```
+
+**Step 4**{: .text-blue-000} : Initialize the `SensEdu_ADC_Settings` struct with ADC parameters. Refer to [ADC page]({% link Library/ADC.md %}#sensedu_adc_settings) for details. Array for ADC must have the proper size and be cache aligned, you can read more about this [here]({% link Library/ADC.md %}#cache-coherence).
+
+```c
+const uint16_t mic_data_size = 16*128; // must be multiple of 16 for 16bit
+__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t mic_data[mic_data_size];
+
+ADC_TypeDef* adc = ADC1;
+const uint8_t mic_num = 1;
+uint8_t mic_pins[mic_num] = {A1};
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = mic_pins,
+    .pin_num = mic_num,
+
+    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
+    .sampling_freq = 250000,
+    
+    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .mem_address = (uint16_t*)mic_data,
+    .mem_size = mic_data_size
+};
+```
+
+**Step 5**{: .text-blue-000} : Set SSID and password for your WiFi network, define a WiFi server on port 80 and a variable for its status.
+
+```c
+char *ssid = "TestWifi";
+char *pass = "test1234";
+
+int status = WL_IDLE_STATUS;
+
+WiFiServer server(80);
+```
+
+**Step 6**{: .text-blue-000} : Initialize DAC and ADC with created structs. Enable Serial for communication with PC (for retrieving the boards IP later). Attempt connection with the previosuly defined WiFi network.
+
+```c
+void setup() {
+    Serial.begin(115200);
+
+    SensEdu_DAC_Init(&dac_settings);
+    SensEdu_ADC_Init(&adc_settings);
+    SensEdu_ADC_Enable(adc);
+
+    // attempt connection to WiFi network
+    while (status != WL_CONNECTED) {
+    Serial.println(ssid);
+    // connect to WPA/WPA2 network (change this if youre using open / WEP network)
+    status = WiFi.begin(ssid, pass);
+
+    // wait 10 seconds for connection
+    delay(10000);
+    }
+    server.begin();
+}
+```
+
+**Step 6**{: .text-blue-000} : Create a buffer that waits for a command (e.g., symbol "t") from MATLAB.
+Print your boards IP-address to serial so you can note it down later.
+
+```c
+void loop() {
+
+    WiFiClient client = server.available();
+    Serial.println("IP Address: ");
+    Serial.print(WiFi.localIP());
+
+    if (client) {
+        Serial.println("Client connected!");
+        static char buf = 0;
+        
+        while(client.connected()){
+            if (client.available()) {
+                buf = client.read();
+                if(buf == 't') { // trigger detected -> send
+                
+                   // do stuff
+                }
+            }
+        }
+    }
+
+}
+```
+
+**Step 7**{: .text-blue-000} : Start the transmission of the sine wave and wait until it is completed.
+
+```c
+    SensEdu_DAC_Enable(dac_ch);
+    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
+    SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
+```
+
+**Step 8**{: .text-blue-000} : Start the data acquisition and wait until it is completed.
+
+```c
+    while(!SensEdu_ADC_GetTransferStatus(adc));
+    SensEdu_ADC_ClearTransferStatus(adc);
+```
+
+**Step 9**{: .text-blue-000} : Send the received wave data to MATLAB via Serial.
+
+```markdown
+    wifi_send_array((const uint8_t *) & mic_data, mic_data_size << 1, client);
+} // close if(buf == 't')
+```
+```c
+// send data over WiFi in 32 byte chunks
+void wifi_send_array(const uint8_t* data, size_t size, WiFiClient client) {
+    const size_t chunk_size = 32;
+    for (uint32_t i = 0; i < size/chunk_size; i++) {
+		client.write(data + chunk_size * i, chunk_size);
+	}
+}
+```
+
+**Step 10**{: .text-blue-000} : Open `matlab\Basic_UltraSound_WiFi_ReadData.m`. Specify the required parameters and start the connection with your Arduino.
+
+```matlab
+%% Settings
+ARDUINO_IP = 'XXX.XXX.XXX.XXX'; % match to Arduino IP
+ARDUINO_PORT = 80; % match to port of Arduino server
+ITERATIONS = 10000; % script stops after this number of measurements
+DATA_LENGTH = 16*128; % ensure this value matches `mic_data_size` in firmware
+
+%% Arduino Setup
+arduino_server = tcpclient(ARDUINO_IP, ARDUINO_PORT);
+```
+
+**Step 11**{: .text-blue-000} : Write a function in MATLAB to receive data from the Arduino. The function should handle 16-bit samples sent in bytes, so each sample consisting of 2 bytes. In the firmware, data is sent in 32-byte chunks, and the MATLAB function should match this to avoid synchronization issues.
+
+```matlab
+function data = read_data(arduino_server, data_length)
+    total_byte_length = data_length * 2; % 2 bytes per sample
+    serial_rx_data = zeros(1, total_byte_length);
+
+    for i = 1:(total_byte_length/32) % 32 bytes chunk size
+        serial_rx_data((32*i - 31):(32*i)) = read(arduino_server, 32, 'uint8');
+    end
+    
+    data = double(typecast(uint8(serial_rx_data), 'uint16'));
+end
+```
+
+**Step 12**{: .text-blue-000} : Create the main loop in MATLAB to send the trigger symbol "t" to the Arduino, read the data, and plot it.
+
+```matlab
+%% Readings Loop
+data = zeros(1,ITERATIONS);
+
+for it = 1:ITERATIONS
+    write(arduino_server, 't', "char"); % trigger arduino measurement
+    data = read_data(arduino_server, DATA_LENGTH);
+    plot(data);
+end
+```
 
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
 
