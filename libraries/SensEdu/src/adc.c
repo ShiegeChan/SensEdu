@@ -63,6 +63,8 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings) {
 
     // Init TIMER, Clock and ADC
     TIMER_ADC1Init();
+    TIMER_ADC2init();
+    TIMER_ADC3Init();
     if (!pll_configured) {
         configure_pll2();
     }
@@ -72,6 +74,8 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings) {
     // timer setttings if in timer triggered mode
     if (settings->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
         TIMER_ADC1SetFreq(settings->sampling_freq);
+        TIMER_ADC2SetFreq(settings->sampling_freq);
+        TIMER_ADC3SetFreq(settings->sampling_freq);
     }
 
     // dma settings if in dma mode
@@ -83,7 +87,19 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings) {
 void SensEdu_ADC_Enable(ADC_TypeDef* ADC) {
     // enable timer if in timer triggered mode
     if (get_adc_settings(ADC)->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
-        TIMER_ADC1Enable();
+         if(ADC==ADC1){
+            TIMER_ADC1Enable();
+
+        }else if(ADC==ADC2){
+            TIMER_ADC2Enable();
+
+        }else if(ADC==ADC3){
+            TIMER_ADC3Enable();
+
+        }else{
+            error = ADC_ERROR_ADC_ENABLE_FAIL;
+            return;
+        }
     }
 
     // clear ready bit
