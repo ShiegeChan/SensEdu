@@ -1,11 +1,13 @@
 #include "SensEdu.h"
 
-#define ADC1_SR  250000// ADC1 sampling rate
-#define ADC2_SR  65000// ADC2 sampling rate
-#define ADC3_SR  65000//  ADC3 sampling rate
+/* -------------------------------------------------------------------------- */
+/*                                  Settings                                  */
+/* -------------------------------------------------------------------------- */
+#define ADC1_SR  250000     // ADC1 sampling rate
+#define ADC2_SR  65000      // ADC2 sampling rate
+#define ADC3_SR  65000      // ADC3 sampling rate
 
-
-/*ADC*/
+/* ADC */
 const uint16_t buf1_size = 16*128; // must be multiple of 16 for 16bit
 __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t buf1[buf1_size];
 const uint16_t buf2_size = 16*128; // must be multiple of 16 for 16bit
@@ -22,7 +24,7 @@ SensEdu_ADC_Settings adc1_settings = {
     .pin_num = adc1_pin_num,
 
     .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = ADC1_SR  ,
+    .sampling_freq = ADC1_SR,
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)buf1,
@@ -38,7 +40,7 @@ SensEdu_ADC_Settings adc2_settings = {
     .pin_num = adc2_pin_num,
 
     .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = ADC2_SR  ,
+    .sampling_freq = ADC2_SR,
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)buf2,
@@ -54,7 +56,7 @@ SensEdu_ADC_Settings adc3_settings = {
     .pin_num = adc3_pin_num,
 
     .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = ADC3_SR  ,
+    .sampling_freq = ADC3_SR,
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)buf3,
@@ -65,13 +67,11 @@ SensEdu_ADC_Settings adc3_settings = {
 uint32_t lib_error = 0;
 uint8_t error_led = D86;
 
-
-
+/* -------------------------------------------------------------------------- */
+/*                                    Setup                                   */
+/* -------------------------------------------------------------------------- */
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(115200);
-
-    
+    Serial.begin(115200);
 
     SensEdu_ADC_Init(&adc1_settings);
     SensEdu_ADC_Enable(adc1);
@@ -90,9 +90,12 @@ void setup() {
 
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                    Loop                                    */
+/* -------------------------------------------------------------------------- */
 void loop() {
   
-  // Measurement is initiated by the signal from computing device
+    // Measurement is initiated by the signal from computing device
     static char serial_buf = 0;
     
     while (1) {
@@ -123,8 +126,11 @@ void loop() {
     serial_send_array((const uint8_t *) & buf2, buf2_size << 1);
     serial_send_array((const uint8_t *) & buf3, buf3_size << 1);
 
-
-
+    // check errors
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        handle_error();
+    }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -142,4 +148,3 @@ void serial_send_array(const uint8_t* data, size_t size) {
 		Serial.write(data + chunk_size * i, chunk_size);
 	}
 }
-

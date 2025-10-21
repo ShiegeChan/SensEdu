@@ -14,9 +14,9 @@ DATA_LENGTH = 16 * 128; % Ensure this matches with firmware
 SINE_WAVE_FREQ = 1000; % Frequency of the input sine wave in Hz
 
 % Sampling rates for ADCs
-ADC1_SAMPLING_RATE = 250000;  % 250 kHz
-ADC2_SAMPLING_RATE = 65000;  % 65 kHz
-ADC3_SAMPLING_RATE = 65000;  % 65 kHz
+ADC1_SAMPLING_RATE = 250000; % 250 kHz
+ADC2_SAMPLING_RATE = 65000; % 65 kHz
+ADC3_SAMPLING_RATE = 65000; % 65 kHz
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % Select port and baud rate
