@@ -2,9 +2,8 @@
   <img src="https://ik.imagekit.io/vladysor/SensEdu/SensEdu.png?updatedAt=1737991670936">
 </p>
 
-<b>
-<p align="center">RADAR and Communication Development Shield for Arduino GIGA R1</p>
-</b>
+<p align="center"><b>Ultrasonic Ranging & Detection Development Shield for Arduino GIGA R1</b><br>
+Designed for education - easy entry into ultrasonic sensing and research</p>
 
 <p align="center">
   <a href="https://github.com/ShiegeChan/SensEdu/releases/" target="_blank">
@@ -25,16 +24,16 @@
 </p>
 </b>
 
-
 ## Features
 
-* **Custom Shield Design** developed for the <a href="https://docs.arduino.cc/hardware/giga-r1-wifi/?queryID=undefined" target="_blank">Arduino GIGA R1 WiFi</a> or compatible boards with a similar form factor, such as the <a href="https://www.infineon.com/cms/en/product/promopages/AURIX-microcontroller-boards/low-cost-arduino-kits/AURIX-TC275-Schieldbuddy-/" target="_blank">AURIX TC275 Schieldbuddy</a>. This shield extends the board's capabilities with various sensors, specifically for communication development purposes:
-  * **4x Infineon MEMS microphones** with extended capabilities into the ultrasonic range, for both receiving and sending ultrasonic pulses. Its ultrasonic receiving characteristic allows for unique detection of ultrasonic frequencies between 20-100 kHz (<a href="https://www.infineon.com/dgdl/Infineon-MEMS_IM70A135UT-ProductBrief-v01_00-EN.pdf?fileId=8ac78c8c7ddc01d7017e4d7af9084967" target="_blank">datasheet</a>).
-  * **1x Infineon Barometric Air Pressure Sensor** measures both pressure and temperature, making it ideal for indoor and outdoor navigation, weather stations, drones, and more (<a href="https://www.infineon.com/dgdl/Infineon-DPS310-DataSheet-v01_02-EN.pdf?fileId=5546d462576f34750157750826c42242" target="_blank">datasheet</a>).
-  * **2x Ultrasonic Transducers** with center frequency at ~32kHz (<a href="https://www.farnell.com/datasheets/4413630.pdf?_gl=1*1fltz5c*_gcl_au*MTQwMTY3ODgxOC4xNzI2NDc2MDYw" target="_blank">datasheet</a>).
-* **Low-Level Library "SensEdu"** designed for the GIGA R1, this library serves as a basic abstraction layer for the MCU's peripherals and provides default configurations for all sensors. It is implemented at the register level with the help of <a href="https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" target="_blank">STM32H747 Reference Manual</a> and <a href="https://developer.arm.com/documentation/ddi0403/latest/" target="_blank"> ARMv7-M Architecture Reference Manual</a> to ensure simplicity and expandability. Extensive examples are included to demonstrate library functionality.
-* **Firmware for example projects** showcase how to use multiple sensors to achieve goals such as ultrasonic distance measurements, FSK-modulated ultrasonic communication, FMCW radar measurements, and more.
-* **MATLAB scripts** enable visualization, analysis and processing of data transferred from the MCU to a PC via USB or WiFi.
+* **Custom Shield Design** for <a href="https://docs.arduino.cc/hardware/giga-r1-wifi/?queryID=undefined" target="_blank">Arduino GIGA R1 WiFi</a> and mechanically compatible boards (e.g., <a href="https://www.infineon.com/evaluation-board/KIT-A2G-TC375-ARD-SB" target="_blank">AURIX™ TC375 Shieldbuddy</a>). It extends the board with sensors:
+  * **4x Infineon MEMS microphones**: capable of receiving ultrasonic waves at approx. 20-100 kHz (<a href="https://www.infineon.com/dgdl/Infineon-MEMS_IM70A135UT-ProductBrief-v01_00-EN.pdf?fileId=8ac78c8c7ddc01d7017e4d7af9084967" target="_blank">datasheet</a>).
+  * **2x Ultrasonic Transducers**: transmit ultrasonic waves with a center frequency of ~33kHz (<a href="https://www.farnell.com/datasheets/4413630.pdf?_gl=1*1fltz5c*_gcl_au*MTQwMTY3ODgxOC4xNzI2NDc2MDYw" target="_blank">datasheet</a>).
+  * **2x Instrumentation Amplifiers**: providing 4x channels total, routed to external pin headers for connecting additional sensors such as surface EMG electrodes (<a href="https://www.analog.com/media/en/technical-documentation/data-sheets/ad8222.pdf" target= "_blank">datasheet</a>).
+  * **1x Infineon Barometric Air Pressure Sensor**: provides pressure and temperature measurements; ideal for indoor and outdoor navigation, weather stations, drones, and more (<a href="https://www.infineon.com/dgdl/Infineon-DPS310-DataSheet-v01_02-EN.pdf?fileId=5546d462576f34750157750826c42242" target="_blank">datasheet</a>).
+* **Low-Level SensEdu Library** for Arduino GIGA R1 that serves as a basic abstraction layer for the STM32H747 peripherals and provides default configurations for all sensors. It is implemented at the register level based on <a href="https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" target="_blank">STM32H747 Reference Manual</a> and <a href="https://developer.arm.com/documentation/ddi0403/latest/" target="_blank"> Armv7-M Architecture Reference Manual</a>, ensuring simplicity and expandability. Extensive examples are included to demonstrate library's functionality.
+* **Example projects** show how to use SensEdu to achieve your learning goals. See the full implementation for pulsed time-of-flight distance measurements, FMCW ranging, FSK-modulated communication, a weather station, and other projects.
+* **MATLAB scripts** enable visualization and post-processing of recorded data transferred via USB or Wi-Fi.
 
 
 ## Preview
@@ -68,22 +67,22 @@
 To get started, you can explore the hardware interface by following the examples provided in the SensEdu library (`Arduino\libraries\SensEdu\examples\`). A detailed description of all functions can be found in the <a href="https://shiegechan.github.io/SensEdu/library/" target="_blank">Documentation</a> under the "SensEdu Library" section.
 
 In the `projects/` directory, you will find several complete projects designed for this board, including:
-* **Ultrasonic Ranging**
-* **Ultrasonic Ranging via WiFi with GUI** *(coming soon)*
-* **Chirp Signal Generation**
-* **FMCW Radar**
-* **Doppler Radar** *(coming soon)*
-* **FSK Communication** *(coming soon)*
-* **EMG BioInputs** *(in progress)*
-* **Weather Station** *(in progress)*
+* **Ultrasonic Pulse-Echo Ranging**
+* **Ultrasonic Pulse-Echo Ranging with Wi-Fi + GUI** - *in progress (25%)*
+* **Ultrasonic Chirp Generation**
+* **Ultrasonic FMCW Ranging**
+* **Ultrasonic Doppler Velocimeter** - *coming soon*
+* **Ultrasonic FSK Communication Link** - *coming soon*
+* **EMG BioInputs** - *in progress (75%)*
+* **Weather Station** - *in progress (50%)*
 
-Detailed explanations for each project are available in the "Projects" section of the <a href="https://shiegechan.github.io/SensEdu/projects/" target="_blank">Documentation</a>.
+Detailed overview for each project is available in the "Projects" section of the <a href="https://shiegechan.github.io/SensEdu/projects/" target="_blank">Documentation</a>.
 
 
 ## Support
 
 If you would like to contribute, please open a pull request!
-You can also suggest improvements or check already opened <a href="https://github.com/ShiegeChan/SensEdu/issues" target="_blank">issues</a> to help fix bugs or add new features.
+Suggest improvements or check out already opened <a href="https://github.com/ShiegeChan/SensEdu/issues" target="_blank">issues</a> to help fix bugs or add new features.
 
 ## Acknowledgments
 

@@ -11,7 +11,7 @@ extern "C" {
 typedef enum {
     TIMER_ERROR_NO_ERRORS = 0x00,
     TIMER_ERROR_BAD_SET_DELAY = 0x01,
-    TIMER_ERROR_TIM1_BAD_SET_FREQUENCY = 0x02,
+    TIMER_ERROR_ADC_TIM_BAD_SET_FREQUENCY = 0x02,
     TIMER_ERROR_TIM4_BAD_SET_FREQUENCY = 0x03,
     TIMER_ERROR_TIM8_INIT_WHILE_RUNNING = 0x04,
     TIMER_ERROR_TIM8_WRONG_DUTY_CHANNEL = 0x05,
@@ -33,7 +33,7 @@ void TIMER_ADC1Enable(void);
 void TIMER_DAC1Enable(void);
 void TIMER_ADC1Disable(void);
 void TIMER_DAC1Disable(void);
-void TIMER_ADC1SetFreq(uint32_t freq);
+void TIMER_ADCSetFreq(ADC_TypeDef* adc,uint32_t freq);
 void TIMER_DAC1SetFreq(uint32_t freq);
 
 void TIMER_PWMInit(void);
