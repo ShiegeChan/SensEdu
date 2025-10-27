@@ -101,12 +101,12 @@ void TIMER_ADC1Enable(void) {
 }
 
 void TIMER_ADC2Enable(void){
-    WRITE_REG(TIM3->CNT,0U);
+    WRITE_REG(TIM3->CNT, 0U);
     SET_BIT(TIM3->CR1, TIM_CR1_CEN);
 }
 
 void TIMER_ADC3Enable(void){
-    WRITE_REG(TIM6->CNT,0U);
+    WRITE_REG(TIM6->CNT, 0U);
     SET_BIT(TIM6->CR1, TIM_CR1_CEN);
 }
 
@@ -143,7 +143,7 @@ static TIM_TypeDef* get_tim(ADC_TypeDef* adc) {
     }
 }
 
-void TIMER_ADCSetFreq(ADC_TypeDef* adc,uint32_t freq) {
+void TIMER_ADCSetFreq(ADC_TypeDef* adc, uint32_t freq) {
     TIM_TypeDef* tim = get_tim(adc);
     if (freq < 0 || freq > (TIM_CLK/2)) {
         error = TIMER_ERROR_ADC_TIM_BAD_SET_FREQUENCY;
@@ -156,7 +156,7 @@ void TIMER_ADCSetFreq(ADC_TypeDef* adc,uint32_t freq) {
 }
 
 void TIMER_ADC2SetFreq(uint32_t freq) {
-   if (freq < 0 || freq > (TIM_CLK/2)) {
+    if (freq < 0 || freq > (TIM_CLK/2)) {
         error = TIMER_ERROR_TIM3_BAD_SET_FREQUENCY;
         return;
     }
@@ -316,7 +316,7 @@ static void tim3_adc2_init(void) {
     WRITE_REG(TIM3->PSC, 1U - 1U); // default
     WRITE_REG(TIM3->ARR, 120U - 1U); // default
 
-//  update event is trigger output
+    //  update event is trigger output
     MODIFY_REG(TIM3->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
 }
 
