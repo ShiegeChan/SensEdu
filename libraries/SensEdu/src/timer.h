@@ -29,9 +29,9 @@ TIMER_ERROR TIMER_GetError(void);
 
 void TIMER_ADC1Init(void);
 void TIMER_DAC1Init(uint32_t freq);
-void TIMER_ADC1Enable(void);
+void TIMER_ADCxEnable(TIM_TypeDef* tim);
 void TIMER_DAC1Enable(void);
-void TIMER_ADC1Disable(void);
+void TIMER_ADCxDisable(TIM_TypeDef* tim);
 void TIMER_DAC1Disable(void);
 void TIMER_ADCSetFreq(ADC_TypeDef* adc,uint32_t freq);
 void TIMER_DAC1SetFreq(uint32_t freq);

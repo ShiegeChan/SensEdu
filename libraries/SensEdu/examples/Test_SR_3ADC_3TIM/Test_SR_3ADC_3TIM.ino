@@ -4,16 +4,14 @@
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 #define ADC1_SR  250000     // ADC1 sampling rate
-#define ADC2_SR  65000      // ADC2 sampling rate
+#define ADC2_SR  100000     // ADC2 sampling rate
 #define ADC3_SR  65000      // ADC3 sampling rate
 
 /* ADC */
-const uint16_t buf1_size = 16*128; // must be multiple of 16 for 16bit
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t buf1[buf1_size];
-const uint16_t buf2_size = 16*128; // must be multiple of 16 for 16bit
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t buf2[buf2_size];
-const uint16_t buf3_size = 16*128; // must be multiple of 16 for 16bit
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t buf3[buf3_size];
+const uint16_t buf_size = 16*128; // must be multiple of 16 for 16bit
+SENSEDU_ADC_BUFFER(buf1, buf_size);
+SENSEDU_ADC_BUFFER(buf2, buf_size);
+SENSEDU_ADC_BUFFER(buf3, buf_size);
 
 ADC_TypeDef* adc1 = ADC1;
 const uint8_t adc1_pin_num = 1;
@@ -28,7 +26,7 @@ SensEdu_ADC_Settings adc1_settings = {
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)buf1,
-    .mem_size = buf1_size
+    .mem_size = buf_size
 };
 
 ADC_TypeDef* adc2 = ADC2;
@@ -44,7 +42,7 @@ SensEdu_ADC_Settings adc2_settings = {
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)buf2,
-    .mem_size = buf2_size
+    .mem_size = buf_size
 };
 
 ADC_TypeDef* adc3 = ADC3;
@@ -60,7 +58,7 @@ SensEdu_ADC_Settings adc3_settings = {
     
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)buf3,
-    .mem_size = buf3_size
+    .mem_size = buf_size
 };
 
 /* errors */

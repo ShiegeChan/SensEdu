@@ -88,9 +88,9 @@ function plot_adc_with_samples_per_cycle(data_adc1, data_adc2, data_adc3, ...
 
     % Display samples per cycle in the MATLAB console
     fprintf("Samples per Cycle:\n");
-    fprintf("  ADC1 (250kHz): %.2f samples/cycle\n", samples_per_cycle_adc1);
-    fprintf("  ADC2 (65kHz): %.2f samples/cycle\n", samples_per_cycle_adc2);
-    fprintf("  ADC3 (65kHz): %.2f samples/cycle\n", samples_per_cycle_adc3);
+    fprintf("  ADC1 (%.0f kHz): %.2f samples/cycle\n", sr_adc1 / 1e3, samples_per_cycle_adc1);
+    fprintf("  ADC2 (%.0f kHz): %.2f samples/cycle\n", sr_adc2 / 1e3, samples_per_cycle_adc2);
+    fprintf("  ADC3 (%.0f kHz): %.2f samples/cycle\n", sr_adc3 / 1e3, samples_per_cycle_adc3);
 
     % Create a figure with three subplots for ADCs and one for superimposed data
     figure(1);
@@ -101,7 +101,7 @@ function plot_adc_with_samples_per_cycle(data_adc1, data_adc2, data_adc3, ...
     plot(time_adc1, data_adc1, 'r');
     xlabel('Time (s)');
     ylabel('ADC1 Value');
-    title(sprintf('ADC1 (250 kHz) - %.2f Samples per Cycle', samples_per_cycle_adc1));
+    title(sprintf('ADC1 (%.0f kHz) - %.2f Samples per Cycle', sr_adc1 / 1e3, samples_per_cycle_adc1));
     grid on;
 
     % Plot ADC2 data: use time_adc2 on x-axis
@@ -109,7 +109,7 @@ function plot_adc_with_samples_per_cycle(data_adc1, data_adc2, data_adc3, ...
     plot(time_adc2, data_adc2, 'g');
     xlabel('Time (s)');
     ylabel('ADC2 Value');
-    title(sprintf('ADC2 (65 kHz) - %.2f Samples per Cycle', samples_per_cycle_adc2));
+    title(sprintf('ADC2 (%.0f kHz) - %.2f Samples per Cycle', sr_adc2 / 1e3, samples_per_cycle_adc2));
     grid on;
 
     % Plot ADC3 data: use time_adc3 on x-axis
@@ -117,15 +117,15 @@ function plot_adc_with_samples_per_cycle(data_adc1, data_adc2, data_adc3, ...
     plot(time_adc3, data_adc3, 'b');
     xlabel('Time (s)');
     ylabel('ADC3 Value');
-    title(sprintf('ADC3 (65 kHz) - %.2f Samples per Cycle', samples_per_cycle_adc3));
+    title(sprintf('ADC3 (%.0f kHz) - %.2f Samples per Cycle', sr_adc3 / 1e3, samples_per_cycle_adc3));
     grid on;
 
     % Create a combined superimposed plot to compare sample rates
     subplot(4, 1, 4);
     hold on;
-    plot(time_adc1, data_adc1, '-o', 'DisplayName', 'ADC1 (250 kHz)', 'Color', 'r');
-    plot(time_adc2, data_adc2, '-x', 'DisplayName', 'ADC2 (65 kHz)', 'Color', 'g');
-    plot(time_adc3, data_adc3, '-d', 'DisplayName', 'ADC3 (65 kHz)', 'Color', 'b');
+    plot(time_adc1, data_adc1, '-o', 'DisplayName', sprintf('ADC1 (%.0f kHz)', sr_adc1 / 1e3), 'Color', 'r');
+    plot(time_adc2, data_adc2, '-x', 'DisplayName', sprintf('ADC2 (%.0f kHz)', sr_adc2 / 1e3), 'Color', 'g');
+    plot(time_adc3, data_adc3, '-d', 'DisplayName', sprintf('ADC3 (%.0f kHz)', sr_adc3 / 1e3), 'Color', 'b');
     hold off;
     xlabel('Time (s)');
     ylabel('ADC Value');

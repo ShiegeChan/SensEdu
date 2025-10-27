@@ -95,19 +95,9 @@ void TIMER_DAC1Init(uint32_t freq) {
     TIMER_DAC1SetFreq(freq);
 }
 
-void TIMER_ADC1Enable(void) {
-    WRITE_REG(TIM1->CNT, 0U);
-    SET_BIT(TIM1->CR1, TIM_CR1_CEN);
-}
-
-void TIMER_ADC2Enable(void){
-    WRITE_REG(TIM3->CNT, 0U);
-    SET_BIT(TIM3->CR1, TIM_CR1_CEN);
-}
-
-void TIMER_ADC3Enable(void){
-    WRITE_REG(TIM6->CNT, 0U);
-    SET_BIT(TIM6->CR1, TIM_CR1_CEN);
+void TIMER_ADCxEnable(TIM_TypeDef* tim) {
+    WRITE_REG(tim->CNT, 0U);
+    SET_BIT(tim->CR1, TIM_CR1_CEN);
 }
 
 void TIMER_DAC1Enable(void) {
@@ -115,32 +105,12 @@ void TIMER_DAC1Enable(void) {
     SET_BIT(TIM4->CR1, TIM_CR1_CEN);
 }
 
-void TIMER_ADC1Disable(void) {
-    CLEAR_BIT(TIM1->CR1, TIM_CR1_CEN);
-}
-
-void TIMER_ADC2Disable(void) {
-    CLEAR_BIT(TIM3->CR1, TIM_CR1_CEN);
-}
-
-void TIMER_ADC3Disable(void) {
-    CLEAR_BIT(TIM6->CR1, TIM_CR1_CEN);
+void TIMER_ADCxDisable(TIM_TypeDef* tim) {
+    CLEAR_BIT(tim->CR1, TIM_CR1_CEN);
 }
 
 void TIMER_DAC1Disable(void) {
     CLEAR_BIT(TIM4->CR1, TIM_CR1_CEN);
-}
-
-static TIM_TypeDef* get_tim(ADC_TypeDef* adc) {
-    if (adc == ADC1) {
-        return TIM1; 
-    } else if (adc == ADC2) {
-        return TIM3; 
-    } else if (adc == ADC3) {
-        return TIM6; 
-    } else {
-        return NULL;
-    }
 }
 
 void TIMER_ADCSetFreq(ADC_TypeDef* adc, uint32_t freq) {
@@ -153,30 +123,6 @@ void TIMER_ADCSetFreq(ADC_TypeDef* adc, uint32_t freq) {
     calculate_timer_values(freq, &psc, &arr);
     WRITE_REG(tim->PSC, psc);
     WRITE_REG(tim->ARR, arr);
-}
-
-void TIMER_ADC2SetFreq(uint32_t freq) {
-    if (freq < 0 || freq > (TIM_CLK/2)) {
-        error = TIMER_ERROR_TIM3_BAD_SET_FREQUENCY;
-        return;
-    }
-
-    uint16_t psc, arr;
-    calculate_tim_freq_settings_16bit(freq, &psc, &arr);
-    WRITE_REG(TIM3->PSC, psc);
-    WRITE_REG(TIM3->ARR, arr);
-}
-
-void TIMER_ADC3SetFreq(uint32_t freq) {
-    if (freq < 0 || freq > (TIM_CLK/2)) {
-        error = TIMER_ERROR_TIM6_BAD_SET_FREQUENCY;
-        return;
-    }
-
-    uint16_t psc, arr;
-    calculate_tim_freq_settings_16bit(freq, &psc, &arr);
-    WRITE_REG(TIM6->PSC, psc);
-    WRITE_REG(TIM6->ARR, arr);
 }
 
 void TIMER_DAC1SetFreq(uint32_t freq) {
@@ -271,6 +217,18 @@ static void calculate_tim_freq_settings_16bit(uint32_t freq, uint16_t *PSC, uint
     }
     *PSC = psc;
     *ARR = (uint16_t)arr;
+}
+
+static TIM_TypeDef* get_tim(ADC_TypeDef* adc) {
+    if (adc == ADC1) {
+        return TIM1; 
+    } else if (adc == ADC2) {
+        return TIM3; 
+    } else if (adc == ADC3) {
+        return TIM6; 
+    } else {
+        return NULL;
+    }
 }
 
 static void calculate_tim_freq_settings_32bit(uint32_t freq, uint16_t *PSC, uint32_t *ARR) {
