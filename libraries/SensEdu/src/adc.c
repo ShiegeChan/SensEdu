@@ -96,11 +96,11 @@ void SensEdu_ADC_Enable(ADC_TypeDef* ADC) {
     // enable timer if in timer triggered mode
     if (get_adc_settings(ADC)->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
         if (ADC == ADC1) {
-            TIMER_ADC1Enable();
+            TIMER_ADCxEnable(TIM1);
         } else if (ADC == ADC2) {
-            TIMER_ADC2Enable();
+            TIMER_ADCxEnable(TIM3);
         } else if (ADC == ADC3){
-            TIMER_ADC3Enable();
+            TIMER_ADCxEnable(TIM6);
         }
     }
 

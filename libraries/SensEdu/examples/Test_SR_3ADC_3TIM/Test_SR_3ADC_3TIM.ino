@@ -120,9 +120,9 @@ void loop() {
     while(!SensEdu_ADC_GetTransferStatus(adc3));
     SensEdu_ADC_ClearTransferStatus(adc3);
     
-    serial_send_array((const uint8_t *) & buf1, buf1_size << 1);
-    serial_send_array((const uint8_t *) & buf2, buf2_size << 1);
-    serial_send_array((const uint8_t *) & buf3, buf3_size << 1);
+    serial_send_array((const uint8_t *) & buf1, buf_size << 1);
+    serial_send_array((const uint8_t *) & buf2, buf_size << 1);
+    serial_send_array((const uint8_t *) & buf3, buf_size << 1);
 
     // check errors
     lib_error = SensEdu_GetError();

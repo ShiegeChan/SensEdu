@@ -120,7 +120,7 @@ void TIMER_ADCSetFreq(ADC_TypeDef* adc, uint32_t freq) {
         return;
     }
     uint32_t psc, arr;
-    calculate_timer_values(freq, &psc, &arr);
+    calculate_tim_freq_settings_16bit(freq, &psc, &arr);
     WRITE_REG(tim->PSC, psc);
     WRITE_REG(tim->ARR, arr);
 }
