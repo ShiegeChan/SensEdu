@@ -1,4 +1,5 @@
 #include <Dps3xx.h>
+#include "SHTSensor.h"
 /**
  * @details This example reads temperature and pressure values and estimates
  *          weather conditions based on equivalent sea level pressure
@@ -28,6 +29,8 @@ Dps3xx Dps3xxPressureSensor = Dps3xx();
 uint8_t oversampling = 5;       /* Value from 0 to 7, the Dps 3xx will perform 2^oversampling internal
     temperature measurements and combine them to one result with higher precision
     measurements with higher precision take more time, consult datasheet for more information */
+
+SHTSensor sht1(SHTSensor::SHT3X);
 
 /* -------------------------------------------------------------------------- */
 /*                                 Functions                                  */
@@ -64,13 +67,16 @@ void WeatherPredict(float seaLevelPressure) {
 /* -------------------------------------------------------------------------- */
 void setup()
 {
+
+
+  Wire1.begin();
   Serial.begin(9600);
   while (!Serial); // Wait for Serial Monitor to connect
-
+  
   Dps3xxPressureSensor.begin(Wire1);      /* Call begin to initialize Dps3xxPressureSensor
   using the default 0x77 bus adress of the sensor. The default adress
   does not need to be specified. */
-   
+  sht1.init(Wire1); 
   //Dps3xxPressureSensor.begin(Wire1, 0x76);   
   //Use the above line instead to use the secondary I2C address 0x76.
   //In this case a jumper has to be added on SensEdu between J19 and LOW to pull SDO pin to GND.
@@ -145,8 +151,18 @@ void loop()
     Serial.println(" hPa");
   }
 
-  //TODO : Function to read humidity sensor data
-  
+  if (sht1.readSample()) {
+    Serial.print("SHT1 :\n");
+    Serial.print("  RH: ");
+    Serial.print(sht1.getHumidity(), 2);
+    Serial.print("\n");
+    Serial.print("  T:  ");
+    Serial.print(sht1.getTemperature(), 2);
+    Serial.print("\n");
+  } else {
+    Serial.print("Sensor 1: Error in readSample()\n");
+  }
+
   WeatherPredict(seaLevelPressure);
 
   // Wait some time
