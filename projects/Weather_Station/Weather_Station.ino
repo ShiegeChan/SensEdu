@@ -1,5 +1,6 @@
 #include <Dps3xx.h>
 #include "SHTSensor.h"
+
 /**
  * @details This example reads temperature and pressure values and estimates
  *          weather conditions based on equivalent sea level pressure
@@ -9,9 +10,13 @@
 /*                                User Settings                               */
 /* -------------------------------------------------------------------------- */
 
-#define NORMAL_PRESSURE           1009            // in hPa
-#define HIGH_PRESSURE             1022            // in hPa
-#define T_OFFSET                  0               // Temperature offset for accurate temperature display
+#define NORMAL_PRESSURE             1009            // in hPa
+#define HIGH_PRESSURE               1022            // in hPa
+#define T_OFFSET                    0              // Temperature offset for accurate temperature display (empirical)
+#define g                           9.81            // m/s^2
+#define P_0                         101325          // Pa
+#define M                           0.02896         // kg/mol
+#define R                           8.314           // J/molK
 
 /* -------------------------------------------------------------------------- */
 /*                                 Parameters                                 */
@@ -25,23 +30,31 @@ float humidity;
 int16_t ret;
 
 // Dps3xx Object
-Dps3xx Dps3xxPressureSensor = Dps3xx();
+Dps3xx dps_sensor = Dps3xx();
 uint8_t oversampling = 5;       /* Value from 0 to 7, the Dps 3xx will perform 2^oversampling internal
     temperature measurements and combine them to one result with higher precision
     measurements with higher precision take more time, consult datasheet for more information */
 
-SHTSensor sht1(SHTSensor::SHT3X);
+SHTSensor sht_sensor(SHTSensor::SHT3X);
 
 /* -------------------------------------------------------------------------- */
 /*                                 Functions                                  */
 /* -------------------------------------------------------------------------- */
 
 // Function to calculate sea-level pressure
+/* Standard atmospheric pressure at sea level is approximately 1013.25 hectopascals (hPa),
+29.92 inches of mercury (inHg), or 14.7 pounds per square inch (psi) */
+
+// Air pressure decreases with increasing altitude. 
+// As you move higher into the atmosphere, there is less air above you pressing down, 
+// resulting in lower pressure. This is why mountain climbers often experience difficulty 
+// breathing due to the thinner air and lower oxygen levels.
+
 float calculateSeaLevelPressure(float p, float t) {
-  return p * pow((1 - (0.0065 * altitude) / (t + 273.15)), -5.257);
+    return p * pow((1 - (0.0065 * altitude) / (t + 273.15)), -5.257);
 }
 
-//TODO : Function to predict weather based on sea-level pressure evolution
+// Simple Weather Prediction Rule-Based Model 
 
 /* This function is not implemented correctly yet as it only predicts weather based on
 instant measurement. It should measure the rate of change in pressure over time
@@ -50,58 +63,55 @@ initial pressure measurement with the current measurement.
 This function should also include a humidity parameter from the humidity sensor to
 help predict weather more accurately*/
 
-void WeatherPredict(float seaLevelPressure) {
-  if (seaLevelPressure < NORMAL_PRESSURE * 100) {
-    Serial.println("Weather Status: possible rain or storm :(");
-  }
-  else if (seaLevelPressure < HIGH_PRESSURE * 100) {
-    Serial.println("Weather Status: Fair weather");
-  } 
-  else {
-    Serial.println("Weather Status: clear sky, calm weather");
-  }
+void WeatherPredict(float temp, float pressure, float humidity) {
+    // temp -> in degreees 
+    // pressure -> in hPa (hectopascal is 100 pascals)
+    // humidity -> in % 
+
+    if (humidity > 70 && pressure < 1000 && (15 < temp < 25)) {
+        Serial.println("Weather Status: Rain"); 
+    }
+    else if ((50 <= humidity <= 70) && pressure < 1000) {
+        Serial.println("Weather Status: Cloudy");
+    } 
+    else if (pressure > 1020 && humidity < 50 && temp > 20) {
+        Serial.println("Weather Status: Clear");
+    } 
+    else {
+        Serial.println("Weather Status: Uncertain");
+    }
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                   Setup                                    */
 /* -------------------------------------------------------------------------- */
-void setup()
-{
 
+void setup() {
+    Wire1.begin();
+    Serial.begin(9600);
+    while (!Serial); // Wait for Serial Monitor to connect
 
-  Wire1.begin();
-  Serial.begin(9600);
-  while (!Serial); // Wait for Serial Monitor to connect
-  
-  Dps3xxPressureSensor.begin(Wire1);      /* Call begin to initialize Dps3xxPressureSensor
-  using the default 0x77 bus adress of the sensor. The default adress
-  does not need to be specified. */
-  sht1.init(Wire1); 
-  //Dps3xxPressureSensor.begin(Wire1, 0x76);   
-  //Use the above line instead to use the secondary I2C address 0x76.
-  //In this case a jumper has to be added on SensEdu between J19 and LOW to pull SDO pin to GND.
+    dps_sensor.begin(Wire1); 
+    sht_sensor.init(Wire1); 
 
-  //TODO : Initilize SHT35 humidity sensor with Wire1
-  //I2C adress by default is 0x44 (logic low)
-   
-  Serial.println("Init complete!");
+    Serial.println("Init complete!");
 
-  // Ask the user to input the altitude
-  Serial.println("Please input the current altitude (in meters):");
+    // Ask the user to input the altitude
+    Serial.println("Please input the current altitude (in meters):");
 
-  // Wait for user input via Serial Monitor
-  while (Serial.available() == 0) {
-    // Do nothing, wait for the user to input data
-  }
+    // Wait for user input via Serial Monitor
+    while (Serial.available() == 0) {
+        // Do nothing, wait for the user to input data
+    }
 
-  // Read the user input and convert it to a float
-  String input = Serial.readStringUntil('\n');
-  altitude = input.toFloat();
+    // Read the user input and convert it to a float
+    String input = Serial.readStringUntil('\n');
+    altitude = input.toFloat();
 
-  // Confirm the altitude
-  Serial.print("Altitude set to: ");
-  Serial.print(altitude);
-  Serial.println(" meters");
+    // Confirm the altitude
+    Serial.print("Altitude set to: ");
+    Serial.print(altitude);
+    Serial.println(" meters");
 }
 
 /* -------------------------------------------------------------------------- */
@@ -109,62 +119,56 @@ void setup()
 /* -------------------------------------------------------------------------- */
 void loop()
 {
-  Serial.println();
+    Serial.println();
 
-  ret = Dps3xxPressureSensor.measureTempOnce(temperature, oversampling);
+    // ----------------------------- temperature measurement -------------------------
 
-  if (ret != 0)
-  {
-    /*
-     * Something went wrong.
-     * Look at the library code for more information about return codes
-     */
-    Serial.print("FAIL! ret = ");
-    Serial.println(ret);
-  }
-  else
-  {
-    Serial.print("Temperature: ");
-    Serial.print(temperature + T_OFFSET);
-    Serial.println("°C");
-  }
+    ret = dps_sensor.measureTempOnce(temperature, oversampling);
+    if (ret != 0) {
+        Serial.print("FAIL! ret = ");
+        Serial.println(ret);
+    }
+    else {
+        Serial.print("Temperature (dps): ");
+        Serial.print(temperature + T_OFFSET);
+        Serial.println("°C");
+    }
 
-  ret = Dps3xxPressureSensor.measurePressureOnce(pressure, oversampling);
-  if (ret != 0)
-  {
-    // Something went wrong.
-    // Look at the library code for more information about return codes
-    Serial.print("FAIL! ret = ");
-    Serial.println(ret);
-  }
-  else
-  {
-    Serial.print("Pressure: ");
-    Serial.print(pressure / 100);
-    Serial.println(" hPa");
-  }
+    // ----------------------------- pressure measurement -------------------------
 
-  seaLevelPressure = calculateSeaLevelPressure(pressure, temperature);
-  {
+    ret = dps_sensor.measurePressureOnce(pressure, oversampling);
+    if (ret != 0) {
+        // Something went wrong.
+        // Look at the library code for more information about return codes
+        Serial.print("FAIL! ret = ");
+        Serial.println(ret);
+    }
+    else {
+        Serial.print("Pressure: ");
+        Serial.print(pressure/100);
+        Serial.println(" hPa");
+    }
+
+    seaLevelPressure = calculateSeaLevelPressure(pressure, temperature); 
     Serial.print("Equivalent Sea Level Pressure: ");
     Serial.print(seaLevelPressure / 100);
     Serial.println(" hPa");
-  }
 
-  if (sht1.readSample()) {
-    Serial.print("SHT1 :\n");
-    Serial.print("  RH: ");
-    Serial.print(sht1.getHumidity(), 2);
-    Serial.print("\n");
-    Serial.print("  T:  ");
-    Serial.print(sht1.getTemperature(), 2);
-    Serial.print("\n");
-  } else {
-    Serial.print("Sensor 1: Error in readSample()\n");
-  }
 
-  WeatherPredict(seaLevelPressure);
+// ----------------------------- humidity measurement -------------------------
+    if (sht_sensor.readSample()) {
+        humidity = sht_sensor.getHumidity();
+        Serial.print("Humidity level: ");
+        Serial.println(humidity, 2);
+        Serial.print("Temperature (sht)");
+        Serial.println(sht_sensor.getTemperature(), 2);
+    } 
+    else {
+        Serial.println("SHT sensor Error\n");
+    }
 
-  // Wait some time
-  delay(300000);
+    WeatherPredict(temperature, pressure, humidity);
+
+    // Wait some time
+    delay(10000);
 }
