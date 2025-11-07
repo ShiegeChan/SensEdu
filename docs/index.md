@@ -30,15 +30,15 @@ The core functionality is available, but many additional features are in progres
 SensEdu includes:
 {:.mb-1 .mt-3}
 * MEMS microphones
-* Barometric Air Pressure Sensor
 * Ultrasonic Transducers
+* Barometric Air Pressure Sensor
 
 You can find detailed information about each component in the [PCB Chapter]({% link PCB/index.md %}). With these components, you can build a variety of projects, such as:
-* Ultrasonic Distance Measurements
-* Chirp Signal Generation
-* FMCW Radars
-* Frequency Shift Keying (FSK) communication between multiple boards
-* Weather Stations
+* Pulse-Echo and FMCW ultrasonic ranging
+* Doppler Velocimeter
+* FSK ultrasonic communication
+* EMG signal controls
+* Weather Station
 
 ## Project Structure
 {: .fw-500}
