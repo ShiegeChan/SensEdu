@@ -95,18 +95,28 @@ void TIMER_DAC1Init(uint32_t freq) {
     TIMER_DAC1SetFreq(freq);
 }
 
-void TIMER_ADCxEnable(TIM_TypeDef* tim) {
+void TIMER_ADCxEnable(ADC_TypeDef* adc) {
+    TIM_TypeDef* tim = get_tim(adc);
+    if (tim == NULL) {
+        error = TIMER_ERROR_PICKED_WRONG_ADC;
+        return;
+    }
     WRITE_REG(tim->CNT, 0U);
     SET_BIT(tim->CR1, TIM_CR1_CEN);
+}
+
+void TIMER_ADCxDisable(ADC_TypeDef* adc) {
+    TIM_TypeDef* tim = get_tim(adc);
+    if (tim == NULL) {
+        error = TIMER_ERROR_PICKED_WRONG_ADC;
+        return;
+    }
+    CLEAR_BIT(tim->CR1, TIM_CR1_CEN);
 }
 
 void TIMER_DAC1Enable(void) {
     WRITE_REG(TIM4->CNT, 0U);
     SET_BIT(TIM4->CR1, TIM_CR1_CEN);
-}
-
-void TIMER_ADCxDisable(TIM_TypeDef* tim) {
-    CLEAR_BIT(tim->CR1, TIM_CR1_CEN);
 }
 
 void TIMER_DAC1Disable(void) {
@@ -115,6 +125,10 @@ void TIMER_DAC1Disable(void) {
 
 void TIMER_ADCSetFreq(ADC_TypeDef* adc, uint32_t freq) {
     TIM_TypeDef* tim = get_tim(adc);
+    if (tim == NULL) {
+        error = TIMER_ERROR_PICKED_WRONG_ADC;
+        return;
+    }
     if (freq < 0 || freq > (TIM_CLK/2)) {
         error = TIMER_ERROR_ADC_TIM_BAD_SET_FREQUENCY;
         return;
