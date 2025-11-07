@@ -81,6 +81,7 @@ void WeatherPredict(float temp, float pressure, float humidity) {
         Serial.println("Weather Status: Uncertain");
     }
 }
+        // make it so that when this happens you go back to measurement phase and wait for weather to be decided correctly
 
 /* -------------------------------------------------------------------------- */
 /*                                   Setup                                    */
@@ -149,25 +150,27 @@ void loop()
         Serial.println(" hPa");
     }
 
-    seaLevelPressure = calculateSeaLevelPressure(pressure, temperature); 
-    Serial.print("Equivalent Sea Level Pressure: ");
-    Serial.print(seaLevelPressure / 100);
-    Serial.println(" hPa");
 
-
-// ----------------------------- humidity measurement -------------------------
+    // ----------------------------- humidity & temperature measurement -------------------------
     if (sht_sensor.readSample()) {
         humidity = sht_sensor.getHumidity();
         Serial.print("Humidity level: ");
         Serial.println(humidity, 2);
         Serial.print("Temperature (sht)");
-        Serial.println(sht_sensor.getTemperature(), 2);
+        temperature = sht_sensor.getTemperature();
+        Serial.println(temperature, 2);
     } 
     else {
         Serial.println("SHT sensor Error\n");
     }
 
-    WeatherPredict(temperature, pressure, humidity);
+    // ----------------------------- sea pressure level -------------------------
+    seaLevelPressure = calculateSeaLevelPressure(pressure, temperature); 
+    Serial.print("Equivalent Sea Level Pressure: ");
+    Serial.print(seaLevelPressure / 100);
+    Serial.println(" hPa");
+
+    WeatherPredict(temperature, seaLevelPressure, humidity);
 
     // Wait some time
     delay(10000);
