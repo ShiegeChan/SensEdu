@@ -17,9 +17,12 @@ static void calculate_tim_freq_settings_16bit(uint32_t freq, uint16_t *PSC, uint
 static void calculate_tim_freq_settings_32bit(uint32_t freq, uint16_t *PSC, uint32_t *ARR);
 static inline uint32_t ns_to_ticks(uint32_t ns);
 static void tim1_adc1_init(void);
+static void tim3_adc2_init(void);
+static void tim6_adc3_init(void);
 static void tim2_delay_init(void);
 static void tim4_dac1_init(void);
 static void tim8_pwm_init(void);
+static TIM_TypeDef* get_tim(ADC_TypeDef* adc);
 
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
@@ -79,14 +82,36 @@ void TIMER_ADC1Init(void) {
     tim1_adc1_init();
 }
 
+void TIMER_ADC2Init(void){
+    tim3_adc2_init();
+}
+
+void TIMER_ADC3Init(void){
+    tim6_adc3_init();
+}
+
 void TIMER_DAC1Init(uint32_t freq) {
     tim4_dac1_init();
     TIMER_DAC1SetFreq(freq);
 }
 
-void TIMER_ADC1Enable(void) {
-    WRITE_REG(TIM1->CNT, 0U);
-    SET_BIT(TIM1->CR1, TIM_CR1_CEN);
+void TIMER_ADCxEnable(ADC_TypeDef* adc) {
+    TIM_TypeDef* tim = get_tim(adc);
+    if (tim == NULL) {
+        error = TIMER_ERROR_PICKED_WRONG_ADC;
+        return;
+    }
+    WRITE_REG(tim->CNT, 0U);
+    SET_BIT(tim->CR1, TIM_CR1_CEN);
+}
+
+void TIMER_ADCxDisable(ADC_TypeDef* adc) {
+    TIM_TypeDef* tim = get_tim(adc);
+    if (tim == NULL) {
+        error = TIMER_ERROR_PICKED_WRONG_ADC;
+        return;
+    }
+    CLEAR_BIT(tim->CR1, TIM_CR1_CEN);
 }
 
 void TIMER_DAC1Enable(void) {
@@ -94,24 +119,24 @@ void TIMER_DAC1Enable(void) {
     SET_BIT(TIM4->CR1, TIM_CR1_CEN);
 }
 
-void TIMER_ADC1Disable(void) {
-    CLEAR_BIT(TIM1->CR1, TIM_CR1_CEN);
-}
-
 void TIMER_DAC1Disable(void) {
     CLEAR_BIT(TIM4->CR1, TIM_CR1_CEN);
 }
 
-void TIMER_ADC1SetFreq(uint32_t freq) {
-    if (freq < 0 || freq > (TIM_CLK/2)) {
-        error = TIMER_ERROR_TIM1_BAD_SET_FREQUENCY;
+void TIMER_ADCSetFreq(ADC_TypeDef* adc, uint32_t freq) {
+    TIM_TypeDef* tim = get_tim(adc);
+    if (tim == NULL) {
+        error = TIMER_ERROR_PICKED_WRONG_ADC;
         return;
     }
-
-    uint16_t psc, arr;
+    if (freq < 0 || freq > (TIM_CLK/2)) {
+        error = TIMER_ERROR_ADC_TIM_BAD_SET_FREQUENCY;
+        return;
+    }
+    uint32_t psc, arr;
     calculate_tim_freq_settings_16bit(freq, &psc, &arr);
-    WRITE_REG(TIM1->PSC, psc);
-    WRITE_REG(TIM1->ARR, arr);
+    WRITE_REG(tim->PSC, psc);
+    WRITE_REG(tim->ARR, arr);
 }
 
 void TIMER_DAC1SetFreq(uint32_t freq) {
@@ -208,6 +233,18 @@ static void calculate_tim_freq_settings_16bit(uint32_t freq, uint16_t *PSC, uint
     *ARR = (uint16_t)arr;
 }
 
+static TIM_TypeDef* get_tim(ADC_TypeDef* adc) {
+    if (adc == ADC1) {
+        return TIM1; 
+    } else if (adc == ADC2) {
+        return TIM3; 
+    } else if (adc == ADC3) {
+        return TIM6; 
+    } else {
+        return NULL;
+    }
+}
+
 static void calculate_tim_freq_settings_32bit(uint32_t freq, uint16_t *PSC, uint32_t *ARR) {
     uint32_t arr = 0;
     uint16_t psc = 0;
@@ -241,6 +278,30 @@ static void tim1_adc1_init(void) {
 
     // update event is trigger output
     MODIFY_REG(TIM1->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
+}
+
+static void tim3_adc2_init(void) {
+    // Clock
+    SET_BIT(RCC->APB1LENR, RCC_APB1LENR_TIM3EN);
+
+    // Frequency settings
+    WRITE_REG(TIM3->PSC, 1U - 1U); // default
+    WRITE_REG(TIM3->ARR, 120U - 1U); // default
+
+    //  update event is trigger output
+    MODIFY_REG(TIM3->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
+}
+
+static void tim6_adc3_init(void) {
+    // Clock
+    SET_BIT(RCC->APB1LENR, RCC_APB1LENR_TIM6EN);
+
+    // Frequency settings
+    WRITE_REG(TIM6->PSC, 1U - 1U); // default
+    WRITE_REG(TIM6->ARR, 120U - 1U); // default
+
+    // update event is trigger output
+    MODIFY_REG(TIM6->CR2, TIM_CR2_MMS, 0b010 << TIM_CR2_MMS_Pos);
 }
 
 static void tim2_delay_init(void) {
