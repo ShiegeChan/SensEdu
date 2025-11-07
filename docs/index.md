@@ -2,7 +2,7 @@
 title: Introduction
 layout: home
 nav_order: 1
-description: "SensEdu is an educational development shield for Arduino GIGA R1 used for RADAR and communications applications."
+description: "Ultrasonic ranging and detection development shield for Arduino GIGA R1, designed as an open-source educational project to lower the barrier to ultrasonic sensing and research."
 permalink: /
 ---
 
@@ -13,7 +13,7 @@ Welcome to the SensEdu documentation!
 {: .fs-6 .fw-400}
 ---
 
-SensEdu is an educational project designed to simplify entry into RADAR and communications research.
+SensEdu is an ultrasonic ranging and detection development shield for Arduino GIGA R1, designed as an open-source educational project to lower the barrier to ultrasonic sensing and research.
 {: .fw-500}
 
 Based on the [STM32H747] Microcontroller and runs on the [Arduino GIGA R1 WiFi] development Board, providing industry-standard embedded development experience while remaining beginner-friendly. SensEdu is perfect for students looking for a smooth introduction to this field, offering an easy-to-understand yet highly modifiable software and hardware environment. 
