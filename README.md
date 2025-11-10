@@ -17,10 +17,10 @@ Designed for education - easy entry into ultrasonic sensing and research</p>
 <b>
 <p align="center">
 	<a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Download</a> ·
-	<a href="https://shiegechan.github.io/SensEdu/getting-started/" target="_blank">Getting Started</a> ·
-	<a href="https://shiegechan.github.io/SensEdu/projects/" target="_blank">Example Projects</a> ·
-	<a href="https://shiegechan.github.io/SensEdu/" target="_blank">Documentation</a> ·
-	<a href="https://shiegechan.github.io/SensEdu/contributing/" target="_blank">Contribution</a>
+	<a href="https://sensedu-shield.com/getting-started/" target="_blank">Getting Started</a> ·
+	<a href="https://sensedu-shield.com/projects/" target="_blank">Example Projects</a> ·
+	<a href="https://sensedu-shield.com" target="_blank">Documentation</a> ·
+	<a href="https://sensedu-shield.com/contributing/" target="_blank">Contribution</a>
 </p>
 </b>
 
@@ -64,7 +64,7 @@ Designed for education - easy entry into ultrasonic sensing and research</p>
 
 ## Starting a Project
 
-To get started, you can explore the hardware interface by following the examples provided in the SensEdu library (`Arduino\libraries\SensEdu\examples\`). A detailed description of all functions can be found in the <a href="https://shiegechan.github.io/SensEdu/library/" target="_blank">Documentation</a> under the "SensEdu Library" section.
+To get started, you can explore the hardware interface by following the examples provided in the SensEdu library (`Arduino\libraries\SensEdu\examples\`). A detailed description of all functions can be found in the <a href="https://sensedu-shield.com/library/" target="_blank">Documentation</a> under the "SensEdu Library" section.
 
 In the `projects/` directory, you will find several complete projects designed for this board, including:
 * **Ultrasonic Pulse-Echo Ranging**
@@ -76,7 +76,7 @@ In the `projects/` directory, you will find several complete projects designed f
 * **EMG BioInputs** - *in progress (75%)*
 * **Weather Station** - *in progress (50%)*
 
-Detailed overview for each project is available in the "Projects" section of the <a href="https://shiegechan.github.io/SensEdu/projects/" target="_blank">Documentation</a>.
+Detailed overview for each project is available in the "Projects" section of the <a href="https://sensedu-shield.com/projects/" target="_blank">Documentation</a>.
 
 
 ## Support
