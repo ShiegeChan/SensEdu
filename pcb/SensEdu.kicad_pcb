@@ -7476,7 +7476,7 @@
 			)
 		)
 	)
-	(footprint "Speaker:328ST16M_Speaker"
+	(footprint "SensEdu:328ST16M_Speaker"
 		(layer "F.Cu")
 		(uuid "479fbc32-9812-4267-abd4-e16a5f8e919a")
 		(at 183.43 73.35 90)
@@ -7484,20 +7484,18 @@
 		(tags "328ST16M_Speaker")
 		(property "Reference" "LS2"
 			(at 0 -2.92 90)
-			(unlocked yes)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "58c4b1f1-906e-4328-910f-818892221dff")
 			(effects
 				(font
-					(size 0.7 0.7)
+					(size 1 1)
 					(thickness 0.15)
 				)
 			)
 		)
 		(property "Value" "Speaker_Ultrasound"
 			(at 0 2.92 90)
-			(unlocked yes)
 			(layer "F.Fab")
 			(uuid "24d0c475-ba73-4d18-b730-677fa251ecf8")
 			(effects
@@ -7519,7 +7517,7 @@
 				)
 			)
 		)
-		(property "Description" "Ultrasonic transducer"
+		(property "Description" ""
 			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
@@ -7539,23 +7537,23 @@
 			(center 0 0)
 			(end 8.1 0)
 			(stroke
-				(width 0.15)
+				(width 0.1)
 				(type default)
 			)
 			(fill no)
 			(layer "F.SilkS")
-			(uuid "af21388b-704f-413d-9b70-f131a4d34342")
+			(uuid "c55f4e2c-ab3f-4ed2-8c9b-4ac86dc08074")
 		)
 		(fp_circle
 			(center 0 0)
 			(end 6.5 0)
 			(stroke
-				(width 0.15)
+				(width 0.1)
 				(type default)
 			)
 			(fill no)
 			(layer "F.SilkS")
-			(uuid "c6de2e86-6a5f-4dfe-8538-e9564363290a")
+			(uuid "7e42afea-358e-48e5-8e5b-acdfeb866bb5")
 		)
 		(fp_line
 			(start 6.35 0)
@@ -7565,7 +7563,7 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "15af7197-bc0f-47c6-b279-46712cf99588")
+			(uuid "93f44b07-6616-4653-8489-cb36e407453f")
 		)
 		(fp_line
 			(start -6.35 0)
@@ -7575,7 +7573,7 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "63c9c69b-817f-4c4c-893a-3dbfadd482ac")
+			(uuid "ed69862e-1d6e-4234-998a-ceae966bdc96")
 		)
 		(fp_text user "*"
 			(at -4.2 2.34 90)
@@ -7612,7 +7610,7 @@
 			(uuid "55d9d083-ef05-4d46-ba06-8cf7ae802bfa")
 		)
 		(embedded_fonts no)
-		(model "${KICAD6_3DMODEL_DIR}/Resistor_THT.3dshapes/R_Axial_DIN0411_L9.9mm_D3.6mm_P12.70mm_Horizontal.wrl"
+		(model "${KIPRJMOD}/libraries/3D/328ST16M.stp"
 			(offset
 				(xyz 0 0 0)
 			)
@@ -16234,28 +16232,26 @@
 			)
 		)
 	)
-	(footprint "Speaker:328ST16M_Speaker"
+	(footprint "SensEdu:328ST16M_Speaker"
 		(layer "F.Cu")
 		(uuid "995438bd-eee9-40f1-94c6-e1f515532c71")
 		(at 149.91 73.35 -90)
 		(descr "328ST16M_Speaker")
 		(tags "328ST16M_Speaker")
 		(property "Reference" "LS1"
-			(at 0 -2.92 90)
-			(unlocked yes)
+			(at 0 -2.92 270)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "d9a59a48-0abf-45ff-80e0-5363c299d69d")
 			(effects
 				(font
-					(size 0.7 0.7)
+					(size 1 1)
 					(thickness 0.15)
 				)
 			)
 		)
 		(property "Value" "Speaker_Ultrasound"
-			(at 0 2.92 90)
-			(unlocked yes)
+			(at 0 2.92 270)
 			(layer "F.Fab")
 			(uuid "b67dc30a-e4ef-4bdf-86cc-715b22e674dc")
 			(effects
@@ -16266,7 +16262,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 0 0 90)
+			(at 0 0 270)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "ffca401a-4d6b-46e7-b9b5-df6843a1446e")
@@ -16277,8 +16273,8 @@
 				)
 			)
 		)
-		(property "Description" "Ultrasonic transducer"
-			(at 0 0 90)
+		(property "Description" ""
+			(at 0 0 270)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "5e307aa5-aa35-4d9d-a0c8-fdd5aa9a2f21")
@@ -16297,23 +16293,23 @@
 			(center 0 0)
 			(end 6.5 0)
 			(stroke
-				(width 0.15)
+				(width 0.1)
 				(type default)
 			)
 			(fill no)
 			(layer "F.SilkS")
-			(uuid "b1a49411-a8a6-4dfb-80fb-0662bfbdd50f")
+			(uuid "1eac8bc2-9837-468d-9f97-a4d3182f4fe4")
 		)
 		(fp_circle
 			(center 0 0)
 			(end 8.1 0)
 			(stroke
-				(width 0.15)
+				(width 0.1)
 				(type default)
 			)
 			(fill no)
 			(layer "F.SilkS")
-			(uuid "f28f2d0a-5f1e-428a-b377-2c99bbbf63f4")
+			(uuid "c1301570-f7c6-452d-93d2-3b07079032ad")
 		)
 		(fp_line
 			(start -6.35 0)
@@ -16323,7 +16319,7 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "7e8283fc-b2fa-4402-81d7-1b61c52342cf")
+			(uuid "44adad45-7196-4388-80ce-e8cebc444dd6")
 		)
 		(fp_line
 			(start 6.35 0)
@@ -16333,7 +16329,7 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "9b01dae7-43bf-4b8d-9bfe-339c5eb97ae4")
+			(uuid "27593718-a874-4208-a9e7-e93576f48451")
 		)
 		(fp_text user "*"
 			(at -3.93 -1.69 270)
@@ -16370,7 +16366,7 @@
 			(uuid "5cf7d181-873b-4061-b2f1-46e403387ba4")
 		)
 		(embedded_fonts no)
-		(model "${KICAD6_3DMODEL_DIR}/Resistor_THT.3dshapes/R_Axial_DIN0411_L9.9mm_D3.6mm_P12.70mm_Horizontal.wrl"
+		(model "${KIPRJMOD}/libraries/3D/328ST16M.stp"
 			(offset
 				(xyz 0 0 0)
 			)
