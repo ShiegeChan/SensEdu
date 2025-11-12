@@ -112,4 +112,15 @@
 		(uuid "d55f23ef-5e86-46f9-8157-c3894c33b3ef")
 	)
 	(embedded_fonts no)
+	(model "${KIPRJMOD}/libraries/3D/328ST16M.stp"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
 )
