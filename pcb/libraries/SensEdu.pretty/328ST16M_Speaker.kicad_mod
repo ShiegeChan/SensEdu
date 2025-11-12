@@ -1,0 +1,115 @@
+(footprint "328ST16M_Speaker"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "328ST16M_Speaker")
+	(tags "328ST16M_Speaker")
+	(property "Reference" "REF**"
+		(at 0 -2.92 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "798e4303-12f8-46e6-97b4-bf520238a5b5")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "328ST16M_Speaker"
+		(at 0 2.92 0)
+		(layer "F.Fab")
+		(uuid "7d125ff3-549b-4d87-b3e7-c774fb3ce9f1")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "0cb09d7e-7fc1-418b-88dd-fa888e7379ff")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "ad49dbd3-02d7-467e-b606-1dc7cd9a3e13")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_circle
+		(center 0 0)
+		(end 6.5 0)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "91528f97-3b2d-4665-920d-ab77b324b6d3")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 8.1 0)
+		(stroke
+			(width 0.1)
+			(type default)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "37fa6a70-a725-484e-ad40-88a7dd958589")
+	)
+	(fp_line
+		(start -6.35 0)
+		(end -4.95 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "7ed2a8ac-f69b-426e-af65-a1389dd6df30")
+	)
+	(fp_line
+		(start 6.35 0)
+		(end 4.95 0)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "ec09ffcc-f33f-4388-98f6-2fbfff7c7838")
+	)
+	(pad "1" thru_hole circle
+		(at -5 0)
+		(size 2.4 2.4)
+		(drill 1.4)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "4b497491-969b-4bd4-8ec6-c37451c30948")
+	)
+	(pad "2" thru_hole circle
+		(at 5 0)
+		(size 2.4 2.4)
+		(drill 1.4)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "d55f23ef-5e86-46f9-8157-c3894c33b3ef")
+	)
+	(embedded_fonts no)
+)
