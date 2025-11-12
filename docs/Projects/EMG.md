@@ -388,7 +388,7 @@ https://www.bu.edu/nmrc/files/2010/06/103.pdf
 
 
 [Byte Size Med]: https://www.youtube.com/channel/UCZghvlgylH3r_CWfA18eFRg
-[Action Potential]: (https://en.wikipedia.org/wiki/Action_potential)
+[Action Potential]: https://en.wikipedia.org/wiki/Action_potential
 [AD8222]: https://www.analog.com/en/products/ad8222.html?doc=ad8222-KGD.pdf
 [datasheet]: https://www.analog.com/media/en/technical-documentation/data-sheets/AD8222.pdf
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf

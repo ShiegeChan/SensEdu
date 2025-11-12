@@ -3,7 +3,7 @@ description: An educational development board designed to simplify entry into RA
 theme: just-the-docs
 
 baseurl: "/SensEdu"
-url: "https://shiegechan.github.io"
+url: "https://sensedu-shield.com"
 repository: ShiegeChan/SensEdu
 
 # remove .html from links

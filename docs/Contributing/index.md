@@ -74,14 +74,10 @@ Projects are much appreciated even if they are quite similar to already develope
 
 ## Roadmap
 
-- [ ] Automatic buffer alignment for ADC
-- [ ] Separate timers for each ADC and DAC channel
-- [ ] Ultrasonic measurements performance boost using DMA
-- [ ] Xcorr calibration algorithm
-- [ ] Improved Arduino-MATLAB serial communication
-- [ ] WiFi Arduino-MATLAB communication
-- [ ] Barometric sensor support
-- [ ] FMCW Radar
+Please refer to the [issues], all planned new features are present there.
+
+<img src="{{site.baseurl}}/assets/images/roadmap.png" alt="roadmap"/>
+{: .text-center}
 
 ---
 
