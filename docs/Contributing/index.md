@@ -17,17 +17,107 @@ Whether you're fixing bugs, adding new functionality, improving documentation, o
 
 ## Getting Started
 Before diving in, familiarize yourself with SensEdu:
-1.  Read through this wiki
-2.  Run basic examples and finished projects
-3.  Explore existing [issues] and [roadmap]({%link Contributing/index.md %}#roadmap)
+1. Read through this wiki
+2. Run basic examples and finished projects
+3. Explore existing [issues]
+4. Review [styling guidelines]({% link Contributing/index.md %}#styling-guidelines)
 
-If you are still not sure what to do, feel free to open a [discussion](https://github.com/ShiegeChan/SensEdu/discussions) and we'll find a task for you!
+If you are still not sure what to do, feel free to open a [discussion](https://github.com/ShiegeChan/SensEdu/discussions), and we'll find a task for you!
+
+## Styling Guidelines
+
+Please familiarize yourself with the following conventions to ensure styling consistency. It keeps the project manageable, easy to navigate for other developers, and make releases easier to create.
+
+### Branch Naming
+
+Follow the format:
+```
+<type>/<issue-number>/<short-name>
+```
+
+Try to avoid creating a branch without a linked issue. If you must, follow the format:
+```
+<type>/<descriptive-name>
+```
+
+#### Types
+{: .no_toc}
+
+* **pcb**: Hardware design
+* **lib**: STM32 library
+* **proj**: SensEdu projects
+* **docs**: Website or README documentation
+* **deploy**: Website deployment
+
+#### Good Examples
+{: .no_toc}
+
+```
+proj/7/record-audio
+lib/13/dma-integration
+pcb/34/tweak-rx-schematics
+docs/10/web-emg-page
+```
+
+### Commit Messages
+
+Follow the format:
+```
+<type>: <subject>
+
+<optional body>
+```
+
+* Subject line: maximum 50 characters, use imperative mood ("Add" not "Added")
+* No period at the end of subject line
+* During PR review, reference the PR number in subject line
+
+#### Types
+{: .no_toc}
+
+* **feat**: New features/additions
+* **fix**: Bug fixes and other broken behaviour
+* **refactor**: Code or project restructuring
+* **docs**: Website or README documentation
+* **deploy**: Website deployment
+
+#### Good Examples
+{: .no_toc}
+
+```
+# New lib feature:
+feat: Add ADC3 support
+```
+```
+# PCB design:
+feat: Draw power supply schematic
+```
+```
+# Docs editing:
+docs: Finish EMG implementation section
+
+Document hardware setup
+Explain RC values for amplifier circuit
+Add data acquisition code snippet
+```
+```
+# Bug fix:
+fix: Rewrite ADC polling
+
+Fix improper ADC initialization in CFGR1 register
+```
+```
+# PR review:
+refactor: Rename lib example (#90)
+
+Rename `adc_Record` to `ADC_Record` 
+```
 
 ## How to Contribute
 
 ### Report Bugs
 Found a bug or unexpected behaviour?  Help us fix it:
-1. Search for existing [issue] to avoid duplicates
+1. Search for existing [issues] to avoid duplicates
 2. Create a new [issue] with `bug` label, providing:
    1. Steps to reproduce
    2. Expected vs actual behaviour
@@ -37,7 +127,7 @@ Found a bug or unexpected behaviour?  Help us fix it:
 Have an idea for a new sensor driver, project or optimization? 
 
 1. Create an [issue] with the `enhancement` label:
-   1. Descibe your idea in detail
+   1. Describe your idea in detail
    2. Provide some usage examples
 
 ### Improve Documentation
@@ -49,7 +139,7 @@ Clear documentation is essential for our educational purposes, help us:
 Check [Documentation Contributions]({% link Contributing/docs.md %}) for detailed instructions.
 
 {: .IMPORTANT}
-For educational purposes, the documentation is aimed not only at developers but at beginner students as well. Try to avoid logical skips, use simple language and add diagrams, image or code examples!
+For educational purposes, the documentation is aimed not only at developers but at beginner students as well. Try to avoid logical skips, use simple language, and add diagrams, images or code examples!
 
 ### Improve Code
 
@@ -64,17 +154,11 @@ If you are an experienced embedded systems developer, feel free to optimize libr
 Try to keep PRs small, focusing on one feature/fix per PR.
 
 ### Submit Project
-Created something amazing using SensEdu? Share it with us! Check [Project Contributions]({% link Contributing/index.md %}#project-contributions) for detailed instructions.
-
-Projects are much appreciated even if they are quite similar to already developed ones. If you are unsure which project to develop, here are some suggestions:
-* Radar speed gun
-* FSK (Frequency-Shift Keying) modulated communication between multiple boards
-* Weather station with barometric pressure sensor
-
+Created something amazing using SensEdu? Share it with us! Check [Project Contributions]({% link Contributing/projects.md %}) for detailed instructions.
 
 ## Roadmap
 
-Please refer to the [issues], all planned new features are present there.
+Please refer to the [issues], all planned new features are listed there.
 
 <img src="{{site.baseurl}}/assets/images/roadmap.png" alt="roadmap"/>
 {: .text-center}
