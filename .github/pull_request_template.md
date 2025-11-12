@@ -1,12 +1,12 @@
 * **Please check if the Pull Request fulfils these requirements**
-  - [ ] PR title follows the same style as a branch: `<type>: <subject>`
-  - [ ] Commit message follows the [guidelines](https://sensedu-shield.com/contributing/#styling-guidelines)
+  - [ ] PR title follows the style: `Type: Descriptive Name`
+  - [ ] Commit messages follow the [guidelines](https://sensedu-shield.com/contributing/#styling-guidelines)
   - [ ] Code compiles
   - [ ] New additions are tested
   - [ ] Changes are documented on the [website]() (refer to the [docs section](https://sensedu-shield.com/contributing/docs/))
 
 * **Link related open issue**
-#`<issue-number>`
+#XX
 
 * **Provide a short description**
 
