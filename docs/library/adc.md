@@ -20,7 +20,7 @@ The STM32H747 features three 16-bit ADCs with up to 20 multiplexed channels each
 
 ## Errors
 
-The main ADC error code prefix is `0x20xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+The main ADC error code prefix is `0x20xx`. Find the way to display errors in your Arduino sketch [here]({% link library/index.md %}#error-handling).
 
 An overview of possible errors for ADC:
 
@@ -284,7 +284,7 @@ Continuously reads ADC conversions directly via CPU for one selected analog pin.
 
 1. Include SensEdu library
 2. Declare ADC instance, pin array and array size corresponding to your channel count for selected ADC
-3. Configure ADC Parameters by declaring [`SensEdu_ADC_Settings`]({% link Library/ADC.md %}#sensedu_adc_settings) struct
+3. Configure ADC Parameters by declaring [`SensEdu_ADC_Settings`]({% link library/adc.md %}#sensedu_adc_settings) struct
 4. Initialize `SensEdu_ADC_Init()` and power up ADC `SensEdu_ADC_Enable()`
 5. Start ADC once with `SensEdu_ADC_Start()` (**once** applies only for continuous mode `SENSEDU_ADC_MODE_CONT`)
 6. In a loop, manually read data from a single channel using `SensEdu_ADC_ReadConversion()`. Print results with `Serial`
@@ -333,7 +333,7 @@ void loop() {
 
 Continuously reads sequences of ADC conversions directly via CPU for multiple selected analog pins.
 
-1. Follow base configuration from the [`Read_ADC_1CH`]({% link Library/ADC.md %}#read_adc_1ch) example
+1. Follow base configuration from the [`Read_ADC_1CH`]({% link library/adc.md %}#read_adc_1ch) example
 2. Expand pin array to include all desired channels. Update array size to match channel count
 3. Use `SensEdu_ADC_ReadSequence()` to retrieve a channel sequence array
 
@@ -364,7 +364,7 @@ void loop() {
 
 Continuously reads ADC conversions directly via CPU for one selected analog pin with constant sampling rate using timer trigger.
 
-1. Follow base configuration from the [`Read_ADC_1CH`]({% link Library/ADC.md %}#read_adc_1ch) example
+1. Follow base configuration from the [`Read_ADC_1CH`]({% link library/adc.md %}#read_adc_1ch) example
 2. Update conversion mode `.conv_mode` in `SensEdu_ADC_Settings` to `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`
 3. Specify sampling frequency in Hz via `.sampling_freq`
 
@@ -394,7 +394,7 @@ SensEdu_ADC_Settings adc_settings = {
 
 Continuously reads sequences of ADC conversions directly via CPU for multiple selected analog pins with constant sampling rate using timer trigger.
 
-1. Follow base multi-channel configuration from the [`Read_ADC_3CH`]({% link Library/ADC.md %}#read_adc_3ch) example
+1. Follow base multi-channel configuration from the [`Read_ADC_3CH`]({% link library/adc.md %}#read_adc_3ch) example
 2. Update conversion mode `.conv_mode` in `SensEdu_ADC_Settings` to `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`
 3. Specify sampling frequency in Hz via `.sampling_freq`
 
@@ -424,7 +424,7 @@ SensEdu_ADC_Settings adc_settings = {
 
 Continuously reads ADC conversions using DMA for a single analog pin, allowing efficient data transfer without CPU intervention.
 
-1. Follow the base configuration from the [`Read_ADC_1CH`]({% link Library/ADC.md %}#read_adc_1ch) example
+1. Follow the base configuration from the [`Read_ADC_1CH`]({% link library/adc.md %}#read_adc_1ch) example
 2. Declare ADC Buffer with a macro `SENSEDU_ADC_BUFFER` to store the data. It takes two parameters: the user-defined ***name*** to be used in the code and the buffer ***size*** (number of elements)
 3. In `SensEdu_ADC_Settings`, set `.dma_mode` to `SENSEDU_ADC_DMA_CONNECT`
 4. Assign `.mem_address` to the buffer's first element address and `.mem_size` to its length
@@ -484,14 +484,14 @@ void loop() {
 * Optimize your code to use DMA capability to perform memory transfers in the background. For example, start a new measurement in the middle of calculations, when the whole old dataset is not needed anymore.
 
 {: .WARNING}
-Always use `SENSEDU_ADC_BUFFER` macro to define arrays for ADC in DMA mode. This macro automatically handles all buffer requirements for cache coherence, regardless of the selected size. For details, visit the [Cache Coherence]({% link Library/ADC.md %}#cache-coherence) section.
+Always use `SENSEDU_ADC_BUFFER` macro to define arrays for ADC in DMA mode. This macro automatically handles all buffer requirements for cache coherence, regardless of the selected size. For details, visit the [Cache Coherence]({% link library/adc.md %}#cache-coherence) section.
 
 
 ### Read_ADC_3CH_DMA
 
 Continuously reads ADC conversions using DMA multiple selected analog pins, allowing efficient data transfer without CPU intervention.
 
-1. Follow the DMA configuration from the [`Read_ADC_1CH_DMA`]({% link Library/ADC.md %}#read_adc_1ch_dma) example
+1. Follow the DMA configuration from the [`Read_ADC_1CH_DMA`]({% link library/adc.md %}#read_adc_1ch_dma) example
 2. Expand pin array to include all desired channels. Update array size to match channel count
 3. Expand the ADC DMA buffer accordingly to include data for all channels
 4. Data is organized in a sequence, following the order defined in pin array (e.g., A0 → A1 → A2 → A0 → A1 → ...)
@@ -534,7 +534,7 @@ void loop() {
 
 ### Read_2ADC_3CH_DMA
 
-This example demonstrates the usage of multiple ADCs in DMA mode. Essentially, you follow the same steps as in the [`Read_ADC_3CH_DMA`]({% link Library/ADC.md %}#read_adc_3ch_dma) example, but use separate buffers, configuration structures, and function calls for each ADC.
+This example demonstrates the usage of multiple ADCs in DMA mode. Essentially, you follow the same steps as in the [`Read_ADC_3CH_DMA`]({% link library/adc.md %}#read_adc_3ch_dma) example, but use separate buffers, configuration structures, and function calls for each ADC.
 
 For example:
 
@@ -713,7 +713,7 @@ The `SENSEDU_ADC_BUFFER` macro accepts **any** user-defined size in `uint16_t` e
 {: .WARNING}
 Some legacy projects manually declare DMA buffers using the `__attribute__((aligned(...)))`. While this can work, it is easy to get alignment or sizing wrong, which can lead to unnecessary cache invalidation or other unexpected behavior. Whenever you use the ADC in DMA mode, prefer `SENSEDU_ADC_BUFFER`.
 
-[table]: /SensEdu/Library/ADC/#adc_mapping
+[table]: /SensEdu/library/ADC/#adc_mapping
 [this issue]: https://github.com/ShiegeChan/SensEdu/issues/8
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
 [Manual Page]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf

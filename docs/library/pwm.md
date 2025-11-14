@@ -18,7 +18,7 @@ Pulse-Width Modulation (PWM) is a digital signal with a varying duty cycle, used
 
 ## Errors
 
-The main PWM error code prefix is `0x50xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+The main PWM error code prefix is `0x50xx`. Find the way to display errors in your Arduino sketch [here]({% link library/index.md %}#error-handling).
 
 An overview of possible errors for PWM signals:
 * `0x5000`: No Errors
@@ -77,7 +77,7 @@ void SensEdu_PWM_Start(void);
 #### Notes
 {: .no_toc}
 * Internally enables the timer.
-* Forces an update event before enabling the timer, ensuring the latest configuration is applied. Refer to [configuration section]({% link Library/PWM.md%}#configuration) for details.
+* Forces an update event before enabling the timer, ensuring the latest configuration is applied. Refer to [configuration section]({% link library/pwm.md%}#configuration) for details.
 
 ### SensEdu_PWM_Stop
 Stops PWM generation.
@@ -89,7 +89,7 @@ void SensEdu_PWM_Stop(void);
 #### Notes
 {: .no_toc}
 * Internally disables the timer.
-* Forces an update event after disabling the timer, resetting outputs to LOW by default. Refer to [configuration section]({% link Library/PWM.md%}#configuration) for details.
+* Forces an update event after disabling the timer, resetting outputs to LOW by default. Refer to [configuration section]({% link library/pwm.md%}#configuration) for details.
 
 ### SensEdu_PWM_SetFrequency
 Sets a new frequency for the PWM signal.
@@ -160,8 +160,8 @@ Below is the figure of the resulting PWM waveforms for pins **D4 (black)**{: .te
 
 This example shows how to generate a sequence of PWM signals with gradually increasing frequencies on one output pin.
 
-1. Follow the same basic configuration as in the [`Generate_PWM`]({% link Library/PWM.md %}#generate_pwm)
-2. Add a custom delay timer as described in [`Blink_Delay`]({% link Library/Timers.md%}#blink_delay). This delay is used to control the duration of each individual frequency
+1. Follow the same basic configuration as in the [`Generate_PWM`]({% link library/pwm.md %}#generate_pwm)
+2. Add a custom delay timer as described in [`Blink_Delay`]({% link library/timers.md%}#blink_delay). This delay is used to control the duration of each individual frequency
 3. Configure the parameters:
   * Starting frequency (`fstart`)
   * Ending frequency (`fend`)
@@ -219,7 +219,7 @@ for (uint32_t i = 0; i < steps; i++) {
 PWM generation relies on the timer counting up to the `ARR` register, which defines the signal’s period. At a specific fraction of the `ARR` defined in the `CCR` (Capture/Compare Register), the signal toggles, creating the desired duty cycle. By adjusting the `CCR` value, you can control the proportion of the high state in the signal, thus setting the PWM duty cycle.
 
 {: .TIP}
-If you are not familiar with timer frequency calculations, refer to the corresponding [section on the Timers page]({% link Library/Timers.md %}#frequency-settings).
+If you are not familiar with timer frequency calculations, refer to the corresponding [section on the Timers page]({% link library/timers.md %}#frequency-settings).
 
 For example, a $$50\%$$ duty cycle can be achieved using the following configuration. Assume the timer parameters $$TIM_{CLK} = 240\text{MHz}$$, $$PSC = 23$$, and $$ARR = 9$$. The resulting frequency is calculated as:
 

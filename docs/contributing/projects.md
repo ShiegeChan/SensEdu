@@ -29,7 +29,7 @@ To submit your project, please follow these steps:
    ---
    ```
    3. The order of projects is defined by `nav_order`. Use the next available number for proper website navigation. Customize `title` with your project name
-   4. Follow [Documentation Contributions]({% link Contributing/docs.md %}) for detailed page creation guidelines
+   4. Follow [Documentation Contributions]({% link contributing/docs.md %}) for detailed page creation guidelines
    5. Share implementation details and nice pictures of you project!
 5. Commit all changes to your fork and submit a [Pull Request] (PR) to the main SensEdu [repository]
 

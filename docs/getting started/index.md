@@ -15,7 +15,7 @@ Follow these steps to begin developing your projects with SensEdu.
 {: .NOTE}
 *If you prefer video tutorials, we have an [installation guide] on YouTube (not yet).*
 
-**Step 1**{: .text-green-200} : Connect SensEdu Shield to the Arduino GIGA R1. **By default, the power and speakers are disabled.** To enable them, place a small [2-pin jumper](https://mou.sr/41uQmLm) onto headers **J18**, **J17**, and **J8**, according to the desired settings. The standard configuration is shown in the figure below (more details in [PCB section]({% link PCB/index.md%}#key-headersjumpers))
+**Step 1**{: .text-green-200} : Connect SensEdu Shield to the Arduino GIGA R1. **By default, the power and speakers are disabled.** To enable them, place a small [2-pin jumper](https://mou.sr/41uQmLm) onto headers **J18**, **J17**, and **J8**, according to the desired settings. The standard configuration is shown in the figure below (more details in [PCB section]({% link pcb/index.md%}#key-headersjumpers))
 
 <img src="{{site.baseurl}}/assets/images/GettingStartedJumpers.png" alt="drawing"/>
 {: .text-center}
@@ -61,12 +61,12 @@ Follow these steps to begin developing your projects with SensEdu.
 ## Post-Setup
 
 Now that your setup is complete, you can start developing your projects with SensEdu! Here are some next steps to get started:
-* Explore the [Library]({% link Library/index.md %}) wiki section for detailed examples of each peripheral
-* Check out sample projects in `projects\` folder, and respective [Projects]({% link Projects/index.md %}) section
-* For troubleshooting or guidance, visit the [Help]({% link Help/index.md %}) section
+* Explore the [Library]({% link library/index.md %}) wiki section for detailed examples of each peripheral
+* Check out sample projects in `projects\` folder, and respective [Projects]({% link projects/index.md %}) section
+* For troubleshooting or guidance, visit the [Help]({% link help/index.md %}) section
 
 {: .NOTE}
-If you are interested in contributing to SensEdu, visit the [Contributing]({% link Contributing/index.md %}) page and join our community!
+If you are interested in contributing to SensEdu, visit the [Contributing]({% link contributing/index.md %}) page and join our community!
 
 [Arduino IDE]: https://support.arduino.cc/hc/en-us/articles/360019833020-Download-and-install-Arduino-IDE
 [SensEdu release]: https://github.com/ShiegeChan/SensEdu/releases/

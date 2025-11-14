@@ -22,7 +22,7 @@ This project is completely open source and comes with quick support from the dev
 
 {: .WARNING}
 SensEdu is still in its early development stages.
-The core functionality is available, but many additional features are in progress. If you like the project, consider [contributing]({% link Contributing/index.md %}). Any input from both experienced developers and beginners is highly appreciated!
+The core functionality is available, but many additional features are in progress. If you like the project, consider [contributing]({% link contributing/index.md %}). Any input from both experienced developers and beginners is highly appreciated!
 
 ## Features
 {: .fw-500}
@@ -33,7 +33,7 @@ SensEdu includes:
 * Ultrasonic Transducers
 * Barometric Air Pressure Sensor
 
-You can find detailed information about each component in the [PCB Chapter]({% link PCB/index.md %}). With these components, you can build a variety of projects, such as:
+You can find detailed information about each component in the [PCB Chapter]({% link pcb/index.md %}). With these components, you can build a variety of projects, such as:
 * Pulse-Echo and FMCW ultrasonic ranging
 * Doppler Velocimeter
 * FSK ultrasonic communication
@@ -45,9 +45,9 @@ You can find detailed information about each component in the [PCB Chapter]({% l
 
 The project is divided into three main parts:
 
-* [Shield PCB]({% link PCB/index.md %}) – Located in `pcb\`
-* [Hardware Abstraction Library]({% link Library/index.md %}) – Located in `libraries\SensEdu\`
-* [Full Projects]({% link Projects/index.md %}) – Located in `projects\`
+* [Shield PCB]({% link pcb/index.md %}) – Located in `pcb\`
+* [Hardware Abstraction Library]({% link library/index.md %}) – Located in `libraries\SensEdu\`
+* [Full Projects]({% link projects/index.md %}) – Located in `projects\`
 
 Each part is thoroughly documented in this wiki, allowing you to modify both software and hardware using the provided examples.
 

@@ -21,7 +21,7 @@ This project is in an early draft state. The WiFi GUI currently supports only ra
 
 ## Introduction
 
-For the whole ultrasonic implementation info etc, refer to main [Ultrasonic Ranging page]({% link Projects/UltraSound.md %}). This page focuses on differences: WiFi implementation and GUI.
+For the whole ultrasonic implementation info etc, refer to main [Ultrasonic Ranging page]({% link projects/pulse-echo-ranging.md %}). This page focuses on differences: WiFi implementation and GUI.
 
 ## Current status
 A draft GUI (WiFi_GUI.mlapp) is now included. In its current form, the GUI works with the **UltraSound-WiFi-GUI**, but displays only raw signals. The GUI application will need to be adapted to get the full detailed readings.

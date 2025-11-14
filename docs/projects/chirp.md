@@ -119,7 +119,7 @@ In this configuration, the first value of the chirp signal array is 0 (or 0 V in
 
 ## Main code
 {: .text-yellow-300}
-Check out the [DAC]({% link Library/DAC.md %}) section for more information on the DAC library and different DAC related functions.
+Check out the [DAC]({% link library/dac.md %}) section for more information on the DAC library and different DAC related functions.
 
 The `Chirp_SawtoothMod.ino` and `Chirp_TriangularMod.ino` files contain the main code to generate the chirp signal, send the chirp signal to the DAC and enable the DAC.
 

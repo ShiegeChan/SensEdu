@@ -108,7 +108,7 @@ In our example, we used the following electrodes:
 | SparkFun Electronics | Electrode Pads | 12970 | [link](https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/2277/CAB-12970_Web.pdf) | [link](https://www.digikey.at/de/products/detail/sparkfun-electronics/12970/6833933?gclsrc=aw.ds&gad_source=1&gad_campaignid=20265439570&gclid=CjwKCAjwqKzEBhANEiwAeQaPVawVKSgXTIiVYtlIXGx7Bx94wvNKO64lkmGlu8jQ0lByNxnXmPGLFhoCgNcQAvD_BwE) |
 | MTG Imiella Medizintechnik | Liquid Gel Disposable Electrodes for ECG (Ø40mm) | S40LG | [link](https://static.mercateo.com/ec/2c36d66dd9904e92ad9e3075734affb2/pdf/106366.pdf?v=2297) | [link](https://www.mercateo.at/p/2768-028002/Einmal_Klebeelektroden_40_mm_Liquid_Gel_30_Stueck.html) |
 
-These electrodes use a mini-jack connector. To simplify the connection, we designed a simple PCB adapter called **MiniJack2Jumper**. This adapter is inserted vertically into the SensEdu header, providing a mini-jack socket and eliminating the need for soldering. All PCB source files, including Gerbers and BOM, are available in the directory: `/Projects/EMG-BioInputs/pcbs/MiniJack2Jumper`. To replicate our setup, you can use archive `MiniJack2Jumper/manufacturing/MiniJack2Jumper-Gerber.zip` to order the PCB from any cheap Chinese manufacturer. The cost typically ranges from $15–$30 depending on shipping.
+These electrodes use a mini-jack connector. To simplify the connection, we designed a simple PCB adapter called **MiniJack2Jumper**. This adapter is inserted vertically into the SensEdu header, providing a mini-jack socket and eliminating the need for soldering. All PCB source files, including Gerbers and BOM, are available in the directory: `/projects/EMG-BioInputs/pcbs/MiniJack2Jumper`. To replicate our setup, you can use archive `MiniJack2Jumper/manufacturing/MiniJack2Jumper-Gerber.zip` to order the PCB from any cheap Chinese manufacturer. The cost typically ranges from $15–$30 depending on shipping.
 
 <img src="{{site.baseurl}}/assets/images/EMG_MiniJack2Jumper.png"/>
 {: .text-center .mb-1}
@@ -159,7 +159,7 @@ To write Arduino scripts for EMG signal acquisition, it is crucial to understand
 * Which input header is connected to each amplifier channel
 * Which amplifier output corresponds to which ADC channel on the MCU
 
-All these details are available in the [SensEdu schematics](https://github.com/vladysor/SensEdu/blob/main/pcb/SensEdu_Schematics.pdf) and [ADC mapping table]({% link Library/ADC.md %}#adc_mapping). For convenience, the table below provides a summary of the relevant connections:
+All these details are available in the [SensEdu schematics](https://github.com/vladysor/SensEdu/blob/main/pcb/SensEdu_Schematics.pdf) and [ADC mapping table]({% link library/adc.md %}#adc_mapping). For convenience, the table below provides a summary of the relevant connections:
 
 | Input Header | Amplifier Channel | Output Arduino Pin | Output STM32 Pin | Available ADCs
 |:------|:--------|:------|:------|:------------|
@@ -181,7 +181,7 @@ The measurement duration is independent of the number of selected channels. ADC 
 
 In practice, the actual $$d_{meas}$$ varies between approximately $$46-51\mathrm{ms}$$ due to delays from data transmission, wasted CPU cycles, ADC conversion rate fluctuations, and other factors. In the end, it results in a practical measurement rate at around $$20$$ measurements per second. If this performance is not satisfactory, revisit the adjustment of ADC parameters.
 
-Keeping selected parameters in mind, the ADC can be configured using [SensEdu Library]({% link Library/index.md %}). The configuration follows similar structure to the [Read_ADC_3CH_DMA]({% link Library/ADC.md %}#read_adc_3ch_dma) example. Below is a minimal code example, focusing on the essential lines.
+Keeping selected parameters in mind, the ADC can be configured using [SensEdu Library]({% link library/index.md %}). The configuration follows similar structure to the [Read_ADC_3CH_DMA]({% link library/adc.md %}#read_adc_3ch_dma) example. Below is a minimal code example, focusing on the essential lines.
 
 ```c
 ADC_TypeDef* adc = ADC1;
@@ -247,7 +247,7 @@ void transfer_serial_data(uint16_t* buf, const uint16_t buf_size, const uint16_t
 }
 ```
 
-Alternatively, WiFi can be used for data transfer by implementing a method similar to the [Basic_UltraSound_WiFi]({% link Library/Others.md %}#basic_ultrasound_wifi) example.
+Alternatively, WiFi can be used for data transfer by implementing a method similar to the [Basic_UltraSound_WiFi]({% link library/others.md %}#basic_ultrasound_wifi) example.
 
 ## Signal Processing
 
@@ -291,11 +291,11 @@ There is a logic that doesn't start the plotting or decision making before the w
 
 ### Decision Block
 
-![alt text]({{site.baseurl}}/Projects/image-2.png)
+![alt text]({{site.baseurl}}/projects/image-2.png)
 
 MATLAB magic
 
-![alt text]({{site.baseurl}}/Projects/image-3.png)
+![alt text]({{site.baseurl}}/projects/image-3.png)
 
 1. full wave rectification
 
@@ -307,23 +307,23 @@ mean value of zero).
 
 2. envelope
 
-![alt text]({{site.baseurl}}/Projects/image-7.png)
+![alt text]({{site.baseurl}}/projects/image-7.png)
 
 3. envelope ver2
 
-![alt text]({{site.baseurl}}/Projects/image-8.png)
+![alt text]({{site.baseurl}}/projects/image-8.png)
 
-![alt text]({{site.baseurl}}/Projects/image-9.png)
+![alt text]({{site.baseurl}}/projects/image-9.png)
 
 ### Press problems
 
-![alt text]({{site.baseurl}}/Projects/image-10.png)
+![alt text]({{site.baseurl}}/projects/image-10.png)
 
-![alt text]({{site.baseurl}}/Projects/image-11.png)
+![alt text]({{site.baseurl}}/projects/image-11.png)
 
-![alt text]({{site.baseurl}}/Projects/image-12.png)
+![alt text]({{site.baseurl}}/projects/image-12.png)
 
-![alt text]({{site.baseurl}}/Projects/image-13.png)
+![alt text]({{site.baseurl}}/projects/image-13.png)
 
 ### Capacitive input
 
@@ -341,21 +341,21 @@ in Fig. 26a/26b). Deeper, smaller or overlaid muscles need a fine wire applicati
 kinesiological studies. The two yellow dots of the surface muscles indicate the orientation of the electrode 
 pair in ratio to the muscle fiber direction (proposals compiled from 1, 4, 10 and SENIAM).
 
-![alt text]({{site.baseurl}}/Projects/image.png)
+![alt text]({{site.baseurl}}/projects/image.png)
 
 At least one neutral reference electrode per subject needs to be positioned. Typically an electrically unaffected but nearby area is selected, such as joints, bony area, frontal head, processus spinosus, christa iliaca, tibia bone etc
 
 Due to differential amplification against any reference, the latest amplifier technology 
 (NORAXON active systems) needs no special area but only a location nearby the first electrode site.
 
-![alt text]({{site.baseurl}}/Projects/image-1.png)
+![alt text]({{site.baseurl}}/projects/image-1.png)
 
-![alt text]({{site.baseurl}}/Projects/image-4.png)
+![alt text]({{site.baseurl}}/projects/image-4.png)
 
 RULES:
-![alt text]({{site.baseurl}}/Projects/image-5.png)
+![alt text]({{site.baseurl}}/projects/image-5.png)
 
-![alt text]({{site.baseurl}}/Projects/image-6.png)
+![alt text]({{site.baseurl}}/projects/image-6.png)
 
 ## Showcase
 
