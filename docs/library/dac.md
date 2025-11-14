@@ -29,7 +29,7 @@ Each of the methods is useful for different applications.
 
 ## Errors
 
-The main DAC error code prefix is `0x40xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+The main DAC error code prefix is `0x40xx`. Find the way to display errors in your Arduino sketch [here]({% link library/index.md %}#error-handling).
 
 An overview of possible errors for DAC:
 
@@ -162,7 +162,7 @@ const SENSEDU_DAC_BUFFER(buffer_name, buffer_size) = {...};
 The first parameter of `SENSEDU_DAC_BUFFER` is the user-defined ***name*** to be used in the program code while the second parameter is the ***size*** of the LUT. 
 
 {: .WARNING}
-Always use `SENSEDU_DAC_BUFFER` macro to define arrays/LUTs for the DAC. This macro automatically handles all buffer requirements for cache coherence, regardless of the selected size. For details, visit the [MPU Configuration]({% link Library/DAC.md %}#mpu-configuration) section.
+Always use `SENSEDU_DAC_BUFFER` macro to define arrays/LUTs for the DAC. This macro automatically handles all buffer requirements for cache coherence, regardless of the selected size. For details, visit the [MPU Configuration]({% link library/dac.md %}#mpu-configuration) section.
 
 ### Send_DAC_Single_Sine
 
@@ -222,7 +222,7 @@ void loop() {
 
 Transmitting a specified number of cycles of a predefined LUT with sine waveform, creating bursts.
 
-1. Follow single wave example [`Send_DAC_Single_Sine`]({% link Library/DAC.md %}#send_dac_single_sine)
+1. Follow single wave example [`Send_DAC_Single_Sine`]({% link library/dac.md %}#send_dac_single_sine)
 2. Change `wave_mode` to `SENSEDU_DAC_MODE_BURST_WAVE`
 3. Specify `burst_num` to desired cycle number
 
@@ -236,7 +236,7 @@ Transmitting a specified number of cycles of a predefined LUT with sine waveform
 
 Transmitting a constant sine wave with predefined LUT.
 
-1. Follow single wave example [`Send_DAC_Single_Sine`]({% link Library/DAC.md %}#send_dac_single_sine)
+1. Follow single wave example [`Send_DAC_Single_Sine`]({% link library/dac.md %}#send_dac_single_sine)
 2. Change `wave_mode` to `SENSEDU_DAC_MODE_CONTINUOUS_WAVE`
 3. Enable DAC once in setup with `SensEdu_DAC_Enable`
 

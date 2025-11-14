@@ -19,7 +19,7 @@ Whether you're fixing bugs, adding new functionality, improving documentation, o
 Before diving in, familiarize yourself with SensEdu:
 1.  Read through this wiki
 2.  Run basic examples and finished projects
-3.  Explore existing [issues] and [roadmap]({%link Contributing/index.md %}#roadmap)
+3.  Explore existing [issues] and [roadmap]({%link contributing/index.md %}#roadmap)
 
 If you are still not sure what to do, feel free to open a [discussion](https://github.com/ShiegeChan/SensEdu/discussions) and we'll find a task for you!
 
@@ -46,7 +46,7 @@ Clear documentation is essential for our educational purposes, help us:
 * Clarify ambiguous explanations to ensure everything is easy to understand
 * Fill in missing explanations
 
-Check [Documentation Contributions]({% link Contributing/docs.md %}) for detailed instructions.
+Check [Documentation Contributions]({% link contributing/docs.md %}) for detailed instructions.
 
 {: .IMPORTANT}
 For educational purposes, the documentation is aimed not only at developers but at beginner students as well. Try to avoid logical skips, use simple language and add diagrams, image or code examples!
@@ -55,7 +55,7 @@ For educational purposes, the documentation is aimed not only at developers but 
 
 If you are an experienced embedded systems developer, feel free to optimize library code for better performance.
 
-1. Review the [library wiki section]({% link Library/index.md %}) and [Library Contributions]({% link Contributing/library.md %})
+1. Review the [library wiki section]({% link library/index.md %}) and [Library Contributions]({% link contributing/library.md %})
 2. Assign yourself an [issue] to ensure collaboration with others who are working on the same feature and to avoid duplicates
 3. Create a fork and develop your feature
 4. Submit a [Pull Request] (PR) and ask for a review
@@ -64,7 +64,7 @@ If you are an experienced embedded systems developer, feel free to optimize libr
 Try to keep PRs small, focusing on one feature/fix per PR.
 
 ### Submit Project
-Created something amazing using SensEdu? Share it with us! Check [Project Contributions]({% link Contributing/index.md %}#project-contributions) for detailed instructions.
+Created something amazing using SensEdu? Share it with us! Check [Project Contributions]({% link contributing/index.md %}#project-contributions) for detailed instructions.
 
 Projects are much appreciated even if they are quite similar to already developed ones. If you are unsure which project to develop, here are some suggestions:
 * Radar speed gun

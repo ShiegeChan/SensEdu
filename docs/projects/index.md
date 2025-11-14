@@ -13,12 +13,12 @@ The following section documents select projects developed by SensEdu contributor
 {: .fw-500}
 
 {: .WARNING}
-Currently, this section is the main focus of our team. We aim to expand our collection of polished, fully documented projects to better illustrate SensEdu applications. Contributions are highly welcomed! If you’ve created a nice project, please consider adding it to both this wiki and our main repository by following [these guidelines]({% link Contributing/projects.md %}).
+Currently, this section is the main focus of our team. We aim to expand our collection of polished, fully documented projects to better illustrate SensEdu applications. Contributions are highly welcomed! If you’ve created a nice project, please consider adding it to both this wiki and our main repository by following [these guidelines]({% link contributing/projects.md %}).
 
 {: .NOTE}
 Most of the projects utilize SensEdu library, but it is not explicitly necessary, you can develop projects with standard or other custom Arduino GIGA R1 libraries.
 
-As detailed in the [PCB specifications]({% link PCB/index.md %}), all applications center around three core hardware components:
+As detailed in the [PCB specifications]({% link pcb/index.md %}), all applications center around three core hardware components:
 * MEMS microphones
 * Barometric Air Pressure Sensor
 * Ultrasonic Transducers

@@ -50,7 +50,7 @@ const SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {
 };
 ```
 
-**Step 3**{: .text-blue-000} : Initialize the `SensEdu_DAC_Settings` struct with DAC parameters. Refer to [DAC page]({% link Library/DAC.md %}#sensedu_dac_settings) for details.
+**Step 3**{: .text-blue-000} : Initialize the `SensEdu_DAC_Settings` struct with DAC parameters. Refer to [DAC page]({% link library/dac.md %}#sensedu_dac_settings) for details.
 
 ```c
 #define DAC_SINE_FREQ       32000                           // 32kHz
@@ -67,7 +67,7 @@ SensEdu_DAC_Settings dac_settings = {
 };
 ```
 
-**Step 4**{: .text-blue-000} : Initialize the `SensEdu_ADC_Settings` struct with ADC parameters. Refer to [ADC page]({% link Library/ADC.md %}#sensedu_adc_settings) for details. Array for ADC must have the proper size and be cache aligned, you can read more about this [here]({% link Library/ADC.md %}#cache-coherence).
+**Step 4**{: .text-blue-000} : Initialize the `SensEdu_ADC_Settings` struct with ADC parameters. Refer to [ADC page]({% link library/adc.md %}#sensedu_adc_settings) for details. Array for ADC must have the proper size and be cache aligned, you can read more about this [here]({% link library/adc.md %}#cache-coherence).
 
 ```c
 const uint16_t mic_data_size = 16*128; // must be multiple of 16 for 16bit
@@ -209,7 +209,7 @@ Second figure shows measurements with a flat object placed near the board. Here,
 
 Utilizes all four microphones.
 
-Steps are the same as for [Basic_UltraSound]({% link Library/Others.md %}#basic_ultrasound). The only difference is in ADC configuration and the method of receiving data. For a setup with four microphones, we could use two ADCs in 2-Channel mode.
+Steps are the same as for [Basic_UltraSound]({% link library/others.md %}#basic_ultrasound). The only difference is in ADC configuration and the method of receiving data. For a setup with four microphones, we could use two ADCs in 2-Channel mode.
 
 ```c
 const uint16_t mic_data_size = 16*128*2;
@@ -250,7 +250,7 @@ SensEdu_ADC_Settings adc2_settings = {
 };
 ```
 
-For each ADC interaction, call both ADC1 and ADC2 (see example below). If you use the A9 pin for older board revisions, don't forget to call `SensEdu_ADC_ShortA4toA9`, which is explained [here]({% link Library/ADC.md %}#sensedu_adc_shorta4toa9).
+For each ADC interaction, call both ADC1 and ADC2 (see example below). If you use the A9 pin for older board revisions, don't forget to call `SensEdu_ADC_ShortA4toA9`, which is explained [here]({% link library/adc.md %}#sensedu_adc_shorta4toa9).
 
 ```c
 SensEdu_ADC_ShortA4toA9();
@@ -305,7 +305,7 @@ Second figure shows measurements with a flat object placed near the board. Here,
 
 ### Basic_UltraSound_WiFi
 
-Utilizes only one microphone. The example is similar to [Basic_UltraSound]({% link Library/Others.md %}#basic_ultrasound), but uses WiFi as communication medium instead of Serial.
+Utilizes only one microphone. The example is similar to [Basic_UltraSound]({% link library/others.md %}#basic_ultrasound), but uses WiFi as communication medium instead of Serial.
 
 **Step 0**{: .text-blue-000} : Connect an antenna to the Arduino GIGA R1 (provided in the bundle)
 
@@ -336,7 +336,7 @@ const SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {
 };
 ```
 
-**Step 3**{: .text-blue-000} : Initialize the `SensEdu_DAC_Settings` struct with DAC parameters. Refer to [DAC page]({% link Library/DAC.md %}#sensedu_dac_settings) for details.
+**Step 3**{: .text-blue-000} : Initialize the `SensEdu_DAC_Settings` struct with DAC parameters. Refer to [DAC page]({% link library/dac.md %}#sensedu_dac_settings) for details.
 
 ```c
 #define DAC_SINE_FREQ       32000                           // 32kHz
@@ -353,7 +353,7 @@ SensEdu_DAC_Settings dac_settings = {
 };
 ```
 
-**Step 4**{: .text-blue-000} : Initialize the `SensEdu_ADC_Settings` struct with ADC parameters. Refer to [ADC page]({% link Library/ADC.md %}#sensedu_adc_settings) for details. Array for ADC must have the proper size and be cache aligned, you can read more about this [here]({% link Library/ADC.md %}#cache-coherence).
+**Step 4**{: .text-blue-000} : Initialize the `SensEdu_ADC_Settings` struct with ADC parameters. Refer to [ADC page]({% link library/adc.md %}#sensedu_adc_settings) for details. Array for ADC must have the proper size and be cache aligned, you can read more about this [here]({% link library/adc.md %}#cache-coherence).
 
 ```c
 const uint16_t mic_data_size = 16*128; // must be multiple of 16 for 16bit

@@ -28,13 +28,13 @@ SensEdu_ADC_Enable(ADC1); // Enable ADC1 peripheral
 ```
 
 ### Supported Peripherals
-* [Timers]({% link Library/Timers.md %})
+* [Timers]({% link library/timers.md %})
   * Prefix: `SensEdu_TIMER_`
   * Source: `\src\timer.c`
-* [ADC]({% link Library/ADC.md %})
+* [ADC]({% link library/adc.md %})
   * Prefix: `SensEdu_ADC_`
   * Source: `\src\adc.c` and `\src\dma.c`
-* [DAC]({% link Library/DAC.md %})
+* [DAC]({% link library/dac.md %})
   * Prefix: `SensEdu_DAC_`
   * Source: `\src\dac.c` and `\src\dma.c`
 * [PWM]()

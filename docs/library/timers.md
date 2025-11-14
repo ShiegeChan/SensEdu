@@ -18,13 +18,13 @@ Timers allow precise event scheduling, such as creating delays or setting sampli
 
 ## Errors
 
-The main timer error code prefix is `0x10xx`. Find the way to display errors in your Arduino sketch [here]({% link Library/index.md %}#error-handling).
+The main timer error code prefix is `0x10xx`. Find the way to display errors in your Arduino sketch [here]({% link library/index.md %}#error-handling).
 
 An overview of possible errors for timers:
 * `0x1000`: No Errors
 * `0x1001`: Unexpected delay value. Minimum possible is 1ns
-* `0x1002`: Unexpected ADC frequency. Maximum possible is 120MHz, refer to [these calculations]({% link Library/Timers.md %}#frequency-settings) for more details
-* `0x1003`: Unexpected DAC frequency. Maximum possible is 60MHz, refer to [these calculations]({% link Library/Timers.md %}#frequency-settings) for more details
+* `0x1002`: Unexpected ADC frequency. Maximum possible is 120MHz, refer to [these calculations]({% link library/timers.md %}#frequency-settings) for more details
+* `0x1003`: Unexpected DAC frequency. Maximum possible is 60MHz, refer to [these calculations]({% link library/timers.md %}#frequency-settings) for more details
 * `0x1004`: TIM8 initialization attempt while TIM8 is running. Configuration is possible only for disabled timer
 * `0x1005`: TIM8 Unexpected CCR channel. Possible options are: `CCR1`, `CCR2`, `CCR3` or `CCR4`
 
@@ -76,7 +76,7 @@ void SensEdu_TIMER_Delay_ns(uint32_t delay_ns);
 * For `delay_ns` $$\gt$$ $$1000\text{us}$$, the function internally switches to `SensEdu_TIMER_Delay_us()` to avoid potential 32-bit overflow in the `NS_TO_TICKS(ns)` macro.
 * The lowest achievable timer resolution on STM32H747 MCU is ~$$4.17\text{ns}$$, calculated as: $$\text{tick} = 1/240\text{MHz} \times 10^9 \approx4.17\text{ns}$$. Delays are therefore multiples of this tick, approximately: $$4\text{ns}$$, $$8\text{ns}$$, $$13\text{ns}$$, $$17\text{ns}$$, etc.
 * Delays shorter than $$250\text{ns}$$ are generally not practical, due to set frequencies being close to the system clock frequency of the MCU. These delays become overpowered by the software overhead. Execution of the function itself takes around $$60-120$$ CPU cycles, corresponding to ~$$125-250\text{ns}$$ on a $$480\text{MHz}$$ core.
-* To account for software overhead, a hardcoded compensation of $$550\text{ns}$$ is applied. Additionally, any requested delays below this threshold are automatically raised to $$550\text{ns}$$. The reasons for this exact number are explained in the [compensation section]({% link Library/Timers.md %}#software-overhead-compensation-in-nanosecond-delays).
+* To account for software overhead, a hardcoded compensation of $$550\text{ns}$$ is applied. Additionally, any requested delays below this threshold are automatically raised to $$550\text{ns}$$. The reasons for this exact number are explained in the [compensation section]({% link library/timers.md %}#software-overhead-compensation-in-nanosecond-delays).
 
 ## Examples
 
