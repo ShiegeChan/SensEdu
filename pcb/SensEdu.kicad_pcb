@@ -16239,7 +16239,7 @@
 		(descr "328ST16M_Speaker")
 		(tags "328ST16M_Speaker")
 		(property "Reference" "LS1"
-			(at 0 -2.92 270)
+			(at 0 -2.92 90)
 			(layer "F.SilkS")
 			(hide yes)
 			(uuid "d9a59a48-0abf-45ff-80e0-5363c299d69d")
@@ -16251,7 +16251,7 @@
 			)
 		)
 		(property "Value" "Speaker_Ultrasound"
-			(at 0 2.92 270)
+			(at 0 2.92 90)
 			(layer "F.Fab")
 			(uuid "b67dc30a-e4ef-4bdf-86cc-715b22e674dc")
 			(effects
@@ -16262,7 +16262,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "ffca401a-4d6b-46e7-b9b5-df6843a1446e")
@@ -16274,7 +16274,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 0 0 270)
+			(at 0 0 90)
 			(layer "F.Fab")
 			(hide yes)
 			(uuid "5e307aa5-aa35-4d9d-a0c8-fdd5aa9a2f21")
@@ -16298,7 +16298,7 @@
 			)
 			(fill no)
 			(layer "F.SilkS")
-			(uuid "1eac8bc2-9837-468d-9f97-a4d3182f4fe4")
+			(uuid "fda271fc-3b55-4110-9c2c-1d9b57945407")
 		)
 		(fp_circle
 			(center 0 0)
@@ -16309,7 +16309,7 @@
 			)
 			(fill no)
 			(layer "F.SilkS")
-			(uuid "c1301570-f7c6-452d-93d2-3b07079032ad")
+			(uuid "f329b4d7-6809-4985-9eff-1c5be2543423")
 		)
 		(fp_line
 			(start -6.35 0)
@@ -16319,7 +16319,7 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "44adad45-7196-4388-80ce-e8cebc444dd6")
+			(uuid "f30b62b5-34e7-4720-9dc9-bafc58f30658")
 		)
 		(fp_line
 			(start 6.35 0)
@@ -16329,7 +16329,7 @@
 				(type solid)
 			)
 			(layer "F.Fab")
-			(uuid "27593718-a874-4208-a9e7-e93576f48451")
+			(uuid "72d9688c-73c5-4b06-b56e-40671137bdf8")
 		)
 		(fp_text user "*"
 			(at -3.93 -1.69 270)
