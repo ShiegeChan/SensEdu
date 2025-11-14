@@ -97,8 +97,9 @@ extern "C" {
 const uint16_t SOUND_SPEED = 343;
 uint16_t buf;
 ```
-* **Enums**: `SCREAMING_SNAKE_CASE`
-* **Structs**: `PascalCase`
+
+* **Private Functions**: `snake_case` (local to the source file)
+* **Public Functions**: `PascalCase` (exposed via header inclusion)
 
 ```c
 typedef enum {

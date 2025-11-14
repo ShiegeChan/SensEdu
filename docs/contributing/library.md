@@ -64,9 +64,9 @@ typedef struct {
     uint32_t presel;
 } ChannelSelector;
 ```
-* **Functions:** 
-  * *Private:* `snake_case` (local to the source file)
-  * *Public:* `PascalCase` (exposed via header inclusion)
+
+* **Private Functions**: `snake_case` (local to the source file)
+* **Public Functions**: `PascalCase` (exposed via header inclusion)
 
 ```c
 static void configure_clock(void);
