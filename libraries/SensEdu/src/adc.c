@@ -10,9 +10,10 @@ typedef struct {
 
 typedef struct {
     volatile uint8_t dma_complete;
-    volatile uint8_t eoc_flag;  // End of Conversion flag
-    volatile uint8_t eoc_cntr;  // EOC counter for multi-channel sequence
-    uint16_t sequence_data[16]; // software polling data storage
+    volatile uint8_t done;              // End of Conversion flag
+    volatile uint8_t total;             // EOC counter for multi-channel sequence
+    volatile uint8_t idx;
+    uint16_t conv_array[16];   // software polling data storage
 } adc_data;
 
 
@@ -40,6 +41,8 @@ adc_data* get_adc_data(ADC_TypeDef* ADC);
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings);
 void configure_pll2(void);
 void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_CONVMODE mode, SENSEDU_ADC_DMA adc_dma);
+uint16_t* read_sequence_cont(ADC_TypeDef* ADC, uint8_t pin_num);
+uint16_t* read_sequence_one_shot(ADC_TypeDef* ADC, uint8_t pin_num);
 channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC);
 
 
@@ -56,8 +59,9 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings) {
     *settings = *adc_settings;
 
     // Init flags and storage
-    get_adc_data(settings->adc)->eoc_flag = 0;
-    get_adc_data(settings->adc)->eoc_cntr = 0;
+    get_adc_data(settings->adc)->done = 0;
+    get_adc_data(settings->adc)->total = 0;
+    get_adc_data(settings->adc)->idx = 0;
     get_adc_data(settings->adc)->dma_complete = 0;
 
     // Init TIMER, Clock and ADC
@@ -108,7 +112,7 @@ void SensEdu_ADC_Disable(ADC_TypeDef* ADC) {
     // check if conversion is ongoing
     if (READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
         SET_BIT(ADC->CR, ADC_CR_ADSTP); // stop conversion
-        while(READ_BIT(ADC->CR, ADC_CR_ADSTP)); // wait till it is stopped
+        while (READ_BIT(ADC->CR, ADC_CR_ADSTP)); // wait till it is stopped
     }
 
     if (READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
@@ -116,7 +120,7 @@ void SensEdu_ADC_Disable(ADC_TypeDef* ADC) {
     }
 
     SET_BIT(ADC->CR, ADC_CR_ADDIS);
-    while(READ_BIT(ADC->CR, ADC_CR_ADEN));
+    while (READ_BIT(ADC->CR, ADC_CR_ADEN));
 
     // disable DMA
     if (get_adc_settings(ADC)->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
@@ -135,37 +139,83 @@ void SensEdu_ADC_Start(ADC_TypeDef* ADC) {
 }
 
 // Software Polling (slow alternative to DMA transfers)
-// Multi-Channel
-uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC) {
+// Single-Channel
+uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* ADC) {
     SensEdu_ADC_Settings* settings = get_adc_settings(ADC);
-    adc_data* data = get_adc_data(ADC);
+    if (settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
+        error = ADC_ERROR_SOFT_POLLING_IN_DMA_MODE;
+        return 0;
+    }
 
     if (settings->conv_mode == SENSEDU_ADC_MODE_ONE_SHOT) {
-        error = ADC_ERROR_NOT_SUPPORTED_MODE; // currently broken for this mode
-        return;
+        SensEdu_ADC_Start(ADC);
+        while (!READ_BIT(ADC->ISR, ADC_ISR_EOC));
+        return READ_REG(ADC->DR);
     }
 
-    // software polled sequences in cont mode are not stable due to synchronization issues
-    // adc reset helps
-    if (READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
-        SET_BIT(ADC->CR, ADC_CR_ADSTP);
-        while(READ_BIT(ADC->CR, ADC_CR_ADSTP));
+    if (settings->conv_mode == SENSEDU_ADC_MODE_CONT) {
+        if (!READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
+            error = ADC_ERROR_ADC_NOT_STARTED;
+            return NULL;
+        }
+        return READ_REG(ADC->DR);
     }
 
-    // set interrupt parameters before start
-    data->eoc_flag = 1;
-    data->eoc_cntr = settings->pin_num;
-
-    SET_BIT(ADC->CR, ADC_CR_ADSTART);
-    while (data->eoc_flag);
-
-    return data->sequence_data;
+    error = ADC_ERROR_UNDEFINED_BEHAVIOUR;
+    return 0;
 }
 
 // Software Polling (slow alternative to DMA transfers)
-// Single-Channel
-uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* ADC) {
-    return READ_REG(ADC->DR);
+// Multi-Channel
+uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC) {
+    SensEdu_ADC_Settings* settings = get_adc_settings(ADC);
+    if (settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
+        error = ADC_ERROR_SOFT_POLLING_IN_DMA_MODE;
+        return NULL;
+    }
+
+    if (settings->conv_mode == SENSEDU_ADC_MODE_ONE_SHOT) {
+        return read_sequence_one_shot(ADC, settings->pin_num);
+    }
+
+    if (settings->conv_mode == SENSEDU_ADC_MODE_CONT) {
+        if (!READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
+            error = ADC_ERROR_ADC_NOT_STARTED;
+            return NULL;
+        }
+        return read_sequence_cont(ADC, settings->pin_num);
+    }
+
+    error = ADC_ERROR_UNDEFINED_BEHAVIOUR;
+    return NULL;
+}
+
+uint16_t* read_sequence_cont(ADC_TypeDef* ADC, uint8_t pin_num) {
+    adc_data* data = get_adc_data(ADC);
+
+    // stop adc for channel sync
+    if (READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
+        SET_BIT(ADC->CR, ADC_CR_ADSTP);
+        while (READ_BIT(ADC->CR, ADC_CR_ADSTP));
+    }
+
+    SET_BIT(ADC->ISR, ADC_ISR_EOC | ADC_ISR_EOS);
+    while (READ_BIT(ADC->ISR, ADC_ISR_EOC) || READ_BIT(ADC->ISR, ADC_ISR_EOS));
+
+    data->total = pin_num;
+    data->idx = 0;
+    data->done = 0;
+
+    SET_BIT(ADC->IER, ADC_IER_EOCIE);
+    SET_BIT(ADC->CR, ADC_CR_ADSTART);
+    while (!data->done);
+    CLEAR_BIT(ADC->IER, ADC_IER_EOCIE);
+
+    return data->conv_array;
+}
+
+uint16_t* read_sequence_one_shot(ADC_TypeDef* ADC, uint8_t pin_num) {
+    return NULL;
 }
 
 uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc) {
@@ -220,11 +270,11 @@ adc_data* get_adc_data(ADC_TypeDef* ADC) {
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings) {
     if (settings->adc != ADC1 && settings->adc != ADC2 && settings->adc != ADC3) {
         return ADC_ERROR_WRONG_ADC_INSTANCE;
-    } 
+    }
 
     if (settings->pin_num < 1) {
         return ADC_ERROR_INIT_PIN_NUMBER;
-    } 
+    }
 
     if (settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
         if (settings->mem_address == 0x0000 || settings->mem_size == 0) {
@@ -311,7 +361,11 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
     MODIFY_REG(ADC->CR, ADC_CR_BOOST, 0b10 << ADC_CR_BOOST_Pos);
 
     // overrun mode (overwrite data)
-    SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD); 
+    if (adc_dma == SENSEDU_ADC_DMA_CONNECT) {
+        SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
+    } else {
+        CLEAR_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
+    }
 
     // data management
     if (adc_dma == SENSEDU_ADC_DMA_CONNECT) {
@@ -367,7 +421,7 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
 
     // interrupts (only for software polling)
     if (adc_dma == SENSEDU_ADC_DMA_DISCONNECT) {
-        SET_BIT(ADC->IER, ADC_IER_EOCIE);
+        //SET_BIT(ADC->IER, ADC_IER_EOCIE);
         if (ADC == ADC1 || ADC == ADC2) {
             NVIC_SetPriority(ADC_IRQn, 2);
             NVIC_EnableIRQ(ADC_IRQn);
@@ -626,37 +680,37 @@ void set_adc_channel_sample_time(ADC_TypeDef* ADC, uint8_t sample_time, uint8_t 
 /* -------------------------------------------------------------------------- */
 void ADC_IRQHandler(void) {
     if (READ_BIT(ADC1->ISR, ADC_ISR_EOC)) {
-        SET_BIT(ADC1->ISR, ADC_ISR_EOC);
-        if (adc1_data.eoc_flag) {
-            adc1_data.sequence_data[ADC1_Settings.pin_num - adc1_data.eoc_cntr] = READ_REG(ADC1->DR);
-            adc1_data.eoc_cntr = adc1_data.eoc_cntr - 1;
-            if (adc1_data.eoc_cntr == 0) {
-                adc1_data.eoc_flag = 0;
+        uint16_t val = READ_REG(ADC1->DR);
+        if (!adc1_data.done) {
+            adc1_data.conv_array[adc1_data.idx] = val;
+            adc1_data.idx++;
+            if (adc1_data.idx == adc1_data.total) {
+                adc1_data.done = 1;
             }
-        }
+        } 
     }
     
     if (READ_BIT(ADC2->ISR, ADC_ISR_EOC)) {
-        SET_BIT(ADC2->ISR, ADC_ISR_EOC);
-        if (adc2_data.eoc_flag) {
-            adc2_data.sequence_data[ADC2_Settings.pin_num - adc2_data.eoc_cntr] = READ_REG(ADC2->DR);
-            adc2_data.eoc_cntr = adc2_data.eoc_cntr - 1;
-            if (adc2_data.eoc_cntr == 0) {
-                adc2_data.eoc_flag = 0;
+        uint16_t val = READ_REG(ADC2->DR);
+        if (!adc2_data.done) {
+            adc2_data.conv_array[adc2_data.idx] = val;
+            adc2_data.idx++;
+            if (adc2_data.idx == adc2_data.total) {
+                adc2_data.done = 1;
             }
-        }
+        } 
     }
 }
 
 void ADC3_IRQHandler(void) {
     if (READ_BIT(ADC3->ISR, ADC_ISR_EOC)) {
-        SET_BIT(ADC3->ISR, ADC_ISR_EOC);
-        if (adc3_data.eoc_flag) {
-            adc3_data.sequence_data[ADC3_Settings.pin_num - adc3_data.eoc_cntr] = READ_REG(ADC3->DR);
-            adc3_data.eoc_cntr = adc3_data.eoc_cntr - 1;
-            if (adc3_data.eoc_cntr == 0) {
-                adc3_data.eoc_flag = 0;
+        uint16_t val = READ_REG(ADC3->DR);
+        if (!adc3_data.done) {
+            adc3_data.conv_array[adc3_data.idx] = val;
+            adc3_data.idx++;
+            if (adc3_data.idx == adc3_data.total) {
+                adc3_data.done = 1;
             }
-        }
+        } 
     }
 }
