@@ -32,7 +32,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "0cb66f3c-5ec9-416c-839e-e58d1f5dbc10")
+		(uuid "0cb09d7e-7fc1-418b-88dd-fa888e7379ff")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -44,7 +44,7 @@
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "aefe534b-deeb-4b29-a999-29f8886fdef8")
+		(uuid "ad49dbd3-02d7-467e-b606-1dc7cd9a3e13")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -112,7 +112,7 @@
 		(uuid "d55f23ef-5e86-46f9-8157-c3894c33b3ef")
 	)
 	(embedded_fonts no)
-	(model "${KIPRJMOD}/3D/328ST16M.stp"
+	(model "${KIPRJMOD}/libraries/3D/328ST16M.stp"
 		(offset
 			(xyz 0 0 0)
 		)

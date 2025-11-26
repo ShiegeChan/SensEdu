@@ -1,0 +1,85 @@
+(footprint "MountingHole_65mil"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "Mounting Hole 2.1mm, no annular")
+	(tags "mounting hole 2.1mm no annular")
+	(property "Reference" "REF**"
+		(at 0 -3.2 0)
+		(layer "F.SilkS")
+		(uuid "007dfa12-8581-4143-a0b2-5cecb752dab2")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "MountingHole_65mil"
+		(at 0 3.2 0)
+		(layer "F.Fab")
+		(uuid "da4ca3c9-db20-4415-b4e3-57df57001a67")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "0421149b-e7a7-4671-b7b5-a7d98dbd733e")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "f5f75aad-9ab2-4d49-aeb1-4bed1ab27806")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr exclude_from_pos_files exclude_from_bom)
+	(fp_circle
+		(center 0 0)
+		(end 0.8636 0)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "440a4096-bcd7-4e54-a8d7-1c00a2b5beec")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0.3 0 0)
+		(layer "F.Fab")
+		(uuid "fadcd987-f70b-4f3c-9d13-ca213e89cd93")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "" np_thru_hole circle
+		(at 0 0)
+		(size 1.651 1.651)
+		(drill 1.651)
+		(layers "F&B.Cu" "*.Mask")
+		(uuid "4f16e7fb-d286-453c-b2d2-7cb084b1e6fb")
+	)
+	(embedded_fonts no)
+)
