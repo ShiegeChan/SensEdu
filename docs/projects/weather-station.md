@@ -20,7 +20,7 @@ nav_order: 6
 
 There are many different models that are trained repeatedly in order to improve the prediction. In SensEdu, we demonstrate the most simple way of weather prediction based on pressure, temperature and humidity. We use sensor readings of the barometric pressure sensor, as well as humidity sensor that can be added to the board, and predict the weather according to a simple rule-based model. Not all parameters taken into account for predicting the weather are equally important, some of them carry more useful information than others. Therefore, knowing just a few parameters can lead to good weather predictions, especially real time predictions. 
 
-## Science behind
+## Science Behind Predicting Weather
 
 Atmospheric pressure, temperature and humidity are the main parameters for the numerical weather prediction. Their values, rate of changes of these values, and interaction between the three parameters play a crucial role and influence predictions massively. 
 
@@ -161,4 +161,18 @@ Both sensors are capable of measuring the temperature. Since the pressure sensor
 
 
 ## Showcase
+
+We tested the sensors in two environments, once inside an office environemnt, and outside in an open space environement. 
+
+<img src="{{site.baseurl}}/assets/images/ws_showcase.png"/>
+
+After running the script, the prompt is shown to enter the current altitude level of the place you are trying to predict the weather. 
+
+<img src="{{site.baseurl}}/assets/images/ws_prompt.png"/>
+
+The following are results obtained inside, and outside, respectively. 
+
+<img src="{{site.baseurl}}/assets/images/ws_result.png"/>
+<img src="{{site.baseurl}}/assets/images/ws_result_outside.png"/>
+
 

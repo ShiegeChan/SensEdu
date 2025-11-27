@@ -4,6 +4,8 @@
 /**
  * @details This example reads temperature and pressure values and estimates
  *          weather conditions based on equivalent sea level pressure
+ *          Make sure to have the Serial Monitor open before uploading 
+ *          the code to your Arduino board. 
  */
 
 /* -------------------------------------------------------------------------- */
@@ -81,7 +83,7 @@ void WeatherPredict(float temp, float pressure, float humidity) {
         Serial.println("Weather Status: Uncertain");
     }
 }
-        // make it so that when this happens you go back to measurement phase and wait for weather to be decided correctly
+
 
 /* -------------------------------------------------------------------------- */
 /*                                   Setup                                    */
@@ -122,7 +124,7 @@ void loop()
 {
     Serial.println();
 
-    // ----------------------------- temperature measurement -------------------------
+    // ----------------------------- dps temperature measurement -------------------------
 
     ret = dps_sensor.measureTempOnce(temperature, oversampling);
     if (ret != 0) {
@@ -135,7 +137,7 @@ void loop()
         Serial.println("°C");
     }
 
-    // ----------------------------- pressure measurement -------------------------
+    // ----------------------------- dps pressure measurement -------------------------
 
     ret = dps_sensor.measurePressureOnce(pressure, oversampling);
     if (ret != 0) {
@@ -151,13 +153,14 @@ void loop()
     }
 
 
-    // ----------------------------- humidity & temperature measurement -------------------------
+    // ----------------------------- sht humidity & temperature measurement -------------------------
     if (sht_sensor.readSample()) {
         humidity = sht_sensor.getHumidity();
+        temperature = sht_sensor.getTemperature();
+
         Serial.print("Humidity level: ");
         Serial.println(humidity, 2);
-        Serial.print("Temperature (sht)");
-        temperature = sht_sensor.getTemperature();
+        Serial.print("Temperature (sht): ");
         Serial.println(temperature, 2);
     } 
     else {
@@ -170,8 +173,8 @@ void loop()
     Serial.print(seaLevelPressure / 100);
     Serial.println(" hPa");
 
+    // ----------------------------- weather prediction call -------------------------
     WeatherPredict(temperature, seaLevelPressure, humidity);
 
-    // Wait some time
     delay(10000);
 }
