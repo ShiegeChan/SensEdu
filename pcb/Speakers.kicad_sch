@@ -3226,7 +3226,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Speaker:328ST16M_Speaker"
+		(property "Footprint" "SensEdu:328ST16M_Speaker"
 			(at 209.931 126.365 0)
 			(effects
 				(font
@@ -4986,7 +4986,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Speaker:328ST16M_Speaker"
+		(property "Footprint" "SensEdu:328ST16M_Speaker"
 			(at 206.121 53.34 0)
 			(effects
 				(font

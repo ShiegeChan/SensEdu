@@ -1716,16 +1716,16 @@
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "U"
-				(at -3.81 6.35 0)
+			(property "Reference" "U3"
+				(at -14.224 0.254 90)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
 				)
 			)
-			(property "Value" "LT1790-2.5"
-				(at 6.35 -6.35 0)
+			(property "Value" "LT1790ACS6-1.25"
+				(at -12.192 0.254 90)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -1750,13 +1750,12 @@
 					(hide yes)
 				)
 			)
-			(property "Description" "2.5V Voltage Reference, Low Dropout, Micropower, TSOT-23-6"
+			(property "Description" ""
 				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(hide yes)
 				)
 			)
 			(property "ki_keywords" "voltage reference Micropower"
@@ -1779,8 +1778,8 @@
 			)
 			(symbol "LT1790-2.5_0_1"
 				(rectangle
-					(start 2.54 5.08)
-					(end -2.54 -5.08)
+					(start -2.54 5.08)
+					(end 2.54 -5.08)
 					(stroke
 						(width 0.254)
 						(type default)
@@ -1791,6 +1790,44 @@
 				)
 			)
 			(symbol "LT1790-2.5_1_1"
+				(pin no_connect non_logic
+					(at -2.54 2.54 180)
+					(length 2.54)
+					(hide yes)
+					(name "DNC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin no_connect non_logic
+					(at -2.54 -3.81 180)
+					(length 2.54)
+					(hide yes)
+					(name "DNC"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
 				(pin power_in line
 					(at 0 7.62 270)
 					(length 2.54)
@@ -8910,10 +8947,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "fcfa8d39-2d62-441b-9a95-64dc0289b268")
 		(property "Reference" "U3"
-			(at 254 15.24 90)
+			(at 246.126 17.272 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8921,7 +8957,7 @@
 			)
 		)
 		(property "Value" "LT1790ACS6-1.25"
-			(at 254 17.78 90)
+			(at 239.268 19.05 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8965,6 +9001,12 @@
 		)
 		(pin "6"
 			(uuid "2e6fed36-3791-465a-8e97-46f62256c98c")
+		)
+		(pin "5"
+			(uuid "e3234a6f-6d66-4ae5-be59-50c5ac02b875")
+		)
+		(pin "3"
+			(uuid "55fabf20-1a0b-490e-a496-c969cf6bbe7e")
 		)
 		(instances
 			(project "Ultrasound shield"
