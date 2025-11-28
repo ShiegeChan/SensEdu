@@ -1,13 +1,26 @@
 #include "SensEdu.h"
-#include "SineLUT.h"
+
+/* -------------------------------------------------------------------------- */
+/*                                  Variables                                 */
+/* -------------------------------------------------------------------------- */
+
+// Library error container
+static uint32_t lib_error = 0;
+
+// Error indication pin
+static uint8_t error_led = D86;
+
+// Flag to indicate the recording start
+static bool is_recording_started = false;
+
+// Counter for MATLAB synchronization (must match with receiver script)
+static const uint16_t LOOP_COUNT = 500;
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-
-/* ADC */
-const uint16_t mic_data_size = 2000;
+const uint16_t mic_data_size = 2048;
 SENSEDU_ADC_BUFFER(mic_data, mic_data_size);
 
 ADC_TypeDef* adc = ADC1;
@@ -26,13 +39,10 @@ SensEdu_ADC_Settings adc_settings = {
     .mem_size = mic_data_size
 };
 
-/* errors */
-uint32_t lib_error = 0;
-uint8_t error_led = D86;
-
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
+
 void setup() {
 
     Serial.begin(115200);
@@ -45,49 +55,46 @@ void setup() {
 
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
-        handle_error();
+        digitalWrite(error_led, LOW);
     }
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
+
 void loop() {
-    
-    // Measurement is initiated by the signal from computing device
+    // Recording is initiated by the signal from computing device
     static char serial_buf = 0;
-    
-    while (1) {
-        while (Serial.available() == 0); // Wait for a signal
+    while (!is_recording_started) {
+        while (Serial.available() == 0);
         serial_buf = Serial.read();
 
         if (serial_buf == 't') {
-            // expected 't' symbol (trigger)
+            is_recording_started = true;
             break;
         }
     }
 
-    SensEdu_ADC_Start(adc);
-    
-    // wait for the data and send it
-    while(!SensEdu_ADC_GetTransferStatus(adc));
-    SensEdu_ADC_ClearTransferStatus(adc);
-    serial_send_array((const uint8_t *) & mic_data, mic_data_size << 1);
+    // Recording loop
+    for (uint16_t i = 0; i < LOOP_COUNT; i++) {
+        SensEdu_ADC_Start(adc);
+        while(!SensEdu_ADC_GetTransferStatus(adc));
+        SensEdu_ADC_ClearTransferStatus(adc);
+        serial_send_array((const uint8_t *) & mic_data, mic_data_size << 1);
+    }
+    is_recording_started = false;
 
-    // check errors
+    // Check errors
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
-        handle_error();
+        digitalWrite(error_led, LOW);
     }
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
-void handle_error() {
-    // serial is taken by matlab, use LED as indication
-    digitalWrite(error_led, LOW);
-}
 
 // send serial data in 32 byte chunks
 void serial_send_array(const uint8_t* data, size_t size) {
