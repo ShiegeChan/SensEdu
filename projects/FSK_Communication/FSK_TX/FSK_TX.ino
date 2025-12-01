@@ -18,6 +18,7 @@ static uint32_t lib_error = 0;
 uint8_t error_led = D86;
 
 // Configure the DAC
+<<<<<<< HEAD
 #define DAC_SINE_FREQ     	33000                           // 33kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle 
 
@@ -27,6 +28,30 @@ SensEdu_DAC_Settings dac_settings = {
     .mem_address = (uint16_t*)sine_lut, 
     .mem_size = sine_lut_size, 
     .wave_mode = SENSEDU_DAC_MODE_CONTINUOUS_WAVE,
+=======
+
+#define DAC_SINE_FREQ_0     	32000                           // 32kHz
+#define DAC_SINE_FREQ_1     	33600                           // 33.6kHz
+#define DAC_SAMPLE_RATE_0     DAC_SINE_FREQ_0 * sine_lut_size   // 64 samples per one sine cycle 
+#define DAC_SAMPLE_RATE_1     DAC_SINE_FREQ_1 * sine_lut_size   // 64 samples per one sine cycle 
+
+
+SensEdu_DAC_Settings dac_settings_0 = {
+    .dac_channel = DAC_CH1, 
+    .sampling_freq = DAC_SAMPLE_RATE_0,
+    .mem_address = (uint16_t*)sine_lut, // TODO
+    .mem_size = sine_lut_size, // TODO
+    .wave_mode = SENSEDU_DAC_MODE_SINGLE_WAVE,
+    .burst_num = 0
+};
+
+SensEdu_DAC_Settings dac_settings_1 = {
+    .dac_channel = DAC_CH1, 
+    .sampling_freq = DAC_SAMPLE_RATE_1,
+    .mem_address = (uint16_t*)sine_lut, // TODO
+    .mem_size = sine_lut_size, // TODO
+    .wave_mode = SENSEDU_DAC_MODE_SINGLE_WAVE,
+>>>>>>> 0c0ca0b (feat: Add two frequency settings)
     .burst_num = 0
 };
 
@@ -39,11 +64,24 @@ void setup() {
     digitalWrite(error_led, HIGH);
 
     //Initializing DAC
+<<<<<<< HEAD
     SensEdu_DAC_Init(&dac_settings);
     SensEdu_DAC_Enable(DAC_CH1);
+=======
+    SensEdu_DAC_Init(&dac_settings_1);
+
+    
+>>>>>>> 0c0ca0b (feat: Add two frequency settings)
 }
 
 void loop () {
+<<<<<<< HEAD
+=======
+
+    SensEdu_DAC_Enable(DAC_CH1);
+    delay(10);
+
+>>>>>>> 0c0ca0b (feat: Add two frequency settings)
     check_errors();
 }
 
