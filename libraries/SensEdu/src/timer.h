@@ -28,13 +28,14 @@ void SensEdu_TIMER_Delay_ns(uint32_t delay_ns);
 
 TIMER_ERROR TIMER_GetError(void);
 
-void TIMER_ADC1Init(void);
-void TIMER_DAC1Init(uint32_t freq);
+void TIMER_ADCxInit(ADC_TypeDef* adc);
 void TIMER_ADCxEnable(ADC_TypeDef* adc);
-void TIMER_DAC1Enable(void);
 void TIMER_ADCxDisable(ADC_TypeDef* adc);
+void TIMER_ADCxSetFreq(ADC_TypeDef* adc, uint32_t freq);
+
+void TIMER_DAC1Init(uint32_t freq);
+void TIMER_DAC1Enable(void);
 void TIMER_DAC1Disable(void);
-void TIMER_ADCSetFreq(ADC_TypeDef* adc, uint32_t freq);
 void TIMER_DAC1SetFreq(uint32_t freq);
 
 void TIMER_PWMInit(void);

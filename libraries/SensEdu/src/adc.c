@@ -1,164 +1,188 @@
 #include "adc.h"
+#include "timer.h"
+
+/* -------------------------------------------------------------------------- */
+/*                                  Constants                                 */
+/* -------------------------------------------------------------------------- */
+
+// Maximum amount of channels per ADC
+#define MAX_CHANNEL_NUM (16U)
+
+// Minimum allowed sampling rate (chosen arbitrary)
+static const uint16_t MIN_SAMPLING_RATE = 10;
 
 /* -------------------------------------------------------------------------- */
 /*                                   Structs                                  */
 /* -------------------------------------------------------------------------- */
-typedef struct {
-    uint8_t number;
-    uint32_t preselection;
-} channel;
 
+// Describe ADC channel with the mask and id
 typedef struct {
-    volatile uint8_t dma_complete;
-    volatile uint8_t done;              // End of Conversion flag
-    volatile uint8_t total;             // EOC counter for multi-channel sequence
-    volatile uint8_t idx;
-    uint16_t conv_array[16];   // software polling data storage
-} adc_data;
+    uint8_t id;
+    uint32_t pcsel_mask;
+} AdcChannel;
 
+// Describes per ADC runtime state
+// Includes DMA/SEQUENCE complete state and soft polling config & storage
+typedef struct {
+    volatile bool ovr_flag;                 // Flag notifying that overrun event happened
+    volatile uint32_t ovr_counter;          // OVR event counter
+    volatile bool dma_complete;             // DMA transfer complete flag
+    volatile bool seq_complete;             // End of Sequence flag for software polling
+    volatile uint8_t seq_length;            // Sequence size (amount of used channels)
+    volatile uint8_t seq_idx;               // EOC counter for multi-channel sequence
+    uint16_t seq_buffer[MAX_CHANNEL_NUM];   // software polling data storage
+} AdcState;
 
 /* -------------------------------------------------------------------------- */
 /*                                  Variables                                 */
 /* -------------------------------------------------------------------------- */
+
+// Global error container
 static ADC_ERROR error = ADC_ERROR_NO_ERRORS;
 
-static SensEdu_ADC_Settings ADC1_Settings = {ADC1, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
-static SensEdu_ADC_Settings ADC2_Settings = {ADC2, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
-static SensEdu_ADC_Settings ADC3_Settings = {ADC3, 0, 0, SENSEDU_ADC_MODE_ONE_SHOT, 0, SENSEDU_ADC_DMA_DISCONNECT, 0, 0};
+// Per ADC storage containers
+static SensEdu_ADC_Settings adc_settings[3];
+static AdcState adc_states[3];
 
-static adc_data adc1_data;
-static adc_data adc2_data;
-static adc_data adc3_data;
-
-static uint16_t pll_configured = 0;
-
+// Clock config flag
+static bool pll_configured = false;
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
-SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* ADC);
-adc_data* get_adc_data(ADC_TypeDef* ADC);
-static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings);
-void configure_pll2(void);
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_CONVMODE mode, SENSEDU_ADC_DMA adc_dma);
-uint16_t* read_sequence_cont(ADC_TypeDef* ADC, uint8_t pin_num);
-uint16_t* read_sequence_one_shot(ADC_TypeDef* ADC, uint8_t pin_num);
-channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC);
 
+static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode);
+static SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* adc);
+static AdcState* get_adc_state(ADC_TypeDef* adc);
+static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings);
+static void configure_pll2(void);
+static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num, SENSEDU_ADC_SR_MODE sr_mode, SENSEDU_ADC_MODE adc_mode);
+static uint16_t* read_sequence_cont(ADC_TypeDef* adc, uint8_t pin_num);
+static uint16_t* read_sequence_one_shot(ADC_TypeDef* adc, uint8_t pin_num);
+static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin);
+static void select_adc_channel(ADC_TypeDef* adc, uint8_t channel_num, uint8_t rank);
+static void set_adc_channel_sample_time(ADC_TypeDef* adc, uint8_t sample_time, uint8_t channel_num);
 
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
-void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings) {
+
+void SensEdu_ADC_Init(SensEdu_ADC_Settings* new_settings) {
 
     // Sanity checks
-    error = check_settings(adc_settings);
+    error = check_settings(new_settings);
+    if (error != ADC_ERROR_NO_ERRORS) return;
 
     // Store settings locally
-    SensEdu_ADC_Settings* settings = get_adc_settings(adc_settings->adc);
-    *settings = *adc_settings;
+    SensEdu_ADC_Settings* settings = get_adc_settings(new_settings->adc);
+    if (!settings) {
+        error = ADC_ERROR_INIT;
+        return;
+    }
+    *settings = *new_settings;
 
     // Init flags and storage
-    get_adc_data(settings->adc)->done = 0;
-    get_adc_data(settings->adc)->total = 0;
-    get_adc_data(settings->adc)->idx = 0;
-    get_adc_data(settings->adc)->dma_complete = 0;
-
-    // Init TIMER, Clock and ADC
-    if (settings->adc == ADC1) {
-        TIMER_ADC1Init();
-    } else if (settings->adc == ADC2) {
-        TIMER_ADC2Init();
-    } else if (settings->adc == ADC3) {
-        TIMER_ADC3Init();
+    AdcState* state = get_adc_state(settings->adc);
+    if (!state) {
+        error = ADC_ERROR_INIT;
+        return;
     }
+    state->ovr_flag = false;
+    state->ovr_counter = 0;
+    state->dma_complete = false;
+    state->seq_complete = false;
+    state->seq_length = 0;
+    state->seq_idx = 0;
+
+    // Init PLL and ADC
     if (!pll_configured) {
         configure_pll2();
+        pll_configured = true;
     }
-    adc_init(settings->adc, settings->pins, settings->pin_num, 
-        settings->conv_mode, settings->dma_mode);
+    adc_init(settings->adc, settings->pins, settings->pin_num, settings->sr_mode, settings->adc_mode);
 
-    // timer setttings if in timer triggered mode
-    if (settings->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
-        TIMER_ADCSetFreq(settings->adc, settings->sampling_freq);
+    // Set timer frequency if in SR fixed mode
+    if (settings->sr_mode == SENSEDU_ADC_SR_MODE_FIXED) {
+        TIMER_ADCxInit(settings->adc);
+        TIMER_ADCxSetFreq(settings->adc, settings->sampling_rate_hz);
     }
 
-    // dma settings if in dma mode
-    if (settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
+    // Set DMA memory settings if in DMA mode
+    if (is_dma_mode_enabled(settings->adc_mode)) {
         DMA_ADCInit(settings->adc, settings->mem_address, settings->mem_size);
     }
 }
 
-void SensEdu_ADC_Enable(ADC_TypeDef* ADC) {
-    // enable timer if in timer triggered mode
-    if (get_adc_settings(ADC)->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
-        TIMER_ADCxEnable(ADC);
+void SensEdu_ADC_Enable(ADC_TypeDef* adc) {
+    // Enable timer if in SR fixed mode
+    if (get_adc_settings(adc)->sr_mode == SENSEDU_ADC_SR_MODE_FIXED) {
+        TIMER_ADCxEnable(adc);
     }
 
     // clear ready bit
-    SET_BIT(ADC->ISR, ADC_ISR_ADRDY);
-    
+    SET_BIT(adc->ISR, ADC_ISR_ADRDY);
+
     // enable ADC
-    SET_BIT(ADC->CR, ADC_CR_ADEN);
-    while(!READ_BIT(ADC->ISR, ADC_ISR_ADRDY));
+    SET_BIT(adc->CR, ADC_CR_ADEN);
+    while (!READ_BIT(adc->ISR, ADC_ISR_ADRDY)) {}
 
     // check if ready to start
-    if ((!READ_BIT(ADC->CR, ADC_CR_ADEN) | READ_BIT(ADC->CR, ADC_CR_ADDIS))) {
-        error = ADC_ERROR_ADC_ENABLE_FAIL;
+    if (!READ_BIT(adc->CR, ADC_CR_ADEN) || READ_BIT(adc->CR, ADC_CR_ADDIS)) {
+        error = ADC_ERROR_ENABLE_FAIL;
     }
 }
 
-void SensEdu_ADC_Disable(ADC_TypeDef* ADC) {
+void SensEdu_ADC_Disable(ADC_TypeDef* adc) {
     // check if conversion is ongoing
-    if (READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
-        SET_BIT(ADC->CR, ADC_CR_ADSTP); // stop conversion
-        while (READ_BIT(ADC->CR, ADC_CR_ADSTP)); // wait till it is stopped
+    if (READ_BIT(adc->CR, ADC_CR_ADSTART)) {
+        SET_BIT(adc->CR, ADC_CR_ADSTP); // stop conversion
+        while (READ_BIT(adc->CR, ADC_CR_ADSTP)); // wait till it is stopped
     }
 
-    if (READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
-        error = ADC_ERROR_ADC_DISABLE_FAIL;
+    if (READ_BIT(adc->CR, ADC_CR_ADSTART)) {
+        error = ADC_ERROR_DISABLE_FAIL;
     }
 
-    SET_BIT(ADC->CR, ADC_CR_ADDIS);
-    while (READ_BIT(ADC->CR, ADC_CR_ADEN));
+    SET_BIT(adc->CR, ADC_CR_ADDIS);
+    while (READ_BIT(adc->CR, ADC_CR_ADEN)) {}
 
     // disable DMA
-    if (get_adc_settings(ADC)->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
-        DMA_ADCDisable(ADC);
+    if (is_dma_mode_enabled(get_adc_settings(adc)->adc_mode)) {
+        DMA_ADCDisable(adc);
     }
 }
 
-void SensEdu_ADC_Start(ADC_TypeDef* ADC) {
+void SensEdu_ADC_Start(ADC_TypeDef* adc) {
     // enable DMA
-    if (get_adc_settings(ADC)->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
-        DMA_ADCEnable(ADC);
+    if (is_dma_mode_enabled(get_adc_settings(adc)->adc_mode)) {
+        DMA_ADCEnable(adc);
     }
 
     // start conversions
-    SET_BIT(ADC->CR, ADC_CR_ADSTART);
+    SET_BIT(adc->CR, ADC_CR_ADSTART);
 }
 
 // Software Polling (slow alternative to DMA transfers)
 // Single-Channel
-uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* ADC) {
-    SensEdu_ADC_Settings* settings = get_adc_settings(ADC);
-    if (settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
+uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* adc) {
+    SensEdu_ADC_Settings* settings = get_adc_settings(adc);
+    if (is_dma_mode_enabled(settings->adc_mode)) {
         error = ADC_ERROR_SOFT_POLLING_IN_DMA_MODE;
         return 0;
     }
 
-    if (settings->conv_mode == SENSEDU_ADC_MODE_ONE_SHOT) {
-        SensEdu_ADC_Start(ADC);
-        while (!READ_BIT(ADC->ISR, ADC_ISR_EOC));
-        return READ_REG(ADC->DR);
+    if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_ONE_SHOT) {
+        // TODO: implement timeout if ADC has not been started
+        while (!READ_BIT(adc->ISR, ADC_ISR_EOC)) {}
+        return READ_REG(adc->DR);
     }
 
-    if (settings->conv_mode == SENSEDU_ADC_MODE_CONT) {
-        if (!READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
-            error = ADC_ERROR_ADC_NOT_STARTED;
-            return NULL;
+    if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_CONT) {
+        if (!READ_BIT(adc->CR, ADC_CR_ADSTART)) {
+            error = ADC_ERROR_SOFT_POLLING_ADC_NOT_STARTED;
+            return 0;
         }
-        return READ_REG(ADC->DR);
+        return READ_REG(adc->DR);
     }
 
     error = ADC_ERROR_UNDEFINED_BEHAVIOUR;
@@ -167,135 +191,142 @@ uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* ADC) {
 
 // Software Polling (slow alternative to DMA transfers)
 // Multi-Channel
-uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC) {
-    SensEdu_ADC_Settings* settings = get_adc_settings(ADC);
-    if (settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
+uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* adc) {
+    SensEdu_ADC_Settings* settings = get_adc_settings(adc);
+    if (is_dma_mode_enabled(settings->adc_mode)) {
         error = ADC_ERROR_SOFT_POLLING_IN_DMA_MODE;
         return NULL;
     }
 
-    if (settings->conv_mode == SENSEDU_ADC_MODE_ONE_SHOT) {
-        return read_sequence_one_shot(ADC, settings->pin_num);
+    if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_ONE_SHOT) {
+        return read_sequence_one_shot(adc, settings->pin_num);
     }
 
-    if (settings->conv_mode == SENSEDU_ADC_MODE_CONT) {
-        if (!READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
-            error = ADC_ERROR_ADC_NOT_STARTED;
+    if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_CONT) {
+        if (!READ_BIT(adc->CR, ADC_CR_ADSTART)) {
+            error = ADC_ERROR_SOFT_POLLING_ADC_NOT_STARTED;
             return NULL;
         }
-        return read_sequence_cont(ADC, settings->pin_num);
+        return read_sequence_cont(adc, settings->pin_num);
     }
 
     error = ADC_ERROR_UNDEFINED_BEHAVIOUR;
     return NULL;
 }
 
-uint16_t* read_sequence_cont(ADC_TypeDef* ADC, uint8_t pin_num) {
-    adc_data* data = get_adc_data(ADC);
-
-    // stop adc for channel sync
-    if (READ_BIT(ADC->CR, ADC_CR_ADSTART)) {
-        SET_BIT(ADC->CR, ADC_CR_ADSTP);
-        while (READ_BIT(ADC->CR, ADC_CR_ADSTP));
-    }
-
-    SET_BIT(ADC->ISR, ADC_ISR_EOC | ADC_ISR_EOS);
-    while (READ_BIT(ADC->ISR, ADC_ISR_EOC) || READ_BIT(ADC->ISR, ADC_ISR_EOS));
-
-    data->total = pin_num;
-    data->idx = 0;
-    data->done = 0;
-
-    SET_BIT(ADC->IER, ADC_IER_EOCIE);
-    SET_BIT(ADC->CR, ADC_CR_ADSTART);
-    while (!data->done);
-    CLEAR_BIT(ADC->IER, ADC_IER_EOCIE);
-
-    return data->conv_array;
+// Enables overrun interrupts which allows SensEdu_ADC_GetOverrunState
+// and SensEdu_ADC_GetOverrunCounter to show the amount of missing samples
+// Be careful: in SENSEDU_ADC_SR_MODE_FREE this can cause an interrupt storm
+void SensEdu_ADC_EnableOverrunInterrupt(ADC_TypeDef* adc) {
+    SET_BIT(adc->IER, ADC_IER_OVRIE);
 }
 
-uint16_t* read_sequence_one_shot(ADC_TypeDef* ADC, uint8_t pin_num) {
-    return NULL;
+// Disables overrun interrupts
+void SensEdu_ADC_DisableOverrunInterrupt(ADC_TypeDef* adc) {
+    CLEAR_BIT(adc->IER, ADC_IER_OVRIE);
 }
 
-uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc) {
-    return get_adc_data(adc)->dma_complete;
+// Get a global overrun flag which shows if the event ever happened
+bool SensEdu_ADC_GetOverrunState(ADC_TypeDef* adc) {
+    return get_adc_state(adc)->ovr_flag;
+}
+
+// Get a counter that shows how many times overrun event happened
+uint32_t SensEdu_ADC_GetOverrunCounter(ADC_TypeDef* adc) {
+    return get_adc_state(adc)->ovr_counter;
+}
+
+bool SensEdu_ADC_GetTransferStatus(ADC_TypeDef *adc) {
+    return get_adc_state(adc)->dma_complete;
 }
 
 void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc) {
-    get_adc_data(adc)->dma_complete = 0;
-}
-
-// Early versions of the board are using 
-// A9 - PC3_C - ADC3_INP1
-// as microphone input
-//
-// if you want to use ADC1 or ADC2 for this microphone,
-// you could short PC3 (A4) to PC3_C (A9)
-void SensEdu_ADC_ShortA4toA9(void) {
-    CLEAR_BIT(SYSCFG->PMCR, SYSCFG_PMCR_PC3SO);
+    get_adc_state(adc)->dma_complete = false;
 }
 
 ADC_ERROR ADC_GetError(void) {
     return error;
 }
 
-void ADC_TransferCompleteDMAinterrupt(ADC_TypeDef* adc) {
-    get_adc_data(adc)->dma_complete = 1;
+void ADC_TransferCompleteDmaInterrupt(ADC_TypeDef* adc) {
+    get_adc_state(adc)->dma_complete = true;
 }
 
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
-SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* ADC) {
-    if (ADC == ADC1) {
-        return &ADC1_Settings;
-    } else if (ADC == ADC2) {
-        return &ADC2_Settings;
-    } else if (ADC == ADC3) {
-        return &ADC3_Settings;
-    }
+
+static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode) {
+    return (adc_mode == SENSEDU_ADC_MODE_DMA_NORMAL || adc_mode == SENSEDU_ADC_MODE_DMA_CIRCULAR);
 }
 
-adc_data* get_adc_data(ADC_TypeDef* ADC) {
-    if (ADC == ADC1) {
-        return &adc1_data;
-    } else if (ADC == ADC2) {
-        return &adc2_data;
-    } else if (ADC == ADC3) {
-        return &adc3_data;
+static SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* adc) {
+    if (adc == ADC1) {
+        return &adc_settings[0];
     }
+    if (adc == ADC2) {
+        return &adc_settings[1];
+    }
+    if (adc == ADC3) {
+        return &adc_settings[2];
+    }
+    error = ADC_ERROR_WRONG_ADC_INSTANCE;
+    return NULL;
+}
+
+static AdcState* get_adc_state(ADC_TypeDef* adc) {
+    if (adc == ADC1) {
+        return &adc_states[0];
+    }
+    if (adc == ADC2) {
+        return &adc_states[1];
+    }
+    if (adc == ADC3) {
+        return &adc_states[2];
+    }
+    error = ADC_ERROR_WRONG_ADC_INSTANCE;
+    return NULL;
 }
 
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings) {
+    if (!settings) {
+        return ADC_ERROR_INIT;
+    }
+
     if (settings->adc != ADC1 && settings->adc != ADC2 && settings->adc != ADC3) {
         return ADC_ERROR_WRONG_ADC_INSTANCE;
     }
 
-    if (settings->pin_num < 1) {
+    if (settings->pin_num < 1 || settings->pin_num > MAX_CHANNEL_NUM) {
         return ADC_ERROR_INIT_PIN_NUMBER;
     }
 
-    if (settings->dma_mode == SENSEDU_ADC_DMA_CONNECT) {
-        if (settings->mem_address == 0x0000 || settings->mem_size == 0) {
-            return ADC_ERROR_INIT_DMA_MEMORY;
+    if (settings->pins == NULL) {
+        return ADC_ERROR_INIT_PIN_ARRAY;
+    }
+
+    if (settings->sr_mode == SENSEDU_ADC_SR_MODE_FIXED && settings->sampling_rate_hz < MIN_SAMPLING_RATE) {
+        return ADC_ERROR_INIT_SAMPLING_RATE;
+    }
+
+    if (is_dma_mode_enabled(settings->adc_mode)) {
+        if (settings->mem_address == 0x0000 || settings->mem_address == NULL || settings->mem_size == 0) {
+            return ADC_ERROR_INIT_DMA;
         }
     }
 
-    if (settings->conv_mode == SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED) {
-        if (settings->sampling_freq < 1000) {
-            return ADC_ERROR_INIT_SAMPLING_FREQ;
-        }
-    } 
+    if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_ONE_SHOT && settings->sr_mode == SENSEDU_ADC_SR_MODE_FIXED) {
+        return ADC_ERROR_INIT_ONE_SHOT_SR;
+    }
 
     return ADC_ERROR_NO_ERRORS;
 }
 
-void configure_pll2(void) {
+static void configure_pll2(void) {
     // turn off PLL2
-    if(READ_BIT(RCC->CR, RCC_CR_PLL2RDY)) {
+    if (READ_BIT(RCC->CR, RCC_CR_PLL2ON)) {
         CLEAR_BIT(RCC->CR, RCC_CR_PLL2ON);
-        while(READ_BIT(RCC->CR, RCC_CR_PLL2RDY));
+        while (READ_BIT(RCC->CR, RCC_CR_PLL2RDY)) {}
     }
 
     /*  configure PLL2 (resulting frequency for adc shared bus 50MHz)
@@ -307,8 +338,9 @@ void configure_pll2(void) {
     MODIFY_REG(RCC->PLLCKSELR, RCC_PLLCKSELR_DIVM2, 4U << RCC_PLLCKSELR_DIVM2_Pos);
 
     // 2. enable pll2p output (adcs)
-    if ((READ_BIT(RCC->CR, RCC_CR_PLL2ON) | READ_BIT(RCC->CR, RCC_CR_PLL2RDY))) {
+    if (READ_BIT(RCC->CR, RCC_CR_PLL2ON | RCC_CR_PLL2RDY)) {
         error = ADC_ERROR_PLL_CONFIG; // critical error
+        return;
     }
     SET_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVP2EN);
 
@@ -328,85 +360,119 @@ void configure_pll2(void) {
 
     // turn on PLL2
     SET_BIT(RCC->CR, RCC_CR_PLL2ON);
-    while (!READ_BIT(RCC->CR, RCC_CR_PLL2RDY));
+    while (!READ_BIT(RCC->CR, RCC_CR_PLL2RDY)) {}
 
     // turn on buses
     SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_ADC12EN_Msk | RCC_AHB1ENR_DMA1EN);
-    SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN); 
+    SET_BIT(RCC->AHB4ENR, RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN | RCC_AHB4ENR_ADC3EN);
 
     // set adc clock to async from PLL2 (ADCs must be OFF)
     MODIFY_REG(ADC12_COMMON->CCR, ADC_CCR_CKMODE, 0b00 << ADC_CCR_CKMODE_Pos);
     MODIFY_REG(ADC12_COMMON->CCR, ADC_CCR_PRESC, 0b0000 << ADC_CCR_PRESC_Pos);
     MODIFY_REG(ADC3_COMMON->CCR, ADC_CCR_CKMODE, 0b00 << ADC_CCR_CKMODE_Pos);
     MODIFY_REG(ADC3_COMMON->CCR, ADC_CCR_PRESC, 0b0000 << ADC_CCR_PRESC_Pos);
-
-    // flag
-    pll_configured = 1;
 }
 
-void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENSEDU_ADC_CONVMODE mode, SENSEDU_ADC_DMA adc_dma) {
+static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num,
+    SENSEDU_ADC_SR_MODE sr_mode, SENSEDU_ADC_MODE adc_mode) {
 
-    if (READ_BIT(ADC->CR, ADC_CR_ADCAL | ADC_CR_JADSTART | ADC_CR_ADSTART | ADC_CR_ADSTP | ADC_CR_ADDIS | ADC_CR_ADEN)) {
-        error = ADC_ERROR_ADC_INIT;
+    if (READ_BIT(adc->CR, ADC_CR_ADCAL | ADC_CR_JADSTART | ADC_CR_ADSTART | ADC_CR_ADSTP | ADC_CR_ADDIS | ADC_CR_ADEN)) {
+        error = ADC_ERROR_INIT;
+        return;
     }
 
     // exit deep power-down
-    CLEAR_BIT(ADC->CR, ADC_CR_DEEPPWD);
+    CLEAR_BIT(adc->CR, ADC_CR_DEEPPWD);
 
     // turn on voltage regulator
-    SET_BIT(ADC->CR, ADC_CR_ADVREGEN);
-    while(!READ_BIT(ADC->ISR, 0x1UL << 12U)); // LDORDY flag start up time (TADCVREG_STUP)
+    SET_BIT(adc->CR, ADC_CR_ADVREGEN);
+    while (!READ_BIT(adc->ISR, 0x1UL << 12U)) {} // LDORDY flag start up time (TADCVREG_STUP)
 
     // set clock range 12.5MHz:25Mhz
-    MODIFY_REG(ADC->CR, ADC_CR_BOOST, 0b10 << ADC_CR_BOOST_Pos);
+    MODIFY_REG(adc->CR, ADC_CR_BOOST, 0b10 << ADC_CR_BOOST_Pos);
 
     // overrun mode (overwrite data)
-    if (adc_dma == SENSEDU_ADC_DMA_CONNECT) {
-        SET_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
-    } else {
-        CLEAR_BIT(ADC->CFGR, ADC_CFGR_OVRMOD);
+    switch (adc_mode) {
+        case SENSEDU_ADC_MODE_POLLING_ONE_SHOT:
+            CLEAR_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // do not overwrite
+            break;
+        case SENSEDU_ADC_MODE_POLLING_CONT:
+            SET_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // overwrite
+            break;
+        case SENSEDU_ADC_MODE_DMA_NORMAL:
+            SET_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // overwrite
+            break;
+        case SENSEDU_ADC_MODE_DMA_CIRCULAR:
+            SET_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // overwrite
+            break;
+        default:
+            error = ADC_ERROR_WRONG_OPERATION_MODE;
+            break;
     }
 
     // data management
-    if (adc_dma == SENSEDU_ADC_DMA_CONNECT) {
-        MODIFY_REG(ADC->CFGR, ADC_CFGR_DMNGT, 0b01 << ADC_CFGR_DMNGT_Pos); // circular DMA mode
-    } else if (adc_dma == SENSEDU_ADC_DMA_DISCONNECT) {
-        MODIFY_REG(ADC->CFGR, ADC_CFGR_DMNGT, 0b00 << ADC_CFGR_DMNGT_Pos); // data stored in DR only
-    } else {
-        error = ADC_ERROR_WRONG_DATA_MANAGEMENT_MODE;
+    switch (adc_mode) {
+        case SENSEDU_ADC_MODE_POLLING_ONE_SHOT:
+            MODIFY_REG(adc->CFGR, ADC_CFGR_DMNGT, 0b00 << ADC_CFGR_DMNGT_Pos); // data stored in DR only
+            break;
+        case SENSEDU_ADC_MODE_POLLING_CONT:
+            MODIFY_REG(adc->CFGR, ADC_CFGR_DMNGT, 0b00 << ADC_CFGR_DMNGT_Pos); // data stored in DR only
+            break;
+        case SENSEDU_ADC_MODE_DMA_NORMAL:
+            MODIFY_REG(adc->CFGR, ADC_CFGR_DMNGT, 0b01 << ADC_CFGR_DMNGT_Pos); // DMA one shot mode
+            break;
+        case SENSEDU_ADC_MODE_DMA_CIRCULAR:
+            MODIFY_REG(adc->CFGR, ADC_CFGR_DMNGT, 0b11 << ADC_CFGR_DMNGT_Pos); // DMA circular mode
+            break;
+        default:
+            error = ADC_ERROR_WRONG_OPERATION_MODE;
+            break;
     }
-    
+
     // select channels
-    MODIFY_REG(ADC->SQR1, ADC_SQR1_L, (adc_pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per seqeunce
-    for (uint8_t i = 0; i < adc_pin_num; i++) {
-        channel adc_channel = get_adc_channel(arduino_pins[i], ADC);
-        SET_BIT(ADC->PCSEL, adc_channel.preselection);
-        select_adc_channel(ADC, adc_channel.number, i+1U);
+    MODIFY_REG(adc->SQR1, ADC_SQR1_L, (pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per sequence
+    for (uint8_t i = 0; i < pin_num; i++) {
+        AdcChannel ch = get_adc_channel(adc, pins[i]);
+        SET_BIT(adc->PCSEL, ch.pcsel_mask);
+        select_adc_channel(adc, ch.id, i+1U);
 
         // sample time (2.5 cycles) + 7.5 cycles (from 16bit res) -> total TCONV = 11 cycles -> 25MHz clock (40ns): 440ns
-        set_adc_channel_sample_time(ADC, 0b001, adc_channel.number);
+        set_adc_channel_sample_time(adc, 0b001, ch.id);
     }
 
     // if max 500kS/sec, then max 2000ns available for conversion
     // oversampling ratio (x2) -> 440ns * 2 = 880ns per conversion per channel
-    MODIFY_REG(ADC->CFGR2, ADC_CFGR2_OVSR, (2U-1U) << ADC_CFGR2_OVSR_Pos); // global for all channels
-    SET_BIT(ADC->CFGR2, ADC_CFGR2_ROVSE);
-    MODIFY_REG(ADC->CFGR2, ADC_CFGR2_OVSS, 0b0001 << ADC_CFGR2_OVSS_Pos); // account for x2 oversampling with 1bit right shift for data register
-    
+    MODIFY_REG(adc->CFGR2, ADC_CFGR2_OVSR, (2U-1U) << ADC_CFGR2_OVSR_Pos); // global for all channels (x2)
+    SET_BIT(adc->CFGR2, ADC_CFGR2_ROVSE);
+    MODIFY_REG(adc->CFGR2, ADC_CFGR2_OVSS, 0b0001 << ADC_CFGR2_OVSS_Pos); // account for x2 with 1-bit right shift
+
     // set operation mode
-    switch (mode) {
-        case SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED:
-            MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b01 << ADC_CFGR_EXTEN_Pos); // enable trigger on rising edge
-            MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTSEL, 0b01001 << ADC_CFGR_EXTSEL_Pos); // adc_ext_trg9 from a datasheet (Timer #1)
-            CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); // set single conversion mode
+    switch (adc_mode) {
+        case SENSEDU_ADC_MODE_POLLING_ONE_SHOT:
+            CLEAR_BIT(adc->CFGR, ADC_CFGR_CONT); // single conversion mode
             break;
-        case SENSEDU_ADC_MODE_CONT:
-            MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos); // disable hardware trigger
-            SET_BIT(ADC->CFGR, ADC_CFGR_CONT); // set continuous mode
+        case SENSEDU_ADC_MODE_POLLING_CONT:
+            SET_BIT(adc->CFGR, ADC_CFGR_CONT); // continuous mode
             break;
-        case SENSEDU_ADC_MODE_ONE_SHOT:
-            MODIFY_REG(ADC->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos); // disable hardware trigger
-            CLEAR_BIT(ADC->CFGR, ADC_CFGR_CONT); // set single conv mode
+        case SENSEDU_ADC_MODE_DMA_NORMAL:
+            CLEAR_BIT(adc->CFGR, ADC_CFGR_CONT); // single conversion mode
+            break;
+        case SENSEDU_ADC_MODE_DMA_CIRCULAR:
+            CLEAR_BIT(adc->CFGR, ADC_CFGR_CONT); // single conversion mode
+            break;
+        default:
+            error = ADC_ERROR_WRONG_OPERATION_MODE;
+            break;
+    }
+    // TODO: verify adc_ext_trg9 and why it is named Timer #1
+    switch (sr_mode) {
+        case SENSEDU_ADC_SR_MODE_FIXED:
+            MODIFY_REG(adc->CFGR, ADC_CFGR_EXTEN, 0b01 << ADC_CFGR_EXTEN_Pos); // enable trigger on rising edge
+            MODIFY_REG(adc->CFGR, ADC_CFGR_EXTSEL, 0b01001 << ADC_CFGR_EXTSEL_Pos); // adc_ext_trg9 from a datasheet (Timer #1)
+            CLEAR_BIT(adc->CFGR, ADC_CFGR_CONT); // single conversion mode
+            break;
+        case SENSEDU_ADC_SR_MODE_FREE:
+            MODIFY_REG(adc->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos); // disable hardware trigger
             break;
         default:
             error = ADC_ERROR_WRONG_OPERATION_MODE;
@@ -414,22 +480,50 @@ void adc_init(ADC_TypeDef* ADC, uint8_t* arduino_pins, uint8_t adc_pin_num, SENS
     }
 
     // calibration
-    CLEAR_BIT(ADC->CR, ADC_CR_ADCALDIF); // single ended
-    SET_BIT(ADC->CR, ADC_CR_ADCALLIN); // offset and linearity
-    SET_BIT(ADC->CR, ADC_CR_ADCAL); // start
-    while(READ_BIT(ADC->CR, ADC_CR_ADCAL)); // wait for calibration
+    CLEAR_BIT(adc->CR, ADC_CR_ADCALDIF); // single ended
+    SET_BIT(adc->CR, ADC_CR_ADCALLIN); // offset and linearity
+    SET_BIT(adc->CR, ADC_CR_ADCAL); // start
+    while (READ_BIT(adc->CR, ADC_CR_ADCAL)) {} // wait for calibration
 
     // interrupts (only for software polling)
-    if (adc_dma == SENSEDU_ADC_DMA_DISCONNECT) {
-        //SET_BIT(ADC->IER, ADC_IER_EOCIE);
-        if (ADC == ADC1 || ADC == ADC2) {
+    if (!is_dma_mode_enabled(adc_mode)) {
+        if (adc == ADC1 || adc == ADC2) {
             NVIC_SetPriority(ADC_IRQn, 2);
             NVIC_EnableIRQ(ADC_IRQn);
-        } else if (ADC == ADC3) {
+        } else if (adc == ADC3) {
             NVIC_SetPriority(ADC3_IRQn, 2);
             NVIC_EnableIRQ(ADC3_IRQn);
         }
     }
+}
+
+static uint16_t* read_sequence_cont(ADC_TypeDef* adc, uint8_t pin_num) {
+    AdcState* data = get_adc_state(adc);
+
+    // stop adc for channel sync
+    if (READ_BIT(adc->CR, ADC_CR_ADSTART)) {
+        SET_BIT(adc->CR, ADC_CR_ADSTP);
+        while (READ_BIT(adc->CR, ADC_CR_ADSTP));
+    }
+
+    SET_BIT(adc->ISR, ADC_ISR_EOC | ADC_ISR_EOS);
+    while (READ_BIT(adc->ISR, ADC_ISR_EOC) || READ_BIT(adc->ISR, ADC_ISR_EOS)) {}
+
+    data->seq_length = pin_num;
+    data->seq_idx = 0;
+    data->seq_complete = false;
+
+    SET_BIT(adc->IER, ADC_IER_EOCIE);
+    SET_BIT(adc->CR, ADC_CR_ADSTART);
+    while (!data->seq_complete) {}
+    CLEAR_BIT(adc->IER, ADC_IER_EOCIE);
+
+    return data->seq_buffer;
+}
+
+static uint16_t* read_sequence_one_shot(ADC_TypeDef* adc, uint8_t pin_num) {
+    // TODO: implement
+    return NULL;
 }
 
 /*
@@ -445,160 +539,155 @@ A8 - PC2_C - ADC3_INP0
 A9 - PC3_C - ADC3_INP1
 A10 - PA1_C - ADC12_INP1
 A11 - PA0_C - ADC12_INP0
-
-_С pins could be shorted to their non-_C pins:
-CLEAR_BIT(SYSCFG->PMCR, SYSCFG_PMCR_PC3SO);
-this shorts PC3_C to PC3
-and you could access ADC12_INP13 through PC3_C
 */
-channel get_adc_channel(uint8_t arduino_pin, ADC_TypeDef* ADC) {
-    channel adc_channel = {.number = 0U, .preselection = 0U};
+static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin) {
+    AdcChannel ch = {.id = 0U, .pcsel_mask = 0U};
     switch(arduino_pin) {
         case PIN_A0:
-            if (ADC == ADC3) {
+            if (adc == ADC3) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
                 break;
             }
-            adc_channel.number = 4U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_4;
+            ch.id = 4U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_4;
             break;
         case PIN_A1:
-            if (ADC == ADC3) {
+            if (adc == ADC3) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
                 break;
             }
-            adc_channel.number = 8U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_8;
+            ch.id = 8U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_8;
             break;
         case PIN_A2:
-            if (ADC == ADC3) {
+            if (adc == ADC3) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
                 break;
             }
-            adc_channel.number = 9U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_9;
+            ch.id = 9U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_9;
             break;
         case PIN_A3:
-            if (ADC == ADC3) {
+            if (adc == ADC3) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
                 break;
             }
-            adc_channel.number = 5U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_5;
+            ch.id = 5U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_5;
             break;
         case PIN_A4:
-            if (ADC == ADC3) {
+            if (adc == ADC3) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
                 break;
             }
-            adc_channel.number = 13U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_13;
+            ch.id = 13U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_13;
             break;
         case PIN_A5:
-            adc_channel.number = 12U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_12;
+            ch.id = 12U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_12;
             break;
         case PIN_A6:
-            adc_channel.number = 10U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_10;
+            ch.id = 10U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_10;
             break;
         case PIN_A7:
-            if (ADC == ADC2 || ADC == ADC3) {
+            if (adc == ADC2 || adc == ADC3) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
                 break;
             }
-            adc_channel.number = 16U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_16;
+            ch.id = 16U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_16;
             break;
         case A8:
-            if (ADC == ADC1 || ADC == ADC2) {
+            if (adc == ADC1 || adc == ADC2) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
                 break;
             }
-            adc_channel.number = 0U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_0;
+            ch.id = 0U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_0;
             break;
         case A9:
-            if (ADC == ADC1 || ADC == ADC2) {
+            if (adc == ADC1 || adc == ADC2) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
                 break;
             }
-            adc_channel.number = 1U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_1;
+            ch.id = 1U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_1;
             break;
         case A10:
-            if (ADC == ADC3) {
+            if (adc == ADC3) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
                 break;
             }
-            adc_channel.number = 1U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_1;
+            ch.id = 1U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_1;
             break;
         case A11:
-            if (ADC == ADC3) {
+            if (adc == ADC3) {
                 error = ADC_ERROR_PICKED_WRONG_CHANNEL;
                 break;
             }
-            adc_channel.number = 0U;
-            adc_channel.preselection = ADC_PCSEL_PCSEL_0;
+            ch.id = 0U;
+            ch.pcsel_mask = ADC_PCSEL_PCSEL_0;
             break;
         default:
             error = ADC_ERROR_PICKED_WRONG_CHANNEL;
             break;
     }
 
-    return adc_channel;
+    return ch;
 }
 
-void select_adc_channel(ADC_TypeDef* ADC, uint8_t channel_num, uint8_t rank) {
+static void select_adc_channel(ADC_TypeDef* adc, uint8_t channel_num, uint8_t rank) {
     switch(rank) {
         case 1:
-            MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ1, channel_num << ADC_SQR1_SQ1_Pos);
+            MODIFY_REG(adc->SQR1, ADC_SQR1_SQ1, channel_num << ADC_SQR1_SQ1_Pos);
             break;
         case 2:
-            MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ2, channel_num << ADC_SQR1_SQ2_Pos);
+            MODIFY_REG(adc->SQR1, ADC_SQR1_SQ2, channel_num << ADC_SQR1_SQ2_Pos);
             break;
         case 3:
-            MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ3, channel_num << ADC_SQR1_SQ3_Pos);
+            MODIFY_REG(adc->SQR1, ADC_SQR1_SQ3, channel_num << ADC_SQR1_SQ3_Pos);
             break;
         case 4:
-            MODIFY_REG(ADC->SQR1, ADC_SQR1_SQ4, channel_num << ADC_SQR1_SQ4_Pos);
+            MODIFY_REG(adc->SQR1, ADC_SQR1_SQ4, channel_num << ADC_SQR1_SQ4_Pos);
             break;
         case 5:
-            MODIFY_REG(ADC->SQR2, ADC_SQR2_SQ5, channel_num << ADC_SQR2_SQ5_Pos);
+            MODIFY_REG(adc->SQR2, ADC_SQR2_SQ5, channel_num << ADC_SQR2_SQ5_Pos);
             break;
         case 6:
-            MODIFY_REG(ADC->SQR2, ADC_SQR2_SQ6, channel_num << ADC_SQR2_SQ6_Pos);
+            MODIFY_REG(adc->SQR2, ADC_SQR2_SQ6, channel_num << ADC_SQR2_SQ6_Pos);
             break;
         case 7:
-            MODIFY_REG(ADC->SQR2, ADC_SQR2_SQ7, channel_num << ADC_SQR2_SQ7_Pos);
+            MODIFY_REG(adc->SQR2, ADC_SQR2_SQ7, channel_num << ADC_SQR2_SQ7_Pos);
             break;
         case 8:
-            MODIFY_REG(ADC->SQR2, ADC_SQR2_SQ8, channel_num << ADC_SQR2_SQ8_Pos);
+            MODIFY_REG(adc->SQR2, ADC_SQR2_SQ8, channel_num << ADC_SQR2_SQ8_Pos);
             break;
         case 9:
-            MODIFY_REG(ADC->SQR2, ADC_SQR2_SQ9, channel_num << ADC_SQR2_SQ9_Pos);
+            MODIFY_REG(adc->SQR2, ADC_SQR2_SQ9, channel_num << ADC_SQR2_SQ9_Pos);
             break;
         case 10:
-            MODIFY_REG(ADC->SQR3, ADC_SQR3_SQ10, channel_num << ADC_SQR3_SQ10_Pos);
+            MODIFY_REG(adc->SQR3, ADC_SQR3_SQ10, channel_num << ADC_SQR3_SQ10_Pos);
             break;
         case 11:
-            MODIFY_REG(ADC->SQR3, ADC_SQR3_SQ11, channel_num << ADC_SQR3_SQ11_Pos);
+            MODIFY_REG(adc->SQR3, ADC_SQR3_SQ11, channel_num << ADC_SQR3_SQ11_Pos);
             break;
         case 12:
-            MODIFY_REG(ADC->SQR3, ADC_SQR3_SQ12, channel_num << ADC_SQR3_SQ12_Pos);
+            MODIFY_REG(adc->SQR3, ADC_SQR3_SQ12, channel_num << ADC_SQR3_SQ12_Pos);
             break;
         case 13:
-            MODIFY_REG(ADC->SQR3, ADC_SQR3_SQ13, channel_num << ADC_SQR3_SQ13_Pos);
+            MODIFY_REG(adc->SQR3, ADC_SQR3_SQ13, channel_num << ADC_SQR3_SQ13_Pos);
             break;
         case 14:
-            MODIFY_REG(ADC->SQR3, ADC_SQR3_SQ14, channel_num << ADC_SQR3_SQ14_Pos);
+            MODIFY_REG(adc->SQR3, ADC_SQR3_SQ14, channel_num << ADC_SQR3_SQ14_Pos);
             break;
         case 15:
-            MODIFY_REG(ADC->SQR4, ADC_SQR4_SQ15, channel_num << ADC_SQR4_SQ15_Pos);
+            MODIFY_REG(adc->SQR4, ADC_SQR4_SQ15, channel_num << ADC_SQR4_SQ15_Pos);
             break;
         case 16:
-            MODIFY_REG(ADC->SQR4, ADC_SQR4_SQ16, channel_num << ADC_SQR4_SQ16_Pos);
+            MODIFY_REG(adc->SQR4, ADC_SQR4_SQ16, channel_num << ADC_SQR4_SQ16_Pos);
             break;
         default:
             error = ADC_ERROR_WRONG_SEQUENCE;
@@ -606,67 +695,67 @@ void select_adc_channel(ADC_TypeDef* ADC, uint8_t channel_num, uint8_t rank) {
     }
 }
 
-void set_adc_channel_sample_time(ADC_TypeDef* ADC, uint8_t sample_time, uint8_t channel_num) {
+static void set_adc_channel_sample_time(ADC_TypeDef* adc, uint8_t sample_time, uint8_t channel_num) {
     switch(channel_num) {
         case 0U:
-            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP0, sample_time << ADC_SMPR1_SMP0_Pos);
+            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP0, sample_time << ADC_SMPR1_SMP0_Pos);
             break;
         case 1U:
-            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP1, sample_time << ADC_SMPR1_SMP1_Pos);
+            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP1, sample_time << ADC_SMPR1_SMP1_Pos);
             break;
         case 2U:
-            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP2, sample_time << ADC_SMPR1_SMP2_Pos);
+            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP2, sample_time << ADC_SMPR1_SMP2_Pos);
             break;
         case 3U:
-            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP3, sample_time << ADC_SMPR1_SMP3_Pos);
+            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP3, sample_time << ADC_SMPR1_SMP3_Pos);
             break;
         case 4U:
-            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP4, sample_time << ADC_SMPR1_SMP4_Pos);
+            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP4, sample_time << ADC_SMPR1_SMP4_Pos);
             break;
         case 5U:
-            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP5, sample_time << ADC_SMPR1_SMP5_Pos);
+            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP5, sample_time << ADC_SMPR1_SMP5_Pos);
             break;
         case 6U:
-            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP6, sample_time << ADC_SMPR1_SMP6_Pos);
+            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP6, sample_time << ADC_SMPR1_SMP6_Pos);
             break;
         case 7U:
-            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP7, sample_time << ADC_SMPR1_SMP7_Pos);
+            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP7, sample_time << ADC_SMPR1_SMP7_Pos);
             break;
         case 8U:
-            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP8, sample_time << ADC_SMPR1_SMP8_Pos);
+            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP8, sample_time << ADC_SMPR1_SMP8_Pos);
             break;
         case 9U:
-            MODIFY_REG(ADC->SMPR1, ADC_SMPR1_SMP9, sample_time << ADC_SMPR1_SMP9_Pos);
+            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP9, sample_time << ADC_SMPR1_SMP9_Pos);
             break;
         case 10U:
-            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP10, sample_time << ADC_SMPR2_SMP10_Pos);
+            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP10, sample_time << ADC_SMPR2_SMP10_Pos);
             break;
         case 11U:
-            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP11, sample_time << ADC_SMPR2_SMP11_Pos);
+            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP11, sample_time << ADC_SMPR2_SMP11_Pos);
             break;
         case 12U:
-            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP12, sample_time << ADC_SMPR2_SMP12_Pos);
+            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP12, sample_time << ADC_SMPR2_SMP12_Pos);
             break;
         case 13U:
-            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP13, sample_time << ADC_SMPR2_SMP13_Pos);
+            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP13, sample_time << ADC_SMPR2_SMP13_Pos);
             break;
         case 14U:
-            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP14, sample_time << ADC_SMPR2_SMP14_Pos);
+            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP14, sample_time << ADC_SMPR2_SMP14_Pos);
             break;
         case 15U:
-            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP15, sample_time << ADC_SMPR2_SMP15_Pos);
+            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP15, sample_time << ADC_SMPR2_SMP15_Pos);
             break;
         case 16U:
-            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP16, sample_time << ADC_SMPR2_SMP16_Pos);
+            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP16, sample_time << ADC_SMPR2_SMP16_Pos);
             break;
         case 17U:
-            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP17, sample_time << ADC_SMPR2_SMP17_Pos);
+            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP17, sample_time << ADC_SMPR2_SMP17_Pos);
             break;
         case 18U:
-            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP18, sample_time << ADC_SMPR2_SMP18_Pos);
+            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP18, sample_time << ADC_SMPR2_SMP18_Pos);
             break;
         case 19U:
-            MODIFY_REG(ADC->SMPR2, ADC_SMPR2_SMP19, sample_time << ADC_SMPR2_SMP19_Pos);
+            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP19, sample_time << ADC_SMPR2_SMP19_Pos);
             break;
         default:
             error = ADC_ERROR_SAMPLE_TIME_SETTING;
@@ -674,42 +763,52 @@ void set_adc_channel_sample_time(ADC_TypeDef* ADC, uint8_t sample_time, uint8_t 
     }
 }
 
-
 /* -------------------------------------------------------------------------- */
 /*                                 Interrupts                                 */
 /* -------------------------------------------------------------------------- */
+
 void ADC_IRQHandler(void) {
+    if (READ_BIT(ADC1->ISR, ADC_ISR_OVR)) {
+        adc_states[0].ovr_flag = true;
+        if (adc_states[0].ovr_counter < UINT32_MAX) {
+            adc_states[0].ovr_counter++;
+        }
+        SET_BIT(ADC1->ISR, ADC_ISR_OVR);
+    }
+    /*
     if (READ_BIT(ADC1->ISR, ADC_ISR_EOC)) {
         uint16_t val = READ_REG(ADC1->DR);
-        if (!adc1_data.done) {
-            adc1_data.conv_array[adc1_data.idx] = val;
-            adc1_data.idx++;
-            if (adc1_data.idx == adc1_data.total) {
-                adc1_data.done = 1;
+        if (!adc_states[0].seq_complete) {
+            adc_states[0].seq_buffer[adc_states[0].seq_idx] = val;
+            adc_states[0].seq_idx++;
+            if (adc_states[0].seq_idx == adc_states[0].seq_length) {
+                adc_states[0].seq_complete = true;
             }
-        } 
+        }
     }
-    
+
+    // TODO: overrun for ADC2 and 3
     if (READ_BIT(ADC2->ISR, ADC_ISR_EOC)) {
         uint16_t val = READ_REG(ADC2->DR);
-        if (!adc2_data.done) {
-            adc2_data.conv_array[adc2_data.idx] = val;
-            adc2_data.idx++;
-            if (adc2_data.idx == adc2_data.total) {
-                adc2_data.done = 1;
+        if (!adc_states[1].seq_complete) {
+            adc_states[1].seq_buffer[adc_states[1].seq_idx] = val;
+            adc_states[1].seq_idx++;
+            if (adc_states[1].seq_idx == adc_states[1].seq_length) {
+                adc_states[1].seq_complete = true;
             }
-        } 
+        }
     }
+    */
 }
 
 void ADC3_IRQHandler(void) {
     if (READ_BIT(ADC3->ISR, ADC_ISR_EOC)) {
         uint16_t val = READ_REG(ADC3->DR);
-        if (!adc3_data.done) {
-            adc3_data.conv_array[adc3_data.idx] = val;
-            adc3_data.idx++;
-            if (adc3_data.idx == adc3_data.total) {
-                adc3_data.done = 1;
+        if (!adc_states[2].seq_complete) {
+            adc_states[2].seq_buffer[adc_states[2].seq_idx] = val;
+            adc_states[2].seq_idx++;
+            if (adc_states[2].seq_idx == adc_states[2].seq_length) {
+                adc_states[2].seq_complete = true;
             }
         } 
     }

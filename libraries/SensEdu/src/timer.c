@@ -1,11 +1,21 @@
 #include "timer.h"
 
 /* -------------------------------------------------------------------------- */
+/*                                  Constants                                 */
+/* -------------------------------------------------------------------------- */
+
+// APB1 and APB2 timer clocks frequency
+static const uint32_t TIM_CLK = 240000000UL;
+
+// Precalculated prescaler to achieve 1MHz (1us) frequency
+#define PSC_1US (TIM_CLK / 1000000UL)
+
+// Precalculated CPU overhead for one function call like LED blinking
+#define DELAY_CPU_OVERHEAD_NS (550U)
+
+/* -------------------------------------------------------------------------- */
 /*                                  Variables                                 */
 /* -------------------------------------------------------------------------- */
-#define TIM_CLK                 240000000UL
-#define PSC_1US                 (TIM_CLK / 1000000UL)
-#define DELAY_CPU_OVERHEAD_NS   550
 
 static TIMER_ERROR error = TIMER_ERROR_NO_ERRORS;
 static volatile uint8_t delay_flag = 0;
@@ -13,6 +23,7 @@ static volatile uint8_t delay_flag = 0;
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
+
 static void calculate_tim_freq_settings_16bit(uint32_t freq, uint16_t *PSC, uint16_t *ARR);
 static void calculate_tim_freq_settings_32bit(uint32_t freq, uint16_t *PSC, uint32_t *ARR);
 static inline uint32_t ns_to_ticks(uint32_t ns);
@@ -78,27 +89,22 @@ TIMER_ERROR TIMER_GetError(void) {
     return error;
 }
 
-void TIMER_ADC1Init(void) {
-    tim1_adc1_init();
-}
-
-void TIMER_ADC2Init(void){
-    tim3_adc2_init();
-}
-
-void TIMER_ADC3Init(void){
-    tim6_adc3_init();
-}
-
-void TIMER_DAC1Init(uint32_t freq) {
-    tim4_dac1_init();
-    TIMER_DAC1SetFreq(freq);
+void TIMER_ADCxInit(ADC_TypeDef* adc) {
+    if (adc == ADC1) {
+        return tim1_adc1_init();
+    }
+    if (adc == ADC2) {
+        return tim3_adc2_init();
+    }
+    if (adc == ADC3) {
+        return tim6_adc3_init();
+    }
+    error = TIMER_ERROR_PICKED_WRONG_ADC;
 }
 
 void TIMER_ADCxEnable(ADC_TypeDef* adc) {
     TIM_TypeDef* tim = get_tim(adc);
     if (tim == NULL) {
-        error = TIMER_ERROR_PICKED_WRONG_ADC;
         return;
     }
     WRITE_REG(tim->CNT, 0U);
@@ -108,25 +114,14 @@ void TIMER_ADCxEnable(ADC_TypeDef* adc) {
 void TIMER_ADCxDisable(ADC_TypeDef* adc) {
     TIM_TypeDef* tim = get_tim(adc);
     if (tim == NULL) {
-        error = TIMER_ERROR_PICKED_WRONG_ADC;
         return;
     }
     CLEAR_BIT(tim->CR1, TIM_CR1_CEN);
 }
 
-void TIMER_DAC1Enable(void) {
-    WRITE_REG(TIM4->CNT, 0U);
-    SET_BIT(TIM4->CR1, TIM_CR1_CEN);
-}
-
-void TIMER_DAC1Disable(void) {
-    CLEAR_BIT(TIM4->CR1, TIM_CR1_CEN);
-}
-
-void TIMER_ADCSetFreq(ADC_TypeDef* adc, uint32_t freq) {
+void TIMER_ADCxSetFreq(ADC_TypeDef* adc, uint32_t freq) {
     TIM_TypeDef* tim = get_tim(adc);
     if (tim == NULL) {
-        error = TIMER_ERROR_PICKED_WRONG_ADC;
         return;
     }
     if (freq < 0 || freq > (TIM_CLK/2)) {
@@ -137,6 +132,20 @@ void TIMER_ADCSetFreq(ADC_TypeDef* adc, uint32_t freq) {
     calculate_tim_freq_settings_16bit(freq, &psc, &arr);
     WRITE_REG(tim->PSC, psc);
     WRITE_REG(tim->ARR, arr);
+}
+
+void TIMER_DAC1Init(uint32_t freq) {
+    tim4_dac1_init();
+    TIMER_DAC1SetFreq(freq);
+}
+
+void TIMER_DAC1Enable(void) {
+    WRITE_REG(TIM4->CNT, 0U);
+    SET_BIT(TIM4->CR1, TIM_CR1_CEN);
+}
+
+void TIMER_DAC1Disable(void) {
+    CLEAR_BIT(TIM4->CR1, TIM_CR1_CEN);
 }
 
 void TIMER_DAC1SetFreq(uint32_t freq) {
@@ -236,13 +245,15 @@ static void calculate_tim_freq_settings_16bit(uint32_t freq, uint16_t *PSC, uint
 static TIM_TypeDef* get_tim(ADC_TypeDef* adc) {
     if (adc == ADC1) {
         return TIM1; 
-    } else if (adc == ADC2) {
-        return TIM3; 
-    } else if (adc == ADC3) {
-        return TIM6; 
-    } else {
-        return NULL;
     }
+    if (adc == ADC2) {
+        return TIM3; 
+    }
+    if (adc == ADC3) {
+        return TIM6; 
+    }
+    error = TIMER_ERROR_PICKED_WRONG_ADC;
+    return NULL;
 }
 
 static void calculate_tim_freq_settings_32bit(uint32_t freq, uint16_t *PSC, uint32_t *ARR) {

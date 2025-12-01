@@ -1,12 +1,15 @@
 #include "dma.h"
+#include "adc.h"
 
 /* -------------------------------------------------------------------------- */
 /*                                   Structs                                  */
 /* -------------------------------------------------------------------------- */
+
+// TODO: fix names
 typedef struct {
     uint32_t clear_flags;
     uint32_t flags;
-} DMA_Flags;
+} DmaFlags;
 
 typedef struct {
     volatile uint8_t transfer_status;
@@ -14,7 +17,7 @@ typedef struct {
     uint16_t memory_size;
     uint32_t adc_reg_address;
     DMA_Stream_TypeDef* dma_stream;
-    DMA_Flags* dma_stream_flags;
+    DmaFlags* dma_stream_flags;
     IRQn_Type dma_irq;
     DMAMUX_Channel_TypeDef* dmamux_ch;
     uint8_t dmamux_periph_id;
@@ -26,7 +29,7 @@ typedef struct {
     uint16_t memory_size;
     uint32_t dac_reg_address;
     DMA_Stream_TypeDef* dma_stream;
-    DMA_Flags* dma_stream_flags;
+    DmaFlags* dma_stream_flags;
     IRQn_Type dma_irq;
     DMAMUX_Channel_TypeDef* dmamux_ch;
     uint8_t dmamux_periph_id;
@@ -36,15 +39,15 @@ typedef struct {
 /*                                  Variables                                 */
 /* -------------------------------------------------------------------------- */
 
-static DMA_Flags dma_ch0_flags = {(DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0), (DMA_LISR_TCIF0 | DMA_LISR_HTIF0 | DMA_LISR_TEIF0 | DMA_LISR_DMEIF0)};
-static DMA_Flags dma_ch1_flags = {(DMA_LIFCR_CTCIF1 | DMA_LIFCR_CHTIF1 | DMA_LIFCR_CTEIF1), (DMA_LISR_TCIF1 | DMA_LISR_HTIF1 | DMA_LISR_TEIF1 | DMA_LISR_DMEIF1)};
-static DMA_Flags dma_ch2_flags = {(DMA_LIFCR_CTCIF2 | DMA_LIFCR_CHTIF2 | DMA_LIFCR_CTEIF2), (DMA_LISR_TCIF2 | DMA_LISR_HTIF2 | DMA_LISR_TEIF2 | DMA_LISR_DMEIF2)};
-static DMA_Flags dma_ch3_flags = {(DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3 | DMA_LIFCR_CTEIF3), (DMA_LISR_TCIF3 | DMA_LISR_HTIF3 | DMA_LISR_TEIF3 | DMA_LISR_DMEIF3)};
+static DmaFlags dma_ch0_flags = {(DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0), (DMA_LISR_TCIF0 | DMA_LISR_HTIF0 | DMA_LISR_TEIF0 | DMA_LISR_DMEIF0)};
+static DmaFlags dma_ch1_flags = {(DMA_LIFCR_CTCIF1 | DMA_LIFCR_CHTIF1 | DMA_LIFCR_CTEIF1), (DMA_LISR_TCIF1 | DMA_LISR_HTIF1 | DMA_LISR_TEIF1 | DMA_LISR_DMEIF1)};
+static DmaFlags dma_ch2_flags = {(DMA_LIFCR_CTCIF2 | DMA_LIFCR_CHTIF2 | DMA_LIFCR_CTEIF2), (DMA_LISR_TCIF2 | DMA_LISR_HTIF2 | DMA_LISR_TEIF2 | DMA_LISR_DMEIF2)};
+static DmaFlags dma_ch3_flags = {(DMA_LIFCR_CTCIF3 | DMA_LIFCR_CHTIF3 | DMA_LIFCR_CTEIF3), (DMA_LISR_TCIF3 | DMA_LISR_HTIF3 | DMA_LISR_TEIF3 | DMA_LISR_DMEIF3)};
 
-static DMA_Flags dma_ch4_flags = {(DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4), (DMA_HISR_TCIF4 | DMA_HISR_HTIF4 | DMA_HISR_TEIF4 | DMA_HISR_DMEIF4)};
-static DMA_Flags dma_ch5_flags = {(DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5 | DMA_HIFCR_CTEIF5), (DMA_HISR_TCIF5 | DMA_HISR_HTIF5 | DMA_HISR_TEIF5 | DMA_HISR_DMEIF5)};
-static DMA_Flags dma_ch6_flags = {(DMA_HIFCR_CTCIF6 | DMA_HIFCR_CHTIF6 | DMA_HIFCR_CTEIF6), (DMA_HISR_TCIF6 | DMA_HISR_HTIF6 | DMA_HISR_TEIF6 | DMA_HISR_DMEIF6)};
-static DMA_Flags dma_ch7_flags = {(DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIFCR_CTEIF7), (DMA_HISR_TCIF7 | DMA_HISR_HTIF7 | DMA_HISR_TEIF7 | DMA_HISR_DMEIF7)};
+static DmaFlags dma_ch4_flags = {(DMA_HIFCR_CTCIF4 | DMA_HIFCR_CHTIF4 | DMA_HIFCR_CTEIF4), (DMA_HISR_TCIF4 | DMA_HISR_HTIF4 | DMA_HISR_TEIF4 | DMA_HISR_DMEIF4)};
+static DmaFlags dma_ch5_flags = {(DMA_HIFCR_CTCIF5 | DMA_HIFCR_CHTIF5 | DMA_HIFCR_CTEIF5), (DMA_HISR_TCIF5 | DMA_HISR_HTIF5 | DMA_HISR_TEIF5 | DMA_HISR_DMEIF5)};
+static DmaFlags dma_ch6_flags = {(DMA_HIFCR_CTCIF6 | DMA_HIFCR_CHTIF6 | DMA_HIFCR_CTEIF6), (DMA_HISR_TCIF6 | DMA_HISR_HTIF6 | DMA_HISR_TEIF6 | DMA_HISR_DMEIF6)};
+static DmaFlags dma_ch7_flags = {(DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIFCR_CTEIF7), (DMA_HISR_TCIF7 | DMA_HISR_HTIF7 | DMA_HISR_TEIF7 | DMA_HISR_DMEIF7)};
 
 static volatile DMA_ERROR error = DMA_ERROR_NO_ERRORS;
 
@@ -67,8 +70,8 @@ static adc_config adc3_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC3->DR),
 void dma_adc_init(adc_config* config);
 void dma_dac_init(dac_config* config);
 
-void dma_clear_status_flags(DMA_Flags* dma_flags);
-void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags* flags);
+void dma_clear_status_flags(DmaFlags* dma_flags);
+void dma_disable(DMA_Stream_TypeDef* dma_stream, DmaFlags* flags);
 adc_config* get_adc_config(ADC_TypeDef* adc);
 dac_config* get_dac_config(DAC_Channel* dac_channel);
 
@@ -283,7 +286,7 @@ void dma_dac_init(dac_config *config) {
     CLEAR_BIT(config->dma_stream->FCR, DMA_SxFCR_DMDIS);  
 }
 
-void dma_clear_status_flags(DMA_Flags* dma_flags) {
+void dma_clear_status_flags(DmaFlags* dma_flags) {
     if (dma_flags==&dma_ch0_flags || dma_flags==&dma_ch1_flags || dma_flags==&dma_ch2_flags || dma_flags==&dma_ch3_flags) {
         SET_BIT(DMA1->LIFCR, dma_flags->clear_flags);
 
@@ -299,7 +302,7 @@ void dma_clear_status_flags(DMA_Flags* dma_flags) {
     }    
 }
 
-void dma_disable(DMA_Stream_TypeDef* dma_stream, DMA_Flags* flags) {
+void dma_disable(DMA_Stream_TypeDef* dma_stream, DmaFlags* flags) {
     CLEAR_BIT(dma_stream->CR, DMA_SxCR_EN);
     while(READ_BIT(dma_stream->CR, DMA_SxCR_EN));
 
@@ -325,14 +328,14 @@ void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size) {
     LL_MPU_Enable(LL_MPU_CTRL_PRIVILEGED_DEFAULT);
 }
 
-
 /* -------------------------------------------------------------------------- */
 /*                                 Interrupts                                 */
 /* -------------------------------------------------------------------------- */
+
 void DMA1_Stream5_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF5)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF5);
-        ADC_TransferCompleteDMAinterrupt(ADC2);
+        ADC_TransferCompleteDmaInterrupt(ADC2);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF5)) {
@@ -344,7 +347,7 @@ void DMA1_Stream5_IRQHandler(void) {
 void DMA1_Stream6_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);
-        ADC_TransferCompleteDMAinterrupt(ADC1);
+        ADC_TransferCompleteDmaInterrupt(ADC1);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF6)) {
@@ -356,7 +359,7 @@ void DMA1_Stream6_IRQHandler(void) {
 void DMA1_Stream7_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF7)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF7);
-        ADC_TransferCompleteDMAinterrupt(ADC3);
+        ADC_TransferCompleteDmaInterrupt(ADC3);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF7)) {
