@@ -256,7 +256,40 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      [
+        "footprint_link_issues|1270000|914400|a8b819de-33e4-4596-aa82-fc2605d38a5d|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
+        "footprint_link_issues|1676400|355600|2c38a8cc-2de7-4c8e-a35d-9d48a25dfb53|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
+        "footprint_link_issues|1752600|419100|dc81eddc-09cd-4c97-b5c7-4653cc313f35|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
+        "footprint_link_issues|2476500|317500|0177454a-fd35-45f7-80ad-57b779b5c096|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
+        "footprint_link_issues|2565400|749300|48931308-0635-49cd-bee1-8f7ecbc3bc52|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
+        "footprint_link_issues|2692400|406400|c8c08f76-027a-4433-894c-9b551c92bd88|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
+        "footprint_link_issues|812800|711200|4becbb6c-dc18-4816-9588-a5ded255c677|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
+        "footprint_link_issues|850900|1447800|6b853588-689e-44be-8349-cd8d4767b86b|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ]
+    ],
     "meta": {
       "version": 0
     },
@@ -442,9 +475,9 @@
       "duplicate_sheet_names": "error",
       "endpoint_off_grid": "warning",
       "extra_units": "error",
-      "footprint_filter": "ignore",
+      "footprint_filter": "warning",
       "footprint_link_issues": "warning",
-      "four_way_junction": "ignore",
+      "four_way_junction": "warning",
       "global_label_dangling": "warning",
       "hier_label_mismatch": "error",
       "label_dangling": "error",
@@ -468,7 +501,7 @@
       "similar_labels": "warning",
       "similar_power": "warning",
       "simulation_model_issue": "error",
-      "single_global_label": "ignore",
+      "single_global_label": "warning",
       "unannotated": "error",
       "unconnected_wire_endpoint": "warning",
       "unit_value_mismatch": "error",
@@ -626,7 +659,7 @@
       "meta": {
         "version": 0
       },
-      "model_mode": 0,
+      "model_mode": 4,
       "workbook_filename": ""
     },
     "page_layout_descr_file": "",
@@ -652,12 +685,12 @@
       "Microphones"
     ],
     [
-      "32893aec-41b3-4e64-b47a-61deed46b8b4",
-      "Speakers"
-    ],
-    [
       "5e2ce67a-97f9-439d-a475-1867d59b3f74",
       "General pupose Amplifiers"
+    ],
+    [
+      "32893aec-41b3-4e64-b47a-61deed46b8b4",
+      "Speakers"
     ],
     [
       "d6e506e4-1660-4f12-9b07-0782300f1012",

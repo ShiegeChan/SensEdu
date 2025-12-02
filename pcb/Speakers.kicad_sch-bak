@@ -5,6 +5,268 @@
 	(uuid "7ea7d6d4-69dd-4344-824d-5c615f841cd7")
 	(paper "A4")
 	(lib_symbols
+		(symbol "ADA4891-1:ADA4891-1ARZ"
+			(pin_names
+				(offset 0.254)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at 27.94 10.16 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+				)
+			)
+			(property "Value" "ADA4891-1ARZ"
+				(at 27.94 7.62 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+				)
+			)
+			(property "Footprint" "R_8_ADI"
+				(at 27.94 6.096 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.524 1.524)
+					)
+				)
+			)
+			(property "Description" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_locked" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "ki_fp_filters" "R_8_ADI R_8_ADI-M R_8_ADI-L"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "ADA4891-1ARZ_1_1"
+				(polyline
+					(pts
+						(xy 7.62 5.08) (xy 7.62 -12.7)
+					)
+					(stroke
+						(width 0.127)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 7.62 -12.7) (xy 48.26 -12.7)
+					)
+					(stroke
+						(width 0.127)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 48.26 5.08) (xy 7.62 5.08)
+					)
+					(stroke
+						(width 0.127)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 48.26 -12.7) (xy 48.26 5.08)
+					)
+					(stroke
+						(width 0.127)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin no_connect line
+					(at 0 0 0)
+					(length 7.62)
+					(name "NC"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 0 -2.54 0)
+					(length 7.62)
+					(name "IN-"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 0 -5.08 0)
+					(length 7.62)
+					(name "IN+"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 0 -7.62 0)
+					(length 7.62)
+					(name "VS-"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+				)
+				(pin no_connect line
+					(at 55.88 0 180)
+					(length 7.62)
+					(name "NC"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 55.88 -2.54 180)
+					(length 7.62)
+					(name "VS+"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at 55.88 -5.08 180)
+					(length 7.62)
+					(name "OUT"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+				)
+				(pin no_connect line
+					(at 55.88 -7.62 180)
+					(length 7.62)
+					(name "NC"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.4986 1.4986)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "Device:C"
 			(pin_numbers
 				(hide yes)
@@ -555,13 +817,13 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "Jumper_3_Bridged12_1"
+		(symbol "Jumper:Jumper_3_Bridged12"
 			(pin_names
 				(offset 0)
 				(hide yes)
 			)
 			(exclude_from_sim no)
-			(in_bom no)
+			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "JP"
 				(at -2.54 -2.54 0)
@@ -624,7 +886,7 @@
 					(hide yes)
 				)
 			)
-			(symbol "Jumper_3_Bridged12_1_0_0"
+			(symbol "Jumper_3_Bridged12_0_0"
 				(circle
 					(center -3.302 0)
 					(radius 0.508)
@@ -659,7 +921,7 @@
 					)
 				)
 			)
-			(symbol "Jumper_3_Bridged12_1_0_1"
+			(symbol "Jumper_3_Bridged12_0_1"
 				(arc
 					(start -3.048 0.508)
 					(mid -1.651 0.9912)
@@ -685,7 +947,7 @@
 					)
 				)
 			)
-			(symbol "Jumper_3_Bridged12_1_1_1"
+			(symbol "Jumper_3_Bridged12_1_1"
 				(pin passive line
 					(at -6.35 0 0)
 					(length 2.54)
@@ -733,266 +995,6 @@
 						)
 					)
 					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "SensEdu:ADA4891-1ARZ"
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "IC"
-				(at 26.67 7.62 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-				)
-			)
-			(property "Value" "ADA4891-1ARZ"
-				(at 26.67 5.08 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-				)
-			)
-			(property "Footprint" "SOIC127P600X175-8N"
-				(at 26.67 -94.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://www.analog.com/ADA4891-1/datasheet"
-				(at 26.67 -194.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Description" "Low Cost CMOS, High Speed, Rail-to-Rail Amplifier (Single)"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Height" "1.75"
-				(at 26.67 -394.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Farnell Part Number" ""
-				(at 26.67 -494.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Farnell Price/Stock" ""
-				(at 26.67 -594.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer_Name" "Analog Devices"
-				(at 26.67 -694.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer_Part_Number" "ADA4891-1ARZ"
-				(at 26.67 -794.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(symbol "ADA4891-1ARZ_1_1"
-				(rectangle
-					(start 5.08 2.54)
-					(end 25.4 -10.16)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type background)
-					)
-				)
-				(pin passive line
-					(at 0 0 0)
-					(length 5.08)
-					(name "NC_1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -2.54 0)
-					(length 5.08)
-					(name "-IN"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -5.08 0)
-					(length 5.08)
-					(name "+IN"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -7.62 0)
-					(length 5.08)
-					(name "-VS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 30.48 0 180)
-					(length 5.08)
-					(name "NC_3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "8"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 30.48 -2.54 180)
-					(length 5.08)
-					(name "+VS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "7"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 30.48 -5.08 180)
-					(length 5.08)
-					(name "OUT"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "6"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 30.48 -7.62 180)
-					(length 5.08)
-					(name "NC_2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1124,39 +1126,15 @@
 		(color 0 0 0 0)
 		(uuid "dafb6877-3b6e-4028-a0c1-e6ad9150d5b8")
 	)
-	(no_connect
-		(at 135.89 147.32)
-		(uuid "295924e7-0b7f-468a-b93b-ab61388aeb8d")
-	)
-	(no_connect
-		(at 105.41 139.7)
-		(uuid "5ab9419b-54aa-4635-9c18-6a0846b94ce0")
-	)
-	(no_connect
-		(at 102.87 66.04)
-		(uuid "8d64162a-68b2-46f6-9b7a-3a8a4f422651")
-	)
-	(no_connect
-		(at 133.35 66.04)
-		(uuid "b7ffc457-d957-4435-8c95-02ea8d2ac401")
-	)
-	(no_connect
-		(at 135.89 139.7)
-		(uuid "e93c8b7b-fb8a-40f2-8b21-1c5b18c40e8d")
-	)
-	(no_connect
-		(at 133.35 73.66)
-		(uuid "f6ecea6e-9796-4efa-b072-6ca70b15c305")
-	)
 	(wire
 		(pts
-			(xy 135.89 142.24) (xy 156.21 142.24)
+			(xy 152.4 68.58) (xy 149.86 68.58)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "06e8eb6c-69d7-4283-bebb-6908b99d6eff")
+		(uuid "008da05d-9b32-43f9-9f45-f04d2e934938")
 	)
 	(wire
 		(pts
@@ -1170,16 +1148,6 @@
 	)
 	(wire
 		(pts
-			(xy 133.35 68.58) (xy 152.4 68.58)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0de94f95-27b4-4d99-b2f6-2c25c6b78512")
-	)
-	(wire
-		(pts
 			(xy 54.61 39.37) (xy 55.88 39.37)
 		)
 		(stroke
@@ -1187,6 +1155,16 @@
 			(type default)
 		)
 		(uuid "12969901-1168-4536-b78b-36a0f3c076cf")
+	)
+	(wire
+		(pts
+			(xy 156.21 71.12) (xy 149.86 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "14f79e2b-756b-41d4-84b1-be8c71ba0607")
 	)
 	(wire
 		(pts
@@ -1200,7 +1178,7 @@
 	)
 	(wire
 		(pts
-			(xy 85.09 71.12) (xy 102.87 71.12)
+			(xy 85.09 71.12) (xy 93.98 71.12)
 		)
 		(stroke
 			(width 0)
@@ -1270,7 +1248,7 @@
 	)
 	(wire
 		(pts
-			(xy 102.87 73.66) (xy 91.44 73.66)
+			(xy 93.98 73.66) (xy 91.44 73.66)
 		)
 		(stroke
 			(width 0)
@@ -1390,7 +1368,17 @@
 	)
 	(wire
 		(pts
-			(xy 102.87 68.58) (xy 90.17 68.58)
+			(xy 156.21 142.24) (xy 153.67 142.24)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "52ae5e30-02e0-4c44-8f42-7c4a095052b9")
+	)
+	(wire
+		(pts
+			(xy 93.98 68.58) (xy 90.17 68.58)
 		)
 		(stroke
 			(width 0)
@@ -1487,6 +1475,16 @@
 			(type default)
 		)
 		(uuid "6ae29128-847a-4021-9bff-30598bbcefcd")
+	)
+	(wire
+		(pts
+			(xy 160.02 144.78) (xy 153.67 144.78)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6fa25039-1359-4945-bd50-68dd1840330d")
 	)
 	(wire
 		(pts
@@ -1617,16 +1615,6 @@
 			(type default)
 		)
 		(uuid "808e379a-c926-44e5-bd1b-917ad87232fa")
-	)
-	(wire
-		(pts
-			(xy 133.35 71.12) (xy 156.21 71.12)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "80d29ec3-9008-412e-a40f-f13623b37777")
 	)
 	(wire
 		(pts
@@ -1860,7 +1848,7 @@
 	)
 	(wire
 		(pts
-			(xy 105.41 147.32) (xy 95.25 147.32)
+			(xy 97.79 147.32) (xy 95.25 147.32)
 		)
 		(stroke
 			(width 0)
@@ -1900,7 +1888,7 @@
 	)
 	(wire
 		(pts
-			(xy 105.41 142.24) (xy 93.98 142.24)
+			(xy 97.79 142.24) (xy 93.98 142.24)
 		)
 		(stroke
 			(width 0)
@@ -2010,17 +1998,7 @@
 	)
 	(wire
 		(pts
-			(xy 135.89 144.78) (xy 160.02 144.78)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e8f14150-1cd0-418e-b7b9-cbbb43b0951b")
-	)
-	(wire
-		(pts
-			(xy 88.9 144.78) (xy 105.41 144.78)
+			(xy 88.9 144.78) (xy 97.79 144.78)
 		)
 		(stroke
 			(width 0)
@@ -2398,8 +2376,8 @@
 		)
 	)
 	(symbol
-		(lib_id "SensEdu:ADA4891-1ARZ")
-		(at 102.87 66.04 0)
+		(lib_id "ADA4891-1:ADA4891-1ARZ")
+		(at 93.98 66.04 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2408,7 +2386,7 @@
 		(fields_autoplaced yes)
 		(uuid "0be2be18-01a8-44ff-9f6e-fb7140b3341e")
 		(property "Reference" "U7"
-			(at 118.11 50.8 0)
+			(at 121.92 57.15 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -2416,78 +2394,33 @@
 			)
 		)
 		(property "Value" "ADA4891"
-			(at 118.11 53.34 0)
+			(at 121.92 59.69 0)
 			(effects
 				(font
 					(size 1.524 1.524)
 				)
 			)
 		)
-		(property "Footprint" "SensEdu:ADA4891-1ARZ"
-			(at 129.54 160.96 0)
+		(property "Footprint" "ADA4891-ARZ:ADA4891-1ARZ"
+			(at 121.92 59.944 0)
 			(effects
 				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.analog.com/ADA4891-1/datasheet"
-			(at 129.54 260.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Description" "Low Cost CMOS, High Speed, Rail-to-Rail Amplifier (Single)"
-			(at 102.87 66.04 0)
-			(effects
-				(font
-					(size 1.27 1.27)
+					(size 1.524 1.524)
 				)
 				(hide yes)
 			)
 		)
-		(property "Height" "1.75"
-			(at 118.11 55.88 0)
+		(property "Datasheet" "https://www.mouser.at/datasheet/3/1014/1/ADA4891-1_4891-2_4891-3_4891-4.PDF"
+			(at 93.98 66.04 0)
 			(effects
 				(font
-					(size 1.27 1.27)
+					(size 1.524 1.524)
 				)
+				(hide yes)
 			)
 		)
-		(property "Farnell Part Number" ""
-			(at 129.54 560.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(property "Farnell Price/Stock" ""
-			(at 129.54 660.96 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(property "Manufacturer_Name" "Analog Devices"
-			(at 118.11 58.42 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer_Part_Number" "ADA4891-1ARZ"
-			(at 118.11 60.96 0)
+		(property "Description" ""
+			(at 93.98 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3181,80 +3114,6 @@
 		)
 	)
 	(symbol
-		(lib_name "Jumper_3_Bridged12_1")
-		(lib_id "Jumper:Jumper_3_Bridged12")
-		(at 81.28 71.12 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "4becbb6c-dc18-4816-9588-a5ded255c677")
-		(property "Reference" "JP2"
-			(at 78.74 69.8499 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "Jumper_3_Bridged12"
-			(at 78.74 72.3899 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 81.28 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 81.28 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Jumper, 3-pole, pins 1+2 closed/bridged"
-			(at 81.28 71.12 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "fca4fc92-44de-4ad8-866d-32ac35aeab5c")
-		)
-		(pin "3"
-			(uuid "3b7b9cff-debe-4874-9e1a-55dd0cc4259a")
-		)
-		(pin "2"
-			(uuid "3d4b7472-019c-4ab5-b855-a2e07d1a6c3b")
-		)
-		(instances
-			(project "SensEdu"
-				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/32893aec-41b3-4e64-b47a-61deed46b8b4"
-					(reference "JP2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:C")
 		(at 59.69 121.92 0)
 		(unit 1)
@@ -3769,80 +3628,6 @@
 		)
 	)
 	(symbol
-		(lib_name "Jumper_3_Bridged12_1")
-		(lib_id "Jumper:Jumper_3_Bridged12")
-		(at 85.09 144.78 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6b853588-689e-44be-8349-cd8d4767b86b")
-		(property "Reference" "JP1"
-			(at 82.55 143.5099 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "Jumper_3_Bridged12"
-			(at 82.55 146.0499 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 85.09 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 85.09 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Jumper, 3-pole, pins 1+2 closed/bridged"
-			(at 85.09 144.78 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "9ac78a94-cdbd-456a-be61-a9fe849d4097")
-		)
-		(pin "3"
-			(uuid "fe50bb4f-df65-4a17-90c4-32237d079b85")
-		)
-		(pin "2"
-			(uuid "8fa26d14-5890-4aa9-978e-f89ee011663b")
-		)
-		(instances
-			(project ""
-				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/32893aec-41b3-4e64-b47a-61deed46b8b4"
-					(reference "JP1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:R")
 		(at 63.5 39.37 90)
 		(unit 1)
@@ -4331,8 +4116,8 @@
 		)
 	)
 	(symbol
-		(lib_id "SensEdu:ADA4891-1ARZ")
-		(at 105.41 139.7 0)
+		(lib_id "ADA4891-1:ADA4891-1ARZ")
+		(at 97.79 139.7 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4341,7 +4126,7 @@
 		(fields_autoplaced yes)
 		(uuid "8a2a3d02-e332-4540-88db-f6eea8214538")
 		(property "Reference" "U4"
-			(at 120.65 124.46 0)
+			(at 125.73 130.81 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -4349,78 +4134,33 @@
 			)
 		)
 		(property "Value" "ADA4891"
-			(at 120.65 127 0)
+			(at 125.73 133.35 0)
 			(effects
 				(font
 					(size 1.524 1.524)
 				)
 			)
 		)
-		(property "Footprint" "SensEdu:ADA4891-1ARZ"
-			(at 132.08 234.62 0)
+		(property "Footprint" "ADA4891-ARZ:ADA4891-1ARZ"
+			(at 125.73 133.604 0)
 			(effects
 				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://www.analog.com/ADA4891-1/datasheet"
-			(at 132.08 334.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Description" "Low Cost CMOS, High Speed, Rail-to-Rail Amplifier (Single)"
-			(at 105.41 139.7 0)
-			(effects
-				(font
-					(size 1.27 1.27)
+					(size 1.524 1.524)
 				)
 				(hide yes)
 			)
 		)
-		(property "Height" "1.75"
-			(at 120.65 129.54 0)
+		(property "Datasheet" "https://www.mouser.at/datasheet/3/1014/1/ADA4891-1_4891-2_4891-3_4891-4.PDF"
+			(at 97.79 139.7 0)
 			(effects
 				(font
-					(size 1.27 1.27)
+					(size 1.524 1.524)
 				)
+				(hide yes)
 			)
 		)
-		(property "Farnell Part Number" ""
-			(at 132.08 634.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(property "Farnell Price/Stock" ""
-			(at 132.08 734.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(property "Manufacturer_Name" "Analog Devices"
-			(at 120.65 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Manufacturer_Part_Number" "ADA4891-1ARZ"
-			(at 120.65 134.62 0)
+		(property "Description" ""
+			(at 97.79 139.7 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4598,6 +4338,81 @@
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/32893aec-41b3-4e64-b47a-61deed46b8b4"
 					(reference "#PWR054")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:Jumper_3_Bridged12")
+		(at 85.09 144.78 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "906f3a8c-7aa1-4854-ae48-5886096cd08b")
+		(property "Reference" "J8"
+			(at 80.01 148.59 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Conn_03x01"
+			(at 82.55 151.13 0)
+			(effects
+				(font
+					(size 1 1)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
+			(at 85.09 144.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 85.09 144.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 85.09 144.78 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b1b81e12-21da-4c00-a14c-9212980a93de")
+		)
+		(pin "2"
+			(uuid "0e922e48-3b62-44b0-aa2e-f017ee2ed614")
+		)
+		(pin "3"
+			(uuid "5198cab6-0e83-4ce9-8b44-45645fa3817e")
+		)
+		(instances
+			(project "Ultrasound shield"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(reference "J17")
+					(unit 1)
+				)
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/32893aec-41b3-4e64-b47a-61deed46b8b4"
+					(reference "J8")
 					(unit 1)
 				)
 			)
@@ -5599,6 +5414,81 @@
 				)
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420"
 					(reference "R4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:Jumper_3_Bridged12")
+		(at 81.28 71.12 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "d764a6f3-1e6a-4cc9-aa73-03a202fc32bf")
+		(property "Reference" "J17"
+			(at 76.2 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Conn_03x01"
+			(at 78.74 77.47 0)
+			(effects
+				(font
+					(size 1 1)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
+			(at 81.28 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 81.28 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 81.28 71.12 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "5eead3a4-f013-4ba1-8e32-83dddba1c0fe")
+		)
+		(pin "2"
+			(uuid "40751b5b-bc9d-4809-8254-21681376eb0c")
+		)
+		(pin "3"
+			(uuid "871141c9-9c73-45af-b767-0838cab29731")
+		)
+		(instances
+			(project "Ultrasound shield"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(reference "J17")
+					(unit 1)
+				)
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/32893aec-41b3-4e64-b47a-61deed46b8b4"
+					(reference "J17")
 					(unit 1)
 				)
 			)

@@ -2895,7 +2895,7 @@
 				(hide yes)
 			)
 			(exclude_from_sim no)
-			(in_bom no)
+			(in_bom yes)
 			(on_board yes)
 			(property "Reference" "JP"
 				(at -2.54 -2.54 0)
@@ -3214,50 +3214,43 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "SensEdu:TLS850C2TEV50ATMA1"
+		(symbol "TLS850C2TE_V50:TLS850C2TE_V50"
+			(pin_names
+				(offset 1.016)
+			)
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "IC"
-				(at 21.59 7.62 0)
+			(property "Reference" "U?"
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left top)
+					(justify left bottom)
 				)
 			)
-			(property "Value" "TLS850C2TEV50ATMA1"
-				(at 21.59 5.08 0)
+			(property "Value" "TLS850C2TE_V50"
+				(at -0.2 -18.82 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left top)
+					(justify left bottom)
 				)
 			)
-			(property "Footprint" "TLS850C2TEV50ATMA1"
-				(at 21.59 -94.92 0)
+			(property "Footprint" "TO114P998X250-6_5N"
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left top)
+					(justify bottom)
 					(hide yes)
 				)
 			)
-			(property "Datasheet" "https://www.infineon.com/dgdl/Infineon-TLS850C2TE%20V50-DataSheet-v01_00-EN.pdf?fileId=5546d46270c4f93e0170c58448fe1185"
-				(at 21.59 -194.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Description" "Linear Voltage Regulator IC Positive Fixed 1 Output 500mA PG-TO252-5"
-				(at 3.556 -3.556 0)
+			(property "Datasheet" ""
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -3265,60 +3258,19 @@
 					(hide yes)
 				)
 			)
-			(property "Height" "2.5"
-				(at 21.59 -394.92 0)
+			(property "Description" ""
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left top)
 					(hide yes)
 				)
 			)
-			(property "Farnell Part Number" ""
-				(at 21.59 -494.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Farnell Price/Stock" ""
-				(at 21.59 -594.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer_Name" "Infineon"
-				(at 21.59 -694.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer_Part_Number" "TLS850C2TEV50ATMA1"
-				(at 21.59 -794.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(symbol "TLS850C2TEV50ATMA1_1_1"
+			(symbol "TLS850C2TE_V50_0_0"
 				(rectangle
-					(start 5.08 2.54)
-					(end 20.32 -10.16)
+					(start 0 -15.24)
+					(end 15.24 0)
 					(stroke
 						(width 0.254)
 						(type default)
@@ -3327,92 +3279,152 @@
 						(type background)
 					)
 				)
-				(pin passive line
-					(at 0 0 0)
+				(polyline
+					(pts
+						(xy 13.6 -7.3) (xy 14.1 -7.8)
+					)
+					(stroke
+						(width 0.1)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 13.6 -7.8) (xy 14.6 -7.8)
+					)
+					(stroke
+						(width 0.1)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 14.1 -6.8) (xy 13.6 -7.3)
+					)
+					(stroke
+						(width 0.1)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 14.1 -7.8) (xy 14.6 -7.3)
+					)
+					(stroke
+						(width 0.1)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 14.6 -7.3) (xy 14.1 -6.8)
+					)
+					(stroke
+						(width 0.1)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin input line
+					(at -5.08 -2.54 0)
 					(length 5.08)
 					(name "I"
 						(effects
 							(font
-								(size 1.27 1.27)
+								(size 1.016 1.016)
 							)
 						)
 					)
 					(number "1"
 						(effects
 							(font
-								(size 1.27 1.27)
+								(size 1.016 1.016)
 							)
 						)
 					)
 				)
-				(pin passive line
-					(at 0 -2.54 0)
+				(pin input line
+					(at -5.08 -7.62 0)
 					(length 5.08)
 					(name "D"
 						(effects
 							(font
-								(size 1.27 1.27)
+								(size 1.016 1.016)
 							)
 						)
 					)
 					(number "2"
 						(effects
 							(font
-								(size 1.27 1.27)
+								(size 1.016 1.016)
 							)
 						)
 					)
 				)
-				(pin passive line
-					(at 0 -5.08 0)
-					(length 5.08)
-					(name "RO"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -7.62 0)
+				(pin output line
+					(at 20.32 -2.54 180)
 					(length 5.08)
 					(name "Q"
 						(effects
 							(font
-								(size 1.27 1.27)
+								(size 1.016 1.016)
 							)
 						)
 					)
 					(number "5"
 						(effects
 							(font
-								(size 1.27 1.27)
+								(size 1.016 1.016)
 							)
 						)
 					)
 				)
-				(pin passive line
-					(at 25.4 0 180)
+				(pin open_collector line
+					(at 20.32 -7.62 180)
+					(length 5.08)
+					(name "RO"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.016 1.016)
+							)
+						)
+					)
+				)
+				(pin power_in line
+					(at 20.32 -12.7 180)
 					(length 5.08)
 					(name "GND"
 						(effects
 							(font
-								(size 1.27 1.27)
+								(size 1.016 1.016)
 							)
 						)
 					)
 					(number "3"
 						(effects
 							(font
-								(size 1.27 1.27)
+								(size 1.016 1.016)
 							)
 						)
 					)
@@ -3558,12 +3570,6 @@
 		(uuid "1869873a-a56f-4f61-af9e-a3d64b35c77c")
 	)
 	(junction
-		(at 250.19 35.56)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "19ce4fe3-96ee-4b13-93f2-e23366681160")
-	)
-	(junction
 		(at 250.19 50.8)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3580,12 +3586,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "2c446a13-67b9-4e67-a166-1f2f8a80ea25")
-	)
-	(junction
-		(at 243.84 50.8)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "31b39f8b-e0b0-4aae-9dfd-53cbbcb02b47")
 	)
 	(junction
 		(at 269.24 35.56)
@@ -3628,6 +3628,18 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "97bc8276-c7e4-418d-a0d8-814b149f5f9b")
+	)
+	(junction
+		(at 242.57 50.8)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "98991735-0bfb-4215-b442-270d887a8d6c")
+	)
+	(junction
+		(at 250.19 35.56)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "a158b213-a09b-4174-bd0d-cb67659a2b83")
 	)
 	(junction
 		(at 217.17 83.82)
@@ -3720,10 +3732,6 @@
 		(uuid "1fa625fe-3fb8-49e7-addb-4a264dc9b688")
 	)
 	(no_connect
-		(at 218.44 38.1)
-		(uuid "22b60055-47ac-44b8-847d-56a9912fd8bd")
-	)
-	(no_connect
 		(at 85.09 157.48)
 		(uuid "23031ca5-b500-4b06-9b70-61acb7f7ba94")
 	)
@@ -3738,6 +3746,10 @@
 	(no_connect
 		(at 54.61 157.48)
 		(uuid "29ce1dca-6717-4844-814f-9b21c0cda885")
+	)
+	(no_connect
+		(at 242.57 40.64)
+		(uuid "2d6f9b0b-d31c-4974-8539-2a8ad778eca4")
 	)
 	(no_connect
 		(at 64.77 157.48)
@@ -3852,6 +3864,10 @@
 		(uuid "a0acb1a5-6ee7-4cad-b470-d0c6a58150d1")
 	)
 	(no_connect
+		(at 217.17 40.64)
+		(uuid "a2832769-7d96-46e3-8745-3dc16aae838f")
+	)
+	(no_connect
 		(at 104.14 77.47)
 		(uuid "a7181f17-4eb6-470f-91e3-e583e7c57426")
 	)
@@ -3898,10 +3914,6 @@
 	(no_connect
 		(at 111.76 46.99)
 		(uuid "c8b38c6e-888a-4fed-b1e3-32790978103d")
-	)
-	(no_connect
-		(at 218.44 40.64)
-		(uuid "cd327fe1-a854-45e0-9c70-0f6063dac62e")
 	)
 	(no_connect
 		(at 90.17 157.48)
@@ -4041,7 +4053,7 @@
 	)
 	(wire
 		(pts
-			(xy 223.52 50.8) (xy 243.84 50.8)
+			(xy 223.52 50.8) (xy 242.57 50.8)
 		)
 		(stroke
 			(width 0)
@@ -4271,16 +4283,6 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 43.18) (xy 218.44 46.99)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "29bc2402-8f7c-440e-8785-03d72745a664")
-	)
-	(wire
-		(pts
 			(xy 82.55 137.16) (xy 82.55 140.97)
 		)
 		(stroke
@@ -4308,6 +4310,16 @@
 			(type default)
 		)
 		(uuid "2cc547fe-9103-424c-b4bd-f359b2480149")
+	)
+	(wire
+		(pts
+			(xy 242.57 45.72) (xy 242.57 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "2e600ab7-c375-4348-8a11-e6e75afb8686")
 	)
 	(wire
 		(pts
@@ -4421,16 +4433,6 @@
 	)
 	(wire
 		(pts
-			(xy 218.44 46.99) (xy 245.11 46.99)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "41390ca7-990f-45ed-848c-baa8015f423b")
-	)
-	(wire
-		(pts
 			(xy 203.2 83.82) (xy 217.17 83.82)
 		)
 		(stroke
@@ -4531,6 +4533,16 @@
 	)
 	(wire
 		(pts
+			(xy 242.57 50.8) (xy 250.19 50.8)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "4ca73e97-f8fd-40f2-bd72-c1f3eaf7cc1a")
+	)
+	(wire
+		(pts
 			(xy 40.64 87.63) (xy 71.12 87.63)
 		)
 		(stroke
@@ -4598,16 +4610,6 @@
 			(type default)
 		)
 		(uuid "58dec0c7-ba4d-4307-ab68-1b8435c55e89")
-	)
-	(wire
-		(pts
-			(xy 243.84 50.8) (xy 250.19 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "58ed6b7e-ab22-4c35-9745-828c2313ee15")
 	)
 	(wire
 		(pts
@@ -4721,23 +4723,13 @@
 	)
 	(wire
 		(pts
-			(xy 208.28 35.56) (xy 218.44 35.56)
+			(xy 208.28 35.56) (xy 217.17 35.56)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "6b53ef27-7f80-4853-8385-2ac800502654")
-	)
-	(wire
-		(pts
-			(xy 245.11 46.99) (xy 245.11 35.56)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "6b909e37-802c-4149-bedb-6e31e792596b")
 	)
 	(wire
 		(pts
@@ -4951,6 +4943,16 @@
 	)
 	(wire
 		(pts
+			(xy 242.57 35.56) (xy 250.19 35.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9534ab9f-81f8-4571-9799-b59138676746")
+	)
+	(wire
+		(pts
 			(xy 104.14 110.49) (xy 99.06 110.49)
 		)
 		(stroke
@@ -5018,26 +5020,6 @@
 			(type default)
 		)
 		(uuid "9f9edd32-4fe5-40c7-8b15-897aa0803781")
-	)
-	(wire
-		(pts
-			(xy 245.11 35.56) (xy 250.19 35.56)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a121c0f4-2c3d-4e9f-8533-2f7f51396a21")
-	)
-	(wire
-		(pts
-			(xy 243.84 35.56) (xy 243.84 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "a6502d3b-b979-4798-8d62-bc9dcf15df70")
 	)
 	(wire
 		(pts
@@ -7385,79 +7367,6 @@
 		)
 	)
 	(symbol
-		(lib_id "Jumper:Jumper_3_Bridged12")
-		(at 167.64 35.56 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom no)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "2c38a8cc-2de7-4c8e-a35d-9d48a25dfb53")
-		(property "Reference" "JP3"
-			(at 165.1 34.2899 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "Jumper_3_Bridged12"
-			(at 165.1 36.8299 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 167.64 35.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 167.64 35.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Jumper, 3-pole, pins 1+2 closed/bridged"
-			(at 167.64 35.56 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "1fb5bc99-6a82-4e26-888f-72fa5f666ad7")
-		)
-		(pin "3"
-			(uuid "1ef0e568-01c7-4307-8d29-a3f3cbf584ce")
-		)
-		(pin "2"
-			(uuid "246d0762-a5c7-4725-9a73-37ba65f75578")
-		)
-		(instances
-			(project "SensEdu"
-				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
-					(reference "JP3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Connector_Generic:Conn_02x01")
 		(at 256.54 74.93 270)
 		(unit 1)
@@ -8356,8 +8265,8 @@
 		)
 	)
 	(symbol
-		(lib_id "SensEdu:TLS850C2TEV50ATMA1")
-		(at 218.44 35.56 0)
+		(lib_id "TLS850C2TE_V50:TLS850C2TE_V50")
+		(at 222.25 33.02 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8365,7 +8274,7 @@
 		(dnp no)
 		(uuid "d6515088-68ef-4b48-8ac9-12be43bd2386")
 		(property "Reference" "U12"
-			(at 227.33 25.4 0)
+			(at 229.87 29.21 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8373,7 +8282,7 @@
 			)
 		)
 		(property "Value" "TLS850C2TE_V33"
-			(at 227.33 27.94 0)
+			(at 229.87 31.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8381,27 +8290,16 @@
 			)
 		)
 		(property "Footprint" "Package_TO_SOT_SMD:TO-252-4"
-			(at 240.03 130.48 0)
+			(at 223.52 26.67 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left top)
-				(hide yes)
+				(justify bottom)
 			)
 		)
-		(property "Datasheet" "https://www.infineon.com/dgdl/Infineon-TLS850C2TE%20V50-DataSheet-v01_00-EN.pdf?fileId=5546d46270c4f93e0170c58448fe1185"
-			(at 240.03 230.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Description" "Linear Voltage Regulator IC Positive Fixed 1 Output 500mA PG-TO252-5"
-			(at 221.996 39.116 0)
+		(property "Datasheet" "https://www.infineon.com/assets/row/public/documents/10/49/infineon-tls850c2te-v33-datasheet-en.pdf"
+			(at 222.25 33.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8409,49 +8307,12 @@
 				(hide yes)
 			)
 		)
-		(property "Height" "2.5"
-			(at 240.03 430.48 0)
+		(property "Description" ""
+			(at 222.25 33.02 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
-				(justify left top)
-			)
-		)
-		(property "Farnell Part Number" ""
-			(at 240.03 530.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(property "Farnell Price/Stock" ""
-			(at 240.03 630.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(property "Manufacturer_Name" "Infineon"
-			(at 240.03 730.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-			)
-		)
-		(property "Manufacturer_Part_Number" "TLS850C2TEV50ATMA1"
-			(at 240.03 830.48 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
 			)
 		)
 		(pin "1"
@@ -8817,6 +8678,77 @@
 			(project "Ultrasound shield"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
 					(reference "C57")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Jumper:Jumper_3_Bridged12")
+		(at 167.64 35.56 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "ecbf0042-8e1e-47db-b5ae-3702c4f2c220")
+		(property "Reference" "J18"
+			(at 168.91 27.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "Conn_03x01"
+			(at 171.45 33.02 0)
+			(effects
+				(font
+					(size 1 1)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
+			(at 167.64 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 167.64 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 167.64 35.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "20b9aa54-51c3-4b38-b638-b095fac63086")
+		)
+		(pin "2"
+			(uuid "1bcc6b66-4aac-4ebc-bf06-4febd7676d48")
+		)
+		(pin "3"
+			(uuid "0f57210e-ff0a-44ad-8fef-dbf52b0481bc")
+		)
+		(instances
+			(project "Ultrasound shield"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(reference "J18")
 					(unit 1)
 				)
 			)
