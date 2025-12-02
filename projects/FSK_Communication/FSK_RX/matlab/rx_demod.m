@@ -17,8 +17,8 @@ DATA_LENGTH = 2048; % ensure this value matches `mic_data_size` in firmware
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
 
 %% Readings Loop
-data = zeros(1,ITERATIONS);
-time_axis = zeros(1,ITERATIONS);
+data = zeros(1, ITERATIONS);
+time_axis = zeros(1, ITERATIONS);
 
 for it = 1:ITERATIONS
     % Data readings
@@ -32,15 +32,6 @@ end
 
 % set COM port back free
 arduino = [];
-
-% % save measurements
-% if ~exist("Measurements", 'dir')
-%     mkdir("Measurements");
-% end
-% file_name = sprintf('Measurements/%s_%s.mat', "measurements", datetime("now"));
-% file_name = strrep(file_name, ' ', '_');
-% file_name = strrep(file_name, ':', '-');
-% save(file_name, "data", "time_axis");
 
 % calculate average time between measurements
 buf = time_axis(2) - time_axis(1);

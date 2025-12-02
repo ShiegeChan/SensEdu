@@ -1,15 +1,10 @@
 #include "SensEdu.h"
 
-
-
 /* errors */
 static uint32_t lib_error = 0;
 uint8_t error_led = D86;
 
-
-// Configure the ADC
-
-/* ADC */
+// Configure the ADC 
 const uint16_t mic_data_size = 2048;
 SENSEDU_ADC_BUFFER(mic_data, mic_data_size);
 
@@ -29,10 +24,6 @@ SensEdu_ADC_Settings adc_settings = {
     .mem_size = mic_data_size
 };
 
-
-
-
-
 void setup() {
     Serial.begin(115200);
     Serial.println("Started Initialization...");
@@ -44,15 +35,9 @@ void setup() {
     //Initializing DAC
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
-
-    
 }
 
-// TWO OPTIONS: SINGLE WAVE --> enable in the loop with delay; CONTINUOUS WAV --> enable in the set up
-
 void loop () {
-
-
     // Measurement is initiated by the signal from computing device
     static char serial_buf = 0;
     
@@ -66,20 +51,14 @@ void loop () {
         }
     }
 
-
     SensEdu_ADC_Start(adc);
     // wait for the data and send it
     while(!SensEdu_ADC_GetTransferStatus(adc));
     SensEdu_ADC_ClearTransferStatus(adc);
-    serial_send_array((const uint8_t *) & mic_data, mic_data_size << 1);
-
-
-
+    serial_send_array((const uint8_t *) &mic_data, mic_data_size << 1);
 
     check_errors();
-
 }
-
 
 // Checking errors of the library
 void check_errors() {
@@ -90,8 +69,6 @@ void check_errors() {
     }
 }
 
-
-
 // send serial data in 32 byte chunks
 void serial_send_array(const uint8_t* data, size_t size) {
     const size_t chunk_size = 32;
@@ -99,11 +76,3 @@ void serial_send_array(const uint8_t* data, size_t size) {
 		Serial.write(data + chunk_size * i, chunk_size);
 	}
 }
-
-
-
-
-
-
-
-
