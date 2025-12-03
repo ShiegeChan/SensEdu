@@ -472,23 +472,6 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num,
     MODIFY_REG(adc->CFGR2, ADC_CFGR2_OVSS, 0b0001 << ADC_CFGR2_OVSS_Pos); // account for x2 with 1-bit right shift
 
     // set operation mode
-    switch (adc_mode) {
-        case SENSEDU_ADC_MODE_POLLING_ONE_SHOT:
-            CLEAR_BIT(adc->CFGR, ADC_CFGR_CONT); // single conversion mode
-            break;
-        case SENSEDU_ADC_MODE_POLLING_CONT:
-            SET_BIT(adc->CFGR, ADC_CFGR_CONT); // continuous mode
-            break;
-        case SENSEDU_ADC_MODE_DMA_NORMAL:
-            CLEAR_BIT(adc->CFGR, ADC_CFGR_CONT); // single conversion mode
-            break;
-        case SENSEDU_ADC_MODE_DMA_CIRCULAR:
-            CLEAR_BIT(adc->CFGR, ADC_CFGR_CONT); // single conversion mode
-            break;
-        default:
-            error = ADC_ERROR_WRONG_OPERATION_MODE;
-            break;
-    }
     // TODO: verify adc_ext_trg9 and why it is named Timer #1
     switch (sr_mode) {
         case SENSEDU_ADC_SR_MODE_FIXED:
@@ -498,6 +481,10 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num,
             break;
         case SENSEDU_ADC_SR_MODE_FREE:
             MODIFY_REG(adc->CFGR, ADC_CFGR_EXTEN, 0b00 << ADC_CFGR_EXTEN_Pos); // disable hardware trigger
+            SET_BIT(adc->CFGR, ADC_CFGR_CONT); // continuous mode
+            if (adc_mode == SENSEDU_ADC_MODE_POLLING_ONE_SHOT) {
+                CLEAR_BIT(adc->CFGR, ADC_CFGR_CONT); // single conversion mode
+            }
             break;
         default:
             error = ADC_ERROR_WRONG_OPERATION_MODE;
