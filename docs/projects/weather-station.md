@@ -16,7 +16,7 @@ nav_order: 6
 ## Introduction
 <img src="{{site.baseurl}}/assets/images/Weather_forecasting.jpg"/>
 
-[Weather prediction or weather forecasting](https://en.wikipedia.org/wiki/Weather_forecasting) is the application of science and technology to predict the condition of the atmosphere for a particular location and time. People have been trying to predict the weather for years, since it highely effects our lives. Albeit predicting the weather became much more precise and correct, it remains a difficult task, especially when predicting far in the future. This is due to the chaotic nature of the atmosphere and many different parameters that need to be taken into account. This nonlinearity requires a massive computational power to solve such equations, and the more difference between the current time and the time for which the forecast is being made increases, the less accurate forecasts are. In simple terms, the initial conditions become less accurate, and the fact that we don't fully understand the atmosphere, thus we can never incorporate all the different parameters that affect the weather.
+[Weather prediction or weather forecasting](https://en.wikipedia.org/wiki/Weather_forecasting) is the application of science and technology to predict the atmospheric conditions for a particular location and time. People have been trying to predict the weather for years, since it highly affects our lives. Albeit predicting the weather became much more precise and accurate, it remains a difficult task, especially when predicting far into the future. This is due to the chaotic nature of the atmosphere and many different parameters that need to be taken into account. This nonlinearity requires a massive computational power to solve such equations, and the more difference between the current time and the time for which the forecast is being made increases, the less accurate forecasts are. In simple terms, the initial conditions become less accurate, and the fact that we don't fully understand the atmosphere, thus we can never incorporate all the different parameters that affect the weather.
 
 There are many different models that are trained repeatedly in order to improve the prediction. In SensEdu, we demonstrate the most simple way of weather prediction based on pressure, temperature and humidity. We use sensor readings of the barometric pressure sensor, as well as humidity sensor that can be added to the board, and predict the weather according to a simple rule-based model. Not all parameters taken into account for predicting the weather are equally important, some of them carry more useful information than others. Therefore, knowing just a few parameters can lead to good weather predictions, especially real time predictions. 
 
@@ -25,10 +25,10 @@ There are many different models that are trained repeatedly in order to improve 
 Atmospheric pressure, temperature and humidity are the main parameters for the numerical weather prediction. Their values, rate of changes of these values, and interaction between the three parameters play a crucial role and influence predictions massively. 
 
 ### Temperature
-**Temperature** plays a crucial role in weather prediction as it directly influences the atmospheric dynamics, moisture, pressure systems and other meteorological phenomena. Any kind of weather model relies analysis of temperature patterns to define the state of the atmosphere. It drives the motion of air and the formation of weather systems due to its effects on pressure gradients. Higer temperature result in warmer air, while lower temperatures result in colder air. Heat energy from the sun warms the surface of the Earth differently across regions, which create temperature gradients. This then helps to forecast sea breezes, storms and movement of air. Temperature measured in a vertical profile is also important since it determines the stability of the atmosphere and if the conditions pull more towards thunderstorms or cloud formation. Temperature trends are highly essential for seasonal and-long term forecasting. 
+**Temperature** plays a crucial role in weather prediction as it directly influences the atmospheric dynamics, moisture, pressure systems and other meteorological phenomena. Any kind of weather model relies on analysis of the temperature patterns to define the state of the atmosphere. It drives the motion of air and the formation of weather systems due to its effects on pressure gradients. Higher temperatures result in warmer air, while lower temperatures result in colder air. Heat energy from the sun warms the surface of the Earth differently across regions, which create temperature gradients. This then helps to forecast sea breezes, storms and movement of air. Temperature measured in a vertical profile is also important since it determines the stability of the atmosphere and if the conditions pull more towards thunderstorms or cloud formation. Temperature trends are highly essential for seasonal and long-term forecasting.
 
 ### Humidity
-**Humidity** is a measure of amount of water vapor in the air, gaseous form of water. Humidity is another crucial factor for atmospheric processes, such as cloud formation, precipitation, and temperature regulation. It affects the amount of water vapor in atmosphere. Three main terms to be aware of when it comes to humidity is: 
+**Humidity** is a measure of the amount of water vapor in the air (the gaseous form of water). Humidity is another crucial factor for atmospheric processes, such as cloud formation, precipitation, and temperature regulation. It affects the amount of water vapor in atmosphere. Three main terms to be aware of when it comes to humidity are:
 
 * **Absolute humidity** - measures the total amount of water vapor in a given air volume
 * **Relative humidity** - indicates how much more water vapor the air currently holds compared to the maximum amount it could hold at a specific temperature
@@ -37,7 +37,7 @@ Atmospheric pressure, temperature and humidity are the main parameters for the n
 Humidity affects cloud formation the most. If it is high, the possibility of cloud formation is higher, increasing the likelihood of precipitation. 
 
 ### Atmospheric pressure
-[**Atmospheric or air pressure**](https://iere.org/how-does-the-air-pressure-affect-the-weather/) is the force exerted by the weight of air above a given point. As everything else regarding weather, the pressure is also not uniform accross the Earth, and these differences kickstart every atmospheric movement. It is important to understand the difference between **high-pressure** (anticyclones) and **low-pressure** (cyclones) system in order to understand the weather conditions. High air pressure indicates that air is descending. As it sinks, it gets warmer and dryer, preventing forming of clouds and leading to clear skies and pleasent weather with calm winds. Low air pressure indicates ascending air which is getting colder with height leading to condensation, cloud formation and precipitation. 
+[**Atmospheric or air pressure**](https://iere.org/how-does-the-air-pressure-affect-the-weather/) is the force exerted by the weight of air above a given point. As everything else regarding weather, the pressure is also not uniform across the Earth, and these differences drive atmospheric motion. It is important to understand the difference between **high-pressure** (anticyclones) and **low-pressure** (cyclones) systems in order to understand the weather conditions. High air pressure indicates that air is descending. As it sinks, it gets warmer and drier, preventing cloud formation and leading to clear skies and pleasant weather with calm winds. Low air pressure indicates ascending air which is getting colder with height leading to condensation, cloud formation and precipitation. 
 
 The difference in air pressure between different locations creates a pressure gradient force, which drives air from areas of high pressure towards the area of low pressure. This movement is actually wind. The greater the difference between two points, the stronger the winds. 
 
@@ -72,7 +72,7 @@ SensEdu shield has integrated barometric pressure sensor that can measure both p
 * Arduino GIGA R1 
 * SensEdu shield
 * SensEdu platform for humidity sensor
-* USB-c cable 
+* USB-C cable 
 
 {: .NOTE}
 Other humidity sensors that are compatible with Arduino GIGA platform can be used as well. In that case, the code would have to be modified accordingly. 
@@ -89,9 +89,7 @@ Humidity sensor PCB adapter for Sensedu board
 Sensedu board with integrated DPS310 pressure sensor and attached PCB board for humidity sensor is connected to the Arduino GIGA board
 {: .text-center .mt-0 .fw-500}
 
-## Software setup 
-
-### Communication and Data acquisition
+## Communication and Data acquisition
 
 Both sensors use I2C communication protocol. I2C protocol allows for one master and multiple slave devices. In this case, the master device is Arduino powered with STM32 microcontroller and the slave devices are two mentioned sensors. Each sensor has a unique address with which they are accessed. The communication is done in the background using **Arduino "Wire.h" library**. 
 
@@ -102,7 +100,7 @@ Similarly, the default address for SHT35 humidity sensor on PCB costumized for S
 {: .NOTE}
 Since both sensors are connected to SDA1 and SCL1 pins, when using the Wire.h library functions, Wire1.begin() has to be used for I2C1 and Wire2.begin() for I2C2. More information about this can be found in the library   [ documentation webpage](https://docs.arduino.cc/language-reference/en/functions/communication/wire/). 
 
-Moreover, to interact with SHT35 sensor, we use third party (developed by the company) Arduino library that can be found on [GitHub](https://github.com/Sensirion/arduino-sht/tree/master) and it is free for download. For the barometric pressure sensor, DPS310, we also use Arduino library (developed by Infineon) available on [GitHub](https://github.com/Infineon/arduino-xensiv-dps3xx/tree/master). 
+Moreover, to interact with SHT35 sensor,we use third party (developed by Sensirion) Arduino library that can be found on [GitHub](https://github.com/Sensirion/arduino-sht/tree/master) and it is free for download. For the barometric pressure sensor, DPS310, we also use Arduino library (developed by Infineon) available on [GitHub](https://github.com/Infineon/arduino-xensiv-dps3xx/tree/master). 
 
 In the setup phase, both sensors are initialized and communication is established with both sensors. 
 
@@ -168,11 +166,11 @@ We tested the sensors in two environments, once inside an office environemnt, an
 
 After running the script, the prompt is shown to enter the current altitude level of the place you are trying to predict the weather. 
 
-<img src="{{site.baseurl}}/assets/images/ws_prompt.png"/>
+<img src="{{site.baseurl}}/assets/images/ws_prompt_2.png"/>
 
-The following are results obtained inside, and outside, respectively. 
+The following picture shows the results of weather prediction in the office environment and the open space environment. 
 
-<img src="{{site.baseurl}}/assets/images/ws_result.png"/>
-<img src="{{site.baseurl}}/assets/images/ws_result_outside.png"/>
+<img src="{{site.baseurl}}/assets/images/ws_comparison.png"/>
+
 
 
