@@ -18,7 +18,7 @@
 		)
 	)
 	(property "Value" "328ST16M_Speaker"
-		(at 0 2.92 0)
+		(at 0 9.5 0)
 		(layer "F.Fab")
 		(uuid "7d125ff3-549b-4d87-b3e7-c774fb3ce9f1")
 		(effects
@@ -53,6 +53,17 @@
 		)
 	)
 	(attr through_hole)
+	(fp_circle
+		(center -5 -1.5)
+		(end -4.8 -1.5)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill yes)
+		(layer "F.SilkS")
+		(uuid "95d973d6-3117-4c96-9f21-f921b54143b5")
+	)
 	(fp_circle
 		(center 0 0)
 		(end 6.5 0)
@@ -94,6 +105,19 @@
 		)
 		(layer "F.Fab")
 		(uuid "ec09ffcc-f33f-4388-98f6-2fbfff7c7838")
+	)
+	(fp_text user "TX**"
+		(at 0 -9 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "6aa5306b-3c16-4088-9f4d-538bcad1d123")
+		(effects
+			(font
+				(size 0.7 0.7)
+				(thickness 0.1)
+			)
+			(justify bottom)
+		)
 	)
 	(pad "1" thru_hole circle
 		(at -5 0)

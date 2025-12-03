@@ -3,25 +3,25 @@
 	(generator "pcbnew")
 	(generator_version "9.0")
 	(layer "F.Cu")
-	(property "Reference" "REF**"
-		(at -0.226 -2.7548 0)
+	(property "Reference" "MIC**"
+		(at 0 -3 0)
 		(layer "F.SilkS")
 		(uuid "33fcd1a4-6838-487b-9698-16bb2292e8e7")
 		(effects
 			(font
-				(size 0.48 0.48)
+				(size 0.7 0.7)
 				(thickness 0.15)
 			)
 		)
 	)
 	(property "Value" "MIC_IM73A135V01XTSA1"
-		(at 4.346 2.7548 0)
+		(at 0 3 0)
 		(layer "F.Fab")
 		(uuid "c4810403-016f-4a38-9797-bcc42a8ccfaa")
 		(effects
 			(font
 				(size 0.48 0.48)
-				(thickness 0.15)
+				(thickness 0.12)
 			)
 		)
 	)
@@ -689,4 +689,15 @@
 		(uuid "1da21587-a7d4-48ab-b2fd-ca2b46cd8f47")
 	)
 	(embedded_fonts no)
+	(model "${KIPRJMOD}/libraries/3D/IM73A135V01XTSA1.stp"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz 0 0 0)
+		)
+	)
 )

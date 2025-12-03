@@ -2405,10 +2405,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "0be2be18-01a8-44ff-9f6e-fb7140b3341e")
 		(property "Reference" "U7"
-			(at 118.11 50.8 0)
+			(at 118.11 58.42 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -2416,7 +2415,7 @@
 			)
 		)
 		(property "Value" "ADA4891"
-			(at 118.11 53.34 0)
+			(at 118.11 60.96 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -2458,6 +2457,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Farnell Part Number" ""
@@ -2484,6 +2484,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Manufacturer_Part_Number" "ADA4891-1ARZ"
@@ -2492,6 +2493,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(pin "1"
@@ -4338,10 +4340,9 @@
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
-		(fields_autoplaced yes)
 		(uuid "8a2a3d02-e332-4540-88db-f6eea8214538")
 		(property "Reference" "U4"
-			(at 120.65 124.46 0)
+			(at 119.38 132.08 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -4349,7 +4350,7 @@
 			)
 		)
 		(property "Value" "ADA4891"
-			(at 120.65 127 0)
+			(at 119.38 134.62 0)
 			(effects
 				(font
 					(size 1.524 1.524)
@@ -4391,6 +4392,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Farnell Part Number" ""
@@ -4417,6 +4419,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(property "Manufacturer_Part_Number" "ADA4891-1ARZ"
@@ -4425,6 +4428,7 @@
 				(font
 					(size 1.27 1.27)
 				)
+				(hide yes)
 			)
 		)
 		(pin "1"

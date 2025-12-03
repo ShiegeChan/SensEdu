@@ -3,24 +3,24 @@
 	(generator "pcbnew")
 	(generator_version "9.0")
 	(layer "F.Cu")
-	(property "Reference" "REF**"
-		(at 1.75278 -6.12205 0)
+	(property "Reference" "IC**"
+		(at 0 -3.5 0)
 		(layer "F.SilkS")
 		(uuid "2c5c6b94-883b-41d2-b6a6-bfbd34bae407")
 		(effects
 			(font
-				(size 1.640173 1.640173)
+				(size 0.7 0.7)
 				(thickness 0.15)
 			)
 		)
 	)
 	(property "Value" "QFN65P400X400X100-16N"
-		(at 18.4226 5.43785 0)
+		(at 0 4 0)
 		(layer "F.Fab")
 		(uuid "c3c7a99c-fb8a-4572-8462-c797bf88aba7")
 		(effects
 			(font
-				(size 1.640677 1.640677)
+				(size 0.7 0.7)
 				(thickness 0.15)
 			)
 		)
@@ -371,8 +371,8 @@
 		(uuid "ed7f6bf0-8124-4bb3-981b-d1324c85e045")
 	)
 	(fp_text user "*"
-		(at -3.50693 -1.04191 0)
-		(layer "Dwgs.User")
+		(at -2.5 -1.5 0)
+		(layer "F.SilkS")
 		(uuid "191d906e-b5b1-461f-9e42-ed2b3c3a1585")
 		(effects
 			(font
@@ -494,4 +494,15 @@
 		(uuid "7ddbc55e-dc87-4fcc-a7ab-cc52993b4682")
 	)
 	(embedded_fonts no)
+	(model "${KIPRJMOD}/libraries/3D/AD8426ACPZ-R7.step"
+		(offset
+			(xyz 0 0 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -0)
+		)
+	)
 )

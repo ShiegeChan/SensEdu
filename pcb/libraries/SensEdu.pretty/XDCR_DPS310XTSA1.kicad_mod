@@ -3,19 +3,19 @@
 	(generator "pcbnew")
 	(generator_version "9.0")
 	(layer "F.Cu")
-	(property "Reference" "REF**"
+	(property "Reference" "IC**"
 		(at 0.032 -2.1064 0)
 		(layer "F.SilkS")
 		(uuid "e0a9cdc0-1adc-41f1-bb6b-3ccd832aa5a8")
 		(effects
 			(font
-				(size 0.64 0.64)
+				(size 0.7 0.7)
 				(thickness 0.15)
 			)
 		)
 	)
 	(property "Value" "XDCR_DPS310XTSA1"
-		(at 4.5024 2.1064 0)
+		(at 0 2.1064 0)
 		(layer "F.Fab")
 		(uuid "c05b6950-c799-4c2c-a8bb-74fdf431ee5c")
 		(effects
@@ -317,4 +317,15 @@
 		(uuid "cc0cbd78-7b10-40a2-a899-7af2207f7afe")
 	)
 	(embedded_fonts no)
+	(model "${KIPRJMOD}/libraries/3D/DPS310XTSA1.step"
+		(offset
+			(xyz 0 0 -0.01)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 90)
+		)
+	)
 )
