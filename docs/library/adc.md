@@ -552,6 +552,89 @@ SensEdu_ADC_Start(ADC2);
 {: .no_toc}
 * Ensure there is no pin overlap between different ADCs (e.g., do not include pin A0 in the arrays for both ADC1 and ADC2).
 
+### Test_SR_3ADC_3TIM
+
+This example demonstrates the usage and testing of different sampling rates for each of the three available ADCs on the SensEdu Board, thanks to the assignment of a different timer to each ADC ([Timer occupation]({% link library/timers.md %} #timer-occupation)).
+We first define three macros corresponding to the desired sampling rates for each ADC, the user can initialize it with the desired value (the maximum is 120MHz).
+
+
+```c
+#define ADC1_SR  250000     // ADC1 sampling rate
+#define ADC2_SR  100000     // ADC2 sampling rate
+#define ADC3_SR  65000      // ADC3 sampling rate
+```
+
+
+Then the example case is the same as [`Basic_UltraSound_4CH`]({% link library/others.md %}#basic_ultrasound_4ch), but with these main differencies in the setting:
+
+1. for `.conv_mode` we are going to use `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`
+2. there is no initialization for the DAC, because we are going to feed the ADCs with a signal using a signal generator
+
+In the `matlab\Test_SR_3ADC_3Tim.m` file, specify serial parameters, sampling rates for each ADC and start connection with Arduino
+
+``` matlab
+%% Settings
+ARDUINO_PORT = 'COM4';
+ARDUINO_BAUDRATE = 115200;
+ITERATIONS = 10000;
+
+ACTIVATE_PLOTS = true;
+
+DATA_LENGTH = 16 * 128; % Ensure this matches with firmware
+SINE_WAVE_FREQ = 1000; % Frequency of the input sine wave in Hz
+
+% Sampling rates for ADCs
+ADC1_SAMPLING_RATE = 250000; % 250 kHz
+ADC2_SAMPLING_RATE = 100000; % 100 kHz
+ADC3_SAMPLING_RATE = 65000; % 65 kHz
+
+%% Arduino Setup
+arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % Select port and baud rate
+```
+
+After initializing the serial connection, the script enters the acquisition loop.
+The logic is similar to the one used in [Basic_UltraSound_4CH]({% link library/others.md %}#basic_ultrasound_4ch), but extended to handle three independent ADCs, each operating at different sampling rates.
+This allows the user to clearly visualize how the assigned timers affect the effective sampling frequency of each ADC.
+
+
+```matlab
+%% Readings Loop
+for it = 1:ITERATIONS
+    % Trigger ADC sampling on Arduino
+    write(arduino, 't', "char"); % Trigger Arduino via 't' character
+
+    % Read ADC data
+    fprintf("Iteration: %d\n", it);
+    data_adc1 = read_data(arduino, DATA_LENGTH, "ADC1");
+    data_adc2 = read_data(arduino, DATA_LENGTH, "ADC2");
+    data_adc3 = read_data(arduino, DATA_LENGTH, "ADC3");
+
+    % Plot data showing differences in sample rates and samples per cycle
+    if ACTIVATE_PLOTS
+        plot_adc_with_samples_per_cycle(data_adc1, data_adc2, data_adc3, ...
+            ADC1_SAMPLING_RATE, ADC2_SAMPLING_RATE, ADC3_SAMPLING_RATE, ...
+            SINE_WAVE_FREQ);
+    end
+end
+```
+
+The loop collects data from three separate ADCs instead of two microphones at a time as in [Basic_UltraSound_4CH]({% link library/others.md %}#basic_ultrasound_4ch).
+Inside the loop, the plotting function is specialized to evaluate how many samples each ADC captures per sine period, depending on its sampling rate.
+
+
+Furthermore, differently from [Basic_UltraSound_4CH]({% link library/others.md %}#basic_ultrasound_4ch), to support three separate ADCs running at different speeds, this example uses a more general `read_data` function that retrieves a block of `uint16` samples from the serial port and a dedicated function `plot_adc_with_samples_per_cycle` to visualize differences between sampling rates and samples per sine cycle is implemented.
+This last function:
+
+1. Computes samples per sine cycle for each ADC
+2. Creates time axes proportional to each sampling rate
+3. Generates 4 subplots: ADC1 signal, ADC2 signal, ADC3 signal and all three signal superimposed for visual comparison
+
+In this way the impact of each ADC configuartion with its own sampling rate is immediately visible to the user.
+
+#### Notes
+{: .no_toc}
+* For the specific implementations of `read_data` and `plot_adc_with_samples_per_cycle` see the `matlab\Test_SR_3ADC_3Tim.m` file.
+
 
 ## Developer Notes
 

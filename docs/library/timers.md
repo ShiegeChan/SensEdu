@@ -23,10 +23,13 @@ The main timer error code prefix is `0x10xx`. Find the way to display errors in 
 An overview of possible errors for timers:
 * `0x1000`: No Errors
 * `0x1001`: Unexpected delay value. Minimum possible is 1ns
-* `0x1002`: Unexpected ADC frequency. Maximum possible is 120MHz, refer to [these calculations]({% link library/timers.md %}#frequency-settings) for more details
-* `0x1003`: Unexpected DAC frequency. Maximum possible is 60MHz, refer to [these calculations]({% link library/timers.md %}#frequency-settings) for more details
-* `0x1004`: TIM8 initialization attempt while TIM8 is running. Configuration is possible only for disabled timer
-* `0x1005`: TIM8 Unexpected CCR channel. Possible options are: `CCR1`, `CCR2`, `CCR3` or `CCR4`
+* `0x1002`: Wrong ADC selected. No timer associated with the specified ADC
+* `0x1003`: Unexpected ADC frequency. Maximum possible is 1MHz, refer to [SensEdu_ADC_Settings]({% link library/adc.md %}#sensedu_adc_settings) for more details
+* `0x1004`: Unexpected DAC frequency. Maximum possible is 15MHz, refer to [SensEdu_DAC_Settings]({% link library/dac.md %}#sensedu_dac_settings) for more details
+* `0x1005`: TIM8 initialization attempt while TIM8 is running. Configuration is possible only for disabled timer
+* `0x1006`: TIM8 Unexpected CCR channel. Possible options are: `CCR1`, `CCR2`, `CCR3` or `CCR4`
+* `0x1007`: Unexpected ADC2 frequency 
+* `0x1008`: Unexpected ADC3 frequency
 
 An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
 * `0x10A0`: Timer frequency calculations failed
@@ -119,7 +122,9 @@ void loop() {
 Peripheral timers (ADC/DAC) are hidden, automatically configured and require no user involvement.
 
 Timer allocation:
-* **TIM1**: ADC sampling
+* **TIM1**: ADC1 sampling
+* **TIM3**: ADC2 sampling
+* **TIM6**: ADC3 sampling
 * **TIM2**: Delays 
 * **TIM4**: DAC sampling
 * **TIM8**: PWM

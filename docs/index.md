@@ -9,7 +9,7 @@ permalink: /
 # Introduction
 {: .fs-8 .fw-500}
 
-Welcome to the SensEdu documentation!
+Welcome to the SensEdu documents!
 {: .fs-6 .fw-400}
 ---
 
