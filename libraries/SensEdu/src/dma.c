@@ -335,7 +335,7 @@ void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size) {
 void DMA1_Stream5_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF5)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF5);
-        ADC_TransferCompleteDmaInterrupt(ADC2);
+        ADC_SetDmaTransferComplete(ADC2);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF5)) {
@@ -347,7 +347,7 @@ void DMA1_Stream5_IRQHandler(void) {
 void DMA1_Stream6_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);
-        ADC_TransferCompleteDmaInterrupt(ADC1);
+        ADC_SetDmaTransferComplete(ADC1);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF6)) {
@@ -359,7 +359,7 @@ void DMA1_Stream6_IRQHandler(void) {
 void DMA1_Stream7_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF7)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF7);
-        ADC_TransferCompleteDmaInterrupt(ADC3);
+        ADC_SetDmaTransferComplete(ADC3);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF7)) {

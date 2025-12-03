@@ -1,5 +1,6 @@
 #include "SensEdu.h"
 
+// Internal library error container
 uint32_t lib_error = 0;
 
 /* -------------------------------------------------------------------------- */

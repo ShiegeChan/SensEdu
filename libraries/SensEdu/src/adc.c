@@ -27,6 +27,7 @@ typedef struct {
     volatile bool ovr_flag;                 // Flag notifying that overrun event happened
     volatile uint32_t ovr_counter;          // OVR event counter
     volatile bool dma_complete;             // DMA transfer complete flag
+    volatile bool dma_half_transfer;        // DMA half transfer reached flag
     volatile bool seq_complete;             // End of Sequence flag for software polling
     volatile uint8_t seq_length;            // Sequence size (amount of used channels)
     volatile uint8_t seq_idx;               // EOC counter for multi-channel sequence
@@ -90,6 +91,7 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* new_settings) {
     state->ovr_flag = false;
     state->ovr_counter = 0;
     state->dma_complete = false;
+    state->dma_half_transfer = false;
     state->seq_complete = false;
     state->seq_length = 0;
     state->seq_idx = 0;
@@ -227,29 +229,52 @@ void SensEdu_ADC_DisableOverrunInterrupt(ADC_TypeDef* adc) {
 }
 
 // Get a global overrun flag which shows if the event ever happened
-bool SensEdu_ADC_GetOverrunState(ADC_TypeDef* adc) {
+bool SensEdu_ADC_IsOverrun(ADC_TypeDef* adc) {
     return get_adc_state(adc)->ovr_flag;
 }
 
-// Get a counter that shows how many times overrun event happened
-uint32_t SensEdu_ADC_GetOverrunCounter(ADC_TypeDef* adc) {
+// Clear a global overrun flag
+void SensEdu_ADC_ClearOverrun(ADC_TypeDef* adc) {
+    get_adc_state(adc)->ovr_flag = false;
+}
+
+// Get a counter of how many times overrun event happened
+uint32_t SensEdu_ADC_GetOverrunCount(ADC_TypeDef* adc) {
     return get_adc_state(adc)->ovr_counter;
 }
 
-bool SensEdu_ADC_GetTransferStatus(ADC_TypeDef *adc) {
+// Get a DMA transfer completion status flag
+bool SensEdu_ADC_IsDmaTransferComplete(ADC_TypeDef *adc) {
     return get_adc_state(adc)->dma_complete;
 }
 
-void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc) {
+// Clears DMA transfer completion status flag
+void SensEdu_ADC_ClearDmaTransferComplete(ADC_TypeDef* adc) {
     get_adc_state(adc)->dma_complete = false;
+}
+
+// Get a DMA half transfer reached status flag
+bool SensEdu_ADC_IsDmaHalfTransferComplete(ADC_TypeDef *adc) {
+    return get_adc_state(adc)->dma_half_transfer;
+}
+
+// Clears DMA half transfer reached status flag
+void SensEdu_ADC_ClearHalfTransferComplete(ADC_TypeDef* adc) {
+    get_adc_state(adc)->dma_half_transfer = false;
 }
 
 ADC_ERROR ADC_GetError(void) {
     return error;
 }
 
-void ADC_TransferCompleteDmaInterrupt(ADC_TypeDef* adc) {
+// Sets DMA transfer completion status flag
+void ADC_SetDmaTransferComplete(ADC_TypeDef* adc) {
     get_adc_state(adc)->dma_complete = true;
+}
+
+// Sets DMA half transfer reached status flag
+void ADC_SetDmaHalfTransferComplete(ADC_TypeDef* adc) {
+    get_adc_state(adc)->dma_half_transfer = true;
 }
 
 /* -------------------------------------------------------------------------- */

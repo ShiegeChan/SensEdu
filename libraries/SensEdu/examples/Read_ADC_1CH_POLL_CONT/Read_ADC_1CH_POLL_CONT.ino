@@ -1,5 +1,6 @@
 #include "SensEdu.h"
 
+// Internal library error container
 uint32_t lib_error = 0;
 
 /* -------------------------------------------------------------------------- */
@@ -10,7 +11,7 @@ ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 1;
 uint8_t adc_pins[adc_pin_num] = {A0};
 
-// If your applicatiob doesn't need strict sampling rate - use SENSEDU_ADC_SR_MODE_FREE
+// If your application doesn't need strict sampling rate - use SENSEDU_ADC_SR_MODE_FREE
 // In case you need to take measurements at specific fixed interval, then prefer SENSEDU_ADC_SR_MODE_FIXED
 // However, use fixed SR mode with care in software polling mode, especially at higher than 1kS/sec frequencies
 // Due to software overhead, data reading loop can perform slower than ADC produces new conversions

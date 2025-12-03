@@ -70,16 +70,20 @@ void SensEdu_ADC_Start(ADC_TypeDef* adc);
 uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* adc);
 uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* adc);
 
-
 void SensEdu_ADC_EnableOverrunInterrupt(ADC_TypeDef* adc);
-bool SensEdu_ADC_GetOverrunState(ADC_TypeDef* adc);
-uint32_t SensEdu_ADC_GetOverrunCounter(ADC_TypeDef* adc);
+void SensEdu_ADC_DisableOverrunInterrupt(ADC_TypeDef* adc);
+bool SensEdu_ADC_IsOverrun(ADC_TypeDef* adc);
+void SensEdu_ADC_ClearOverrun(ADC_TypeDef* adc);
+uint32_t SensEdu_ADC_GetOverrunCount(ADC_TypeDef* adc);
 
-bool SensEdu_ADC_GetTransferStatus(ADC_TypeDef *adc);
-void SensEdu_ADC_ClearTransferStatus(ADC_TypeDef* adc);
+bool SensEdu_ADC_IsDmaTransferComplete(ADC_TypeDef* adc);
+void SensEdu_ADC_ClearDmaTransferComplete(ADC_TypeDef* adc);
+bool SensEdu_ADC_IsDmaHalfTransferComplete(ADC_TypeDef* adc);
+void SensEdu_ADC_ClearHalfTransferComplete(ADC_TypeDef* adc);
 
 ADC_ERROR ADC_GetError(void);
-void ADC_TransferCompleteDmaInterrupt(ADC_TypeDef* adc);
+void ADC_SetDmaTransferComplete(ADC_TypeDef* adc);
+void ADC_SetDmaHalfTransferComplete(ADC_TypeDef* adc);
 
 
 #ifdef __cplusplus
