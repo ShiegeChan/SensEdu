@@ -151,7 +151,7 @@ void DMA_DACEnable(DAC_Channel* dac_channel) {
     if (READ_BIT(config->dma_stream->CR, DMA_SxCR_EN)) {
         error = DMA_ERROR_ENABLED_BEFORE_ENABLE;
     }
-    dma_clear_status_flags(&(config->dma_stream_flags));
+    dma_clear_status_flags(config->dma_stream_flags);
     SET_BIT(config->dma_stream->CR, DMA_SxCR_EN);
 }
 
@@ -165,10 +165,10 @@ void DMA_DACDisable(DAC_Channel* dac_channel) {
     dma_disable(config->dma_stream, config->dma_stream_flags);
 }
 
-
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
+
 adc_config* get_adc_config(ADC_TypeDef* adc) {
     if (adc == ADC1) {
         return &adc1_config;
@@ -304,7 +304,7 @@ void dma_clear_status_flags(DmaFlags* dma_flags) {
 
 void dma_disable(DMA_Stream_TypeDef* dma_stream, DmaFlags* flags) {
     CLEAR_BIT(dma_stream->CR, DMA_SxCR_EN);
-    while(READ_BIT(dma_stream->CR, DMA_SxCR_EN));
+    while(READ_BIT(dma_stream->CR, DMA_SxCR_EN)) {}
 
     dma_clear_status_flags(flags);
 }
@@ -364,7 +364,7 @@ void DMA1_Stream7_IRQHandler(void) {
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF7)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTEIF7);
-        error = DMA_ERROR_DAC_INTERRUPT_TRANSFER_ERROR;
+        error = DMA_ERROR_ADC_INTERRUPT_TRANSFER_ERROR;
     }
 }
 

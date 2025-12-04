@@ -1,53 +1,52 @@
 #include "SensEdu.h"
 
+// Internal library error container
 uint32_t lib_error = 0;
+
+// Counter to show that CPU can do something else while DMA transfer is running
 uint32_t cntr = 0;
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
+
+// For DMA you need to initialize a buffer to store conversion results
+// Use the macro SENSEDU_ADC_BUFFER(name, size)
+const uint16_t buf_size = 90;
+SENSEDU_ADC_BUFFER(buf, buf_size);
+
 ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 3;
 uint8_t adc_pins[adc_pin_num] = {A0, A1, A2}; 
-
-const uint16_t memory4adc_size = 10 * adc_pin_num;
-SENSEDU_ADC_BUFFER(memory4adc, memory4adc_size);
 
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,
     .pin_num = adc_pin_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT,
-    .sampling_freq = 0,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 10000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
-    .mem_address = (uint16_t*)memory4adc,
-    .mem_size = memory4adc_size
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
+    .mem_address = (uint16_t*)buf,
+    .mem_size = buf_size
 };
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
 void setup() {
-
-    // doesn't boot without opened serial monitor
+    // Stuck in the loop if Serial Monitor is not opened
     Serial.begin(115200);
-    while (!Serial) {
-        delay(1);
-    }
+    while (!Serial) {}
+
     Serial.println("Started Initialization...");
 
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
 
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
-    }
+    check_lib_errors();
 
     Serial.println("Setup is successful.");
 }
@@ -58,37 +57,38 @@ void setup() {
 void loop() {
     // CPU does something
     cntr += 1;
-    Serial.print("Counter value: ");
     Serial.println(cntr);
+    check_lib_errors();
     
     // DMA in background
-
-    // Print transfered Data if available
-    if (SensEdu_ADC_GetTransferStatus(adc)) {
+    if (SensEdu_ADC_IsDmaTransferComplete(adc)) {
         Serial.println("------");
-        for (int i = 0; i < memory4adc_size; i+=3) {
+        for (int i = 0; i < buf_size; i+=3) {
             Serial.print("ADC value ");
             Serial.print(i/3);
             Serial.print(" for channel 0: ");
-            Serial.println(memory4adc[i]);
+            Serial.println(buf[i]);
 
             Serial.print("ADC value ");
             Serial.print(i/3);
             Serial.print(" for channel 1: ");
-            Serial.println(memory4adc[i+1]);
+            Serial.println(buf[i+1]);
 
             Serial.print("ADC value ");
             Serial.print(i/3);
             Serial.print(" for channel 2: ");
-            Serial.println(memory4adc[i+2]);
+            Serial.println(buf[i+2]);
         };
 
-        // restart ADC
-        SensEdu_ADC_ClearTransferStatus(adc);
+        // Restart ADC
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
         SensEdu_ADC_Start(adc);
     }
+}
 
-    // check errors
+// Checks if the library has risen any internal errors
+// Prints the error code in Serial Monitor
+void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);

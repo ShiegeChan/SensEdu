@@ -416,37 +416,22 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num,
     // set clock range 12.5MHz:25Mhz
     MODIFY_REG(adc->CR, ADC_CR_BOOST, 0b10 << ADC_CR_BOOST_Pos);
 
-    // overrun mode (overwrite data)
-    switch (adc_mode) {
-        case SENSEDU_ADC_MODE_POLLING_ONE_SHOT:
-            CLEAR_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // do not overwrite
-            break;
-        case SENSEDU_ADC_MODE_POLLING_CONT:
-            SET_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // overwrite
-            break;
-        case SENSEDU_ADC_MODE_DMA_NORMAL:
-            SET_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // overwrite
-            break;
-        case SENSEDU_ADC_MODE_DMA_CIRCULAR:
-            SET_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // overwrite
-            break;
-        default:
-            error = ADC_ERROR_WRONG_OPERATION_MODE;
-            break;
-    }
-
     // data management
     switch (adc_mode) {
         case SENSEDU_ADC_MODE_POLLING_ONE_SHOT:
+            CLEAR_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // do not overwrite data
             MODIFY_REG(adc->CFGR, ADC_CFGR_DMNGT, 0b00 << ADC_CFGR_DMNGT_Pos); // data stored in DR only
             break;
         case SENSEDU_ADC_MODE_POLLING_CONT:
+            SET_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // overwrite data
             MODIFY_REG(adc->CFGR, ADC_CFGR_DMNGT, 0b00 << ADC_CFGR_DMNGT_Pos); // data stored in DR only
             break;
         case SENSEDU_ADC_MODE_DMA_NORMAL:
+            SET_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // overwrite data
             MODIFY_REG(adc->CFGR, ADC_CFGR_DMNGT, 0b01 << ADC_CFGR_DMNGT_Pos); // DMA one shot mode
             break;
         case SENSEDU_ADC_MODE_DMA_CIRCULAR:
+            SET_BIT(adc->CFGR, ADC_CFGR_OVRMOD); // overwrite data
             MODIFY_REG(adc->CFGR, ADC_CFGR_DMNGT, 0b11 << ADC_CFGR_DMNGT_Pos); // DMA circular mode
             break;
         default:
@@ -502,7 +487,8 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num,
         if (adc == ADC1 || adc == ADC2) {
             NVIC_SetPriority(ADC_IRQn, 2);
             NVIC_EnableIRQ(ADC_IRQn);
-        } else if (adc == ADC3) {
+        }
+        if (adc == ADC3) {
             NVIC_SetPriority(ADC3_IRQn, 2);
             NVIC_EnableIRQ(ADC3_IRQn);
         }

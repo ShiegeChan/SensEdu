@@ -10,12 +10,15 @@ uint32_t cntr = 0;
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
+// For DMA you need to initialize a buffer to store conversion results
+// Use the macro SENSEDU_ADC_BUFFER(name, size)
 const uint16_t buf_size = 128;
 SENSEDU_ADC_BUFFER(buf, buf_size);
 
 ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 1;
 uint8_t adc_pins[adc_pin_num] = {A0};
+
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,
