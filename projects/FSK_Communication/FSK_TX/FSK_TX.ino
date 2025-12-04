@@ -1,18 +1,17 @@
 #include "SensEdu.h"
-#include <bitset>
-
+//#include <bitset>
 
 // We need to create a LUT for the sine wave we want to transmit
 const uint16_t sine_lut_size = 64; // sine wave size
-const SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {
-    0x0000,0x000a,0x0027,0x0058,0x009c,0x00f2,0x0159,0x01d1,
-    0x0258,0x02ed,0x038e,0x043a,0x04f0,0x05ad,0x0670,0x0737,
-    0x0800,0x08c8,0x098f,0x0a52,0x0b0f,0x0bc5,0x0c71,0x0d12,
-    0x0da7,0x0e2e,0x0ea6,0x0f0d,0x0f63,0x0fa7,0x0fd8,0x0ff5,
-    0x0fff,0x0ff5,0x0fd8,0x0fa7,0x0f63,0x0f0d,0x0ea6,0x0e2e,
-    0x0da7,0x0d12,0x0c71,0x0bc5,0x0b0f,0x0a52,0x098f,0x08c8,
-    0x0800,0x0737,0x0670,0x05ad,0x04f0,0x043a,0x038e,0x02ed,
-    0x0258,0x01d1,0x0159,0x00f2,0x009c,0x0058,0x0027,0x000a
+static SENSEDU_DAC_BUFFER(sine_lut, sine_lut_size) = {
+0x000, 0x00A, 0x029, 0x05B, 0x0A1, 0x0F9, 0x164, 0x1DF, 
+0x26A, 0x303, 0x3A9, 0x459, 0x513, 0x5D5, 0x69C, 0x766, 
+0x833, 0x8FE, 0x9C7, 0xA8C, 0xB4A, 0xBFF, 0xCAB, 0xD4A, 
+0xDDC, 0xE60, 0xED3, 0xF34, 0xF84, 0xFC0, 0xFE8, 0xFFC, 
+0xFFC, 0xFE8, 0xFC0, 0xF84, 0xF34, 0xED3, 0xE60, 0xDDC, 
+0xD4A, 0xCAB, 0xBFF, 0xB4A, 0xA8C, 0x9C7, 0x8FE, 0x833, 
+0x766, 0x69C, 0x5D5, 0x513, 0x459, 0x3A9, 0x303, 0x26A, 
+0x1DF, 0x164, 0x0F9, 0x0A1, 0x05B, 0x029, 0x00A, 0x000
 };
 
 /* errors */
@@ -20,34 +19,35 @@ static uint32_t lib_error = 0;
 uint8_t error_led = D86;
 
 // Configure the DAC
-#define DAC_SINE_FREQ_0     	32000                           // 32kHz
-#define DAC_SINE_FREQ_1     	33600                           // 33.6kHz
-#define DAC_SAMPLE_RATE_0     DAC_SINE_FREQ_0 * sine_lut_size   // 64 samples per one sine cycle 
-#define DAC_SAMPLE_RATE_1     DAC_SINE_FREQ_1 * sine_lut_size   // 64 samples per one sine cycle 
-
-SensEdu_DAC_Settings dac_settings_0 = {
+#define DAC_SINE_FREQ_0    	20000                          // 32kHz
+#define DAC_SAMPLE_RATE_0    DAC_SINE_FREQ_0 * sine_lut_size   // 64 samples per one sine cycle 
+SensEdu_DAC_Settings dac_settings_1 = {
     .dac_channel = DAC_CH1, 
     .sampling_freq = DAC_SAMPLE_RATE_0,
     .mem_address = (uint16_t*)sine_lut, 
     .mem_size = sine_lut_size, 
-    .wave_mode = SENSEDU_DAC_MODE_CONTINUOUS_WAVE,
+    .wave_mode = SENSEDU_DAC_MODE_BURST_WAVE,
     .burst_num = 10
 };
 
-SensEdu_DAC_Settings dac_settings_1 = {
-    .dac_channel = DAC_CH1, 
+// Configure the DAC
+#define DAC_SINE_FREQ_1    	40000                          // 32kHz
+#define DAC_SAMPLE_RATE_1    DAC_SINE_FREQ_1 * sine_lut_size   // 64 samples per one sine cycle 
+
+SensEdu_DAC_Settings dac_settings_2 = {
+    .dac_channel = DAC_CH2, 
     .sampling_freq = DAC_SAMPLE_RATE_1,
     .mem_address = (uint16_t*)sine_lut, 
     .mem_size = sine_lut_size, 
-    .wave_mode = SENSEDU_DAC_MODE_CONTINUOUS_WAVE,
+    .wave_mode = SENSEDU_DAC_MODE_BURST_WAVE,
     .burst_num = 10
 };
 
 // Number that you want to send, and time to each bit
-int number = 8;  // Read the number
-std::bitset<16> binary(number);  // Convert to 16-bit binary
-unsigned long startTime = millis();  // Record start time
-unsigned long duration_ms = 500;     // Run for 500 ms
+//int number = 8;  // Read the number
+//std::bitset<16> binary(number);  // Convert to 16-bit binary
+//unsigned long startTime = millis();  // Record start time
+//unsigned long duration_ms = 500;     // Run for 500 ms
 
 void setup() {
     Serial.begin(115200);
@@ -57,25 +57,22 @@ void setup() {
     pinMode(error_led, OUTPUT);
     digitalWrite(error_led, HIGH);
 
-    for(int i = 15; i >= 0; i--){
-        bool bit = binary.test(i); // return true or false in case 1 or 0 
-        if (bit == true) {
-            while(millis() - startTime < duration_ms){
-                SensEdu_DAC_Init(&dac_settings_0);
-                SensEdu_DAC_Enable(DAC_CH1);
-            }
 
-        }
-        else {
-            while(millis() - startTime < duration_ms){
-                SensEdu_DAC_Init(&dac_settings_1);
-                SensEdu_DAC_Enable(DAC_CH1);
-            }
-        }
-    }
 }
 
 void loop () {
+    SensEdu_DAC_Init(&dac_settings_1);
+    SensEdu_DAC_Enable(DAC_CH1);
+    while(!SensEdu_DAC_GetBurstCompleteFlag(DAC_CH1));
+    SensEdu_DAC_ClearBurstCompleteFlag(DAC_CH1);
+    SensEdu_DAC_Disable(DAC_CH1);
+    delay(10);
+    SensEdu_DAC_Init(&dac_settings_2);
+    SensEdu_DAC_Enable(DAC_CH2);
+    while(!SensEdu_DAC_GetBurstCompleteFlag(DAC_CH2));
+    SensEdu_DAC_ClearBurstCompleteFlag(DAC_CH2);
+    SensEdu_DAC_Disable(DAC_CH2);
+    delay(10);
     check_errors();
 }
 
