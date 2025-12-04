@@ -4,8 +4,10 @@
 static uint32_t lib_error = 0;
 uint8_t error_led = D86;
 
+const int SYNC_PIN = 2;
+
 // Configure the ADC 
-const uint16_t mic_data_size = 2048;
+const uint16_t mic_data_size = 2048*4;
 SENSEDU_ADC_BUFFER(mic_data, mic_data_size);
 
 ADC_TypeDef* adc = ADC1;
@@ -15,10 +17,8 @@ SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = mic_pins,
     .pin_num = mic_num,
-
     .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
-    
+    .sampling_freq = 32000*64,
     .dma_mode = SENSEDU_ADC_DMA_CONNECT,
     .mem_address = (uint16_t*)mic_data,
     .mem_size = mic_data_size
@@ -41,21 +41,25 @@ void loop () {
     // Measurement is initiated by the signal from computing device
     static char serial_buf = 0;
     
-    while (1) {
-        while (Serial.available() == 0); // Wait for a signal
-        serial_buf = Serial.read();
+    if(digitalRead(SYNC_PIN) == HIGH) {  // Wait for sync
+        while (1) {
+            while (Serial.available() == 0); // Wait for a signal
+            serial_buf = Serial.read();
 
-        if (serial_buf == 't') {
-            // expected 't' symbol (trigger)
-            break;
+            if (serial_buf == 't') {
+                // expected 't' symbol (trigger)
+                break;
+            }
         }
+
+        SensEdu_ADC_Start(adc);
+        // wait for the data and send it
+        while(!SensEdu_ADC_GetTransferStatus(adc));
+        SensEdu_ADC_ClearTransferStatus(adc);
+        serial_send_array((const uint8_t *) &mic_data, mic_data_size << 1);
     }
 
-    SensEdu_ADC_Start(adc);
-    // wait for the data and send it
-    while(!SensEdu_ADC_GetTransferStatus(adc));
-    SensEdu_ADC_ClearTransferStatus(adc);
-    serial_send_array((const uint8_t *) &mic_data, mic_data_size << 1);
+    
 
     check_errors();
 }
