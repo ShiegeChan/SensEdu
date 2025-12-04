@@ -347,6 +347,9 @@ void DMA1_Stream5_IRQHandler(void) {
 void DMA1_Stream6_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);
+        // TODO: replace this with proper MPU config
+        adc_config* config = get_adc_config(ADC1);
+        SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
         ADC_SetDmaTransferComplete(ADC1);
     }
 
