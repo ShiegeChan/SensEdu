@@ -28,15 +28,6 @@ disp('Recording ended.');
 % set COM port back free
 arduino = [];
 
-% save measurements
-if ~exist("Measurements", 'dir')
-    mkdir("Measurements");
-end
-file_name = sprintf('Measurements/%s_%s.mat', "measurements", datetime("now"));
-file_name = strrep(file_name, ' ', '_');
-file_name = strrep(file_name, ':', '-');
-save(file_name, "data_mat");
-
 %% saving .wav format
 if ~exist("Recordings", 'dir')
     mkdir("Recordings");
@@ -48,22 +39,54 @@ file_name = strrep(file_name, ':', '-');
 % append all data collected
 data_full = reshape(data_mat.', 1, []);
 
-% since we use 'double' type for data it needs to be normalized [-1, 1]
+% data normalization [-1, 1]
 y = data_full/65535;
 y = 2*y - 1; 
 
 % center data around 0
 y = y - mean(y);
 
-% write to the file
+% convert samples to time 
+t = linspace(0, length(y)/Fs, length(y));
+
+% write to the file 
 audiowrite(file_name, y, Fs);
 
-% play the recorded audio
+% read from the file
 clear y Fs
 [y, Fs] = audioread(file_name);
-sound(y, Fs);
 
-%% plot the sound wave
+%% Visualization 
+figure; 
+plot(t, y); hold on;
+title("Recorded Audio Signal");
+xlabel("time [s]"); ylabel("Normalized ADC Output");
+ylim([-1 1]);
+xlim([0 t(end)]);
+
+% dynamic marker
+playback_marker = line([0 0], [-0.5 0.5], 'Color', [0.4 0.12 0.54], 'LineWidth', 1.4, 'Marker', '.');
+legend("Microphone signal", " ");
+
+% audio player for playback 
+player = audioplayer(y, Fs);
+
+% start audio 
+play(player);
+
+% update the marker in real time
+while isplaying(player)
+    % current time in audio
+    t_now = player.CurrentSample / Fs ; 
+
+    % update the marker position
+    set(playback_marker, 'XData', [t_now t_now]); 
+
+    % neccesarry pause for updates
+    pause(0.01);
+end
+
+%% plot the sound wave - debugging purposes
 figure; 
 plot(y);
 title("Recorded Audio Wave");

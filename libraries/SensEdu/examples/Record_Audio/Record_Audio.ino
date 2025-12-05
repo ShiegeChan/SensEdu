@@ -81,7 +81,7 @@ void loop() {
         SensEdu_ADC_Start(adc);
         while(!SensEdu_ADC_GetTransferStatus(adc));
         SensEdu_ADC_ClearTransferStatus(adc);
-        serial_send_array((const uint8_t *) & mic_data, mic_data_size << 1);
+        serial_send_array((const uint8_t *)&mic_data, mic_data_size << 1);
     }
     is_recording_started = false;
 
