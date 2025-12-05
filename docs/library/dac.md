@@ -15,7 +15,13 @@ A DAC (Digital-to-Analog Converter) converts a digital signal into an analog wav
 - TOC
 {:toc}
 
-The STM32H747 features one DAC module with two available channels:
+The STM32H747 features one 12-bit DAC module with two available channels. 
+
+{: .note}
+Since it is a 12-bit Digital-to-Analog converter, the maximum value supported by the DAC is 2^12 - 1 = 4095 (0x0FFF). This is different from ADC modules which are 16-bit and support values in range from zero to 65535 (0xFFFF).
+
+Sensedu utilizes both channels with:
+
 * ***Central Speaker***: connected to the first channel (`DAC_CH1`) on `DAC0` pin 
 * ***Bottom Speaker*** connected to the second channel (`DAC_CH2`) on `DAC1` pin
 
