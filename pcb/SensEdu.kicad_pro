@@ -278,11 +278,23 @@
         ""
       ],
       [
+        "footprint_link_issues|1689100|546100|2c38a8cc-2de7-4c8e-a35d-9d48a25dfb53|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
         "footprint_link_issues|1752600|419100|dc81eddc-09cd-4c97-b5c7-4653cc313f35|00000000-0000-0000-0000-000000000000|||",
         ""
       ],
       [
         "footprint_link_issues|1765300|596900|dc81eddc-09cd-4c97-b5c7-4653cc313f35|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
+        "footprint_link_issues|1765300|609600|dc81eddc-09cd-4c97-b5c7-4653cc313f35|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
+        "footprint_link_issues|2374900|393700|0177454a-fd35-45f7-80ad-57b779b5c096|00000000-0000-0000-0000-000000000000|||",
         ""
       ],
       [
@@ -302,7 +314,15 @@
         ""
       ],
       [
+        "footprint_link_issues|2641600|1104900|48931308-0635-49cd-bee1-8f7ecbc3bc52|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
         "footprint_link_issues|2679700|584200|c8c08f76-027a-4433-894c-9b551c92bd88|00000000-0000-0000-0000-000000000000|||",
+        ""
+      ],
+      [
+        "footprint_link_issues|2679700|596900|c8c08f76-027a-4433-894c-9b551c92bd88|00000000-0000-0000-0000-000000000000|||",
         ""
       ],
       [
@@ -691,7 +711,7 @@
       "workbook_filename": ""
     },
     "page_layout_descr_file": "",
-    "plot_directory": "",
+    "plot_directory": "./",
     "space_save_all_events": true,
     "spice_adjust_passive_values": false,
     "spice_current_sheet_as_root": false,
@@ -714,7 +734,7 @@
     ],
     [
       "5e2ce67a-97f9-439d-a475-1867d59b3f74",
-      "General pupose Amplifiers"
+      "External Microphone Connectors"
     ],
     [
       "32893aec-41b3-4e64-b47a-61deed46b8b4",
@@ -722,7 +742,7 @@
     ],
     [
       "d6e506e4-1660-4f12-9b07-0782300f1012",
-      "DPS310"
+      "Pressure Sensor"
     ]
   ],
   "text_variables": {}

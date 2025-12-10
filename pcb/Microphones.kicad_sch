@@ -2350,9 +2350,9 @@
 		)
 		(uuid e12697b1-0002-4d9c-ba0c-809384f77b0d)
 	)
-	(text "VOLTAGE REGULATOR 3.3V->1.25V"
+	(text "LOW DROPOUT VOLTAGE REFERENCE 3.3V->1.25V"
 		(exclude_from_sim yes)
-		(at 236.22 13.97 0)
+		(at 243.84 13.97 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2465,6 +2465,12 @@
 		(uuid "5229f485-b5b3-4ac8-aff0-176bcb6a5cb3")
 	)
 	(junction
+		(at 143.51 48.26)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "557efa1d-4537-4ad3-ba72-a3b92d7679e2")
+	)
+	(junction
 		(at 87.63 46.99)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2487,12 +2493,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "6c856d5c-7b66-4bed-9ef0-3785363af9e4")
-	)
-	(junction
-		(at 86.36 101.6)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "6ecf1eab-fb56-45c3-842d-78f535510f9c")
 	)
 	(junction
 		(at 46.99 168.91)
@@ -2531,16 +2531,16 @@
 		(uuid "92bfa0c3-ba38-496e-b048-739577073cc5")
 	)
 	(junction
+		(at 73.66 100.33)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "97d69492-d022-49ae-b98a-ed4d356c2def")
+	)
+	(junction
 		(at 109.22 137.16)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "9e817f21-ff0c-43c6-aaee-9da4f1de2470")
-	)
-	(junction
-		(at 143.51 48.26)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "9f70fad5-383d-4d47-9807-765137ef1f85")
 	)
 	(junction
 		(at 228.6 46.99)
@@ -2555,12 +2555,6 @@
 		(uuid "a0bf8042-2447-4e73-8211-e361630026e5")
 	)
 	(junction
-		(at 73.66 101.6)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "a2438f27-c574-440b-b1be-f687ba763c8f")
-	)
-	(junction
 		(at 123.19 148.59)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2571,6 +2565,12 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "b628eebc-63bb-4501-9b13-4129b1664185")
+	)
+	(junction
+		(at 86.36 100.33)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "ccd0b6f2-10d4-422d-b6fd-0641a28c2586")
 	)
 	(junction
 		(at 156.21 48.26)
@@ -2654,6 +2654,16 @@
 	)
 	(wire
 		(pts
+			(xy 143.51 44.45) (xy 143.51 48.26)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "0a272d10-6855-47cd-9d8c-69d60411baf7")
+	)
+	(wire
+		(pts
 			(xy 156.21 90.17) (xy 156.21 86.36)
 		)
 		(stroke
@@ -2664,7 +2674,7 @@
 	)
 	(wire
 		(pts
-			(xy 86.36 101.6) (xy 86.36 104.14)
+			(xy 86.36 97.79) (xy 86.36 100.33)
 		)
 		(stroke
 			(width 0)
@@ -2784,16 +2794,6 @@
 	)
 	(wire
 		(pts
-			(xy 73.66 101.6) (xy 76.2 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "208c2e3e-023d-4332-b8a2-0f0ed8ed9719")
-	)
-	(wire
-		(pts
 			(xy 44.45 168.91) (xy 46.99 168.91)
 		)
 		(stroke
@@ -2831,16 +2831,6 @@
 			(type default)
 		)
 		(uuid "27e1fb0c-3696-4096-99f9-4e2ea3012e41")
-	)
-	(wire
-		(pts
-			(xy 143.51 35.56) (xy 143.51 36.83)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "2805ab27-df40-4ce3-8541-b51b6eb74379")
 	)
 	(wire
 		(pts
@@ -2961,16 +2951,6 @@
 			(type default)
 		)
 		(uuid "43258d71-c6b5-48ea-a5fc-bfb59e47d1ef")
-	)
-	(wire
-		(pts
-			(xy 73.66 97.79) (xy 73.66 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "442cb932-5c23-4487-a227-31dafe1f6273")
 	)
 	(wire
 		(pts
@@ -3494,16 +3474,6 @@
 	)
 	(wire
 		(pts
-			(xy 83.82 101.6) (xy 86.36 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8b7158ef-005e-4bf5-87af-f71c4e4b552c")
-	)
-	(wire
-		(pts
 			(xy 73.66 113.03) (xy 73.66 111.76)
 		)
 		(stroke
@@ -3594,6 +3564,16 @@
 	)
 	(wire
 		(pts
+			(xy 86.36 100.33) (xy 86.36 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9c1418b6-5a3a-4f93-a147-76c167e4139a")
+	)
+	(wire
+		(pts
 			(xy 109.22 137.16) (xy 109.22 139.7)
 		)
 		(stroke
@@ -3664,7 +3644,7 @@
 	)
 	(wire
 		(pts
-			(xy 73.66 101.6) (xy 73.66 104.14)
+			(xy 73.66 97.79) (xy 73.66 100.33)
 		)
 		(stroke
 			(width 0)
@@ -3744,6 +3724,16 @@
 	)
 	(wire
 		(pts
+			(xy 73.66 100.33) (xy 73.66 104.14)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "af2407b7-c643-449b-864e-7d843e9504fb")
+	)
+	(wire
+		(pts
 			(xy 53.34 40.64) (xy 54.61 40.64)
 		)
 		(stroke
@@ -3781,16 +3771,6 @@
 			(type default)
 		)
 		(uuid "b5328003-2bc7-448d-b95d-58fc18adc75b")
-	)
-	(wire
-		(pts
-			(xy 86.36 97.79) (xy 86.36 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "b7c668e3-75ef-49ac-af90-bb7bd84d81c6")
 	)
 	(wire
 		(pts
@@ -3944,6 +3924,16 @@
 	)
 	(wire
 		(pts
+			(xy 73.66 100.33) (xy 76.2 100.33)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "d9c801ef-3363-4ba4-8a2d-716ff9d5ed4c")
+	)
+	(wire
+		(pts
 			(xy 39.37 186.69) (xy 39.37 184.15)
 		)
 		(stroke
@@ -4044,6 +4034,16 @@
 	)
 	(wire
 		(pts
+			(xy 83.82 100.33) (xy 86.36 100.33)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e28bb556-fc73-4f8f-b15f-6afc2eff9d74")
+	)
+	(wire
+		(pts
 			(xy 52.07 19.05) (xy 54.61 19.05)
 		)
 		(stroke
@@ -4094,13 +4094,13 @@
 	)
 	(wire
 		(pts
-			(xy 143.51 44.45) (xy 143.51 48.26)
+			(xy 143.51 35.56) (xy 143.51 36.83)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "ec66f796-4702-45f5-a862-648dbb7cee99")
+		(uuid "ed906bef-9070-4439-8d86-6196462c7736")
 	)
 	(wire
 		(pts
@@ -4899,7 +4899,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 143.51 40.64 180)
+		(at 143.51 40.64 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4907,7 +4907,7 @@
 		(dnp no)
 		(uuid "17f5b578-e578-4b82-9e40-2ef163e96b9e")
 		(property "Reference" "R6"
-			(at 140.97 40.64 0)
+			(at 138.43 40.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4916,7 +4916,7 @@
 			)
 		)
 		(property "Value" "3.9k"
-			(at 140.97 41.91 0)
+			(at 138.43 43.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4925,7 +4925,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
-			(at 145.288 40.64 90)
+			(at 141.732 40.64 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9355,7 +9355,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 80.01 101.6 90)
+		(at 80.01 100.33 270)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9363,7 +9363,7 @@
 		(dnp no)
 		(uuid "ffa593a4-00c5-4491-a400-ab3e24c72abc")
 		(property "Reference" "C17"
-			(at 80.01 96.52 90)
+			(at 80.01 97.79 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9371,7 +9371,7 @@
 			)
 		)
 		(property "Value" "470p"
-			(at 80.01 99.06 90)
+			(at 80.01 95.25 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9379,7 +9379,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 83.82 100.6348 0)
+			(at 76.2 101.2952 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9388,7 +9388,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 80.01 101.6 0)
+			(at 80.01 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9397,7 +9397,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 80.01 101.6 0)
+			(at 80.01 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9438,7 +9438,7 @@
 			(color 0 0 0 0.0000)
 		)
 		(uuid "5e2ce67a-97f9-439d-a475-1867d59b3f74")
-		(property "Sheetname" "General pupose Amplifiers"
+		(property "Sheetname" "External Microphone Connectors"
 			(at 242.57 75.4884 0)
 			(effects
 				(font
