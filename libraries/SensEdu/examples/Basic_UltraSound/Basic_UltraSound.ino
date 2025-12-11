@@ -92,7 +92,7 @@ void loop() {
     // wait for the data and send it
     while(!SensEdu_ADC_GetTransferStatus(adc));
     SensEdu_ADC_ClearTransferStatus(adc);
-    serial_send_array(&(mic_data[0]), mic_data_size, 20);
+    serial_send_array(&(mic_data[0]), mic_data_size, 32);
 
     // check errors
     lib_error = SensEdu_GetError();

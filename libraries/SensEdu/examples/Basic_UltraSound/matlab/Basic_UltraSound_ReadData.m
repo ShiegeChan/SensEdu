@@ -10,7 +10,7 @@ ARDUINO_BAUDRATE = 115200;
 ITERATIONS = 1000;
 
 ACTIVATE_PLOTS = true;
-CHUNK_SIZE = 20; % number of bytes that are read at once from serial -> 32 is optimal
+CHUNK_SIZE = 32; % number of bytes that are read at once from serial -> 32 is optimal
 DATA_LENGTH = 5142; % make sure to match this number with firmware
 
 %% Arduino Setup
