@@ -5,13 +5,13 @@ close all;
 clc;
 
 %% Settings
-ARDUINO_PORT = 'COM18';
+ARDUINO_PORT = 'COM22';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 10000;
+ITERATIONS = 1000;
 
 ACTIVATE_PLOTS = true;
-
-DATA_LENGTH = 2048; % make sure to match this number with firmware
+CHUNK_SIZE = 20; % number of bytes that are read at once from serial -> 32 is optimal
+DATA_LENGTH = 5142; % make sure to match this number with firmware
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
@@ -25,7 +25,7 @@ for it = 1:ITERATIONS
     write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
     tic
-    data = read_data(arduino, DATA_LENGTH);
+    data = read_data(arduino, DATA_LENGTH, CHUNK_SIZE);
     toc
     plot_data(data);
 end
@@ -51,14 +51,15 @@ fprintf("Plots are activated: %s\n", mat2str(ACTIVATE_PLOTS));
 fprintf("average time between measurements: %fsec\n", buf);
 
 %% functions
-function data = read_data(arduino, data_length)
+function data = read_data(arduino, data_length, chunk_size)
     total_byte_length = data_length * 2; % 2 bytes per sample
     serial_rx_data = zeros(1, total_byte_length);
-
-    for i = 1:(total_byte_length/32) % 32 byte chunk size
-        serial_rx_data((32*i - 31):(32*i)) = read(arduino, 32, 'uint8');
+    for i = 1:chunk_size:total_byte_length 
+        transfer_size = min(total_byte_length - i, chunk_size);
+        serial_rx_data(i:i+transfer_size-1) = read(arduino, transfer_size, 'uint8');
     end
-    
+    % the last sample 
+    serial_rx_data(end) = read(arduino, 1, 'uint8'); 
     data = double(typecast(uint8(serial_rx_data), 'uint16'));
 end
 
