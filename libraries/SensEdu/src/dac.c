@@ -5,8 +5,7 @@
 /*                                   Structs                                  */
 /* -------------------------------------------------------------------------- */
 
-typedef struct
-{
+typedef struct {
     volatile uint16_t transfer_cnt;  // current written wave cycle to dac
     volatile uint8_t burst_complete;       
 } dac_data;

@@ -35,6 +35,7 @@ SensEdu_ADC_Settings adc_settings = {
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
+
 void setup() {
     // Stuck in the loop if Serial Monitor is not opened
     Serial.begin(115200);
@@ -54,6 +55,7 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
+
 void loop() {
     // CPU does something
     cntr += 1;
@@ -62,21 +64,14 @@ void loop() {
     
     // DMA in background
     if (SensEdu_ADC_IsDmaTransferComplete(adc)) {
-        Serial.println("------");
         for (int i = 0; i < buf_size; i+=3) {
-            Serial.print("ADC value ");
+            Serial.print("Index ");
             Serial.print(i/3);
-            Serial.print(" for channel 0: ");
-            Serial.println(buf[i]);
-
-            Serial.print("ADC value ");
-            Serial.print(i/3);
-            Serial.print(" for channel 1: ");
-            Serial.println(buf[i+1]);
-
-            Serial.print("ADC value ");
-            Serial.print(i/3);
-            Serial.print(" for channel 2: ");
+            Serial.print(": CH0 = ");
+            Serial.print(buf[i]);
+            Serial.print(" | CH1 = ");
+            Serial.print(buf[i+1]);
+            Serial.print(" | CH2 = ");
             Serial.println(buf[i+2]);
         };
 

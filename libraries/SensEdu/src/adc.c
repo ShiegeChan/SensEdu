@@ -173,8 +173,9 @@ uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* adc) {
         return 0;
     }
 
+    // TODO: implement timeout if ADC has not been started
+
     if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_ONE_SHOT) {
-        // TODO: implement timeout if ADC has not been started
         while (!READ_BIT(adc->ISR, ADC_ISR_EOC)) {}
         return READ_REG(adc->DR);
     }
@@ -199,6 +200,8 @@ uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* adc) {
         error = ADC_ERROR_SOFT_POLLING_IN_DMA_MODE;
         return NULL;
     }
+
+    // TODO: implement timeout if ADC has not been started
 
     if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_ONE_SHOT) {
         return read_sequence_one_shot(adc, settings->pin_num);
@@ -520,8 +523,12 @@ static uint16_t* read_sequence_cont(ADC_TypeDef* adc, uint8_t pin_num) {
 }
 
 static uint16_t* read_sequence_one_shot(ADC_TypeDef* adc, uint8_t pin_num) {
-    // TODO: implement
-    return NULL;
+    AdcState* adc_state = get_adc_state(adc);
+    for (size_t i = 0; i < pin_num; i++) {
+        while (!READ_BIT(adc->ISR, ADC_ISR_EOC)) {}
+        adc_state->seq_buffer[i] = READ_REG(adc->DR);
+    }
+    return adc_state->seq_buffer;
 }
 
 /*
