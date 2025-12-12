@@ -1,66 +1,45 @@
 #include "SensEdu.h"
-//#include <bitset>
-
 // We need to create a LUT for the sine wave we want to transmit
-const uint16_t sine_lut_size_0 = 68; // sine wave size
-static SENSEDU_DAC_BUFFER(sine_lut_0, sine_lut_size_0) = {
-0x000, 0x009, 0x024, 0x050, 0x08E, 0x0DD, 0x13C, 0x1AA, 
-0x226, 0x2AF, 0x344, 0x3E4, 0x48D, 0x53E, 0x5F5, 0x6B1, 
-0x770, 0x82F, 0x8EF, 0x9AC, 0xA66, 0xB1A, 0xBC7, 0xC6C, 
-0xD07, 0xD96, 0xE19, 0xE8E, 0xEF5, 0xF4B, 0xF92, 0xFC7, 
-0xFEB, 0xFFD, 0xFFD, 0xFEB, 0xFC7, 0xF92, 0xF4B, 0xEF5, 
-0xE8E, 0xE19, 0xD96, 0xD07, 0xC6C, 0xBC7, 0xB1A, 0xA66, 
-0x9AC, 0x8EF, 0x82F, 0x770, 0x6B1, 0x5F5, 0x53E, 0x48D, 
-0x3E4, 0x344, 0x2AF, 0x226, 0x1AA, 0x13C, 0x0DD, 0x08E, 
-0x050, 0x024, 0x009, 0x000
+const uint16_t sine_lut_size_0 = 34; // sine wave size
+static uint16_t array_bit0[sine_lut_size_0] = {
+    0x000, 0x025, 0x093, 0x145, 0x236, 0x35C, 0x4AD, 0x61D, 
+    0x79E, 0x923, 0xA9D, 0xBFF, 0xD3C, 0xE49, 0xF1B, 0xFAC, 
+    0xFF6, 0xFF6, 0xFAC, 0xF1B, 0xE49, 0xD3C, 0xBFF, 0xA9D, 
+    0x923, 0x79E, 0x61D, 0x4AD, 0x35C, 0x236, 0x145, 0x093, 
+    0x025, 0x000
 };
 
-const uint16_t sine_lut_size_1 = 51; // sine wave size
-static SENSEDU_DAC_BUFFER(sine_lut_1, sine_lut_size_1) = {
-0x000, 0x010, 0x040, 0x090, 0x0FD, 0x187, 0x22B, 0x2E6, 
-0x3B6, 0x498, 0x587, 0x680, 0x77F, 0x880, 0x97F, 0xA78, 
-0xB67, 0xC49, 0xD19, 0xDD4, 0xE78, 0xF02, 0xF6F, 0xFBF, 
-0xFEF, 0xFFF, 0xFEF, 0xFBF, 0xF6F, 0xF02, 0xE78, 0xDD4, 
-0xD19, 0xC49, 0xB67, 0xA78, 0x97F, 0x880, 0x77F, 0x680, 
-0x587, 0x498, 0x3B6, 0x2E6, 0x22B, 0x187, 0x0FD, 0x090, 
-0x040, 0x010, 0x000
+const uint16_t sine_lut_size_1 = 29; // sine wave size
+static uint16_t array_bit1[sine_lut_size_1] = {
+    0x000, 0x033, 0x0CB, 0x1BF, 0x303, 0x487, 0x638, 0x800, 
+    0x9C7, 0xB78, 0xCFC, 0xE40, 0xF34, 0xFCC, 0xFFF, 0xFCC, 
+    0xF34, 0xE40, 0xCFC, 0xB78, 0x9C7, 0x7FF, 0x638, 0x487, 
+    0x303, 0x1BF, 0x0CB, 0x033, 0x000
 };
+
+// Big buffer for the entire LUT
+const uint16_t MAX_LUT_SIZE = 8*34; // All bits ''1'' -> 1088 values
+static SENSEDU_DAC_BUFFER(lut , MAX_LUT_SIZE);
+uint8_t serial_buf;
 
 /* errors */
 static uint32_t lib_error = 0;
 uint8_t error_led = D86;
-
 const int SYNC_PIN = 2;
 
+
 // Configure the DAC1
-#define DAC_SINE_FREQ    	32000                          // Wave of 20kHz
-#define DAC_SAMPLE_RATE    DAC_SINE_FREQ * 64   // 64 samples per one sine cycle 
+#define DAC_SINE_FREQ    	16000 // too low, 28-30 should be ok
+#define DAC_SAMPLE_RATE     DAC_SINE_FREQ * 64   // 64 samples per one sine cycle 
 
 SensEdu_DAC_Settings dac_settings_1 = {
     .dac_channel = DAC_CH1, 
     .sampling_freq = DAC_SAMPLE_RATE,
-    .mem_address = (uint16_t*)sine_lut_0, 
-    .mem_size = sine_lut_size_0, 
-    .wave_mode = SENSEDU_DAC_MODE_CONTINUOUS_WAVE,
-    .burst_num = 0
+    .mem_address = (uint16_t*)lut, 
+    .mem_size = MAX_LUT_SIZE, 
+    .wave_mode = SENSEDU_DAC_MODE_BURST_WAVE,
+    .burst_num = 1
 };
-
-// Configure the DAC2
-
-SensEdu_DAC_Settings dac_settings_2 = {
-    .dac_channel = DAC_CH2, 
-    .sampling_freq = DAC_SAMPLE_RATE,
-    .mem_address = (uint16_t*)sine_lut_1, 
-    .mem_size = sine_lut_size_1, 
-    .wave_mode = SENSEDU_DAC_MODE_CONTINUOUS_WAVE,
-    .burst_num = 0
-};
-
-// Number that you want to send, and time to each bit
-//int number = 8;  // Read the number
-//std::bitset<16> binary(number);  // Convert to 16-bit binary
-//unsigned long startTime = millis();  // Record start time
-//unsigned long duration_ms = 500;     // Run for 500 ms
 
 void setup() {
     Serial.begin(115200);
@@ -69,32 +48,27 @@ void setup() {
     //Led in red if there is any problem
     pinMode(error_led, OUTPUT);
     digitalWrite(error_led, HIGH);
-
     pinMode(SYNC_PIN, OUTPUT);
     digitalWrite(SYNC_PIN, LOW);
     
     SensEdu_DAC_Init(&dac_settings_1);
-
-    SensEdu_DAC_Init(&dac_settings_2);
 }
 
 void loop () {
-    digitalWrite(SYNC_PIN, HIGH);  // Signal RX to start
-    SensEdu_DAC_Enable(DAC_CH1);
-    delayMicroseconds(1000);
-    SensEdu_DAC_Disable(DAC_CH1);
+    // Opcion 1: esperar al serial input
+    //while (Serial.available() == 0); 
+    // Lee el primer byte
+    //serial_buf = Serial.read(); 
+    delay(100);
+    // Opcion 2: fixed bit
+    serial_buf = 'U'; // U: 01010101
+
+    digitalWrite(SYNC_PIN, HIGH);
+    delay(100);  // Give RX time to detect rising edge
+    sendByte(serial_buf);    // Send while HIGH
     digitalWrite(SYNC_PIN, LOW);
 
-    delayMicroseconds(5000);
-
-    digitalWrite(SYNC_PIN, HIGH);  // Signal RX to start
-    SensEdu_DAC_Enable(DAC_CH2);
-    delayMicroseconds(1000);
-    SensEdu_DAC_Disable(DAC_CH2);
-    digitalWrite(SYNC_PIN, LOW);
-
-    delayMicroseconds(1000);
-
+    delay(100);
     check_errors();
 }
 
@@ -105,4 +79,41 @@ void check_errors() {
         digitalWrite(error_led, LOW);
         Serial.println(lib_error, HEX);
     }
+}
+
+void buildByteLUT(uint8_t data) {
+
+    uint16_t position = 0;
+
+    // Clear the entire LUT first (fill with DC level, e.g., 0x8000)
+    for (size_t i = 0; i < MAX_LUT_SIZE; i++) {
+        lut[i] = 0x0000;  // Mid-level (silence)
+    }
+
+    // Build the waveform
+    // extremely weird dont do it ike this please, no negative indicies
+    for (int bit_pos = 7; bit_pos >= 0; bit_pos--) {
+        bool bit = (data >> bit_pos) & 1; // do you really need this & 1
+        
+        if (bit) {
+            for (int i = 0; i < sine_lut_size_1; i++) {
+                lut[position++] = array_bit1[i];
+            }
+        } else {
+            for (int i = 0; i < sine_lut_size_0; i++) {
+                lut[position++] = array_bit0[i];
+            }
+        }
+    }
+    // Rest of byte_lut stays at 0x800 (silence padding)
+}
+
+void sendByte(uint8_t data) {
+    buildByteLUT(data);  // Update byte_lut contents
+    
+    // DAC settings already point to byte_lut, just trigger
+    SensEdu_DAC_Enable(DAC_CH1);
+    while (!SensEdu_DAC_GetBurstCompleteFlag(DAC_CH1));
+    SensEdu_DAC_ClearBurstCompleteFlag(DAC_CH1);
+    //SensEdu_DAC_Disable(DAC_CH1); not needed because burst mode
 }
