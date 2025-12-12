@@ -109,9 +109,9 @@ void handle_error() {
     digitalWrite(error_led, LOW);
 }
 
-void serial_send_array(uint16_t* data, const uint16_t data_length, const uint16_t chunk_size_byte) {
-    for (uint16_t i = 0; i < (data_length*2); i += chunk_size_byte) {
-        uint16_t transfer_size = ((data_length*2) - i < chunk_size_byte) ? (data_length*2 - i) : chunk_size_byte;
-        Serial.write((const uint8_t *) data + i, transfer_size);
+void serial_send_array(uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
+    for (size_t i = 0; i < (data_length << 1); i += chunk_size_byte) {
+        size_t transfer_size = ((data_length << 1) - i < chunk_size_byte) ? ((data_length << 1) - i) : chunk_size_byte;
+        Serial.write((const uint8_t *)data + i, transfer_size);
     }
 }
