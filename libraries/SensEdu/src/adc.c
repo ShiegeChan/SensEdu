@@ -28,9 +28,6 @@ typedef struct {
     volatile uint32_t ovr_counter;          // OVR event counter
     volatile bool dma_complete;             // DMA transfer complete flag
     volatile bool dma_half_transfer;        // DMA half transfer reached flag
-    volatile bool seq_complete;             // End of Sequence flag for software polling
-    volatile uint8_t seq_length;            // Sequence size (amount of used channels)
-    volatile uint8_t seq_idx;               // EOC counter for multi-channel sequence
     uint16_t seq_buffer[MAX_CHANNEL_NUM];   // software polling data storage
 } AdcState;
 
@@ -92,9 +89,6 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* new_settings) {
     state->ovr_counter = 0;
     state->dma_complete = false;
     state->dma_half_transfer = false;
-    state->seq_complete = false;
-    state->seq_length = 0;
-    state->seq_idx = 0;
 
     // Init PLL and ADC
     if (!pll_configured) {
@@ -173,7 +167,10 @@ uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* adc) {
         return 0;
     }
 
-    // TODO: implement timeout if ADC has not been started
+    if (!READ_BIT(adc->CR, ADC_CR_ADSTART)) {
+        error = ADC_ERROR_SOFT_POLLING_ADC_NOT_STARTED;
+        return 0;
+    }
 
     if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_ONE_SHOT) {
         while (!READ_BIT(adc->ISR, ADC_ISR_EOC)) {}
@@ -181,10 +178,6 @@ uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* adc) {
     }
 
     if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_CONT) {
-        if (!READ_BIT(adc->CR, ADC_CR_ADSTART)) {
-            error = ADC_ERROR_SOFT_POLLING_ADC_NOT_STARTED;
-            return 0;
-        }
         return READ_REG(adc->DR);
     }
 
@@ -201,17 +194,16 @@ uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* adc) {
         return NULL;
     }
 
-    // TODO: implement timeout if ADC has not been started
+    if (!READ_BIT(adc->CR, ADC_CR_ADSTART)) {
+        error = ADC_ERROR_SOFT_POLLING_ADC_NOT_STARTED;
+        return NULL;
+    }
 
     if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_ONE_SHOT) {
         return read_sequence_one_shot(adc, settings->pin_num);
     }
 
     if (settings->adc_mode == SENSEDU_ADC_MODE_POLLING_CONT) {
-        if (!READ_BIT(adc->CR, ADC_CR_ADSTART)) {
-            error = ADC_ERROR_SOFT_POLLING_ADC_NOT_STARTED;
-            return NULL;
-        }
         return read_sequence_cont(adc, settings->pin_num);
     }
 
@@ -485,7 +477,7 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num,
     SET_BIT(adc->CR, ADC_CR_ADCAL); // start
     while (READ_BIT(adc->CR, ADC_CR_ADCAL)) {} // wait for calibration
 
-    // interrupts (only for software polling)
+    // enable interrupts for software polling (ovr flag)
     if (!is_dma_mode_enabled(adc_mode)) {
         if (adc == ADC1 || adc == ADC2) {
             NVIC_SetPriority(ADC_IRQn, 2);
@@ -501,24 +493,15 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num,
 static uint16_t* read_sequence_cont(ADC_TypeDef* adc, uint8_t pin_num) {
     AdcState* data = get_adc_state(adc);
 
-    // stop adc for channel sync
-    if (READ_BIT(adc->CR, ADC_CR_ADSTART)) {
-        SET_BIT(adc->CR, ADC_CR_ADSTP);
-        while (READ_BIT(adc->CR, ADC_CR_ADSTP));
+    // synchronize to the start of the next sequence
+    while (!READ_BIT(adc->ISR, ADC_ISR_EOS)) {}
+    SET_BIT(adc->ISR, ADC_ISR_EOS);
+
+    // poll each channel in order
+    for (size_t i = 0; i < pin_num; i++) {
+        while (!READ_BIT(adc->ISR, ADC_ISR_EOC)) {}
+        data->seq_buffer[i] = READ_REG(adc->DR);
     }
-
-    SET_BIT(adc->ISR, ADC_ISR_EOC | ADC_ISR_EOS);
-    while (READ_BIT(adc->ISR, ADC_ISR_EOC) || READ_BIT(adc->ISR, ADC_ISR_EOS)) {}
-
-    data->seq_length = pin_num;
-    data->seq_idx = 0;
-    data->seq_complete = false;
-
-    SET_BIT(adc->IER, ADC_IER_EOCIE);
-    SET_BIT(adc->CR, ADC_CR_ADSTART);
-    while (!data->seq_complete) {}
-    CLEAR_BIT(adc->IER, ADC_IER_EOCIE);
-
     return data->seq_buffer;
 }
 
@@ -780,41 +763,22 @@ void ADC_IRQHandler(void) {
         }
         SET_BIT(ADC1->ISR, ADC_ISR_OVR);
     }
-    /*
-    if (READ_BIT(ADC1->ISR, ADC_ISR_EOC)) {
-        uint16_t val = READ_REG(ADC1->DR);
-        if (!adc_states[0].seq_complete) {
-            adc_states[0].seq_buffer[adc_states[0].seq_idx] = val;
-            adc_states[0].seq_idx++;
-            if (adc_states[0].seq_idx == adc_states[0].seq_length) {
-                adc_states[0].seq_complete = true;
-            }
-        }
-    }
 
-    // TODO: overrun for ADC2 and 3
-    if (READ_BIT(ADC2->ISR, ADC_ISR_EOC)) {
-        uint16_t val = READ_REG(ADC2->DR);
-        if (!adc_states[1].seq_complete) {
-            adc_states[1].seq_buffer[adc_states[1].seq_idx] = val;
-            adc_states[1].seq_idx++;
-            if (adc_states[1].seq_idx == adc_states[1].seq_length) {
-                adc_states[1].seq_complete = true;
-            }
+    if (READ_BIT(ADC2->ISR, ADC_ISR_OVR)) {
+        adc_states[1].ovr_flag = true;
+        if (adc_states[1].ovr_counter < UINT32_MAX) {
+            adc_states[1].ovr_counter++;
         }
+        SET_BIT(ADC2->ISR, ADC_ISR_OVR);
     }
-    */
 }
 
 void ADC3_IRQHandler(void) {
-    if (READ_BIT(ADC3->ISR, ADC_ISR_EOC)) {
-        uint16_t val = READ_REG(ADC3->DR);
-        if (!adc_states[2].seq_complete) {
-            adc_states[2].seq_buffer[adc_states[2].seq_idx] = val;
-            adc_states[2].seq_idx++;
-            if (adc_states[2].seq_idx == adc_states[2].seq_length) {
-                adc_states[2].seq_complete = true;
-            }
-        } 
+    if (READ_BIT(ADC3->ISR, ADC_ISR_OVR)) {
+        adc_states[2].ovr_flag = true;
+        if (adc_states[2].ovr_counter < UINT32_MAX) {
+            adc_states[2].ovr_counter++;
+        }
+        SET_BIT(ADC3->ISR, ADC_ISR_OVR);
     }
 }
