@@ -75,10 +75,10 @@
         "diff_pair_gap_out_of_range": "error",
         "diff_pair_uncoupled_length_too_long": "error",
         "drill_out_of_range": "error",
-        "duplicate_footprints": "ignore",
+        "duplicate_footprints": "warning",
         "extra_footprint": "warning",
         "footprint": "error",
-        "footprint_filters_mismatch": "ignore",
+        "footprint_filters_mismatch": "warning",
         "footprint_symbol_mismatch": "warning",
         "footprint_type_mismatch": "error",
         "hole_clearance": "error",
@@ -97,7 +97,7 @@
         "mirrored_text_on_front_layer": "warning",
         "missing_courtyard": "ignore",
         "missing_footprint": "warning",
-        "net_conflict": "ignore",
+        "net_conflict": "warning",
         "nonmirrored_text_on_back_layer": "warning",
         "npth_inside_courtyard": "error",
         "padstack": "error",
@@ -256,88 +256,7 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [
-      [
-        "footprint_link_issues|1117600|698500|4becbb6c-dc18-4816-9588-a5ded255c677|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|1130300|1460500|6b853588-689e-44be-8349-cd8d4767b86b|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|1270000|914400|a8b819de-33e4-4596-aa82-fc2605d38a5d|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|1676400|355600|2c38a8cc-2de7-4c8e-a35d-9d48a25dfb53|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|1689100|533400|2c38a8cc-2de7-4c8e-a35d-9d48a25dfb53|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|1689100|546100|2c38a8cc-2de7-4c8e-a35d-9d48a25dfb53|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|1752600|419100|dc81eddc-09cd-4c97-b5c7-4653cc313f35|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|1765300|596900|dc81eddc-09cd-4c97-b5c7-4653cc313f35|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|1765300|609600|dc81eddc-09cd-4c97-b5c7-4653cc313f35|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|2374900|393700|0177454a-fd35-45f7-80ad-57b779b5c096|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|2438400|393700|0177454a-fd35-45f7-80ad-57b779b5c096|00000000-0000-0000-0000-000000000000|||",
-        "irrelevant"
-      ],
-      [
-        "footprint_link_issues|2476500|317500|0177454a-fd35-45f7-80ad-57b779b5c096|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|2565400|749300|48931308-0635-49cd-bee1-8f7ecbc3bc52|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|2590800|1028700|48931308-0635-49cd-bee1-8f7ecbc3bc52|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|2641600|1104900|48931308-0635-49cd-bee1-8f7ecbc3bc52|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|2679700|584200|c8c08f76-027a-4433-894c-9b551c92bd88|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|2679700|596900|c8c08f76-027a-4433-894c-9b551c92bd88|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|2692400|406400|c8c08f76-027a-4433-894c-9b551c92bd88|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|812800|711200|4becbb6c-dc18-4816-9588-a5ded255c677|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ],
-      [
-        "footprint_link_issues|850900|1447800|6b853588-689e-44be-8349-cd8d4767b86b|00000000-0000-0000-0000-000000000000|||",
-        ""
-      ]
-    ],
+    "erc_exclusions": [],
     "meta": {
       "version": 0
     },
@@ -524,7 +443,7 @@
       "endpoint_off_grid": "warning",
       "extra_units": "error",
       "footprint_filter": "warning",
-      "footprint_link_issues": "warning",
+      "footprint_link_issues": "ignore",
       "four_way_junction": "warning",
       "global_label_dangling": "warning",
       "hier_label_mismatch": "error",
@@ -552,6 +471,7 @@
       "single_global_label": "warning",
       "unannotated": "error",
       "unconnected_wire_endpoint": "warning",
+      "undefined_netclass": "error",
       "unit_value_mismatch": "error",
       "unresolved_variable": "error",
       "wire_dangling": "error"
