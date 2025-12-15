@@ -113,14 +113,14 @@ static SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* adc);
 static AdcState* get_adc_state(ADC_TypeDef* adc);
 static uint8_t get_adc_mask(ADC_TypeDef* adc);
 static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin);
+static void select_adc_channel(ADC_TypeDef* adc, uint8_t ch_num, uint8_t conv_num);
+static void select_sample_time(ADC_TypeDef* adc, uint8_t ch_num, uint8_t sample_time);
 static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode);
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings);
 static void configure_pll2(void);
 static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num, SENSEDU_ADC_SR_MODE sr_mode, SENSEDU_ADC_MODE adc_mode);
 static uint16_t* read_sequence_cont(ADC_TypeDef* adc, uint8_t pin_num);
 static uint16_t* read_sequence_one_shot(ADC_TypeDef* adc, uint8_t pin_num);
-static void select_adc_channel(ADC_TypeDef* adc, uint8_t channel_num, uint8_t rank);
-static void set_adc_channel_sample_time(ADC_TypeDef* adc, uint8_t sample_time, uint8_t channel_num);
 
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
@@ -388,6 +388,21 @@ static void select_adc_channel(ADC_TypeDef* adc, uint8_t ch_num, uint8_t conv_nu
     MODIFY_REG(*reg, seq->reg_field, ch_num << seq->reg_field_pos);
 }
 
+// Chapter 26.6.6 ADC sample time register
+static void select_sample_time(ADC_TypeDef* adc, uint8_t ch_num, uint8_t sample_time) {
+    if (ch_num > 19U || sample_time > 0x7U) {
+        error = ADC_ERROR_SAMPLE_TIME_SETTING;
+        return;
+    }
+    if (ch_num < 10U) {
+        uint8_t smpx_pos = 3 * ch_num;
+        MODIFY_REG(adc->SMPR1, 0x7UL << smpx_pos, sample_time << smpx_pos);
+    } else {
+        uint8_t smpx_pos = 3 * (ch_num - 10);
+        MODIFY_REG(adc->SMPR2, 0x7UL << smpx_pos, sample_time << smpx_pos);
+    }
+}
+
 static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode) {
     return (adc_mode == SENSEDU_ADC_MODE_DMA_NORMAL || adc_mode == SENSEDU_ADC_MODE_DMA_CIRCULAR);
 }
@@ -477,8 +492,7 @@ static void configure_pll2(void) {
     MODIFY_REG(ADC3_COMMON->CCR, ADC_CCR_PRESC, 0b0000 << ADC_CCR_PRESC_Pos);
 }
 
-static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num,
-    SENSEDU_ADC_SR_MODE sr_mode, SENSEDU_ADC_MODE adc_mode) {
+static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num, SENSEDU_ADC_SR_MODE sr_mode, SENSEDU_ADC_MODE adc_mode) {
 
     if (READ_BIT(adc->CR, ADC_CR_ADCAL | ADC_CR_JADSTART | ADC_CR_ADSTART | ADC_CR_ADSTP | ADC_CR_ADDIS | ADC_CR_ADEN)) {
         error = ADC_ERROR_INIT;
@@ -519,14 +533,14 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num,
     }
 
     // select channels
-    MODIFY_REG(adc->SQR1, ADC_SQR1_L, (pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversion per sequence
+    MODIFY_REG(adc->SQR1, ADC_SQR1_L, (pin_num - 1U) << ADC_SQR1_L_Pos); // how many conversions per sequence
     for (uint8_t i = 0; i < pin_num; i++) {
         AdcChannel ch = get_adc_channel(adc, pins[i]);
         SET_BIT(adc->PCSEL, ch.pcsel_mask);
-        select_adc_channel(adc, ch.pcsel_id, i+1U);
+        select_adc_channel(adc, ch.pcsel_id, i + 1);
 
         // sample time (2.5 cycles) + 7.5 cycles (from 16bit res) -> total TCONV = 11 cycles -> 25MHz clock (40ns): 440ns
-        set_adc_channel_sample_time(adc, 0b001, ch.pcsel_id);
+        select_sample_time(adc, ch.pcsel_id, 0b001);
     }
 
     // if max 500kS/sec, then max 2000ns available for conversion
@@ -596,74 +610,6 @@ static uint16_t* read_sequence_one_shot(ADC_TypeDef* adc, uint8_t pin_num) {
         adc_state->seq_buffer[i] = READ_REG(adc->DR);
     }
     return adc_state->seq_buffer;
-}
-
-static void set_adc_channel_sample_time(ADC_TypeDef* adc, uint8_t sample_time, uint8_t channel_num) {
-    switch(channel_num) {
-        case 0U:
-            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP0, sample_time << ADC_SMPR1_SMP0_Pos);
-            break;
-        case 1U:
-            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP1, sample_time << ADC_SMPR1_SMP1_Pos);
-            break;
-        case 2U:
-            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP2, sample_time << ADC_SMPR1_SMP2_Pos);
-            break;
-        case 3U:
-            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP3, sample_time << ADC_SMPR1_SMP3_Pos);
-            break;
-        case 4U:
-            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP4, sample_time << ADC_SMPR1_SMP4_Pos);
-            break;
-        case 5U:
-            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP5, sample_time << ADC_SMPR1_SMP5_Pos);
-            break;
-        case 6U:
-            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP6, sample_time << ADC_SMPR1_SMP6_Pos);
-            break;
-        case 7U:
-            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP7, sample_time << ADC_SMPR1_SMP7_Pos);
-            break;
-        case 8U:
-            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP8, sample_time << ADC_SMPR1_SMP8_Pos);
-            break;
-        case 9U:
-            MODIFY_REG(adc->SMPR1, ADC_SMPR1_SMP9, sample_time << ADC_SMPR1_SMP9_Pos);
-            break;
-        case 10U:
-            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP10, sample_time << ADC_SMPR2_SMP10_Pos);
-            break;
-        case 11U:
-            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP11, sample_time << ADC_SMPR2_SMP11_Pos);
-            break;
-        case 12U:
-            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP12, sample_time << ADC_SMPR2_SMP12_Pos);
-            break;
-        case 13U:
-            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP13, sample_time << ADC_SMPR2_SMP13_Pos);
-            break;
-        case 14U:
-            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP14, sample_time << ADC_SMPR2_SMP14_Pos);
-            break;
-        case 15U:
-            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP15, sample_time << ADC_SMPR2_SMP15_Pos);
-            break;
-        case 16U:
-            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP16, sample_time << ADC_SMPR2_SMP16_Pos);
-            break;
-        case 17U:
-            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP17, sample_time << ADC_SMPR2_SMP17_Pos);
-            break;
-        case 18U:
-            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP18, sample_time << ADC_SMPR2_SMP18_Pos);
-            break;
-        case 19U:
-            MODIFY_REG(adc->SMPR2, ADC_SMPR2_SMP19, sample_time << ADC_SMPR2_SMP19_Pos);
-            break;
-        default:
-            error = ADC_ERROR_SAMPLE_TIME_SETTING;
-            break;
-    }
 }
 
 /* -------------------------------------------------------------------------- */
