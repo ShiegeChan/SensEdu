@@ -8,7 +8,7 @@
 		(title "SensEdu 0.7")
 		(date "2025-12-05")
 		(company "Infineon Technologies")
-		(comment 1 "Author: Arshad Pattathil/Harald Gietler/Azra Talic")
+		(comment 1 "Author: Arshad Pattathil/Harald Gietler/Azra Talic/Felix Ober")
 	)
 	(lib_symbols
 		(symbol "Connector:Barrel_Jack_Switch"
@@ -3764,8 +3764,7 @@
 		(effects
 			(font
 				(size 1.27 1.27)
-				(thickness 0.254)
-				(bold yes)
+				(thickness 0.1588)
 			)
 		)
 		(uuid "8872b0cc-2454-4dab-9e9a-619e65855c5a")

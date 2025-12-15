@@ -8,7 +8,7 @@
 		(title "SensEdu 0.7")
 		(date "2025-12-05")
 		(company "Infineon Technologies")
-		(comment 1 "Author: Arshad Pattathil/Harald Gietler/Azra Talic")
+		(comment 1 "Author: Arshad Pattathil/Harald Gietler/Azra Talic/Felix Ober")
 	)
 	(lib_symbols
 		(symbol "AD8426ACPZ-R7_1"

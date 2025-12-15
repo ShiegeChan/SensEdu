@@ -78,13 +78,13 @@ The PCB for this project was designed using [KiCad](https://kicad.org/), an open
 **Front side**
 {: .mb-1}
 
-<img src="{{site.baseurl}}/assets/images/Sensedu_Top.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/sensedu_front.png" alt="drawing"/>
 {: .text-center .mt-0}
 
 **Back side**
 {: .mb-1}
 
-<img src="{{site.baseurl}}/assets/images/Sensedu_Bottom.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/sensedu_back.png" alt="drawing"/>
 {: .text-center .mt-0}
 
 

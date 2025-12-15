@@ -8,7 +8,7 @@
 		(title "SensEdu 0.7")
 		(date "2025-12-05")
 		(company "Infineon Technologies")
-		(comment 1 "Author: Arshad Pattathil/Harald Gietler/Azra Talic")
+		(comment 1 "Author: Arshad Pattathil/Harald Gietler/Azra Talic/Felix Ober")
 	)
 	(lib_symbols
 		(symbol "Device:C"
@@ -1012,10 +1012,10 @@
 	)
 	(text "SPEAKERS WITH PREAMPLIFIERS\n"
 		(exclude_from_sim no)
-		(at 90.17 174.244 0)
+		(at 60.96 175.26 0)
 		(effects
 			(font
-				(size 5.08 5.08)
+				(size 2.54 2.54)
 			)
 		)
 		(uuid "bc06421f-ba6e-46aa-810d-e84bf2f12f22")
