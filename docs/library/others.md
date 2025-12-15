@@ -216,6 +216,8 @@ Your browser does not support the video tag.
 
 These examples demonstrate how to transmit a 32kHz ultrasonic wave at a constant sampling rate. The reflected wave is then captured and sent to a PC via Serial or WiFi communication. Using MATLAB, you can visualize and potentially process the wave. By placing an object on top of the SensEdu, you can observe wave reflections.
 
+For both the example [Basic_UltraSound]({% link library/others.md %}#basic_ultrasound) and [Basic_UltraSound_4CH]({% link library/others.md %}#basic_ultrasound_4ch) an equivalent Python implementation is also provided to visualize the acquired signals. This is particularly useful because it removes the requirement to use MATLAB, which is proprietary software that requires a paid license. With the Python version, waveform visualization and basic signal analysis can be performed using an open-source programming language, freely available and compatible with the most widely used development environments.
+
 
 ### Basic_UltraSound
 
