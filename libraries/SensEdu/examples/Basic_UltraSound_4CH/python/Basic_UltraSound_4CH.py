@@ -1,7 +1,7 @@
 """
-Basic_UltraSound_ReadData.py
+Basic_UltraSound_4CH_ReadData.py
 
-Reads config data and then ADC mics measurements from Arduino
+Reads 4-channel ADC microphone measurements from Arduino via serial
 """
 
 import os
@@ -18,11 +18,12 @@ import serial
 # =======================
 ARDUINO_PORT = "COM17"  # replace "COM17" with your serial port
 ARDUINO_BAUDRATE = 115200
-ITERATIONS = 100
+ITERATIONS = 1000
 
 ACTIVATE_PLOTS = True
+
+DATA_LENGTH = 2048 * 2  # samples per 2 microphones (must match firmware)
 CHUNK_SIZE = 32  # bytes per serial read
-DATA_LENGTH = 5142  # number of uint16 samples
 BYTES_PER_SAMPLE = 2
 
 
@@ -39,9 +40,9 @@ arduino = serial.Serial(
 # =======================
 # Functions
 # =======================
-def read_data(serial_port, data_length, chunk_size):
+def read_2mic_data(serial_port, data_length, chunk_size):
     """
-    Read a fixed number of bytes from serial and convert to uint16 data.
+    Read interleaved data for 2 microphones and split them.
     """
     total_bytes = data_length * BYTES_PER_SAMPLE
     rx_buffer = bytearray(total_bytes)
@@ -57,19 +58,53 @@ def read_data(serial_port, data_length, chunk_size):
         rx_buffer[bytes_read:bytes_read + len(chunk)] = chunk
         bytes_read += len(chunk)
 
-    return np.frombuffer(rx_buffer, dtype=np.uint16).astype(np.float64)
+    data = np.frombuffer(rx_buffer, dtype=np.uint16)
+
+    mic1 = data[0::2].astype(np.float64)      # interleaving logic to retrieve data from two channels
+    mic2 = data[1::2].astype(np.float64)
+
+    return mic1, mic2
 
 
-def plot_data(data):
+def plot_data(mic1, mic2, mic3, mic4):
     """
-    Plot ADC data.
+    Plot 4 microphone channels.
     """
     plt.clf()
-    plt.plot(data)
+
+    plt.subplot(2, 2, 1)
+    plt.plot(mic1)
     plt.ylim(0, 65535)
+    plt.title("Microphone 1 data")
     plt.xlabel("Sample #")
-    plt.ylabel("ADC 16-bit value")
+    plt.ylabel("ADC1 CH1 16bit")
     plt.grid(True)
+
+    plt.subplot(2, 2, 2)
+    plt.plot(mic2)
+    plt.ylim(0, 65535)
+    plt.title("Microphone 2 data")
+    plt.xlabel("Sample #")
+    plt.ylabel("ADC1 CH2 16bit")
+    plt.grid(True)
+
+    plt.subplot(2, 2, 3)
+    plt.plot(mic3)
+    plt.ylim(0, 65535)
+    plt.title("Microphone 3 data")
+    plt.xlabel("Sample #")
+    plt.ylabel("ADC2 CH1 16bit")
+    plt.grid(True)
+
+    plt.subplot(2, 2, 4)
+    plt.plot(mic4)
+    plt.ylim(0, 65535)
+    plt.title("Microphone 4 data")
+    plt.xlabel("Sample #")
+    plt.ylabel("ADC2 CH2 16bit")
+    plt.grid(True)
+
+    plt.tight_layout()
     plt.pause(0.001)
 
 
@@ -82,25 +117,24 @@ time_axis = []
 start_time = time.perf_counter()
 
 for iteration in range(ITERATIONS):
-    # Trigger Arduino measurement
+    # Trigger Arduino
     arduino.write(b"t")
 
-    # Timestamp 
-    current_time = time.perf_counter() - start_time
-    time_axis.append(current_time)
+    # Timestamp
+    time_axis.append(time.perf_counter() - start_time)
 
-    t_start = time.perf_counter()
-    data = read_data(arduino, DATA_LENGTH, CHUNK_SIZE)
-    elapsed = time.perf_counter() - t_start
+    # Read 4 channels 
+    mic1, mic2 = read_2mic_data(arduino, DATA_LENGTH, CHUNK_SIZE)
+    mic3, mic4 = read_2mic_data(arduino, DATA_LENGTH, CHUNK_SIZE)
 
-    data_buffer.append(data)
+    data_buffer.append([mic1, mic2, mic3, mic4])
 
     if ACTIVATE_PLOTS:
-        plot_data(data)
+        plot_data(mic1, mic2, mic3, mic4)
 
-    print(f"Iteration {iteration + 1}/{ITERATIONS} - Read time: {elapsed:.4f}s")
+    print(f"Iteration {iteration + 1}/{ITERATIONS}")
 
-# Close serial port
+# Close serial
 arduino.close()
 
 
@@ -110,11 +144,11 @@ arduino.close()
 os.makedirs("Measurements", exist_ok=True)
 
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-file_name = f"Measurements/measurements_{timestamp}.npz"           
+file_name = f"Measurements/measurements_{timestamp}.npz"
 
-np.savez(  
+np.savez(
     file_name,
-    data=np.array(data_buffer),
+    data=np.array(data_buffer, dtype=object),
     time_axis=np.array(time_axis)
 )
 
