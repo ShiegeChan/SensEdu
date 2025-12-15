@@ -126,6 +126,8 @@ static uint16_t* read_sequence_one_shot(ADC_TypeDef* adc, uint8_t pin_num);
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
 
+// Initializes ADC with new settings from ADC_Settings struct
+// Saves settings individually for each ADC
 void SensEdu_ADC_Init(SensEdu_ADC_Settings* new_settings) {
 
     // Sanity checks
@@ -151,25 +153,23 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* new_settings) {
     state->dma_complete = false;
     state->dma_half_transfer = false;
 
-    // Init PLL and ADC
     if (!pll_configured) {
         configure_pll2();
         pll_configured = true;
     }
     adc_init(settings->adc, settings->pins, settings->pin_num, settings->sr_mode, settings->adc_mode);
 
-    // Set timer frequency if in SR fixed mode
     if (settings->sr_mode == SENSEDU_ADC_SR_MODE_FIXED) {
         TIMER_ADCxInit(settings->adc);
         TIMER_ADCxSetFreq(settings->adc, settings->sampling_rate_hz);
     }
 
-    // Set DMA memory settings if in DMA mode
     if (is_dma_mode_enabled(settings->adc_mode)) {
         DMA_ADCInit(settings->adc, settings->mem_address, settings->mem_size);
     }
 }
 
+// Enables selected ADC
 void SensEdu_ADC_Enable(ADC_TypeDef* adc) {
     // Enable timer if in SR fixed mode
     if (get_adc_settings(adc)->sr_mode == SENSEDU_ADC_SR_MODE_FIXED) {
@@ -189,6 +189,7 @@ void SensEdu_ADC_Enable(ADC_TypeDef* adc) {
     }
 }
 
+// Disables selected ADC
 void SensEdu_ADC_Disable(ADC_TypeDef* adc) {
     // check if conversion is ongoing
     if (READ_BIT(adc->CR, ADC_CR_ADSTART)) {
@@ -203,24 +204,22 @@ void SensEdu_ADC_Disable(ADC_TypeDef* adc) {
     SET_BIT(adc->CR, ADC_CR_ADDIS);
     while (READ_BIT(adc->CR, ADC_CR_ADEN)) {}
 
-    // disable DMA
     if (is_dma_mode_enabled(get_adc_settings(adc)->adc_mode)) {
         DMA_ADCDisable(adc);
     }
 }
 
+// Starts selected ADC
+// Make sure it is enabled first
 void SensEdu_ADC_Start(ADC_TypeDef* adc) {
-    // enable DMA
     if (is_dma_mode_enabled(get_adc_settings(adc)->adc_mode)) {
         DMA_ADCEnable(adc);
     }
-
-    // start conversions
     SET_BIT(adc->CR, ADC_CR_ADSTART);
 }
 
-// Software Polling (slow alternative to DMA transfers)
-// Single-Channel
+// Reads one ADC conversion via software poll
+// (not recommended slow alternative to DMA transfers)
 uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* adc) {
     SensEdu_ADC_Settings* settings = get_adc_settings(adc);
     if (is_dma_mode_enabled(settings->adc_mode)) {
@@ -246,8 +245,9 @@ uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* adc) {
     return 0;
 }
 
-// Software Polling (slow alternative to DMA transfers)
-// Multi-Channel
+// Reads multiple ADC conversions via software poll
+// Number of conversions depends on selected amount of channels during initialization
+// (not recommended slow alternative to DMA transfers)
 uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* adc) {
     SensEdu_ADC_Settings* settings = get_adc_settings(adc);
     if (is_dma_mode_enabled(settings->adc_mode)) {
@@ -274,6 +274,9 @@ uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* adc) {
 
 // Enables overrun interrupts which allows SensEdu_ADC_GetOverrunState
 // and SensEdu_ADC_GetOverrunCounter to show the amount of missing samples
+//
+// Useful for software poll frequency tests
+//
 // Be careful: in SENSEDU_ADC_SR_MODE_FREE this can cause an interrupt storm
 void SensEdu_ADC_EnableOverrunInterrupt(ADC_TypeDef* adc) {
     SET_BIT(adc->IER, ADC_IER_OVRIE);
@@ -284,22 +287,22 @@ void SensEdu_ADC_DisableOverrunInterrupt(ADC_TypeDef* adc) {
     CLEAR_BIT(adc->IER, ADC_IER_OVRIE);
 }
 
-// Get a global overrun flag which shows if the event ever happened
+// Outputs a global overrun flag showing if the event ever happened
 bool SensEdu_ADC_IsOverrun(ADC_TypeDef* adc) {
     return get_adc_state(adc)->ovr_flag;
 }
 
-// Clear a global overrun flag
+// Clears a global overrun flag
 void SensEdu_ADC_ClearOverrun(ADC_TypeDef* adc) {
     get_adc_state(adc)->ovr_flag = false;
 }
 
-// Get a counter of how many times overrun event happened
+// Outputs a counter with the number of times overrun event happened
 uint32_t SensEdu_ADC_GetOverrunCount(ADC_TypeDef* adc) {
     return get_adc_state(adc)->ovr_counter;
 }
 
-// Get a DMA transfer completion status flag
+// Outputs DMA transfer completion status flag
 bool SensEdu_ADC_IsDmaTransferComplete(ADC_TypeDef *adc) {
     return get_adc_state(adc)->dma_complete;
 }
@@ -309,7 +312,7 @@ void SensEdu_ADC_ClearDmaTransferComplete(ADC_TypeDef* adc) {
     get_adc_state(adc)->dma_complete = false;
 }
 
-// Get a DMA half transfer reached status flag
+// Outputs DMA half transfer reached status flag
 bool SensEdu_ADC_IsDmaHalfTransferComplete(ADC_TypeDef *adc) {
     return get_adc_state(adc)->dma_half_transfer;
 }
@@ -319,6 +322,7 @@ void SensEdu_ADC_ClearHalfTransferComplete(ADC_TypeDef* adc) {
     get_adc_state(adc)->dma_half_transfer = false;
 }
 
+// Outputs ADC error code
 ADC_ERROR ADC_GetError(void) {
     return error;
 }
@@ -360,6 +364,8 @@ static uint8_t get_adc_mask(ADC_TypeDef* adc) {
     return 0U;
 }
 
+// Outputs AdcChannel structure containing all needed masks, ids etc. needed for channel configuration
+// based on selected ADC and arduino pin
 static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin) {
     for (size_t i = 0; i < ARRAY_SIZE(adc_channel_map); i++) {
         if (adc_channel_map[i].pin_name != arduino_pin) {
@@ -367,6 +373,7 @@ static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin) {
         }
         if ((adc_channel_map[i].adc_mask & get_adc_mask(adc)) == 0U) {
             error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+            break;
         }
         return adc_channel_map[i];
     }
@@ -378,9 +385,11 @@ static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin) {
 //
 // ch_num: ADC pre-channel selection id
 // conv_num: Position in a sequence (1st, 2nd, ... conversion in a sequence)
+//
+// Chapter 26.6.11 ADC regular sequence register
 static void select_adc_channel(ADC_TypeDef* adc, uint8_t ch_num, uint8_t conv_num) {
-    if (conv_num == 0U || conv_num > ARRAY_SIZE(adc_sequence_map)) {
-        error = ADC_ERROR_WRONG_SEQUENCE;
+    if (conv_num == 0U || conv_num > ARRAY_SIZE(adc_sequence_map) || ch_num > 0b11111) {
+        error = ADC_ERROR_CHANNEL_SETTING;
         return;
     }
     const AdcSequence* seq = &adc_sequence_map[conv_num - 1];
@@ -388,6 +397,8 @@ static void select_adc_channel(ADC_TypeDef* adc, uint8_t ch_num, uint8_t conv_nu
     MODIFY_REG(*reg, seq->reg_field, ch_num << seq->reg_field_pos);
 }
 
+// Configures sampling time for selected ADC channel
+//
 // Chapter 26.6.6 ADC sample time register
 static void select_sample_time(ADC_TypeDef* adc, uint8_t ch_num, uint8_t sample_time) {
     if (ch_num > 19U || sample_time > 0x7U) {
@@ -407,6 +418,7 @@ static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode) {
     return (adc_mode == SENSEDU_ADC_MODE_DMA_NORMAL || adc_mode == SENSEDU_ADC_MODE_DMA_CIRCULAR);
 }
 
+// Sanity checks
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings) {
     if (!settings) {
         return ADC_ERROR_INIT;
@@ -441,6 +453,7 @@ static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings) {
     return ADC_ERROR_NO_ERRORS;
 }
 
+// Configures main ADC clock on PLL2
 static void configure_pll2(void) {
     // turn off PLL2
     if (READ_BIT(RCC->CR, RCC_CR_PLL2ON)) {
@@ -492,6 +505,7 @@ static void configure_pll2(void) {
     MODIFY_REG(ADC3_COMMON->CCR, ADC_CCR_PRESC, 0b0000 << ADC_CCR_PRESC_Pos);
 }
 
+// Initializes selected ADC
 static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num, SENSEDU_ADC_SR_MODE sr_mode, SENSEDU_ADC_MODE adc_mode) {
 
     if (READ_BIT(adc->CR, ADC_CR_ADCAL | ADC_CR_JADSTART | ADC_CR_ADSTART | ADC_CR_ADSTP | ADC_CR_ADDIS | ADC_CR_ADEN)) {
