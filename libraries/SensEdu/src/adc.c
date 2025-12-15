@@ -318,7 +318,7 @@ bool SensEdu_ADC_IsDmaHalfTransferComplete(ADC_TypeDef *adc) {
 }
 
 // Clears DMA half transfer reached status flag
-void SensEdu_ADC_ClearHalfTransferComplete(ADC_TypeDef* adc) {
+void SensEdu_ADC_ClearDmaHalfTransferComplete(ADC_TypeDef* adc) {
     get_adc_state(adc)->dma_half_transfer = false;
 }
 

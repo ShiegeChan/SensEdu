@@ -78,7 +78,7 @@ uint32_t SensEdu_ADC_GetOverrunCount(ADC_TypeDef* adc);
 bool SensEdu_ADC_IsDmaTransferComplete(ADC_TypeDef* adc);
 void SensEdu_ADC_ClearDmaTransferComplete(ADC_TypeDef* adc);
 bool SensEdu_ADC_IsDmaHalfTransferComplete(ADC_TypeDef* adc);
-void SensEdu_ADC_ClearHalfTransferComplete(ADC_TypeDef* adc);
+void SensEdu_ADC_ClearDmaHalfTransferComplete(ADC_TypeDef* adc);
 
 ADC_ERROR ADC_GetError(void);
 void ADC_SetDmaTransferComplete(ADC_TypeDef* adc);

@@ -38,6 +38,7 @@ static TIM_TypeDef* get_tim(ADC_TypeDef* adc);
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
+
 void SensEdu_TIMER_DelayInit(void) {
     tim2_delay_init();
 }
@@ -52,7 +53,7 @@ void SensEdu_TIMER_Delay_us(uint32_t delay_us) {
     WRITE_REG(TIM2->ARR, delay_us - 1U);
     WRITE_REG(TIM2->CNT, 0U);
     SET_BIT(TIM2->CR1, TIM_CR1_CEN);
-    while(delay_flag == 1);
+    while (delay_flag == 1) {}
 }
 
 void SensEdu_TIMER_Delay_ns(uint32_t delay_ns) {
@@ -82,7 +83,7 @@ void SensEdu_TIMER_Delay_ns(uint32_t delay_ns) {
     WRITE_REG(TIM2->ARR, arr - 1U); // minimum ARR is 1
     WRITE_REG(TIM2->CNT, 0U);
     SET_BIT(TIM2->CR1, TIM_CR1_CEN);
-    while(delay_flag == 1);
+    while (delay_flag == 1) {}
 }
 
 TIMER_ERROR TIMER_GetError(void) {
@@ -90,15 +91,9 @@ TIMER_ERROR TIMER_GetError(void) {
 }
 
 void TIMER_ADCxInit(ADC_TypeDef* adc) {
-    if (adc == ADC1) {
-        return tim1_adc1_init();
-    }
-    if (adc == ADC2) {
-        return tim3_adc2_init();
-    }
-    if (adc == ADC3) {
-        return tim6_adc3_init();
-    }
+    if (adc == ADC1) return tim1_adc1_init();
+    if (adc == ADC2) return tim3_adc2_init();
+    if (adc == ADC3) return tim6_adc3_init();
     error = TIMER_ERROR_PICKED_WRONG_ADC;
 }
 
@@ -124,7 +119,7 @@ void TIMER_ADCxSetFreq(ADC_TypeDef* adc, uint32_t freq) {
     if (tim == NULL) {
         return;
     }
-    if (freq < 0 || freq > (TIM_CLK/2)) {
+    if (freq > (TIM_CLK/2)) {
         error = TIMER_ERROR_ADC_TIM_BAD_SET_FREQUENCY;
         return;
     }
@@ -149,7 +144,7 @@ void TIMER_DAC1Disable(void) {
 }
 
 void TIMER_DAC1SetFreq(uint32_t freq) {
-    if (freq < 0 || freq > (TIM_CLK/2)) {
+    if (freq > (TIM_CLK/2)) {
         error = TIMER_ERROR_TIM4_BAD_SET_FREQUENCY;
         return;
     }
@@ -207,6 +202,7 @@ void TIMER_PWMSetDutyCycle(uint8_t channel, uint8_t duty_cycle) {
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
+
 static void calculate_tim_freq_settings_16bit(uint32_t freq, uint16_t *PSC, uint16_t *ARR) {
     uint32_t arr = 0;
     uint16_t psc = 0;
@@ -243,15 +239,9 @@ static void calculate_tim_freq_settings_16bit(uint32_t freq, uint16_t *PSC, uint
 }
 
 static TIM_TypeDef* get_tim(ADC_TypeDef* adc) {
-    if (adc == ADC1) {
-        return TIM1; 
-    }
-    if (adc == ADC2) {
-        return TIM3; 
-    }
-    if (adc == ADC3) {
-        return TIM6; 
-    }
+    if (adc == ADC1) return TIM1;
+    if (adc == ADC2) return TIM3;
+    if (adc == ADC3) return TIM6;
     error = TIMER_ERROR_PICKED_WRONG_ADC;
     return NULL;
 }

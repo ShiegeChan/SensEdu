@@ -5,12 +5,14 @@
 /*                                   Structs                                  */
 /* -------------------------------------------------------------------------- */
 
-// TODO: fix names
+// TODO: Fix names
 typedef struct {
     uint32_t clear_flags;
     uint32_t flags;
 } DmaFlags;
 
+// TODO: Fix names
+// TODO: Fix repeatable logic
 typedef struct {
     volatile uint8_t transfer_status;
     uint16_t* memory_address;
@@ -23,6 +25,8 @@ typedef struct {
     uint8_t dmamux_periph_id;
 } adc_config;
 
+// TODO: Fix names
+// TODO: Fix repeatable logic
 typedef struct {
     SENSEDU_DAC_MODE wave_mode;
     uint16_t* memory_address;
@@ -39,6 +43,7 @@ typedef struct {
 /*                                  Variables                                 */
 /* -------------------------------------------------------------------------- */
 
+// TODO: Replace with array
 static DmaFlags dma_ch0_flags = {(DMA_LIFCR_CTCIF0 | DMA_LIFCR_CHTIF0 | DMA_LIFCR_CTEIF0), (DMA_LISR_TCIF0 | DMA_LISR_HTIF0 | DMA_LISR_TEIF0 | DMA_LISR_DMEIF0)};
 static DmaFlags dma_ch1_flags = {(DMA_LIFCR_CTCIF1 | DMA_LIFCR_CHTIF1 | DMA_LIFCR_CTEIF1), (DMA_LISR_TCIF1 | DMA_LISR_HTIF1 | DMA_LISR_TEIF1 | DMA_LISR_DMEIF1)};
 static DmaFlags dma_ch2_flags = {(DMA_LIFCR_CTCIF2 | DMA_LIFCR_CHTIF2 | DMA_LIFCR_CTEIF2), (DMA_LISR_TCIF2 | DMA_LISR_HTIF2 | DMA_LISR_TEIF2 | DMA_LISR_DMEIF2)};
@@ -51,22 +56,22 @@ static DmaFlags dma_ch7_flags = {(DMA_HIFCR_CTCIF7 | DMA_HIFCR_CHTIF7 | DMA_HIFC
 
 static volatile DMA_ERROR error = DMA_ERROR_NO_ERRORS;
 
-static dac_config dac_ch1_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(DAC1->DHR12R1), DMA1_Stream2, 
+static dac_config dac_ch1_config = {0, (uint16_t*)0x0000, 0, (uintptr_t)&(DAC1->DHR12R1), DMA1_Stream2,
     &dma_ch2_flags, DMA1_Stream2_IRQn, DMAMUX1_Channel2, (67U)};
-static dac_config dac_ch2_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(DAC1->DHR12R2), DMA1_Stream3, 
+static dac_config dac_ch2_config = {0, (uint16_t*)0x0000, 0, (uintptr_t)&(DAC1->DHR12R2), DMA1_Stream3,
     &dma_ch3_flags, DMA1_Stream3_IRQn, DMAMUX1_Channel3, (68U)};
 
-static adc_config adc1_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC1->DR), DMA1_Stream6, 
+static adc_config adc1_config = {0, (uint16_t*)0x0000, 0, (uintptr_t)&(ADC1->DR), DMA1_Stream6,
     &dma_ch6_flags, DMA1_Stream6_IRQn, DMAMUX1_Channel6, (9U)};
-static adc_config adc2_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC2->DR), DMA1_Stream5,
+static adc_config adc2_config = {0, (uint16_t*)0x0000, 0, (uintptr_t)&(ADC2->DR), DMA1_Stream5,
     &dma_ch5_flags, DMA1_Stream5_IRQn, DMAMUX1_Channel5, (10U)};
-static adc_config adc3_config = {0, (uint16_t*)0x0000, 0, (uint32_t)&(ADC3->DR), DMA1_Stream7,
+static adc_config adc3_config = {0, (uint16_t*)0x0000, 0, (uintptr_t)&(ADC3->DR), DMA1_Stream7,
     &dma_ch7_flags, DMA1_Stream7_IRQn, DMAMUX1_Channel7, (115U)};
-
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
+
 void dma_adc_init(adc_config* config);
 void dma_dac_init(dac_config* config);
 
@@ -77,10 +82,10 @@ dac_config* get_dac_config(DAC_Channel* dac_channel);
 
 void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size);
 
-
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
+
 DMA_ERROR DMA_GetError(void) {
     return error;
 }
@@ -170,18 +175,11 @@ void DMA_DACDisable(DAC_Channel* dac_channel) {
 /* -------------------------------------------------------------------------- */
 
 adc_config* get_adc_config(ADC_TypeDef* adc) {
-    if (adc == ADC1) {
-        return &adc1_config;
-    }
-    if (adc == ADC2) {
-        return &adc2_config;
-    }
-    if (adc == ADC3) {
-        return &adc3_config;
-    }
-
+    if (adc == ADC1) return &adc1_config;
+    if (adc == ADC2) return &adc2_config;
+    if (adc == ADC3) return &adc3_config;
     error = DMA_ERROR_ADC_WRONG_INPUT;
-    return 0;
+    return NULL;
 }
 
 void dma_adc_init(adc_config* config) {
@@ -212,6 +210,7 @@ void dma_adc_init(adc_config* config) {
 
     // Enable Interrupts
     SET_BIT(config->dma_stream->CR, DMA_SxCR_TCIE); // transfer complete
+    SET_BIT(config->dma_stream->CR, DMA_SxCR_HTIE); // half-transfer reached
     SET_BIT(config->dma_stream->CR, DMA_SxCR_TEIE); // transfer error
     NVIC_SetPriority(config->dma_irq, 3);
     NVIC_EnableIRQ(config->dma_irq);
@@ -223,19 +222,14 @@ void dma_adc_init(adc_config* config) {
     WRITE_REG(config->dma_stream->PAR, config->adc_reg_address);
 
     // Memory data register address
-    WRITE_REG(config->dma_stream->M0AR, config->memory_address);
+    WRITE_REG(config->dma_stream->M0AR, (uintptr_t)config->memory_address);
 }
 
 dac_config* get_dac_config(DAC_Channel* dac_channel) {
-    if (dac_channel == DAC_CH1) {
-        return &dac_ch1_config;
-    }
-    if (dac_channel == DAC_CH2) {
-        return &dac_ch2_config;
-    }
-
+    if (dac_channel == DAC_CH1) return &dac_ch1_config;
+    if (dac_channel == DAC_CH2) return &dac_ch2_config;
     error = DMA_ERROR_DAC_WRONG_INPUT;
-    return 0;
+    return NULL;
 }
 
 void dma_dac_init(dac_config *config) {
@@ -280,7 +274,7 @@ void dma_dac_init(dac_config *config) {
     WRITE_REG(config->dma_stream->PAR, config->dac_reg_address);
 
     // Memory data register address
-    WRITE_REG(config->dma_stream->M0AR, config->memory_address);
+    WRITE_REG(config->dma_stream->M0AR, (uintptr_t)config->memory_address);
 
     // Disable FIFO
     CLEAR_BIT(config->dma_stream->FCR, DMA_SxFCR_DMDIS);  
@@ -304,7 +298,7 @@ void dma_clear_status_flags(DmaFlags* dma_flags) {
 
 void dma_disable(DMA_Stream_TypeDef* dma_stream, DmaFlags* flags) {
     CLEAR_BIT(dma_stream->CR, DMA_SxCR_EN);
-    while(READ_BIT(dma_stream->CR, DMA_SxCR_EN)) {}
+    while (READ_BIT(dma_stream->CR, DMA_SxCR_EN)) {}
 
     dma_clear_status_flags(flags);
 }
@@ -314,7 +308,7 @@ void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size) {
 
     // check e.g. LL_MPU_REGION_SIZE_32B mapping 
     // to understand region size calculations
-    LL_MPU_ConfigRegion(LL_MPU_REGION_NUMBER5, 0x0, (uint32_t)(mem_address), 
+    LL_MPU_ConfigRegion(LL_MPU_REGION_NUMBER5, 0x0, (uintptr_t)(mem_address),
     MPU_REGION_SIZE_ATTRIBUTE(mem_size) | 
     LL_MPU_TEX_LEVEL1 |
     LL_MPU_REGION_FULL_ACCESS |
@@ -324,7 +318,7 @@ void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size) {
     LL_MPU_ACCESS_NOT_BUFFERABLE);
 
     LL_MPU_EnableRegion(LL_MPU_REGION_NUMBER5);
-    SCB_CleanDCache_by_Addr((uint32_t)mem_address, mem_size << 1);
+    SCB_CleanDCache_by_Addr(mem_address, mem_size << 1);
     LL_MPU_Enable(LL_MPU_CTRL_PRIVILEGED_DEFAULT);
 }
 
@@ -335,7 +329,15 @@ void dma_dac_mpu_config(uint16_t* mem_address, const uint16_t mem_size) {
 void DMA1_Stream5_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF5)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF5);
+        // TODO: Implement proper MPU config in SensEdu 0.7.1 for circular DMA
+        // adc_config* config = get_adc_config(ADC2);
+        // SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
         ADC_SetDmaTransferComplete(ADC2);
+    }
+
+    if (READ_BIT(DMA1->HISR, DMA_HISR_HTIF5)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CHTIF5);
+        ADC_SetDmaHalfTransferComplete(ADC2);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF5)) {
@@ -347,10 +349,15 @@ void DMA1_Stream5_IRQHandler(void) {
 void DMA1_Stream6_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);
-        // TODO: replace this with proper MPU config
-        adc_config* config = get_adc_config(ADC1);
-        SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
+        // TODO: Implement proper MPU config in SensEdu 0.7.1
+        // adc_config* config = get_adc_config(ADC1);
+        // SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
         ADC_SetDmaTransferComplete(ADC1);
+    }
+
+    if (READ_BIT(DMA1->HISR, DMA_HISR_HTIF6)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CHTIF6);
+        ADC_SetDmaHalfTransferComplete(ADC1);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF6)) {
@@ -362,7 +369,15 @@ void DMA1_Stream6_IRQHandler(void) {
 void DMA1_Stream7_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF7)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF7);
+        // TODO: Implement proper MPU config in SensEdu 0.7.1
+        // adc_config* config = get_adc_config(ADC3);
+        // SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
         ADC_SetDmaTransferComplete(ADC3);
+    }
+
+    if (READ_BIT(DMA1->HISR, DMA_HISR_HTIF7)) {
+        SET_BIT(DMA1->HIFCR, DMA_HIFCR_CHTIF7);
+        ADC_SetDmaHalfTransferComplete(ADC3);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_TEIF7)) {
