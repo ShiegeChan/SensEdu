@@ -1,9 +1,16 @@
 #include "adc.h"
 #include "timer.h"
 
+#define ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
+
 /* -------------------------------------------------------------------------- */
 /*                                  Constants                                 */
 /* -------------------------------------------------------------------------- */
+
+// ADC masks for identification
+#define ADC1_BIT (1U << 0)
+#define ADC2_BIT (1U << 1)
+#define ADC3_BIT (1U << 2)
 
 // Maximum amount of channels per ADC
 #define MAX_CHANNEL_NUM (16U)
@@ -15,10 +22,12 @@ static const uint16_t MIN_SAMPLING_RATE = 10;
 /*                                   Structs                                  */
 /* -------------------------------------------------------------------------- */
 
-// Describe ADC channel with the mask and id
+// Describe ADC channel with the available ADCs, pre-selection mask, and id
 typedef struct {
-    uint8_t id;
-    uint32_t pcsel_mask;
+    uint8_t pin_name;       // Arduino pin name
+    uint8_t adc_mask;       // ADC mask to determine which ADCs are wired to this channel
+    uint8_t pcsel_id;       // Pre-channel selection id
+    uint32_t pcsel_mask;    // Pre-channel selection mask
 } AdcChannel;
 
 // Describes per ADC runtime state
@@ -45,19 +54,36 @@ static AdcState adc_states[3];
 // Clock config flag
 static bool pll_configured = false;
 
+// ADC full channel mapping
+static const AdcChannel adc_channel_map[] = {
+    {PIN_A0,    ADC1_BIT | ADC2_BIT,            4U,     ADC_PCSEL_PCSEL_4},
+    {PIN_A1,    ADC1_BIT | ADC2_BIT,            8U,     ADC_PCSEL_PCSEL_8},
+    {PIN_A2,    ADC1_BIT | ADC2_BIT,            9U,     ADC_PCSEL_PCSEL_9},
+    {PIN_A3,    ADC1_BIT | ADC2_BIT,            5U,     ADC_PCSEL_PCSEL_5},
+    {PIN_A4,    ADC1_BIT | ADC2_BIT,            13U,    ADC_PCSEL_PCSEL_13},
+    {PIN_A5,    ADC1_BIT | ADC2_BIT | ADC3_BIT, 12U,    ADC_PCSEL_PCSEL_12},
+    {PIN_A6,    ADC1_BIT | ADC2_BIT | ADC3_BIT, 10U,    ADC_PCSEL_PCSEL_10},
+    {PIN_A7,    ADC1_BIT,                       16U,    ADC_PCSEL_PCSEL_16},
+    {A8,        ADC3_BIT,                       0U,     ADC_PCSEL_PCSEL_0},
+    {A9,        ADC3_BIT,                       1U,     ADC_PCSEL_PCSEL_1},
+    {A10,       ADC1_BIT | ADC2_BIT,            1U,     ADC_PCSEL_PCSEL_1},
+    {A11,       ADC1_BIT | ADC2_BIT,            0U,     ADC_PCSEL_PCSEL_0}
+};
+
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
 
-static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode);
 static SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* adc);
 static AdcState* get_adc_state(ADC_TypeDef* adc);
+static uint8_t get_adc_mask(ADC_TypeDef* adc);
+static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin);
+static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode);
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings);
 static void configure_pll2(void);
 static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num, SENSEDU_ADC_SR_MODE sr_mode, SENSEDU_ADC_MODE adc_mode);
 static uint16_t* read_sequence_cont(ADC_TypeDef* adc, uint8_t pin_num);
 static uint16_t* read_sequence_one_shot(ADC_TypeDef* adc, uint8_t pin_num);
-static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin);
 static void select_adc_channel(ADC_TypeDef* adc, uint8_t channel_num, uint8_t rank);
 static void set_adc_channel_sample_time(ADC_TypeDef* adc, uint8_t sample_time, uint8_t channel_num);
 
@@ -132,7 +158,7 @@ void SensEdu_ADC_Disable(ADC_TypeDef* adc) {
     // check if conversion is ongoing
     if (READ_BIT(adc->CR, ADC_CR_ADSTART)) {
         SET_BIT(adc->CR, ADC_CR_ADSTP); // stop conversion
-        while (READ_BIT(adc->CR, ADC_CR_ADSTP)); // wait till it is stopped
+        while (READ_BIT(adc->CR, ADC_CR_ADSTP)) {} // wait till it is stopped
     }
 
     if (READ_BIT(adc->CR, ADC_CR_ADSTART)) {
@@ -276,36 +302,45 @@ void ADC_SetDmaHalfTransferComplete(ADC_TypeDef* adc) {
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
 
-static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode) {
-    return (adc_mode == SENSEDU_ADC_MODE_DMA_NORMAL || adc_mode == SENSEDU_ADC_MODE_DMA_CIRCULAR);
-}
-
 static SensEdu_ADC_Settings* get_adc_settings(ADC_TypeDef* adc) {
-    if (adc == ADC1) {
-        return &adc_settings[0];
-    }
-    if (adc == ADC2) {
-        return &adc_settings[1];
-    }
-    if (adc == ADC3) {
-        return &adc_settings[2];
-    }
+    if (adc == ADC1) return &adc_settings[0];
+    if (adc == ADC2) return &adc_settings[1];
+    if (adc == ADC3) return &adc_settings[2];
     error = ADC_ERROR_WRONG_ADC_INSTANCE;
     return NULL;
 }
 
 static AdcState* get_adc_state(ADC_TypeDef* adc) {
-    if (adc == ADC1) {
-        return &adc_states[0];
-    }
-    if (adc == ADC2) {
-        return &adc_states[1];
-    }
-    if (adc == ADC3) {
-        return &adc_states[2];
-    }
+    if (adc == ADC1) return &adc_states[0];
+    if (adc == ADC2) return &adc_states[1];
+    if (adc == ADC3) return &adc_states[2];
     error = ADC_ERROR_WRONG_ADC_INSTANCE;
     return NULL;
+}
+
+static uint8_t get_adc_mask(ADC_TypeDef* adc) {
+    if (adc == ADC1) return ADC1_BIT;
+    if (adc == ADC2) return ADC2_BIT;
+    if (adc == ADC3) return ADC3_BIT;
+    return 0U;
+}
+
+static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin) {
+    for (size_t i = 0; i < ARRAY_SIZE(adc_channel_map); i++) {
+        if (adc_channel_map[i].pin_name != arduino_pin) {
+            continue;
+        }
+        if ((adc_channel_map[i].adc_mask & get_adc_mask(adc)) == 0U) {
+            error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+        }
+        return adc_channel_map[i];
+    }
+    error = ADC_ERROR_PICKED_WRONG_CHANNEL;
+    return (AdcChannel){0};
+}
+
+static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode) {
+    return (adc_mode == SENSEDU_ADC_MODE_DMA_NORMAL || adc_mode == SENSEDU_ADC_MODE_DMA_CIRCULAR);
 }
 
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings) {
@@ -439,10 +474,10 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num,
     for (uint8_t i = 0; i < pin_num; i++) {
         AdcChannel ch = get_adc_channel(adc, pins[i]);
         SET_BIT(adc->PCSEL, ch.pcsel_mask);
-        select_adc_channel(adc, ch.id, i+1U);
+        select_adc_channel(adc, ch.pcsel_id, i+1U);
 
         // sample time (2.5 cycles) + 7.5 cycles (from 16bit res) -> total TCONV = 11 cycles -> 25MHz clock (40ns): 440ns
-        set_adc_channel_sample_time(adc, 0b001, ch.id);
+        set_adc_channel_sample_time(adc, 0b001, ch.pcsel_id);
     }
 
     // if max 500kS/sec, then max 2000ns available for conversion
@@ -512,119 +547,6 @@ static uint16_t* read_sequence_one_shot(ADC_TypeDef* adc, uint8_t pin_num) {
         adc_state->seq_buffer[i] = READ_REG(adc->DR);
     }
     return adc_state->seq_buffer;
-}
-
-/*
-A0 - PC4 - ADC12_INP4
-A1 - PC5 - ADC12_INP8
-A2 - PB0 - ADC12_INP9
-A3 - PB1 - ADC12_INP5
-A4 - PC3 - ADC12_INP13
-A5 - PC2 - ADC123_INP12
-A6 - PC0 - ADC123_INP10
-A7 - PA0 - ADC1_INP16
-A8 - PC2_C - ADC3_INP0
-A9 - PC3_C - ADC3_INP1
-A10 - PA1_C - ADC12_INP1
-A11 - PA0_C - ADC12_INP0
-*/
-static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin) {
-    AdcChannel ch = {.id = 0U, .pcsel_mask = 0U};
-    switch(arduino_pin) {
-        case PIN_A0:
-            if (adc == ADC3) {
-                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-                break;
-            }
-            ch.id = 4U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_4;
-            break;
-        case PIN_A1:
-            if (adc == ADC3) {
-                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-                break;
-            }
-            ch.id = 8U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_8;
-            break;
-        case PIN_A2:
-            if (adc == ADC3) {
-                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-                break;
-            }
-            ch.id = 9U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_9;
-            break;
-        case PIN_A3:
-            if (adc == ADC3) {
-                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-                break;
-            }
-            ch.id = 5U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_5;
-            break;
-        case PIN_A4:
-            if (adc == ADC3) {
-                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-                break;
-            }
-            ch.id = 13U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_13;
-            break;
-        case PIN_A5:
-            ch.id = 12U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_12;
-            break;
-        case PIN_A6:
-            ch.id = 10U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_10;
-            break;
-        case PIN_A7:
-            if (adc == ADC2 || adc == ADC3) {
-                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-                break;
-            }
-            ch.id = 16U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_16;
-            break;
-        case A8:
-            if (adc == ADC1 || adc == ADC2) {
-                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-                break;
-            }
-            ch.id = 0U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_0;
-            break;
-        case A9:
-            if (adc == ADC1 || adc == ADC2) {
-                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-                break;
-            }
-            ch.id = 1U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_1;
-            break;
-        case A10:
-            if (adc == ADC3) {
-                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-                break;
-            }
-            ch.id = 1U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_1;
-            break;
-        case A11:
-            if (adc == ADC3) {
-                error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-                break;
-            }
-            ch.id = 0U;
-            ch.pcsel_mask = ADC_PCSEL_PCSEL_0;
-            break;
-        default:
-            error = ADC_ERROR_PICKED_WRONG_CHANNEL;
-            break;
-    }
-
-    return ch;
 }
 
 static void select_adc_channel(ADC_TypeDef* adc, uint8_t channel_num, uint8_t rank) {
