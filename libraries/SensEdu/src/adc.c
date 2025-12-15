@@ -15,6 +15,12 @@
 // Maximum amount of channels per ADC
 #define MAX_CHANNEL_NUM (16U)
 
+// Sequence registers offsets
+#define SQR1_REG_ADDR_OFFSET    (0x30)
+#define SQR2_REG_ADDR_OFFSET    (0x34)
+#define SQR3_REG_ADDR_OFFSET    (0x38)
+#define SQR4_REG_ADDR_OFFSET    (0x3C)
+
 // Minimum allowed sampling rate (chosen arbitrary)
 static const uint16_t MIN_SAMPLING_RATE = 10;
 
@@ -30,8 +36,15 @@ typedef struct {
     uint32_t pcsel_mask;    // Pre-channel selection mask
 } AdcChannel;
 
+// Describes ADC conversion sequence in multi-channel operation
+typedef struct {
+    uint16_t reg_offset;    // SQRx register address offset from ADC base
+    uint32_t reg_field;     // SQx field mask
+    uint8_t reg_field_pos;  // SQx field position
+} AdcSequence;
+
 // Describes per ADC runtime state
-// Includes DMA/SEQUENCE complete state and soft polling config & storage
+// Includes DMA/SEQUENCE complete state and soft polling storage
 typedef struct {
     volatile bool ovr_flag;                 // Flag notifying that overrun event happened
     volatile uint32_t ovr_counter;          // OVR event counter
@@ -41,20 +54,9 @@ typedef struct {
 } AdcState;
 
 /* -------------------------------------------------------------------------- */
-/*                                  Variables                                 */
+/*                                    Maps                                    */
 /* -------------------------------------------------------------------------- */
 
-// Global error container
-static ADC_ERROR error = ADC_ERROR_NO_ERRORS;
-
-// Per ADC storage containers
-static SensEdu_ADC_Settings adc_settings[3];
-static AdcState adc_states[3];
-
-// Clock config flag
-static bool pll_configured = false;
-
-// ADC full channel mapping
 static const AdcChannel adc_channel_map[] = {
     {PIN_A0,    ADC1_BIT | ADC2_BIT,            4U,     ADC_PCSEL_PCSEL_4},
     {PIN_A1,    ADC1_BIT | ADC2_BIT,            8U,     ADC_PCSEL_PCSEL_8},
@@ -69,6 +71,39 @@ static const AdcChannel adc_channel_map[] = {
     {A10,       ADC1_BIT | ADC2_BIT,            1U,     ADC_PCSEL_PCSEL_1},
     {A11,       ADC1_BIT | ADC2_BIT,            0U,     ADC_PCSEL_PCSEL_0}
 };
+
+static const AdcSequence adc_sequence_map[] = {
+    {SQR1_REG_ADDR_OFFSET, ADC_SQR1_SQ1,  ADC_SQR1_SQ1_Pos},
+    {SQR1_REG_ADDR_OFFSET, ADC_SQR1_SQ2,  ADC_SQR1_SQ2_Pos},
+    {SQR1_REG_ADDR_OFFSET, ADC_SQR1_SQ3,  ADC_SQR1_SQ3_Pos},
+    {SQR1_REG_ADDR_OFFSET, ADC_SQR1_SQ4,  ADC_SQR1_SQ4_Pos},
+    {SQR2_REG_ADDR_OFFSET, ADC_SQR2_SQ5,  ADC_SQR2_SQ5_Pos},
+    {SQR2_REG_ADDR_OFFSET, ADC_SQR2_SQ6,  ADC_SQR2_SQ6_Pos},
+    {SQR2_REG_ADDR_OFFSET, ADC_SQR2_SQ7,  ADC_SQR2_SQ7_Pos},
+    {SQR2_REG_ADDR_OFFSET, ADC_SQR2_SQ8,  ADC_SQR2_SQ8_Pos},
+    {SQR2_REG_ADDR_OFFSET, ADC_SQR2_SQ9,  ADC_SQR2_SQ9_Pos},
+    {SQR3_REG_ADDR_OFFSET, ADC_SQR3_SQ10, ADC_SQR3_SQ10_Pos},
+    {SQR3_REG_ADDR_OFFSET, ADC_SQR3_SQ11, ADC_SQR3_SQ11_Pos},
+    {SQR3_REG_ADDR_OFFSET, ADC_SQR3_SQ12, ADC_SQR3_SQ12_Pos},
+    {SQR3_REG_ADDR_OFFSET, ADC_SQR3_SQ13, ADC_SQR3_SQ13_Pos},
+    {SQR3_REG_ADDR_OFFSET, ADC_SQR3_SQ14, ADC_SQR3_SQ14_Pos},
+    {SQR4_REG_ADDR_OFFSET, ADC_SQR4_SQ15, ADC_SQR4_SQ15_Pos},
+    {SQR4_REG_ADDR_OFFSET, ADC_SQR4_SQ16, ADC_SQR4_SQ16_Pos}
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                  Variables                                 */
+/* -------------------------------------------------------------------------- */
+
+// Global error container
+static ADC_ERROR error = ADC_ERROR_NO_ERRORS;
+
+// Per ADC storage containers
+static SensEdu_ADC_Settings adc_settings[3];
+static AdcState adc_states[3];
+
+// Clock config flag
+static bool pll_configured = false;
 
 /* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
@@ -339,6 +374,20 @@ static AdcChannel get_adc_channel(ADC_TypeDef* adc, const uint8_t arduino_pin) {
     return (AdcChannel){0};
 }
 
+// Configures selected ADC channel in a conversion sequence
+//
+// ch_num: ADC pre-channel selection id
+// conv_num: Position in a sequence (1st, 2nd, ... conversion in a sequence)
+static void select_adc_channel(ADC_TypeDef* adc, uint8_t ch_num, uint8_t conv_num) {
+    if (conv_num == 0U || conv_num > ARRAY_SIZE(adc_sequence_map)) {
+        error = ADC_ERROR_WRONG_SEQUENCE;
+        return;
+    }
+    const AdcSequence* seq = &adc_sequence_map[conv_num - 1];
+    volatile uint32_t* reg = (volatile uint32_t*)((uint8_t*)adc + seq->reg_offset);
+    MODIFY_REG(*reg, seq->reg_field, ch_num << seq->reg_field_pos);
+}
+
 static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode) {
     return (adc_mode == SENSEDU_ADC_MODE_DMA_NORMAL || adc_mode == SENSEDU_ADC_MODE_DMA_CIRCULAR);
 }
@@ -547,62 +596,6 @@ static uint16_t* read_sequence_one_shot(ADC_TypeDef* adc, uint8_t pin_num) {
         adc_state->seq_buffer[i] = READ_REG(adc->DR);
     }
     return adc_state->seq_buffer;
-}
-
-static void select_adc_channel(ADC_TypeDef* adc, uint8_t channel_num, uint8_t rank) {
-    switch(rank) {
-        case 1:
-            MODIFY_REG(adc->SQR1, ADC_SQR1_SQ1, channel_num << ADC_SQR1_SQ1_Pos);
-            break;
-        case 2:
-            MODIFY_REG(adc->SQR1, ADC_SQR1_SQ2, channel_num << ADC_SQR1_SQ2_Pos);
-            break;
-        case 3:
-            MODIFY_REG(adc->SQR1, ADC_SQR1_SQ3, channel_num << ADC_SQR1_SQ3_Pos);
-            break;
-        case 4:
-            MODIFY_REG(adc->SQR1, ADC_SQR1_SQ4, channel_num << ADC_SQR1_SQ4_Pos);
-            break;
-        case 5:
-            MODIFY_REG(adc->SQR2, ADC_SQR2_SQ5, channel_num << ADC_SQR2_SQ5_Pos);
-            break;
-        case 6:
-            MODIFY_REG(adc->SQR2, ADC_SQR2_SQ6, channel_num << ADC_SQR2_SQ6_Pos);
-            break;
-        case 7:
-            MODIFY_REG(adc->SQR2, ADC_SQR2_SQ7, channel_num << ADC_SQR2_SQ7_Pos);
-            break;
-        case 8:
-            MODIFY_REG(adc->SQR2, ADC_SQR2_SQ8, channel_num << ADC_SQR2_SQ8_Pos);
-            break;
-        case 9:
-            MODIFY_REG(adc->SQR2, ADC_SQR2_SQ9, channel_num << ADC_SQR2_SQ9_Pos);
-            break;
-        case 10:
-            MODIFY_REG(adc->SQR3, ADC_SQR3_SQ10, channel_num << ADC_SQR3_SQ10_Pos);
-            break;
-        case 11:
-            MODIFY_REG(adc->SQR3, ADC_SQR3_SQ11, channel_num << ADC_SQR3_SQ11_Pos);
-            break;
-        case 12:
-            MODIFY_REG(adc->SQR3, ADC_SQR3_SQ12, channel_num << ADC_SQR3_SQ12_Pos);
-            break;
-        case 13:
-            MODIFY_REG(adc->SQR3, ADC_SQR3_SQ13, channel_num << ADC_SQR3_SQ13_Pos);
-            break;
-        case 14:
-            MODIFY_REG(adc->SQR3, ADC_SQR3_SQ14, channel_num << ADC_SQR3_SQ14_Pos);
-            break;
-        case 15:
-            MODIFY_REG(adc->SQR4, ADC_SQR4_SQ15, channel_num << ADC_SQR4_SQ15_Pos);
-            break;
-        case 16:
-            MODIFY_REG(adc->SQR4, ADC_SQR4_SQ16, channel_num << ADC_SQR4_SQ16_Pos);
-            break;
-        default:
-            error = ADC_ERROR_WRONG_SEQUENCE;
-            break;
-    }
 }
 
 static void set_adc_channel_sample_time(ADC_TypeDef* adc, uint8_t sample_time, uint8_t channel_num) {
