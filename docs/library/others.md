@@ -17,7 +17,7 @@ These examples illustrate more complex, yet fundamental, applications of multipl
 
 
 {: .IMPORTANT}
-To run these examples, you need to install [MATLAB].
+To run these examples, you need to install [MATLAB]. Some examples offer also an alternative in [Python].
 
 ## Recording Audio 
 
@@ -722,3 +722,4 @@ Notice that with WiFi, your Serial is freed up, allowing to use it for convenien
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
 
 [MATLAB]: https://www.mathworks.com/products/matlab.html
+[Python]: https://www.python.org/ 
