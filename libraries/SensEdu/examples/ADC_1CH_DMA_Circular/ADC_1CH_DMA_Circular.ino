@@ -1,3 +1,6 @@
+// THIS EXAMPLE IS A TEMPLATE FOR THE FUTURE CIRCULAR DMA FEATURE
+// IT DOESN'T WORK AT THE TIME
+
 #include "SensEdu.h"
 
 // Internal library error container

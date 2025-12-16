@@ -41,7 +41,6 @@ typedef struct {
 #define DAC_CH1                ((DAC_Channel *) 0)
 #define DAC_CH2                ((DAC_Channel *) 1)
 
-
 void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings);
 void SensEdu_DAC_Enable(DAC_Channel* dac_channel);
 void SensEdu_DAC_Disable(DAC_Channel* dac_channel);
