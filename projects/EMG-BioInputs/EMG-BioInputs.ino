@@ -6,6 +6,7 @@ static uint32_t error = 0x0000FFFF;     // error detector (0000 to FFFF instantl
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
+
 ADC_TypeDef* adc = ADC1;
 const uint16_t channel_count = 4;
 uint8_t adc_pins[channel_count] = {A0, A2, A11, A7};
@@ -21,10 +22,10 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = adc_pins,
     .pin_num = channel_count,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = sampling_rate,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = sampling_rate,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)emg_data,
     .mem_size = mem_size
 };
@@ -32,6 +33,7 @@ SensEdu_ADC_Settings adc_settings = {
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
+
 void setup() {
     // doesn't boot without opened serial monitor
     Serial.begin(115200);
@@ -47,6 +49,7 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
+
 void loop() {
     // loop is triggered with character sent from PC
     static char serial_buf = 0;
@@ -76,13 +79,13 @@ void loop() {
     }
 
     // wait till ADC is ready
-    while(!SensEdu_ADC_GetTransferStatus(adc));
+    while(!SensEdu_ADC_IsDmaTransferComplete(adc));
 
     // send data
     transfer_serial_data(&(emg_data[0]), mem_size, 64);
 
     // restart ADC
-    SensEdu_ADC_ClearTransferStatus(adc);
+    SensEdu_ADC_ClearDmaTransferComplete(adc);
     SensEdu_ADC_Start(adc);
     
 }

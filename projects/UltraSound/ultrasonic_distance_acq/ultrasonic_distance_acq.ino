@@ -51,10 +51,10 @@ SensEdu_ADC_Settings adc1_settings = {
     .pins = adc1_pins,
     .pin_num = adc1_mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)adc1_data,
     .mem_size = adc1_data_size
 };
@@ -64,10 +64,10 @@ SensEdu_ADC_Settings adc2_settings = {
     .pins = adc2_pins,
     .pin_num = adc2_mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)adc2_data,
     .mem_size = adc2_data_size
 };
@@ -138,21 +138,21 @@ void setup() {
 
 void loop() {
 	SenseduBoard* main_obj_ptr = &SenseduBoardObj;
-    // Measurement is initiated by the signal from computing device (matlab script)
-    static char serial_buf = 0;
-    
-    // Measurement is initiated by signal from computing device
-    while (1) {
-        while (Serial.available() == 0); // Wait for a signal
-        serial_buf = Serial.read();
-        if (serial_buf == 't') {
-            break; 
+    // Wait for trigger character 't' from computing device
+    char c;
+    while (true) {
+        if (Serial.available() > 0) {
+            c = Serial.read();
+            if (c == 't') {
+                break;
+            }
         }
+        delay(1);
     }
     
     // Start dac->adc sequence
     SensEdu_DAC_Enable(dac_channel);
-    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_channel)); // wait for dac to finish sending the burst
+    while (!SensEdu_DAC_GetBurstCompleteFlag(dac_channel)); // wait for dac to finish sending the burst
     SensEdu_DAC_ClearBurstCompleteFlag(dac_channel); 
     
     // Start ADCs
@@ -160,21 +160,21 @@ void loop() {
     SensEdu_ADC_Start(adc2);
 
     // Wait for the data from ADC1
-    while(!SensEdu_ADC_GetTransferStatus(adc1));
-    SensEdu_ADC_ClearTransferStatus(adc1);
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc1));
+    SensEdu_ADC_ClearDmaTransferComplete(adc1);
 
     // Wait for the data from ADC2
-    while(!SensEdu_ADC_GetTransferStatus(adc2));
-    SensEdu_ADC_ClearTransferStatus(adc2);
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc2));
+    SensEdu_ADC_ClearDmaTransferComplete(adc2);
 
     // Calculating distance for each microphone
     static uint32_t distance[adc1_mic_num + adc2_mic_num];
-    for(uint8_t i = 0; i < adc1_mic_num; i++) {
+    for (uint8_t i = 0; i < adc1_mic_num; i++) {
         get_channel_data(adc1_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc1_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
         distance[i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, ACTUAL_SAMPLING_RATE);
     }
-    for(uint8_t i = 0; i < adc2_mic_num; i++) {
+    for (uint8_t i = 0; i < adc2_mic_num; i++) {
         get_channel_data(adc2_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc2_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
         distance[adc1_mic_num + i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, ACTUAL_SAMPLING_RATE);

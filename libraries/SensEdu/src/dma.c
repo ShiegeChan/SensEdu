@@ -337,6 +337,9 @@ void DMA1_Stream5_IRQHandler(void) {
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_HTIF5)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CHTIF5);
+        // TODO: Implement proper MPU config in SensEdu 0.7.1
+        adc_config* config = get_adc_config(ADC3);
+        SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
         ADC_SetDmaHalfTransferComplete(ADC2);
     }
 
@@ -350,13 +353,16 @@ void DMA1_Stream6_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF6);
         // TODO: Implement proper MPU config in SensEdu 0.7.1
-        // adc_config* config = get_adc_config(ADC1);
-        // SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
+        adc_config* config = get_adc_config(ADC1);
+        SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
         ADC_SetDmaTransferComplete(ADC1);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_HTIF6)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CHTIF6);
+        // TODO: Implement proper MPU config in SensEdu 0.7.1
+        adc_config* config = get_adc_config(ADC1);
+        SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
         ADC_SetDmaHalfTransferComplete(ADC1);
     }
 
@@ -370,13 +376,16 @@ void DMA1_Stream7_IRQHandler(void) {
     if (READ_BIT(DMA1->HISR, DMA_HISR_TCIF7)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CTCIF7);
         // TODO: Implement proper MPU config in SensEdu 0.7.1
-        // adc_config* config = get_adc_config(ADC3);
-        // SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
+        adc_config* config = get_adc_config(ADC3);
+        SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
         ADC_SetDmaTransferComplete(ADC3);
     }
 
     if (READ_BIT(DMA1->HISR, DMA_HISR_HTIF7)) {
         SET_BIT(DMA1->HIFCR, DMA_HIFCR_CHTIF7);
+        // TODO: Implement proper MPU config in SensEdu 0.7.1
+        adc_config* config = get_adc_config(ADC3);
+        SCB_InvalidateDCache_by_Addr(config->memory_address, config->memory_size << 1);
         ADC_SetDmaHalfTransferComplete(ADC3);
     }
 

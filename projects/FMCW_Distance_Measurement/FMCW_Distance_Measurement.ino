@@ -1,5 +1,4 @@
 #include <SensEdu.h>
-//NOTE : 
 
 /* -------------------------------------------------------------------------- */
 /*                                User Settings                               */
@@ -30,10 +29,10 @@ SensEdu_ADC_Settings adc1_settings = {
     .pins = adc_dac_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)adc_dac_data,
     .mem_size = mic_data_size
 };
@@ -43,10 +42,10 @@ SensEdu_ADC_Settings adc2_settings = {
     .pins = adc_mic3_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)adc_mic_data,
     .mem_size = mic_data_size
 };
@@ -70,28 +69,9 @@ uint32_t lib_error = 0;  // Tracks library errors
 bool dac_data_sent = false; // To track whether DAC LUT was sent to MATLAB
 
 /* -------------------------------------------------------------------------- */
-/*                              Functions                                     */
-/* -------------------------------------------------------------------------- */
-
-// Function to send an array over Serial in 32-byte chunks
-void serial_send_array(const uint8_t* data, size_t size) {
-    const size_t chunk_size = 32;
-    for (size_t i = 0; i < size / chunk_size; i++) {
-        Serial.write(data + chunk_size * i, chunk_size);
-    }
-}
-
-// Function to handle errors
-void handle_error() {
-    digitalWrite(error_led, LOW); // Turn on error LED
-    while (1) {
-        // Remain in this state if an error occurs
-    }
-}
-
-/* -------------------------------------------------------------------------- */
 /*                                   Setup                                    */
 /* -------------------------------------------------------------------------- */
+
 void setup() {
     // Initialize Serial Communication
     Serial.begin(115200);
@@ -133,6 +113,7 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
+
 void loop() {
     static char serial_buf = 0;
 
@@ -151,12 +132,11 @@ void loop() {
     SensEdu_ADC_Start(adc_mic);
 
     // wait for the data and send it
-    while(!SensEdu_ADC_GetTransferStatus(adc_dac));
-    SensEdu_ADC_ClearTransferStatus(adc_dac);
+    while(!SensEdu_ADC_IsDmaTransferComplete(adc_dac));
+    SensEdu_ADC_ClearDmaTransferComplete(adc_dac);
 
-    while(!SensEdu_ADC_GetTransferStatus(adc_mic));
-    SensEdu_ADC_ClearTransferStatus(adc_mic);
-
+    while(!SensEdu_ADC_IsDmaTransferComplete(adc_mic));
+    SensEdu_ADC_ClearDmaTransferComplete(adc_mic);
 
     // Send ADC data (16-bit values, continuously)
     uint32_t adc_byte_length = mic_data_size * 2; // ADC data size in bytes
@@ -168,5 +148,25 @@ void loop() {
     lib_error = SensEdu_GetError();
     if (lib_error != 0) {
         handle_error();
+    }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Functions                                     */
+/* -------------------------------------------------------------------------- */
+
+// Function to send an array over Serial in 32-byte chunks
+void serial_send_array(const uint8_t* data, size_t size) {
+    const size_t chunk_size = 32;
+    for (size_t i = 0; i < size / chunk_size; i++) {
+        Serial.write(data + chunk_size * i, chunk_size);
+    }
+}
+
+// Function to handle errors
+void handle_error() {
+    digitalWrite(error_led, LOW); // Turn on error LED
+    while (1) {
+        // Remain in this state if an error occurs
     }
 }

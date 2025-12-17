@@ -2,6 +2,9 @@
 #define __LIBS_H__
 
 #include <Arduino.h>
+#ifdef CLION_IDE
+#include "pins_arduino.h"
+#endif
 
 #include "stm32h747xx.h"
 #include "stm32h7xx_ll_tim.h"
