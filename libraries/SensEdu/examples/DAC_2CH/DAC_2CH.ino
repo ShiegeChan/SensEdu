@@ -26,7 +26,7 @@ const SENSEDU_DAC_BUFFER(lut2, lut2_size) = {
     0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0
 };
 
-#define DAC_SAMPLE_RATE     1000*64   // 64kHz
+#define DAC_SAMPLE_RATE     (1000*64)   // 64kHz
 
 DAC_Channel* dac_ch1 = DAC_CH1;
 DAC_Channel* dac_ch2 = DAC_CH2;

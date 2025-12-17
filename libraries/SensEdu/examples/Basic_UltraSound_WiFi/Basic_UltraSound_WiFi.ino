@@ -2,9 +2,13 @@
 #include "SineLUT.h"
 #include <WiFi.h>
 
+// Internal library error container
+uint32_t lib_error = 0;
+
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
+
 #define WIFI_SSID   "TestWiFi"
 #define WIFI_PASS   "TestWiFi"
 #define WIFI_PORT   80
@@ -36,10 +40,10 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = mic_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic_data,
     .mem_size = mic_data_size
 };
@@ -48,15 +52,13 @@ SensEdu_ADC_Settings adc_settings = {
 int status = WL_IDLE_STATUS;
 WiFiServer server(WIFI_PORT);
 
-/* errors */
-uint32_t lib_error = 0;
-uint8_t error_led = D86;
+const uint8_t error_led = D86;
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
-void setup() {
 
+void setup() {
     Serial.begin(115200);
 
     SensEdu_DAC_Init(&dac_settings);
@@ -67,10 +69,7 @@ void setup() {
     pinMode(error_led, OUTPUT);
     digitalWrite(error_led, HIGH);
 
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        handle_error();
-    }
+    check_lib_errors();
 
     while (status != WL_CONNECTED) {
         Serial.print("Attempting to connect to SSID: ");
@@ -89,12 +88,8 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
-void loop() {
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        handle_error();
-    }
 
+void loop() {
     WiFiClient client = server.available();
     if (!client) {
         return;
@@ -104,7 +99,7 @@ void loop() {
     // Measurement is initiated by the signal from computing device (matlab script)
     static char buf = 0;
 
-    while(client.connected()) {
+    while (client.connected()) {
         if (!client.available()) {
             continue;
         }
@@ -116,31 +111,32 @@ void loop() {
             
         // start dac->adc sequence
         SensEdu_DAC_Enable(dac_ch);
-        while(!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
+        while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
         SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
         SensEdu_ADC_Start(adc);
         
         // wait for the data and send it
-        while(!SensEdu_ADC_GetTransferStatus(adc));
-        SensEdu_ADC_ClearTransferStatus(adc);
+        while (!SensEdu_ADC_IsDmaTransferComplete(adc));
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
         wifi_send_array(client, (const uint8_t *) & mic_data, mic_data_size << 1);
 
-        // check errors
-        lib_error = SensEdu_GetError();
-        while (lib_error != 0) {
-            handle_error();
-        }
+        check_lib_errors();
     }
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
-void handle_error() {
-    digitalWrite(error_led, LOW);
-    Serial.print("Error: 0x");
-    Serial.println(lib_error, HEX);
-    delay(1000);
+
+// Checks if the library has risen any internal errors
+// Prints the error code in Serial Monitor
+void check_lib_errors() {
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        delay(1000);
+        Serial.print("Error: 0x");
+        Serial.println(lib_error, HEX);
+    }
 }
 
 void wifi_send_array(WiFiClient client, const uint8_t* data, size_t size) {

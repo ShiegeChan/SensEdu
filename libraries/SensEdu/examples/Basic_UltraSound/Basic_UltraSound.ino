@@ -1,6 +1,9 @@
 #include "SensEdu.h"
 #include "SineLUT.h"
 
+// Internal library error container
+uint32_t lib_error = 0;
+
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
@@ -32,24 +35,21 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = mic_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic_data,
     .mem_size = mic_data_size
 };
 
-/* errors */
-uint32_t lib_error = 0;
-uint8_t error_led = D86;
+const uint8_t error_led = D86;
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-
     Serial.begin(115200);
 
     SensEdu_DAC_Init(&dac_settings);
@@ -60,10 +60,7 @@ void setup() {
     pinMode(error_led, OUTPUT);
     digitalWrite(error_led, HIGH);
 
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        handle_error();
-    }
+    check_lib_errors();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -71,45 +68,44 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 
 void loop() {
-    
-    // Measurement is initiated by the signal from computing device
-    static char serial_buf = 0;
-    
-    while (1) {
-        while (Serial.available() == 0); // Wait for a signal
-        serial_buf = Serial.read();
-
-        if (serial_buf == 't') {
-            // expected 't' symbol (trigger)
-            break;
+    // Wait for trigger character 't' from computing device
+    char c;
+    while (true) {
+        if (Serial.available() > 0) {
+            c = Serial.read();
+            if (c == 't') {
+                break;
+            }
         }
+        delay(1);
     }
 
     // start dac->adc sequence
     SensEdu_DAC_Enable(dac_ch);
-    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
+    while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
     SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
     SensEdu_ADC_Start(adc);
     
     // wait for the data and send it
-    while(!SensEdu_ADC_GetTransferStatus(adc));
-    SensEdu_ADC_ClearTransferStatus(adc);
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc));
+    SensEdu_ADC_ClearDmaTransferComplete(adc);
     serial_send_array(&(mic_data[0]), mic_data_size, 32);
 
-    // check errors
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        handle_error();
-    }
+    check_lib_errors();
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-void handle_error() {
-    // serial is taken by matlab, use LED as indication
-    digitalWrite(error_led, LOW);
+// Checks if the library has risen any internal errors
+// Doesn't print the error code, since Serial is occupied
+// Turns on the red LED on Arduino board instead
+void check_lib_errors() {
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        digitalWrite(error_led, LOW);
+    }
 }
 
 void serial_send_array(uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
