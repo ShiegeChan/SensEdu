@@ -2,6 +2,7 @@
 title: DAC
 layout: default
 parent: Library
+math: mathjax
 nav_order: 3
 ---
 
@@ -17,8 +18,8 @@ A DAC (Digital-to-Analog Converter) converts a digital signal into an analog wav
 
 The STM32H747 features one 12-bit DAC module with two available channels. 
 
-{: .note}
-Since it is a 12-bit Digital-to-Analog converter, the maximum value supported by the DAC is 2^12 - 1 = 4095 (0x0FFF). This is different from ADC modules which are 16-bit and support values in range from zero to 65535 (0xFFFF).
+{: .NOTE}
+Since it is a 12-bit Digital-to-Analog converter, the maximum value supported by the DAC is $$2^{12} - 1 = 4095$$ (0x0FFF). This is different from ADC modules which are 16-bit and support values in range from zero to 65535 (0xFFFF).
 
 Sensedu utilizes both channels with:
 
@@ -170,7 +171,7 @@ The first parameter of `SENSEDU_DAC_BUFFER` is the user-defined ***name*** to be
 {: .WARNING}
 Always use `SENSEDU_DAC_BUFFER` macro to define arrays/LUTs for the DAC. This macro automatically handles all buffer requirements for cache coherence, regardless of the selected size. For details, visit the [MPU Configuration]({% link library/dac.md %}#mpu-configuration) section.
 
-### Send_DAC_Single_Sine
+### DAC_Single_Sine
 
 Transmitting a single instance of a predefined LUT with sine waveform.
 
@@ -224,7 +225,7 @@ void loop() {
 * If you put only `SensEdu_DAC_Enable` in setup, then the wave will be transmitted only once when you power up the board, so it is easily missable. If you want to see it with an oscilloscope, you could reset firmware by pressing `RST` button once on Arduino (do not press two times in succession, you will clear MCU firmware this way).
 
 
-### Send_DAC_Burst_Sine
+### DAC_Burst_Sine
 
 Transmitting a specified number of cycles of a predefined LUT with sine waveform, creating bursts.
 
@@ -238,7 +239,7 @@ Transmitting a specified number of cycles of a predefined LUT with sine waveform
     .burst_num = 10
 ```
 
-### Send_DAC_Const_Sine
+### DAC_Const_Sine
 
 Transmitting a constant sine wave with predefined LUT.
 
@@ -261,7 +262,7 @@ void loop() {
 }
 ```
 
-### Send_DAC_Variable_Wave
+### DAC_Variable_Wave
 
 Transmitting wave constantly with LUT changes during the program execution (run-time modifications). For this specific example we use small DAC buffer (4 elements) to generate a triangular wave across whole 12-bit region.
 
@@ -316,8 +317,8 @@ void loop() {
 }
 ```
 
-### Send_DAC_2_Channels
-Since the DAC module has 2 channels, it is possible to use both of them simultainously if needed. Initilizaing two channels in code means having two DAC_Structures for each:
+### DAC_2CH
+Since the DAC module has 2 channels, it is possible to use both of them simultaneously if needed. Initializing two channels in code means having two DAC_Structures for each:
 
 ```c
 DAC_Channel* dac_ch1 = DAC_CH1;
@@ -342,7 +343,7 @@ SensEdu_DAC_Settings dac2_settings = {
 };
 ```
 
-In this example, lut1 contains samples for one cycle of a sine wave, and lut2 contains samples for one cycle of a square wave. Both look-up-tables contain 64 samples each. We generate 10 cycles of sine and square wave with frequency of 1kHz with the sampling frequency of 64kHz. The following figure shows the output on an oscilloscope, highlighting the measured frequency of both waves. 
+In this example, lut1 contains samples for one cycle of a sine wave, and lut2 contains samples for one cycle of a square wave. Both look-up-tables contain 64 samples each. We generate 10 cycles of sine and square wave with frequency of 1kHz with the sampling frequency of 64kHz. The following figure shows the output on an oscilloscope, highlighting the measured frequency of both waves.
 
 <img src="{{site.baseurl}}/assets/images/dac_2channels.png" alt="drawing"/> 
 
@@ -350,67 +351,76 @@ It is important to understand how to achieve a specific signal frequency. In the
 
 <img src="{{site.baseurl}}/assets/images/dac_2channels_2.png" alt="drawing"/> 
 
+There are a couple of things to consider in order to achieve desired frequency wave at the DAC output pins: 
 
-There are couple of things to consider in oreder to achieve desired frequency wave at the DAC output pins: 
-
-* Waveform look-up-table (lut)
+* Waveform look-up-table (lut) \
 The lut is just an array of samples that can be of arbitrary size and arbitrary (for the case of our DAC module) 12-bit values. So, theoretically, the values can be anything. However, if you want to have some waveform (with a known frequency) it is important to have a lut filled with samples that represent a **full cycle** of that waveform. A simple example is a square wave with 64 samples where fist 32 samples are zero and next 32 samples are value 4080(DEC): 
 
 ```c
 const size_t lut2_size = 64;
 const SENSEDU_DAC_BUFFER(lut2, lut2_size) = {
-    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
-    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
-    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,
-    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0
+    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,
+    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,
+    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,
+    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0
 };
 ```
 
 The lut itself, **does not** define the frequency of the waveform. This is defined in the sampling frequency of the DAC. 
 
-* DAC Sampling freqency
-Maximum sampling frequency for the DAC is 15MHz. Therefore, in theory, DAC sampling frequency in theory can be any value in this range. For the DAC, the sampling frequency represents the number of samples that are written in the DAC register per one time cycle. So, the desired waveform frequency WAVE_FREQ can be set by setting the DAC_SAMPLE_FREQ as **WAVE_FREQ * lut_size**. 
+* DAC Sampling frequency \
+Maximum sampling frequency for the DAC is 15MHz. For the DAC, the sampling frequency represents the number of samples that are written in the DAC register per one time cycle. So, the desired waveform frequency WAVE_FREQ can be set by setting the DAC_SAMPLE_FREQ as **WAVE_FREQ * lut_size**. 
 
-{: .note}
+{: .WARNING}
 This is only true in case that the LUT represents a full cycle of a waveform!
 
-For example, if we have a LUT of 64 samples that represents one full cycle of a square waveform, in order for that wave to have 1kHz frequency, dac sampling frequency has to be set to 1kHz * 64 = 64kHz. 
+For example, if we have a LUT of 64 samples that represents one full cycle of a square waveform, in order for that wave to have 1kHz frequency, DAC sampling frequency has to be set to 1kHz * 64 = 64kHz. 
 
-{: .note}
-Readers are encouraged to try changing sampling rate, having different number of samples, and LUTs that are not representing full cycle waves in order to deeply understand the concept. 
+{: .NOTE}
+Readers are encouraged to try changing sampling rate, having the different number of samples, and LUTs that are not representing full cycle waves in order to deeply understand the concept. 
 
+When working with 2 channels simultaneously, the sampling rate is forced to be the same by the DAC module. Since the sampling frequency is the same, if both LUTs are representation of one cycle of a waveform with the same number of samples, the frequency of the waves will be the same.
 
-When working with 2 channels simultaneously, since the sampling frequency is the same, if both LUTs are representation of one cycle of a waveform and have the same number of samples, the frequency of the waves will be the same. 
 To overcome this, and have different wave frequencies at different channels, the LUT has to be modified. For example, to have a wave on the second channel with two times the frequency of the first wave there are two possibilities: Changing the lut size to lut_size/2 while also changing the lut values such that the new size represents the full cycle of a wave. Or keeping the same lut size but changing its content so that the samples now represent two cycles of the wave instead of one. 
 
-For example, if we take our LUT with samples that represent a square wave, and change its size while maintaining the full wave cycle 
+For example, if we take our LUT with samples that represent a square wave, and change its size while maintaining the full wave cycle:
 
 ```c
 const size_t lut2_size = 32;
 const SENSEDU_DAC_BUFFER(lut2, lut2_size) = {
-    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
-    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0
+    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,
+    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0
 };
 ```
 
-we can see the change we anticipated. The frequency of the square wave at the output is double the frequency of the sine wave, even though the sampling frequency is still 64kHz. 
+we can see the change we anticipated. The frequency of the square wave at the output is double the frequency of the sine wave, even though the sampling frequency is still 64kHz.
 
 <img src="{{site.baseurl}}/assets/images/dac_2channels_3.png" alt="drawing"/> 
 
-And if we keep the LUT size to 64 samples, but change the sample values to represent 2 full wave cycles, the frequency will be the same as in the previous case
+And if we keep the LUT size to 64 samples, but change the sample values to represent 2 full wave cycles, the frequency will be the same as in the previous case.
 
 ```c
 const size_t lut2_size = 64;
 const SENSEDU_DAC_BUFFER(lut2, lut2_size) = {
-    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
-    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,
-    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
-    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0
+    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,
+    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,
+    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+    0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,
+    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,
+    0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0,0x0ff0
 };
 ```
 
-{: .note}
-Another thing to note is, even though the frequency changes in both cases in the same way, number of actual pulses don't. When having two wave cycles in the LUT, number of pulses doubles as well. This information is relevant for both one shot mode and pulsed mode, while the effect is not seen in continous mode. 
+{: .NOTE}
+Another thing to note is, even though the frequency changes in both cases in the same way, number of actual pulses don't. When having two wave cycles in the LUT, number of pulses doubles as well. This information is relevant for both one shot mode and pulsed mode, while the effect is not seen in continuous mode. 
 
 ## Developer Notes
 

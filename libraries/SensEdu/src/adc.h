@@ -23,8 +23,8 @@ typedef enum {
     ADC_ERROR_INIT_DMA = 0x06,
     ADC_ERROR_INIT_ONE_SHOT_SR = 0x07,
     ADC_ERROR_PICKED_WRONG_CHANNEL = 0x08,
-    ADC_ERROR_DISABLE_FAIL = 0x09,
-    ADC_ERROR_ENABLE_FAIL = 0x0A,
+    ADC_ERROR_ENABLE_FAIL = 0x09,
+    ADC_ERROR_DISABLE_FAIL = 0x0A,
     ADC_ERROR_SOFT_POLLING_IN_DMA_MODE = 0x0B,
     ADC_ERROR_SOFT_POLLING_ADC_NOT_STARTED= 0x0C,
 
@@ -54,7 +54,7 @@ typedef struct {
     uint8_t pin_num;                // Number of pins in pin array
 
     SENSEDU_ADC_SR_MODE sr_mode;    // FREE: free-run; FIXED: with timer-triggered rate
-    uint32_t sampling_rate_hz ;     // SR in Hz (if sr_mode = FIXED)
+    uint32_t sampling_rate_hz;      // SR in Hz (if sr_mode = FIXED)
     
     SENSEDU_ADC_MODE adc_mode;      // Polling one-shot/continuous, or DMA normal/circular
     uint16_t* mem_address;          // Destination buffer for DMA (if adc_mode = DMA_xxx)

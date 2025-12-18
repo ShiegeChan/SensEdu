@@ -107,13 +107,13 @@ void loop() {
     SensEdu_ADC_Start(adc3);
     
     // wait for the data and send it
-    while(!SensEdu_ADC_IsDmaTransferComplete(adc1));
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc1));
     SensEdu_ADC_ClearDmaTransferComplete(adc1);
 
-    while(!SensEdu_ADC_IsDmaTransferComplete(adc2));
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc2));
     SensEdu_ADC_ClearDmaTransferComplete(adc2);
 
-    while(!SensEdu_ADC_IsDmaTransferComplete(adc3));
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc3));
     SensEdu_ADC_ClearDmaTransferComplete(adc3);
     
     serial_send_array(buf1, buf_size, 32);

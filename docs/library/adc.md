@@ -10,7 +10,7 @@ nav_order: 2
 {: .fs-8 .fw-500 .no_toc}
 ---
 
-Analog-to-Digital Converters (ADCs) translate analog signals (e.g., from sensors or microphones) into digital form, readable by CPU. 
+Analog-to-Digital Converters (ADCs) translate analog signals from microphones and other sensors into digital form, readable by CPU.
 {: .fw-500}
 
 The STM32H747 features three 16-bit ADCs with up to 20 multiplexed channels each.
@@ -20,29 +20,32 @@ The STM32H747 features three 16-bit ADCs with up to 20 multiplexed channels each
 
 ## Errors
 
-The main ADC error code prefix is `0x20xx`. Find the way to display errors in your Arduino sketch [here]({% link library/index.md %}#error-handling).
+ADC error codes use the `0x20xx` range. See how to display errors in your Arduino sketch [here]({% link library/index.md %}#error-handling).
 
 An overview of possible errors for ADC:
 
-* `0x2000`: No Errors
-* `0x2001`: ADC was initialized before initialization
-* `0x2002`: Passed ADC instance is not either `ADC1`, `ADC2` nor `ADC3`
-* `0x2003`: ADC failed to disable
-* `0x2004`: ADC failed to power up
-* `0x2005`: Selected pin for ADC is not reachable. Refer to the [table] to find proper pins for each ADC instance
-* `0x2006`: Unexpected pin number during initialization. Must be at least 1
-* `0x2007`: Unexpected address or memory size for DMA
-* `0x2008`: Unexpected sampling frequency. Must be at least 1kHz
-* `0x2009`: Software polling in `SENSEDU_ADC_MODE_ONE_SHOT` is currently broken. Use `SENSEDU_ADC_MODE_CONT` or `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`. If you want to look into this and have a try fixing it, refer to [this issue]
+* `0x2000`: No error
+* `0x2001`: Invalid ADC instance; must be `ADC1`, `ADC2`, or `ADC3`
+* `0x2002`: ADC initialization failed
+* `0x2003`: Invalid pin array size; use an integer 1-16
+* `0x2004`: Invalid pin array
+* `0x2005`: Invalid sampling rate; must be at least 10Hz
+* `0x2006`: Invalid DMA buffer address or size
+* `0x2007`: Invalid mode config; you cannot set a sampling rate in one-shot mode
+* `0x2008`: Invalid ADC channel; the selected ADC instance is not available on this pin, refer to the [table] for mapping details
+* `0x2009`: Failed to enable ADC
+* `0x200A`: Failed to disable ADC
+* `0x200B`: Software polling used with DMA mode; switch to software mode
+* `0x200C`: Software polling attempted without enabling the ADC
 
 An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
 
-* `0x20A0`: PLL configuration failed
-* `0x20A1`: Internal logic for channel selection failed
-* `0x20A1`: Internal logic for setting sample time failed
-* `0x20A2`: Operation mode selection accepted unexpected value. Should never happen, since all possible values of type `SENSEDU_ADC_CONVMODE` must be handled internally
-* `0x20A3`: Data management mode selection accepted unexpected value. Should never happen, since all possible values of type `SENSEDU_ADC_DMA` must be handled internally
-
+* `0x20A0`: General undefined behaviour detected
+* `0x20A1`: PLL configuration failed
+* `0x20A2`: Internal channel selection logic failed
+* `0x20A3`: Internal sampling time selection logic failed
+* `0x20A4`: Operation mode selection received an unexpected value
+* `0x20A5`: Data management mode selection received an unexpected value
 
 ## Structs
 
@@ -55,10 +58,10 @@ typedef struct {
     uint8_t* pins;
     uint8_t pin_num;
 
-    SENSEDU_ADC_CONVMODE conv_mode;
-    uint32_t sampling_freq;
+    SENSEDU_ADC_SR_MODE sr_mode;
+    uint32_t sampling_rate_hz;
     
-    SENSEDU_ADC_DMA dma_mode;
+    SENSEDU_ADC_MODE adc_mode;
     uint16_t* mem_address;
     uint16_t mem_size;
 } SensEdu_ADC_Settings;
@@ -69,21 +72,22 @@ typedef struct {
 * `adc`: Selects the ADC peripheral (`ADC1`, `ADC2` or `ADC3`)
 * `pins`: Array of Arduino-labeled analog pins (e.g., {`A0`, `A3`, `A7`}). The ADC will sequentially sample these pins
 * `pin_num`: `pins` array length
-* `conv_mode`:
-  * `SENSEDU_ADC_MODE_ONE_SHOT`: Single conversion on demand
-  * `SENSEDU_ADC_MODE_CONT`: Continuous conversions
-  * `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`: Timer-driven continuous conversions, which enables stable sampling frequency
-* `sampling_freq`: Specified sampling frequency for `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` mode. Up to 1MS/sec
-* `dma_mode`: Specifies if ADC values are manually polled with CPU or automatically transferred into memory with DMA:
-  * `SENSEDU_ADC_DMA_CONNECT`: Attach DMA
-  * `SENSEDU_ADC_DMA_DISCONNECT`: CPU polling
-* `mem_address`: DMA buffer address in memory (first element of the array)
+* `sr_mode`:
+  * `SENSEDU_ADC_SR_MODE_FREE`: ADC runs as fast as possible
+  * `SENSEDU_ADC_SR_MODE_FIXED`: ADC runs at fixed timer-triggered rate
+* `sampling_rate_hz`: Specified sampling frequency for `SENSEDU_ADC_SR_MODE_FIXED` mode in Hz
+* `adc_mode`:
+  * `SENSEDU_ADC_MODE_POLLING_ONE_SHOT`: ADC performs exactly one sequence and stops
+  * `SENSEDU_ADC_MODE_POLLING_CONT`: ADC runs indefinitely until stopped
+  * `SENSEDU_ADC_MODE_DMA_NORMAL`: DMA fills the buffer and stops
+  * `SENSEDU_ADC_MODE_DMA_CIRCULAR`: DMA fills the buffer "in a ring", wrapping indefinitely
+* `mem_address`: DMA buffer address
 * `mem_size`: DMA buffer size
 
 #### Notes {#adc_mapping}
 {: .no_toc}
 
-Be aware of which pins you can use with selected ADC. Table below shows ADC connections. For example, you can't access `ADC3` with pin `A7`, cause it is only connected to `ADC1`. 
+Be aware of which pins you can use with the selected ADC. Table below shows ADC connections. For example, you can't access `ADC3` with pin `A7`, because it is only connected to `ADC1`. 
 
 * `ADCx_INPy`:
   * `x`: Connected ADCs (e.g., `ADC12_INP4` - `ADC1` and `ADC2`)
@@ -116,14 +120,16 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* adc_settings);
 
 #### Parameters
 {: .no_toc}
-* `adc_settings`: ADC configuration structure
+* `adc_settings`: Pointer to the ADC configuration structure
 
 #### Notes
 {: .no_toc}
-* Initializes associated DMA and timer in `SENSEDU_ADC_DMA_CONNECT` and `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` modes respectively.
+* Some ADC configuration registers are shared between multiple ADC instances. These registers can only be modified while all related ADCs are disabled.
+* Initializes the associated DMA when using `SENSEDU_ADC_MODE_DMA_xxx` modes.
+* Initializes the associated sampling timer when using `SENSEDU_ADC_SR_MODE_FIXED` mode.
 
 {: .WARNING}
-Be careful to initialize each required ADC before enabling. Certain configuration is shared between multiple ADCs, which could be edited only if related ADCs are disabled.
+All required ADCs must be initialized before enabling any of them. Enabling an ADC locks certain shared configuration fields.
 
 ```c
 // ERROR
@@ -141,134 +147,300 @@ SensEdu_ADC_Enable(ADC2);
 
 
 ### SensEdu_ADC_Enable
-Powers on the ADC.
+Powers on the ADC peripheral.
 
 ```c
-void SensEdu_ADC_Enable(ADC_TypeDef* ADC);
+void SensEdu_ADC_Enable(ADC_TypeDef* adc);
 ```
 
 #### Parameters
 {: .no_toc}
-* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
 
 #### Notes
 {: .no_toc}
-* Enables sampling frequency timer in `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED` mode.
-* **Don't confuse with `SensEdu_ADC_Start`.** `Enable` turns ADC on, but `Start` is used to trigger conversions.
+* Enables the sampling timer when using `SENSEDU_ADC_SR_MODE_FIXED` mode.
+* **Do not confuse with `SensEdu_ADC_Start`.** `Enable` turns ADC on, but `Start` triggers conversions.
 
 
 ### SensEdu_ADC_Disable
-Deactivates the ADC.
+Deactivates the ADC peripheral.
 
 ```c
-void SensEdu_ADC_Disable(ADC_TypeDef* ADC);
+void SensEdu_ADC_Disable(ADC_TypeDef* adc);
 ```
 
 #### Parameters
 {: .no_toc}
-* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
 
 #### Notes
 {: .no_toc}
-* Disables associated DMA in `SENSEDU_ADC_DMA_CONNECT` mode.
+* Disables the associated DMA when using `SENSEDU_ADC_MODE_DMA_xxx` modes.
 
 
 ### SensEdu_ADC_Start
 Triggers ADC conversions.
 
 ```c
-void SensEdu_ADC_Start(ADC_TypeDef* ADC);
+void SensEdu_ADC_Start(ADC_TypeDef* adc);
 ```
 
 #### Parameters
 {: .no_toc}
-* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
 
 #### Notes
 {: .no_toc}
-* Enables associated DMA in `SENSEDU_ADC_DMA_CONNECT` mode.
+* Enables the associated DMA in `SENSEDU_ADC_MODE_DMA_xxx` modes.
+* After this function call, depending on the selected ADC mode, either the DMA buffer will be filled with ADC conversions or you must poll for results manually using `SensEdu_ReadConversion`.
 
 
-### SensEdu_ADC_GetTransferStatus
-Returns current DMA transfer status (`dma_complete` flag)
+### SensEdu_ADC_IsDmaTransferComplete
+Returns the current DMA transfer completion status.
 
 ```c
-uint8_t SensEdu_ADC_GetTransferStatus(ADC_TypeDef* adc);
+bool SensEdu_ADC_IsDmaTransferComplete(ADC_TypeDef* adc);
 ```
 
 #### Parameters
 {: .no_toc}
-* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
 
 #### Returns
 {: .no_toc}
-* `dma_complete` flag: `HIGH` indicated that DMA controller finished memory transfer
+* `true`: DMA transfer has been completed.
+* `false`: DMA transfer is still in progress.
 
 #### Notes
 {: .no_toc}
-* `dma_complete` flag is automatically cleared by calling `SensEdu_ADC_Start()`
+* The DMA completion flag is automatically cleared when calling `SensEdu_ADC_Start()`.
+* The flag is not cleared automatically on read, you need to do it manually:
+
+```c
+if (SensEdu_ADC_IsDmaTransferComplete(ADC1)) {
+    ...
+    // some logic, e.g., USB data transfer
+    ...
+    SensEdu_ADC_ClearDmaTransferComplete(ADC1);
+}
+```
 
 {: .TIP}
-Avoid performing any actions without acknowledging this flag. It ensures that the data was completely transferred.
+Always check this flag before processing DMA buffers to ensure data integrity.
+
+
+### SensEdu_ADC_ClearDmaTransferComplete
+Clears the DMA transfer completion flag.
+
+```c
+void SensEdu_ADC_ClearDmaTransferComplete(ADC_TypeDef* adc);
+```
+
+#### Parameters
+{: .no_toc}
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+
+#### Notes
+{: .no_toc}
+* The DMA completion flag is automatically cleared when calling `SensEdu_ADC_Start()`.
+* The flag is not cleared automatically on read, you need to do it manually:
+
+```c
+if (SensEdu_ADC_IsDmaTransferComplete(ADC1)) {
+    ...
+    // some logic, e.g., USB data transfer
+    ...
+    SensEdu_ADC_ClearDmaTransferComplete(ADC1);
+}
+```
+
+
+### SensEdu_ADC_IsDmaHalfTransferComplete
+Returns the DMA half-transfer completion status.
+
+```c
+bool SensEdu_ADC_IsDmaHalfTransferComplete(ADC_TypeDef* adc);
+```
+
+#### Parameters
+{: .no_toc}
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+
+#### Returns
+{: .no_toc}
+* `true`: Half of the DMA buffer has been filled.
+* `false`: Half-transfer has not been reached yet.
+
+#### Notes
+{: .no_toc}
+* Useful for double-buffering and low-latency signal processing.
+* The flag is not cleared automatically on read, you need to do it manually:
+
+```c
+if (SensEdu_ADC_IsDmaHalfTransferComplete(ADC1)) {
+    ...
+    // some logic, e.g., USB data transfer
+    ...
+    SensEdu_ADC_ClearDmaHalfTransferComplete(ADC1);
+}
+```
+
+
+### SensEdu_ADC_ClearDmaHalfTransferComplete
+Clears the DMA half-transfer completion flag.
+
+```c
+void SensEdu_ADC_ClearDmaHalfTransferComplete(ADC_TypeDef* adc);
+```
+
+#### Parameters
+{: .no_toc}
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+
+#### Notes
+{: .no_toc}
+* Should be called after processing the first half of the DMA buffer.
+* The flag is not cleared automatically on read, you need to do it manually:
+
+```c
+if (SensEdu_ADC_IsDmaHalfTransferComplete(ADC1)) {
+    ...
+    // some logic, e.g., USB data transfer
+    ...
+    SensEdu_ADC_ClearDmaHalfTransferComplete(ADC1);
+}
+```
 
 
 ### SensEdu_ADC_ReadConversion
-Manually read a single ADC conversion (alternative to DMA).
+Reads a single ADC conversion using CPU polling (non-DMA).
 
 ```c
-uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* ADC)
+uint16_t SensEdu_ADC_ReadConversion(ADC_TypeDef* adc)
 ```
 
 #### Parameters
 {: .no_toc}
-* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
 
 #### Returns
 {: .no_toc}
-* 16-bit value from selected channel
+* 16-bit ADC conversion result from the selected channel.
 
 #### Notes
 {: .no_toc}
-* Used for readings using single channel. For multi-channel readings, use `SensEdu_ADC_ReadSequence`.
-* Consumes CPU cycles. Prefer DMA to free CPU for other tasks. For example, you can perform complex calculations on ADC values, while requesting the new set of data with DMA.
-* Refer to non-DMA examples like `Read_ADC_1CH`.
+* Intended for single-channel measurements. For multi-channel readings, use `SensEdu_ADC_ReadSequence()`.
+* Consumes CPU cycles; DMA is **always** the better option and frees the CPU for other tasks. With DMA you can achieve much higher data rates and parallelize computations while the buffer is being filled with new data.
+* Refer to non-DMA examples like `ADC_1CH_Poll_xxx`.
 
 
 ### SensEdu_ADC_ReadSequence
-Manually read a sequence of ADC conversions (alternative to DMA).
+Reads a sequence of ADC conversions using CPU polling (non-DMA).
 
 ```c
-uint16_t SensEdu_ADC_ReadSequence(ADC_TypeDef* ADC)
+uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* adc)
 ```
 
 #### Parameters
 {: .no_toc}
-* `ADC`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
 
 #### Returns
 {: .no_toc}
-* A pointer to an array of ADC conversion results. Index the array to access values: `[0]`, `[1]`, `[2]`, etc., corresponding to the amount of selected channels (`pins` array in `SensEdu_ADC_Settings`)
+* Pointer to an array containing ADC conversion results. Array indices correspond to the channel order defined in `SensEdu_ADC_Settings`.
 
 #### Notes
 {: .no_toc}
-* Used for readings using multiple channels. For single-channel readings, use `SensEdu_ADC_ReadConversion`.
-* Consumes CPU cycles. Prefer DMA to free CPU for other tasks. For example, you can perform complex calculations on ADC values, while requesting the new set of data with DMA.
-* Refer to non-DMA examples like `Read_ADC_3CH`.
+* Intended for multi-channel measurements. For single-channel readings, use `SensEdu_ADC_ReadConversion()`.
+* In `SENSEDU_ADC_MODE_POLLING_CONT` mode multi-channel software polling is problematic. Due to race conditions between EOC/EOS flags, and the automatic start of the next conversion, reliable multi-channel polling is not guaranteed, occasional desynchronization may occur, breaking channel alignment. Higher sampling rate increases the risk of misalignment even further.
+* Consumes CPU cycles; DMA is **always** the better option and frees the CPU for other tasks. With DMA you can achieve much higher data rates and parallelize computations while the buffer is being filled with new data.
+* Refer to non-DMA examples like `ADC_3CH_Poll_xxx`.
 
 {: .WARNING}
-Multi-channel CPU polling currently doesn't work in `SENSEDU_ADC_MODE_ONE_SHOT`. Use `SENSEDU_ADC_MODE_CONT` or `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`. If you want to look into this and have a try fixing it, refer to [this issue].
+Multi-channel CPU polling is inefficient and not recommended at all. It scales very poorly with channel count and sampling frequency. These polling examples are included mainly for educational purposes, as they are more intuitive. Use DMA whenever possible.
 
 
-### SensEdu_ADC_ShortA4toA9
-Shorts pin `A4` to `A9` on Arduino. 
+### SensEdu_ADC_EnableOverrunInterrupt
+Enables the ADC overrun interrupt.
 
 ```c
-void SensEdu_ADC_ShortA4toA9(void);
+void SensEdu_ADC_EnableOverrunInterrupt(ADC_TypeDef* adc);
 ```
+
+#### Parameters
+{: .no_toc}
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
 
 #### Notes
 {: .no_toc}
-* **In older board revisions**, microphone #2 is wired to pin `A9` (`PC3_C`), which is routed only to `ADC3`. This conflicts with project requiring x4 microphones, using `ADC1` and `ADC2` with x2 channels per ADC. To solve this problem, `_C` pins could be shorted to their `non_C` counterparts. This way pin `A4` (`PC3`) is bridged to `A9` (`PC3_C`), allowing microphone #2 to be accessed via any ADC, since `PC3` is shared between `ADC1` and `ADC2`. Refer to the [table] at settings section for better understanding.
+* Generates an interrupt when a new conversion result overwrites unread data.
+* Useful for detecting sampling or processing bottlenecks.
+* You can see the problem with continuous software polling very clear using overrun interrupts. Navigate to `ADC_1CH_Poll_Continuous` example, play with the sampling rate setting, and observe the amount of missed samples in the Serial Monitor.
+
+### SensEdu_ADC_DisableOverrunInterrupt
+Disables the ADC overrun interrupt.
+
+```c
+void SensEdu_ADC_DisableOverrunInterrupt(ADC_TypeDef* adc);
+```
+
+#### Parameters
+{: .no_toc}
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+
+
+### SensEdu_ADC_IsOverrun
+Checks whether an ADC overrun event has occurred.
+
+```c
+bool SensEdu_ADC_IsOverrun(ADC_TypeDef* adc);
+```
+
+#### Parameters
+{: .no_toc}
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+
+#### Returns
+{: .no_toc}
+* `true`: An overrun event has occurred.
+* `false`: No overrun detected.
+
+#### Notes
+{: .no_toc}
+* The flag is not cleared automatically on read, you need to do it manually.
+
+
+### SensEdu_ADC_ClearOverrun
+Clears the ADC overrun flag.
+
+```c
+void SensEdu_ADC_ClearOverrun(ADC_TypeDef* adc);
+```
+
+#### Parameters
+{: .no_toc}
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+
+#### Notes
+{: .no_toc}
+* Should be called after handling an overrun condition.
+
+
+### SensEdu_ADC_GetOverrunCount
+Returns the total number of ADC overrun events.
+
+```c
+uint32_t SensEdu_ADC_GetOverrunCount(ADC_TypeDef* adc);
+```
+
+#### Parameters
+{: .no_toc}
+* `adc`: ADC Instance (`ADC1`, `ADC2` or `ADC3`)
+
+#### Returns
+{: .no_toc}
+* Total number of detected overrun events since initialization.
 
 
 ## Examples
@@ -278,17 +450,20 @@ Examples are organized incrementally. Each builds on the previous one by introdu
 
 If you want to see complete examples, visit `\examples\` directory or open them via Arduino IDE by navigating to `File → Examples → SensEdu`.
 
-### Read_ADC_1CH
 
-Continuously reads ADC conversions directly via CPU for one selected analog pin.
+### ADC_1CH_Poll_One_Shot
+Requests and reads one ADC conversion directly via CPU for one selected analog pin.
 
-1. Include SensEdu library
-2. Declare ADC instance, pin array and array size corresponding to your channel count for selected ADC
+1. Include the SensEdu library
+2. Declare the ADC instance, pin array, and array size corresponding to your channel count for the selected ADC
 3. Configure ADC Parameters by declaring [`SensEdu_ADC_Settings`]({% link library/adc.md %}#sensedu_adc_settings) struct
-4. Initialize `SensEdu_ADC_Init()` and power up ADC `SensEdu_ADC_Enable()`
-5. Start ADC once with `SensEdu_ADC_Start()` (**once** applies only for continuous mode `SENSEDU_ADC_MODE_CONT`)
-6. In a loop, manually read data from a single channel using `SensEdu_ADC_ReadConversion()`. Print results with `Serial`
-7. Open Serial Monitor to see results. Try to connect selected pin to GND or 3.3V. The values should vary in a range from 0 to 65535
+4. Disable the sampling timer by setting the SR mode to `SENSEDU_ADC_SR_MODE_FREE`
+5. Enable one-shot software polling by setting the ADC mode to `SENSEDU_ADC_MODE_POLLING_ONE_SHOT`
+6. Initialize with `SensEdu_ADC_Init()` and power up the ADC using `SensEdu_ADC_Enable()`
+7. Start the ADC with `SensEdu_ADC_Start()`
+8. Read conversion result with `SensEdu_ADC_ReadConversion()`
+9. Print results using `Serial` and view it in the Serial Monitor
+10. Test by connecting the selected pin to GND or 3.3 V; the values should range from 0 to 65535
 
 ```c
 #include "SensEdu.h"
@@ -301,17 +476,95 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = adc_pins,
     .pin_num = adc_pin_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT,
-    .sampling_freq = 0,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FREE,
+    .sampling_rate_hz = 0,
     
-    .dma_mode = SENSEDU_ADC_DMA_DISCONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_POLLING_ONE_SHOT,
     .mem_address = 0x0000,
     .mem_size = 0
 };
 
 void setup() {
     Serial.begin(115200);
+    SensEdu_ADC_Init(&adc_settings);
+    SensEdu_ADC_Enable(adc);
+}
+
+void loop() {
+    SensEdu_ADC_Start(adc);
+    uint16_t data = SensEdu_ADC_ReadConversion(adc);
+    Serial.println(data);
+}
+```
+
+#### Notes
+{: .no_toc}
+* In some modes there are unused parameters. For instance, in software polling without a sampling timer, you don't use `.sampling_rate_hz` or `.mem_address`. Such parameters can be set to any value; they are ignored.
+* ADC values are 16-bit, vary from 0 (0V) to 65535 (3.3V).
+
+
+### ADC_3CH_Poll_One_Shot
+Requests and reads one ADC conversion directly via CPU for multiple selected analog pins.
+
+1. Follow the base configuration from the [`ADC_1CH_Poll_One_Shot`]({% link library/adc.md %}#adc_1ch_poll_one_shot) example
+2. Extend the pin array to include more channels. Update array size to match the channel count.
+3. Replace `SensEdu_ADC_ReadConversion()` with `SensEdu_ADC_ReadSequence()` to retrieve the sequence of conversions
+4. Update the print function to include all channels
+
+```c
+...
+const uint8_t adc_pin_num = 3;
+uint8_t adc_pins[adc_pin_num] = {A0, A1, A2};
+...
+void loop() {
+    SensEdu_ADC_Start(adc);
+    uint16_t* data = SensEdu_ADC_ReadSequence(adc);
     
+    Serial.println("-------");
+    for (uint8_t i = 0; i < adc_pin_num; i++) {
+        Serial.print("CH");
+        Serial.print(i);
+        Serial.print(" = ");
+        Serial.println(data[i]);
+    }
+}
+```
+
+#### Notes
+{: .no_toc}
+* Compared to the single-channel configuration, `SensEdu_ADC_ReadSequence()` returns a pointer rather than a value. Using this pointer, you can access all channels in a sequence with index brackets `[]`.
+* ADC conversions are organized in a "package" called a **sequence**. They follow exact order defined in `adc_pins` (A0 → A1 → A2 in this example).
+
+
+### ADC_1CH_Poll_Continuous
+
+Continuously reads ADC conversions directly via CPU for one selected analog pin.
+
+1. Follow base configuration from the [`ADC_1CH_Poll_One_Shot`]({% link library/adc.md %}#adc_1ch_poll_one_shot) example
+2. Change the ADC mode to `SENSEDU_ADC_MODE_POLLING_CONT`
+3. Move the `SensEdu_ADC_Start()` function into `setup()`, as the ADC needs to be started only once
+
+```c
+#include "SensEdu.h"
+
+ADC_TypeDef* adc = ADC1;
+const uint8_t adc_pin_num = 1;
+uint8_t adc_pins[adc_pin_num] = {A0};
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = adc_pins,
+    .pin_num = adc_pin_num,
+
+    .sr_mode = SENSEDU_ADC_SR_MODE_FREE,
+    .sampling_rate_hz = 0,
+    
+    .adc_mode = SENSEDU_ADC_MODE_POLLING_CONT,
+    .mem_address = 0x0000,
+    .mem_size = 0
+};
+
+void setup() {
+    Serial.begin(115200);
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
@@ -325,17 +578,19 @@ void loop() {
 
 #### Notes
 {: .no_toc}
-* For the most simple CPU polling configuration there are unused parameters like `.sampling_rate` or `.mem_address`. Such parameters could be set to any value, they are completely ignored.
-* ADC values are 16-bit, vary from 0 (0V) to 65535 (3.3V).
+* This example is intended only for educational purposes. For continuous data transfers, use DMA (see [`ADC_1CH_DMA_Normal`]({% link library/adc.md %}#adc_1ch_dma_normal)).
+* You can enable the sampling timer by setting the SR mode to `SENSEDU_ADC_SR_MODE_FIXED`. Expect marginally acceptable sampling rate of up to about 1000Hz in single-channel software polling mode.
+* You can optionally enable overrun interrupts with `SensEdu_ADC_EnableOverrunInterrupt()` to observe missing samples by slightly increasing the sampling frequency. See the example source code for a complete demonstration.
 
 
-### Read_ADC_3CH
+### ADC_3CH_Poll_Continuous
 
 Continuously reads sequences of ADC conversions directly via CPU for multiple selected analog pins.
 
-1. Follow base configuration from the [`Read_ADC_1CH`]({% link library/adc.md %}#read_adc_1ch) example
-2. Expand pin array to include all desired channels. Update array size to match channel count
-3. Use `SensEdu_ADC_ReadSequence()` to retrieve a channel sequence array
+1. Follow base configuration from the [`ADC_1CH_Poll_Continuous`]({% link library/adc.md %}#adc_1ch_poll_continuous) example
+2. Extend the pin array to include more channels. Update array size to match the channel count
+3. Replace `SensEdu_ADC_ReadConversion()` with `SensEdu_ADC_ReadSequence()` to retrieve the sequence of conversions
+4. Update the print function to include all channels
 
 ```c
 ...
@@ -344,11 +599,12 @@ uint8_t adc_pins[adc_pin_num] = {A0, A1, A2};
 ...
 void loop() {
     uint16_t* data = SensEdu_ADC_ReadSequence(adc);
+
     Serial.println("-------");
     for (uint8_t i = 0; i < adc_pin_num; i++) {
-        Serial.print("Value CH");
+        Serial.print("CH");
         Serial.print(i);
-        Serial.print(": ");
+        Serial.print(" = ");
         Serial.println(data[i]);
     }
 }
@@ -356,87 +612,33 @@ void loop() {
 
 #### Notes
 {: .no_toc}
-* Compared to single-channel configuration, `SensEdu_ADC_ReadSequence()` returns not a value, but a pointer. Using this pointer, you can access all channels in a sequence with index brackets `[]`.
-* ADC conversions are organized in a "package" called **sequence**. They follow exact order defined in `adc_pins` (A0 → A1 → A2 in this example).
+* This example is intended only for educational purposes. For continuous data transfers, use DMA (see [`ADC_3CH_DMA_Normal`]({% link library/adc.md %}#adc_3ch_dma_normal)).
+* Due to race conditions between EOC/EOS flags, and the automatic start of the next conversion, reliable multi-channel polling is not guaranteed, occasional desynchronization may occur, breaking channel alignment. Higher sampling rate increases the risk of misalignment even further.
+* Compared to the single-channel configuration, `SensEdu_ADC_ReadSequence()` returns a pointer rather than a value. Using this pointer, you can access all channels in a sequence with index brackets `[]`.
+* ADC conversions are organized in a "package" called a **sequence**. They follow exact order defined in `adc_pins` (A0 → A1 → A2 in this example).
 
 
-### Read_ADC_1CH_TIM
+### ADC_1CH_DMA_Normal
 
-Continuously reads ADC conversions directly via CPU for one selected analog pin with constant sampling rate using timer trigger.
+Continuously reads ADC conversions using DMA for one selected analog pin.
 
-1. Follow base configuration from the [`Read_ADC_1CH`]({% link library/adc.md %}#read_adc_1ch) example
-2. Update conversion mode `.conv_mode` in `SensEdu_ADC_Settings` to `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`
-3. Specify sampling frequency in Hz via `.sampling_freq`
-
-```c
-...
-SensEdu_ADC_Settings adc_settings = {
-    .adc = adc,
-    .pins = adc_pins,
-    .pin_num = adc_pin_num,
-
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
-    
-    .dma_mode = SENSEDU_ADC_DMA_DISCONNECT,
-    .mem_address = 0x0000,
-    .mem_size = 0
-};
-...
-```
-
-#### Notes
-{: .no_toc}
-* Expect small variations from specified sampling frequency
-
-
-### Read_ADC_3CH_TIM
-
-Continuously reads sequences of ADC conversions directly via CPU for multiple selected analog pins with constant sampling rate using timer trigger.
-
-1. Follow base multi-channel configuration from the [`Read_ADC_3CH`]({% link library/adc.md %}#read_adc_3ch) example
-2. Update conversion mode `.conv_mode` in `SensEdu_ADC_Settings` to `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`
-3. Specify sampling frequency in Hz via `.sampling_freq`
-
-```c
-...
-SensEdu_ADC_Settings adc_settings = {
-    .adc = adc,
-    .pins = adc_pins,
-    .pin_num = adc_pin_num,
-
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
-    
-    .dma_mode = SENSEDU_ADC_DMA_DISCONNECT,
-    .mem_address = 0x0000,
-    .mem_size = 0
-};
-...
-```
-
-#### Notes
-{: .no_toc}
-* Expect small variations from specified sampling frequency
-
-
-### Read_ADC_1CH_DMA
-
-Continuously reads ADC conversions using DMA for a single analog pin, allowing efficient data transfer without CPU intervention.
-
-1. Follow the base configuration from the [`Read_ADC_1CH`]({% link library/adc.md %}#read_adc_1ch) example
-2. Declare ADC Buffer with a macro `SENSEDU_ADC_BUFFER` to store the data. It takes two parameters: the user-defined ***name*** to be used in the code and the buffer ***size*** (number of elements)
-3. In `SensEdu_ADC_Settings`, set `.dma_mode` to `SENSEDU_ADC_DMA_CONNECT`
-4. Assign `.mem_address` to the buffer's first element address and `.mem_size` to its length
-5. After calling `SensEdu_ADC_Start()`, the ADC fills the buffer with conversions and automatically stops, setting the `dma_complete` flag
-6. Check `dma_complete` using `SensEdu_ADC_GetTransferStatus()`. When `true`, read the buffer and perform operations (e.g., print values, compute something)
-7. Call `SensEdu_ADC_Start()` again to trigger the next ADC-DMA sequence
+1. Include the SensEdu library
+2. Declare DMA buffer using `SENSEDU_ADC_BUFFER` macro. It takes two parameters: a user-defined ***name*** to reference in code and the buffer ***size*** (number of elements)
+3. Declare the ADC instance, pin array, and array size corresponding to your channel count for the selected ADC
+4. Configure ADC Parameters by declaring [`SensEdu_ADC_Settings`]({% link library/adc.md %}#sensedu_adc_settings) struct
+5. Enable the sampling timer by setting the SR mode to `SENSEDU_ADC_SR_MODE_FIXED`
+6. Enable DMA by setting the ADC mode to `SENSEDU_ADC_MODE_DMA_NORMAL`
+7. Initialize with `SensEdu_ADC_Init()` and power up the ADC using `SensEdu_ADC_Enable()`
+8. Start the ADC with `SensEdu_ADC_Start()`
+9. Wait for the DMA completion flag by checking `SensEdu_ADC_IsDmaTransferComplete()`. When `true`, read the buffer and perform computation or other operations.
+10. Clear the flag by calling `SensEdu_ADC_ClearDmaTransferComplete()`
+11. Optionally restart the ADC for the next data batch with `SensEdu_ADC_Start()`
 
 ```c
 #include "SensEdu.h"
 
-const uint16_t memory4adc_size = 128;
-SENSEDU_ADC_BUFFER(memory4adc, memory4adc_size);
+const uint16_t buf_size = 30;
+SENSEDU_ADC_BUFFER(buf, buf_size);
 
 ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 1;
@@ -446,33 +648,37 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = adc_pins,
     .pin_num = adc_pin_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT,
-    .sampling_freq = 0,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 10000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
-    .mem_address = (uint16_t*)memory4adc,
-    .mem_size = memory4adc_size
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
+    .mem_address = (uint16_t*)buf,
+    .mem_size = buf_size
 };
 
 void setup() {
     Serial.begin(115200);
-
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
 }
 
 void loop() {
-    // do something else when transfer is not yet completed
-    if (SensEdu_ADC_GetTransferStatus(adc)) {
+    ...
+    // Do some CPU processing
+    ...
+    // DMA runs in the background
+    if (SensEdu_ADC_IsDmaTransferComplete(adc)) {
         Serial.println("------");
-        for (int i = 0; i < memory4adc_size; i++) {
+        for (size_t i = 0; i < buf_size; i++) {
             Serial.print("ADC value ");
             Serial.print(i);
             Serial.print(": ");
-            Serial.println(memory4adc[i]);
+            Serial.println(buf[i]);
         };
 
+        // Request next batch
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
         SensEdu_ADC_Start(adc);
     }
 }
@@ -480,21 +686,22 @@ void loop() {
 
 #### Notes
 {: .no_toc}
-* `SensEdu_ADC_Start()` resets the `dma_complete` flag automatically.
-* Optimize your code to use DMA capability to perform memory transfers in the background. For example, start a new measurement in the middle of calculations, when the whole old dataset is not needed anymore.
+* Normal DMA mode fills the entire buffer once and then stops, so you need to restart the ADC. If you want continuous buffer refills without restarts, use circular mode.
+* `SensEdu_ADC_Start()` resets the DMA completion flag automatically; clearing the flag manually is optional if you call `Start` immediately after handling the buffer.
+* Optimize your code to take advantage of DMA performing memory transfers in the background. For example, start a new measurement mid-calculation when the previous dataset is no longer needed.
 
 {: .WARNING}
-Always use `SENSEDU_ADC_BUFFER` macro to define arrays for ADC in DMA mode. This macro automatically handles all buffer requirements for cache coherence, regardless of the selected size. For details, visit the [Cache Coherence]({% link library/adc.md %}#cache-coherence) section.
+Always use the `SENSEDU_ADC_BUFFER` macro to define arrays for ADC in DMA mode. This macro automatically handles all buffer requirements for cache coherence, regardless of the selected size. For details, see the [Cache Coherence]({% link library/adc.md %}#cache-coherence) section.
 
 
-### Read_ADC_3CH_DMA
+### ADC_3CH_DMA_Normal
 
-Continuously reads ADC conversions using DMA multiple selected analog pins, allowing efficient data transfer without CPU intervention.
+Continuously reads ADC conversions using DMA for multiple selected analog pins.
 
-1. Follow the DMA configuration from the [`Read_ADC_1CH_DMA`]({% link library/adc.md %}#read_adc_1ch_dma) example
-2. Expand pin array to include all desired channels. Update array size to match channel count
-3. Expand the ADC DMA buffer accordingly to include data for all channels
-4. Data is organized in a sequence, following the order defined in pin array (e.g., A0 → A1 → A2 → A0 → A1 → ...)
+1. Follow the base DMA configuration from the [`ADC_1CH_DMA_Normal`]({% link library/adc.md %}#adc_1ch_dma_normal) example
+2. Extend the pin array to include more channels. Update array size to match the channel count
+3. Increase the DMA buffer size accordingly
+4. Update the print function to include all channels
 
 
 ```c
@@ -502,138 +709,175 @@ Continuously reads ADC conversions using DMA multiple selected analog pins, allo
 const uint8_t adc_pin_num = 3;
 uint8_t adc_pins[adc_pin_num] = {A0, A1, A2}; 
 
-const uint16_t memory4adc_size = 64 * adc_pin_num;
-SENSEDU_ADC_BUFFER(memory4adc, memory4adc_size);
+const uint16_t buf_size = 30 * 3;
+SENSEDU_ADC_BUFFER(buf, buf_size);
 ...
 void loop() {
-    // do something else when transfer is not yet completed
-    if (SensEdu_ADC_GetTransferStatus(adc)) {
+    ...
+    // Do some CPU processing
+    ...
+    // DMA runs in the background
+    if (SensEdu_ADC_IsDmaTransferComplete(adc)) {
         Serial.println("------");
-        for (int i = 0; i < memory4adc_size; i+=3) {
-            Serial.print("ADC value ");
+        for (size_t i = 0; i < buf_size; i+=3) {
+            Serial.print("Index ");
             Serial.print(i/3);
-            Serial.print("CH1: ");
-            Serial.println(memory4adc[i]);
+            Serial.print(": CH0 = ");
+            Serial.print(buf[i]);
+            Serial.print(" | CH1 = ");
+            Serial.print(buf[i+1]);
+            Serial.print(" | CH2 = ");
+            Serial.println(buf[i+2]);
+        };
 
-            Serial.print("ADC value ");
-            Serial.print(i/3);
-            Serial.print("CH2: ");
-            Serial.println(memory4adc[i+1]);
-
-            Serial.print("ADC value ");
-            Serial.print(i/3);
-            Serial.print("CH3: ");
-            Serial.println(memory4adc[i+2]);
-        }
-
+        // Request next batch
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
         SensEdu_ADC_Start(adc);
-    };
+    }
 }
-```
-
-
-### Read_2ADC_3CH_DMA
-
-This example demonstrates the usage of multiple ADCs in DMA mode. Essentially, you follow the same steps as in the [`Read_ADC_3CH_DMA`]({% link library/adc.md %}#read_adc_3ch_dma) example, but use separate buffers, configuration structures, and function calls for each ADC.
-
-For example:
-
-```c
-SensEdu_ADC_Init(&adc1_settings);
-SensEdu_ADC_Enable(ADC1);
-SensEdu_ADC_Start(ADC1);
-
-SensEdu_ADC_Init(&adc2_settings);
-SensEdu_ADC_Enable(ADC2);
-SensEdu_ADC_Start(ADC2);
 ```
 
 #### Notes
 {: .no_toc}
-* Ensure there is no pin overlap between different ADCs (e.g., do not include pin A0 in the arrays for both ADC1 and ADC2).
+* Data is organized into sequences. Conversions follow exactly the same order defined in `adc_pins` (A0 → A1 → A2 in this example).
+* Choose a buffer size that is a multiple of the channel count to store whole sequences without misalignment.
 
-### Test_SR_3ADC_3TIM
+### ADC_3CH_DMA_Flags
 
-This example demonstrates the usage and testing of different sampling rates for each of the three available ADCs on the SensEdu Board, thanks to the assignment of a different timer to each ADC ([Timer occupation]({% link library/timers.md %} #timer-occupation)).
-We first define three macros corresponding to the desired sampling rates for each ADC, the user can initialize it with the desired value (the maximum is 120MHz).
+Demonstrates the use of the DMA half-transfer flag.
 
+1. Follow the base DMA configuration from the [`ADC_3CH_DMA_Normal`]({% link library/adc.md %}#adc_3ch_dma_normal) example
+2. Create a secondary buffer to save the DMA buffer at the half-transfer event for comparison
+3. Initialize both buffers to a non-zero value using `memset()`
+4. On the half-transfer event, copy the current buffer state into the secondary buffer
+5. On DMA completion, compare both buffers.
 
 ```c
-#define ADC1_SR  250000     // ADC1 sampling rate
-#define ADC2_SR  100000     // ADC2 sampling rate
-#define ADC3_SR  65000      // ADC3 sampling rate
+SENSEDU_ADC_BUFFER(buf_ct, buf_size);   // buffer for complete transfer
+SENSEDU_ADC_BUFFER(buf_ht, buf_size);   // buffer for half transfer
+...
+void setup() {
+    Serial.begin(115200);
+    SensEdu_ADC_Init(&adc_settings);
+    SensEdu_ADC_Enable(adc);
+
+    memset(buf_ct, 0x01, sizeof(buf_ct));
+    memset(buf_ht, 0x01, sizeof(buf_ht));
+
+    SensEdu_ADC_Start(adc);
+}
+
+void loop() {
+    // Half Transfer
+    if (SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+        for (size_t i = 0; i < buf_size; i++) {
+            buf_ht[i] = buf_ct[i];
+        }
+        SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
+    }
+
+    // Complete Transfer
+    if (SensEdu_ADC_IsDmaTransferComplete(adc)) {
+        ...
+        // print `buf_ht` contents
+        // print `buf_ct` contents
+        ...
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
+    }
+}
 ```
 
+#### Notes
+{: .no_toc}
+* Click the Reset button on the Arduino GIGA R1 to run the example again.
+* `memset()` sets bytes; using `0x01` initializes each 16-bit element to `0x0101` (257 in decimal).
+* Use the half-transfer flag to perform computations while the second half of the buffer is being filled.
+* For multi-channel ADC, choose a buffer size that is a multiple of `2 × channel_count` so the half-transfer boundary aligns with sequence boundaries. Below is an example of when this condition isn’t met.
+* Example output (buf_size = 15; A0 = GND; A1 = floating; A2 = VDD):
 
-Then the example case is the same as [`Basic_UltraSound_4CH`]({% link library/others.md %}#basic_ultrasound_4ch), but with these main differencies in the setting:
+<img src="{{site.baseurl}}/assets/images/adc_dma_flags.png" alt="drawing"/>
 
-1. for `.conv_mode` we are going to use `SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED`
-2. there is no initialization for the DAC, because we are going to feed the ADCs with a signal using a signal generator
+### ADC_1CH_DMA_Circular
 
-In the `matlab\Test_SR_3ADC_3Tim.m` file, specify serial parameters, sampling rates for each ADC and start connection with Arduino
+COMING SOON IN SENSEDU 0.8 (END OF JANUARY 2026)
 
-``` matlab
-%% Settings
-ARDUINO_PORT = 'COM4';
-ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 10000;
+### ADC_3CH_DMA_Circular
 
-ACTIVATE_PLOTS = true;
+COMING SOON IN SENSEDU 0.8 (END OF JANUARY 2026)
 
-DATA_LENGTH = 16 * 128; % Ensure this matches with firmware
-SINE_WAVE_FREQ = 1000; % Frequency of the input sine wave in Hz
+### ADCx3_Different_SR
 
-% Sampling rates for ADCs
-ADC1_SAMPLING_RATE = 250000; % 250 kHz
-ADC2_SAMPLING_RATE = 100000; % 100 kHz
-ADC3_SAMPLING_RATE = 65000; % 65 kHz
+Demonstrates the use of different sampling rates for each of the three available ADCs.
 
-%% Arduino Setup
-arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % Select port and baud rate
+1. Follow the base DMA configuration from the [`ADC_1CH_DMA_Normal`]({% link library/adc.md %}#adc_1ch_dma_normal) example
+2. Define a separate sampling rate for each ADC
+3. Replicate the ADC1 configuration for ADC2, and ADC3, differing only in the sampling rate
+4. Instead of printing, use a serial transmission to send the buffers to MATLAB
+5. Implement a receiver script in MATLAB to display the three transmitted buffers
+6. Connect a 1kHz sine from a wave generator to all three ADCs
+7. Plot the resulting waveforms in MATLAB; the different sampling rates should produce different numbers of samples per cycle of the sine wave
+
+```c
+#define ADC1_SR  250000
+#define ADC2_SR  100000
+#define ADC3_SR  65000
+...
+void loop() {
+    // Wait for the trigger from MATLAB
+    char c;
+    while (true) {
+        if (Serial.available() > 0) {
+            c = Serial.read();
+            if (c == 't') {
+                break;
+            }
+        }
+        delay(1);
+    }
+
+    SensEdu_ADC_Start(adc1);
+    SensEdu_ADC_Start(adc2);
+    SensEdu_ADC_Start(adc3);
+    
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc1));
+    SensEdu_ADC_ClearDmaTransferComplete(adc1);
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc2));
+    SensEdu_ADC_ClearDmaTransferComplete(adc2);
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc3));
+    SensEdu_ADC_ClearDmaTransferComplete(adc3);
+    
+    serial_send_array(buf1, buf_size, 32);
+    serial_send_array(buf2, buf_size, 32);
+    serial_send_array(buf3, buf_size, 32);
+}
+...
 ```
 
-After initializing the serial connection, the script enters the acquisition loop.
-The logic is similar to the one used in [Basic_UltraSound_4CH]({% link library/others.md %}#basic_ultrasound_4ch), but extended to handle three independent ADCs, each operating at different sampling rates.
-This allows the user to clearly visualize how the assigned timers affect the effective sampling frequency of each ADC.
-
+From the MATLAB side, start the serial connection and trigger the measurement by sending the `t` character. Inside the loop, the plotting function evaluates how many samples each ADC captures per sine period, based on its sampling rate. This clearly visualizes how the assigned sampling timers affect the effective sampling frequency of each ADC.
 
 ```matlab
-%% Readings Loop
+...
+arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
+...
 for it = 1:ITERATIONS
-    % Trigger ADC sampling on Arduino
-    write(arduino, 't', "char"); % Trigger Arduino via 't' character
+    write(arduino, 't', "char");
 
-    % Read ADC data
-    fprintf("Iteration: %d\n", it);
     data_adc1 = read_data(arduino, DATA_LENGTH, "ADC1");
     data_adc2 = read_data(arduino, DATA_LENGTH, "ADC2");
     data_adc3 = read_data(arduino, DATA_LENGTH, "ADC3");
 
-    % Plot data showing differences in sample rates and samples per cycle
-    if ACTIVATE_PLOTS
-        plot_adc_with_samples_per_cycle(data_adc1, data_adc2, data_adc3, ...
-            ADC1_SAMPLING_RATE, ADC2_SAMPLING_RATE, ADC3_SAMPLING_RATE, ...
-            SINE_WAVE_FREQ);
-    end
+    plot_adc_with_samples_per_cycle(data_adc1, data_adc2, data_adc3, ...
+        ADC1_SAMPLING_RATE, ADC2_SAMPLING_RATE, ADC3_SAMPLING_RATE, ...
+        SINE_WAVE_FREQ);
 end
+...
 ```
 
-The loop collects data from three separate ADCs instead of two microphones at a time as in [Basic_UltraSound_4CH]({% link library/others.md %}#basic_ultrasound_4ch).
-Inside the loop, the plotting function is specialized to evaluate how many samples each ADC captures per sine period, depending on its sampling rate.
-
-
-Furthermore, differently from [Basic_UltraSound_4CH]({% link library/others.md %}#basic_ultrasound_4ch), to support three separate ADCs running at different speeds, this example uses a more general `read_data` function that retrieves a block of `uint16` samples from the serial port and a dedicated function `plot_adc_with_samples_per_cycle` to visualize differences between sampling rates and samples per sine cycle is implemented.
-This last function:
-
-1. Computes samples per sine cycle for each ADC
-2. Creates time axes proportional to each sampling rate
-3. Generates 4 subplots: ADC1 signal, ADC2 signal, ADC3 signal and all three signal superimposed for visual comparison
-
-In this way the impact of each ADC configuartion with its own sampling rate is immediately visible to the user.
+<img src="{{site.baseurl}}/assets/images/adc_different_sr.png" alt="drawing"/>
 
 #### Notes
 {: .no_toc}
-* For the specific implementations of `read_data` and `plot_adc_with_samples_per_cycle` see the `matlab\Test_SR_3ADC_3Tim.m` file.
+* Different sampling rates for each ADC are achieved by assigning a different timer to each ADC (see [timer occupation]({% link library/timers.md %}#timer-occupation)).
 
 
 ## Developer Notes
@@ -796,7 +1040,7 @@ The `SENSEDU_ADC_BUFFER` macro accepts **any** user-defined size in `uint16_t` e
 {: .WARNING}
 Some legacy projects manually declare DMA buffers using the `__attribute__((aligned(...)))`. While this can work, it is easy to get alignment or sizing wrong, which can lead to unnecessary cache invalidation or other unexpected behavior. Whenever you use the ADC in DMA mode, prefer `SENSEDU_ADC_BUFFER`.
 
-[table]: /SensEdu/library/ADC/#adc_mapping
+[table]: /library/adc/#adc_mapping
 [this issue]: https://github.com/ShiegeChan/SensEdu/issues/8
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
 [Manual Page]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf

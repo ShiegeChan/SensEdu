@@ -21,7 +21,7 @@ To run these examples, you need to install [MATLAB]. Some examples offer also an
 
 ## Recording Audio 
 
-This example demonstrates how audio is recorded using one microphone on Sensedu board. The file is recorded using a MATLAB script and data is saved as .wav file. 
+This example demonstrates how audio is recorded using one microphone on SensEdu board. The file is recorded using a MATLAB script and data is saved as .wav file. 
 
 ### Arduino script
 {: .no_toc}
@@ -63,10 +63,10 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = mic_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 44100,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 44100,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic_data,
     .mem_size = mic_data_size
 };
@@ -77,7 +77,6 @@ SensEdu_ADC_Settings adc_settings = {
 
 ```c
 void setup() {
-
     Serial.begin(115200);
 
     SensEdu_ADC_Init(&adc_settings);
@@ -85,11 +84,6 @@ void setup() {
 
     pinMode(error_led, OUTPUT);
     digitalWrite(error_led, HIGH);
-
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        digitalWrite(error_led, LOW);
-    }
 }
 ```
 
@@ -112,17 +106,11 @@ void loop() {
     // Recording loop
     for (uint16_t i = 0; i < LOOP_COUNT; i++) {
         SensEdu_ADC_Start(adc);
-        while(!SensEdu_ADC_GetTransferStatus(adc));
-        SensEdu_ADC_ClearTransferStatus(adc);
+        while (!SensEdu_ADC_IsDmaTransferComplete(adc));
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
         serial_send_array((const uint8_t *)&mic_data, mic_data_size << 1);
     }
     is_recording_started = false;
-
-    // Check errors
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        digitalWrite(error_led, LOW);
-    }
 }
 ```
 
@@ -284,10 +272,10 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = mic_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic_data,
     .mem_size = mic_data_size
 };
@@ -326,15 +314,15 @@ void loop() {
 
 ```c
     SensEdu_DAC_Enable(dac_ch);
-    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
+    while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
     SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
 ```
 
 **Step 8**{: .text-blue-000} : Start the data acquisition and wait until it is completed.
 
 ```c
-    while(!SensEdu_ADC_GetTransferStatus(adc));
-    SensEdu_ADC_ClearTransferStatus(adc);
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc));
+    SensEdu_ADC_ClearDmaTransferComplete(adc);
 ```
 
 **Step 9**{: .text-blue-000} : Send the received wave data to MATLAB via Serial.
@@ -431,10 +419,10 @@ SensEdu_ADC_Settings adc1_settings = {
     .pins = mic12_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic12_data,
     .mem_size = mic_data_size
 };
@@ -444,10 +432,10 @@ SensEdu_ADC_Settings adc2_settings = {
     .pins = mic34_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic34_data,
     .mem_size = mic_data_size
 };
@@ -456,7 +444,6 @@ SensEdu_ADC_Settings adc2_settings = {
 For each ADC interaction, call both ADC1 and ADC2 (see example below). If you use the A9 pin for older board revisions, don't forget to call `SensEdu_ADC_ShortA4toA9`, which is explained [here]({% link library/adc.md %}#sensedu_adc_shorta4toa9).
 
 ```c
-SensEdu_ADC_ShortA4toA9();
 SensEdu_ADC_Init(&adc1_settings);
 SensEdu_ADC_Init(&adc2_settings);
 SensEdu_ADC_Enable(adc1);
@@ -570,10 +557,10 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = mic_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic_data,
     .mem_size = mic_data_size
 };
@@ -628,7 +615,7 @@ void loop() {
         Serial.println("Client connected!");
         static char buf = 0;
         
-        while(client.connected()){
+        while (client.connected()){
             if (client.available()) {
                 buf = client.read();
                 if(buf == 't') {
@@ -647,15 +634,15 @@ void loop() {
 
 ```c
     SensEdu_DAC_Enable(dac_ch);
-    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
+    while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
     SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
 ```
 
 **Step 8**{: .text-blue-000} : Start the data acquisition and wait until it is completed.
 
 ```c
-    while(!SensEdu_ADC_GetTransferStatus(adc));
-    SensEdu_ADC_ClearTransferStatus(adc);
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc));
+    SensEdu_ADC_ClearDmaTransferComplete(adc);
 ```
 
 **Step 9**{: .text-blue-000} : Send the received wave data to MATLAB via Serial.

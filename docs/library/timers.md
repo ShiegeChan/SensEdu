@@ -28,8 +28,6 @@ An overview of possible errors for timers:
 * `0x1004`: Unexpected DAC frequency. Maximum possible is 15MHz, refer to [SensEdu_DAC_Settings]({% link library/dac.md %}#sensedu_dac_settings) for more details
 * `0x1005`: TIM8 initialization attempt while TIM8 is running. Configuration is possible only for disabled timer
 * `0x1006`: TIM8 Unexpected CCR channel. Possible options are: `CCR1`, `CCR2`, `CCR3` or `CCR4`
-* `0x1007`: Unexpected ADC2 frequency 
-* `0x1008`: Unexpected ADC3 frequency
 
 An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
 * `0x10A0`: Timer frequency calculations failed
