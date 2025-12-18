@@ -12,13 +12,13 @@ ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 3;
 uint8_t adc_pins[adc_pin_num] = {A0, A1, A2};
 
-// Continuous multi-channel scan is meant to be used with DMA only
+// Continuous multi-channel scan is meant to be used with DMA only.
 // Due to race conditions between EOC, EOS flags, and the automatic start of the next conversion,
-// reliable multi-channel polling is not guaranteed, occasional desynchronization may occur, breaking channel alignment
-// Higher sampling rate increases the risk of misalignment even further
+// reliable multi-channel polling is not guaranteed, occasional desynchronization may occur, breaking channel alignment.
+// Higher sampling rate increases the risk of misalignment even further.
 //
-// Only use this example for experimentation, testing, or low-speed scenarios
-// For projects requiring continuous multi-channel acquisition, always use DMA
+// Only use this example for experimentation, testing, or low-speed scenarios.
+// For projects requiring continuous multi-channel acquisition, always use DMA.
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,

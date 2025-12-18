@@ -14,7 +14,7 @@ uint32_t lib_error = 0;
 #define WIFI_PORT   80
 
 /* DAC */
-// lut settings are in SineLUT.h
+// LUT settings are in SineLUT.h
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
@@ -75,10 +75,10 @@ void setup() {
         Serial.print("Attempting to connect to SSID: ");
         Serial.println(WIFI_SSID);
 
-        // connect to WPA/WPA2 network (change this if youre using open / WEP network)
+        // Connect to WPA/WPA2 network (change this if youre using open / WEP network)
         status = WiFi.begin(WIFI_SSID, WIFI_PASS);
 
-        // wait 10 seconds for connection:
+        // Wait 10 seconds for connection:
         delay(10000);
     }
     server.begin();
@@ -105,17 +105,17 @@ void loop() {
         }
 
         buf = client.read();
-        if (buf != 't') { // trigger not detected
+        if (buf != 't') { // Trigger not detected
             continue;
         }
             
-        // start dac->adc sequence
+        // Start dac->adc sequence
         SensEdu_DAC_Enable(dac_ch);
         while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
         SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
         SensEdu_ADC_Start(adc);
         
-        // wait for the data and send it
+        // Wait for the data and send it
         while (!SensEdu_ADC_IsDmaTransferComplete(adc));
         SensEdu_ADC_ClearDmaTransferComplete(adc);
         wifi_send_array(client, (const uint8_t *) & mic_data, mic_data_size << 1);

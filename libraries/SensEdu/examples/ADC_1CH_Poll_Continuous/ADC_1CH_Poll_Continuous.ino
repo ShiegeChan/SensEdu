@@ -11,12 +11,12 @@ ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 1;
 uint8_t adc_pins[adc_pin_num] = {A0};
 
-// If your application doesn't need strict sampling rate - use SENSEDU_ADC_SR_MODE_FREE
-// In case you need to take measurements at specific fixed interval, then prefer SENSEDU_ADC_SR_MODE_FIXED
-// However, use fixed SR mode with care in software polling mode, especially at higher than 1kS/sec frequencies
-// Due to software overhead, data reading loop can perform slower than ADC produces new conversions
-// This results in an event called "overrun" - missing samples and broken SR stability
-// Check OVR flag to see if this happens. If periodic overrun events are not acceptable, use DMA or lower SR
+// If your application doesn't need strict sampling rate - use SENSEDU_ADC_SR_MODE_FREE.
+// In case you need to take measurements at specific fixed interval, then prefer SENSEDU_ADC_SR_MODE_FIXED.
+// However, use fixed SR mode with care in software polling mode, especially at higher than 1kS/sec frequencies.
+// Due to software overhead, data reading loop can perform slower than ADC produces new conversions.
+// This results in an event called "overrun" - missing samples and broken SR stability.
+// Check OVR flag to see if this happens. If periodic overrun events are not acceptable, use DMA or lower SR.
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,

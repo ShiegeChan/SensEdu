@@ -176,14 +176,14 @@ void SensEdu_ADC_Enable(ADC_TypeDef* adc) {
         TIMER_ADCxEnable(adc);
     }
 
-    // clear ready bit
+    // Clear ready bit
     SET_BIT(adc->ISR, ADC_ISR_ADRDY);
 
-    // enable ADC
+    // Enable ADC
     SET_BIT(adc->CR, ADC_CR_ADEN);
     while (!READ_BIT(adc->ISR, ADC_ISR_ADRDY)) {}
 
-    // check if ready to start
+    // Check if ready to start
     if (!READ_BIT(adc->CR, ADC_CR_ADEN) || READ_BIT(adc->CR, ADC_CR_ADDIS)) {
         error = ADC_ERROR_ENABLE_FAIL;
     }
@@ -191,10 +191,10 @@ void SensEdu_ADC_Enable(ADC_TypeDef* adc) {
 
 // Disables selected ADC
 void SensEdu_ADC_Disable(ADC_TypeDef* adc) {
-    // check if conversion is ongoing
+    // Check if conversion is ongoing
     if (READ_BIT(adc->CR, ADC_CR_ADSTART)) {
-        SET_BIT(adc->CR, ADC_CR_ADSTP); // stop conversion
-        while (READ_BIT(adc->CR, ADC_CR_ADSTP)) {} // wait till it is stopped
+        SET_BIT(adc->CR, ADC_CR_ADSTP); // Stop conversion
+        while (READ_BIT(adc->CR, ADC_CR_ADSTP)) {} // Wait till it is stopped
     }
 
     if (READ_BIT(adc->CR, ADC_CR_ADSTART)) {
@@ -605,11 +605,11 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num, SENSEDU_A
 static uint16_t* read_sequence_cont(ADC_TypeDef* adc, uint8_t pin_num) {
     AdcState* data = get_adc_state(adc);
 
-    // synchronize to the start of the next sequence
+    // Synchronize to the start of the next sequence
     while (!READ_BIT(adc->ISR, ADC_ISR_EOS)) {}
     SET_BIT(adc->ISR, ADC_ISR_EOS);
 
-    // poll each channel in order
+    // Poll each channel in order
     for (size_t i = 0; i < pin_num; i++) {
         while (!READ_BIT(adc->ISR, ADC_ISR_EOC)) {}
         data->seq_buffer[i] = READ_REG(adc->DR);

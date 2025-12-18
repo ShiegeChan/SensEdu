@@ -6,7 +6,7 @@ uint32_t lib_error = 0;
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-// how many LUT repeats for one DAC transfer
+// How many LUT repeats for one DAC transfer
 const uint16_t dac_cycle_num = 10;
 
 // DAC transfered symbols

@@ -9,7 +9,7 @@ uint32_t lib_error = 0;
 /* -------------------------------------------------------------------------- */
 
 /* DAC */
-// lut settings are in SineLUT.h
+// LUT settings are in SineLUT.h
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
@@ -80,13 +80,13 @@ void loop() {
         delay(1);
     }
 
-    // start dac->adc sequence
+    // Start dac->adc sequence
     SensEdu_DAC_Enable(dac_ch);
     while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
     SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
     SensEdu_ADC_Start(adc);
     
-    // wait for the data and send it
+    // Wait for the data and send it
     while (!SensEdu_ADC_IsDmaTransferComplete(adc));
     SensEdu_ADC_ClearDmaTransferComplete(adc);
     serial_send_array(&(mic_data[0]), mic_data_size, 32);
