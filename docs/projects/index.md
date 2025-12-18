@@ -54,7 +54,7 @@ Some of the projects already done using SensEdu transducer:
 
 ### Pulse-Echo Ranging
 
-Measuring distances using ultrasonic pulses and TOF technique - time it takes for the pulse to go from the transducer, reflect off of an object and come to the receiver. This technique is especially useful for measuring longer ranges. This basic principle is used in not so basic missions like space exploration, forestry and agriculture, surveillance systems, and more!
+Measuring distances using ultrasonic pulses and TOF technique - time it takes for the pulse to go from the transducer, reflect off of an object and come back to the receiver. This technique is especially useful for measuring longer ranges. This basic principle is used in not so basic missions like space exploration, forestry and agriculture, surveillance systems, and more!
 
 <img src="{{site.baseurl}}/assets/images/ranging.png"  alt="drawing"/>
 
