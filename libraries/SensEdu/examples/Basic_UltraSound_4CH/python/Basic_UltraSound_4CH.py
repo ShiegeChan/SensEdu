@@ -12,11 +12,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import serial
 
-
 # =======================
 # Settings
 # =======================
-ARDUINO_PORT = "COM17"  # replace "COM17" with your serial port
+ARDUINO_PORT = "COM22"  # replace "COM17" with your serial port
 ARDUINO_BAUDRATE = 115200
 ITERATIONS = 1000
 
@@ -26,7 +25,6 @@ DATA_LENGTH = 2048 * 2  # samples per 2 microphones (must match firmware)
 CHUNK_SIZE = 32  # bytes per serial read
 BYTES_PER_SAMPLE = 2
 
-
 # =======================
 # Serial Setup: select port and baudrate
 # =======================
@@ -35,7 +33,6 @@ arduino = serial.Serial(
     baudrate=ARDUINO_BAUDRATE,
     timeout=1.0
 )
-
 
 # =======================
 # Functions
@@ -64,7 +61,6 @@ def read_2mic_data(serial_port, data_length, chunk_size):
     mic2 = data[1::2].astype(np.float64)
 
     return mic1, mic2
-
 
 def plot_data(mic1, mic2, mic3, mic4):
     """
@@ -107,7 +103,6 @@ def plot_data(mic1, mic2, mic3, mic4):
     plt.tight_layout()
     plt.pause(0.001)
 
-
 # =======================
 # Main Acquisition Loop
 # =======================
@@ -137,7 +132,6 @@ for iteration in range(ITERATIONS):
 # Close serial
 arduino.close()
 
-
 # =======================
 # Save measurements into a single file Measurements in uncompressed .npz format
 # =======================
@@ -151,7 +145,6 @@ np.savez(
     data=np.array(data_buffer, dtype=object),
     time_axis=np.array(time_axis)
 )
-
 
 # =======================
 # Timing Statistics

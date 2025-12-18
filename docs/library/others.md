@@ -218,6 +218,12 @@ These examples demonstrate how to transmit a 32kHz ultrasonic wave at a constant
 
 For both the example [Basic_UltraSound]({% link library/others.md %}#basic_ultrasound) and [Basic_UltraSound_4CH]({% link library/others.md %}#basic_ultrasound_4ch) an equivalent Python implementation is also provided to visualize the acquired signals. This is particularly useful because it removes the requirement to use MATLAB, which is proprietary software that requires a paid license. With the Python version, waveform visualization and basic signal analysis can be performed using an open-source programming language, freely available and compatible with the most widely used development environments.
 
+To run examples in python, following libraries need to be installed: 
+
+* *NumPy* - for scientific computing ``` $pip install numpy```
+* *Matplotlib* - for visualization ``` $pip install matplotlib```
+* *PySerial* - for serial port communication ``` $pip install pyserial```
+
 
 ### Basic_UltraSound
 

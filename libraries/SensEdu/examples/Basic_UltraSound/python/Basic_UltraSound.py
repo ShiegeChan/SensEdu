@@ -12,11 +12,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import serial
 
-
 # =======================
 # Settings
 # =======================
-ARDUINO_PORT = "COM17"  # replace "COM17" with your serial port
+ARDUINO_PORT = "COM22"  # replace "COM17" with your serial port
 ARDUINO_BAUDRATE = 115200
 ITERATIONS = 100
 
@@ -24,7 +23,6 @@ ACTIVATE_PLOTS = True
 CHUNK_SIZE = 32  # bytes per serial read
 DATA_LENGTH = 5142  # number of uint16 samples
 BYTES_PER_SAMPLE = 2
-
 
 # =======================
 # Serial Setup: select port and baudrate
@@ -34,7 +32,6 @@ arduino = serial.Serial(
     baudrate=ARDUINO_BAUDRATE,
     timeout=1.0
 )
-
 
 # =======================
 # Functions
@@ -59,7 +56,6 @@ def read_data(serial_port, data_length, chunk_size):
 
     return np.frombuffer(rx_buffer, dtype=np.uint16).astype(np.float64)
 
-
 def plot_data(data):
     """
     Plot ADC data.
@@ -71,7 +67,6 @@ def plot_data(data):
     plt.ylabel("ADC 16-bit value")
     plt.grid(True)
     plt.pause(0.001)
-
 
 # =======================
 # Main Acquisition Loop
@@ -103,7 +98,6 @@ for iteration in range(ITERATIONS):
 # Close serial port
 arduino.close()
 
-
 # =======================
 # Save measurements into a single file Measurements in uncompressed .npz format
 # =======================
@@ -117,7 +111,6 @@ np.savez(
     data=np.array(data_buffer),
     time_axis=np.array(time_axis)
 )
-
 
 # =======================
 # Timing Statistics
