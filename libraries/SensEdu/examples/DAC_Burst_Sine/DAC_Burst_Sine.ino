@@ -1,12 +1,13 @@
 #include <SensEdu.h>
 
 uint32_t lib_error = 0;
+const uint8_t error_led = D86;
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-// how many LUT repeats for one DAC transfer
+// How many LUT repeats for one DAC transfer
 const uint16_t dac_cycle_num = 10;
 
 // DAC transfered symbols
@@ -34,17 +35,16 @@ SensEdu_DAC_Settings dac_settings = {
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
+
 void setup() {
     Serial.begin(115200);
 
     SensEdu_DAC_Init(&dac_settings);
 
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
-    }
+    pinMode(error_led, OUTPUT);
+    digitalWrite(error_led, HIGH);
+
+    check_lib_errors();
 
     Serial.println("Setup is successful.");
 }
@@ -52,16 +52,25 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
+
 void loop() {
     SensEdu_DAC_Enable(dac_ch);
     
-    // check errors
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
-    }
+    check_lib_errors();
 
     delay(100);
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  Functions                                 */
+/* -------------------------------------------------------------------------- */
+
+// Checks if the library has risen any internal errors
+// Doesn't print the error code, since Serial is occupied
+// Turns on the red LED on Arduino board instead
+void check_lib_errors() {
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        digitalWrite(error_led, LOW);
+    }
 }

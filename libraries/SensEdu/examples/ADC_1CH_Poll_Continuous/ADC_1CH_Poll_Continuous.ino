@@ -67,6 +67,10 @@ void loop() {
     check_lib_errors();
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                  Functions                                 */
+/* -------------------------------------------------------------------------- */
+
 // Checks if the library has risen any internal errors
 // Prints the error code in Serial Monitor
 void check_lib_errors() {
