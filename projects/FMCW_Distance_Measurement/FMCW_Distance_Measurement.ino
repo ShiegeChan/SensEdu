@@ -5,7 +5,7 @@
 /* -------------------------------------------------------------------------- */
 
 #define CHIRP_DURATION          0.04   // Duration of the chirp (in seconds)
-#define START_FREQUENCY         30500   // Start frequency (in Hz)
+#define START_FREQUENCY         30500  // Start frequency (in Hz)
 #define END_FREQUENCY           35500  // Stop frequency (in Hz)
 
 /* -------------------------------------------------------------------------- */
@@ -13,9 +13,9 @@
 /* -------------------------------------------------------------------------- */
 
 // ADC Sampling
-const uint16_t mic_data_size = 14400; // ADC buffer size, must be a multiple of 16
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc_dac_data[mic_data_size]; // cache aligned
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc_mic_data[mic_data_size]; // cache aligned
+const uint16_t mic_data_size = 14400; // ADC buffer size
+SENSEDU_ADC_BUFFER(adc_dac_data, mic_data_size);
+SENSEDU_ADC_BUFFER(adc_mic_data, mic_data_size);
 
 // ADC-DMA Hardware Settings
 ADC_TypeDef* adc_dac = ADC3;
@@ -50,22 +50,26 @@ SensEdu_ADC_Settings adc2_settings = {
     .mem_size = mic_data_size
 };
 
-//DAC settings
-static uint8_t increment_flag = 1; // Run time modification flag
-const float fs =  10 * END_FREQUENCY; // Sampling frequency
-const float samples = fs * CHIRP_DURATION; // Number of samples
+// DAC settings
+static uint8_t increment_flag = 1;              // Run time modification flag
+const float fs =  10 * END_FREQUENCY;           // Sampling frequency
+const float samples = fs * CHIRP_DURATION;      // Number of samples
 const uint32_t samples_int = (uint32_t)samples;
-static SENSEDU_DAC_BUFFER(lut, samples_int); // Buffer for the chirp signal
+static SENSEDU_DAC_BUFFER(lut, samples_int);    // Buffer for the chirp signal
 
+DAC_Channel* dac_ch = DAC_CH2;
 SensEdu_DAC_Settings dac1_settings = {
-    DAC_CH2, fs, (uint16_t*)lut, samples_int,
-    SENSEDU_DAC_MODE_CONTINUOUS_WAVE, 1
+    .dac_channel = dac_ch, 
+    .sampling_freq = fs,
+    .mem_address = (uint16_t*)lut,
+    .mem_size = samples_int,
+    .wave_mode = SENSEDU_DAC_MODE_CONTINUOUS_WAVE,
+    .burst_num = 1
 };
 
-
 // Error Handling
-uint8_t error_led = D86; // Error indicator LED pin
-uint32_t lib_error = 0;  // Tracks library errors
+uint8_t error_led = D86;    // Error indicator LED pin
+uint32_t lib_error = 0;     // Tracks library errors
 bool dac_data_sent = false; // To track whether DAC LUT was sent to MATLAB
 
 /* -------------------------------------------------------------------------- */
@@ -88,7 +92,8 @@ void setup() {
 
     // Print the chirp signal LUT
     Serial.println("start of the Chirp LUT");
-    for (int i = 0 ; i < samples_int; i++) { // loop for the LUT size
+    for (int i = 0 ; i < samples_int; i++) { 
+        // Loop for the LUT size
         Serial.print("value ");
         Serial.print(i+1);
         Serial.print(" of the Chirp LUT: ");
@@ -104,10 +109,7 @@ void setup() {
     digitalWrite(error_led, HIGH); // Turn off (active low)
 
     // Check for errors
-    lib_error = SensEdu_GetError();
-    if (lib_error != 0) {
-        handle_error();
-    }
+    check_lib_errors();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -122,7 +124,8 @@ void loop() {
         while (Serial.available() == 0);
         serial_buf = Serial.read();
 
-        if (serial_buf == 't') { // First trigger detected
+        if (serial_buf == 't') { 
+            // First trigger detected
             break;
         }
     }
@@ -139,34 +142,30 @@ void loop() {
     SensEdu_ADC_ClearDmaTransferComplete(adc_mic);
 
     // Send ADC data (16-bit values, continuously)
-    uint32_t adc_byte_length = mic_data_size * 2; // ADC data size in bytes
-    Serial.write((uint8_t*)&adc_byte_length, sizeof(adc_byte_length));  // Send size header
-    serial_send_array((const uint8_t*)adc_dac_data, adc_byte_length);       // Transmit ADC3 data
-    serial_send_array((const uint8_t*)adc_mic_data, adc_byte_length);       // Transmit ADC1 data (Mic2 data)
+    serial_send_array(&(adc_dac_data[0]), mic_data_size, 32);                   // Transmit ADC3 data
+    serial_send_array(&(adc_mic_data[0]), mic_data_size, 32);                   // Transmit ADC1 data (Mic2 data)
 
     // Check for errors during the process
-    lib_error = SensEdu_GetError();
-    if (lib_error != 0) {
-        handle_error();
-    }
+    check_lib_errors();
 }
 
 /* -------------------------------------------------------------------------- */
 /*                              Functions                                     */
 /* -------------------------------------------------------------------------- */
 
-// Function to send an array over Serial in 32-byte chunks
-void serial_send_array(const uint8_t* data, size_t size) {
-    const size_t chunk_size = 32;
-    for (size_t i = 0; i < size / chunk_size; i++) {
-        Serial.write(data + chunk_size * i, chunk_size);
+// Checks if the library has risen any internal errors
+// Doesn't print the error code, since Serial is occupied
+// Turns on the red LED on Arduino board instead
+void check_lib_errors() {
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        digitalWrite(error_led, LOW);
     }
 }
 
-// Function to handle errors
-void handle_error() {
-    digitalWrite(error_led, LOW); // Turn on error LED
-    while (1) {
-        // Remain in this state if an error occurs
+void serial_send_array(uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
+    for (size_t i = 0; i < (data_length << 1); i += chunk_size_byte) {
+        size_t transfer_size = ((data_length << 1) - i < chunk_size_byte) ? ((data_length << 1) - i) : chunk_size_byte;
+        Serial.write((const uint8_t *)data + i, transfer_size);
     }
 }

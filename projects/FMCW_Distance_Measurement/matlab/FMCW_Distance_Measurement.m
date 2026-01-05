@@ -1,31 +1,30 @@
 %% FMCW_Distance_Measurement.m 
-%% adc3 = DAC (to ADC) data
-%% adc1 = MIC DATA
+% adc3 = DAC (to ADC) data
+% adc1 = MIC DATA
 clear;
 close all;
 clc;
 
 %% Radar system parameters
-%Need to be the same as chirp parameters for correct distance computation!
-
+% Need to be the same as chirp parameters for correct distance computation!
 f_start = 30500;         % Start frequency of transmitted chirp (Hz)
 f_end = 35500;           % End frequency of transmitted chirp (Hz)
 Tc = 0.040;              % Duration of one chirp (s)
 c = 343;                 % Speed of sound in air for T=300K (m/s)
 
 %% Settings
-ARDUINO_PORT = 'COM13';
+ARDUINO_PORT = 'COM22';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 10000;        % Number of real-time ADC measurements
-SAMPLING_RATE = 250000;    % ADC Sampling rate
-ACTIVATE_PLOTS = true;     % Toggle plotting on/off
-
+ITERATIONS = 100;          % Number of real-time ADC measurements
+SAMPLING_RATE = 250000;     % ADC Sampling rate
+ACTIVATE_PLOTS = true;      % Toggle plotting on/off
+ADC_DATA_LENGTH = 14400;
+CHUNK_SIZE = 32;            % Matches the memory chunk size in firmware
 % Connect to Arduino
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % Initialize Arduino serial communication
 
 %% Real-Time ADC Data Acquisition and PSD
 fprintf("Starting real-time dual ADC data acquisition...\n");
-
 
 % Initialize Figure for Real-Time Data Plots in Full Screen
 figure('Name', 'Real-Time ADC Signals and Power Spectra', 'Color', 'w', 'WindowState', 'maximized');
@@ -139,16 +138,12 @@ fbeatText = uicontrol('Style', 'text', ...
 for it = 1:ITERATIONS
     % Trigger ADC data acquisition
     write(arduino, 't', "char");
-    
-    % Retrieve size header for ADC data
-    adc_byte_length = read_total_length(arduino);      % Total length of ADC data in bytes
-    ADC_DATA_LENGTH = adc_byte_length / 2;             % Total number of ADC samples
 
     % Retrieve DAC to ADC data
-    adc3_data = read_data(arduino, ADC_DATA_LENGTH);
+    adc3_data = read_data(arduino, ADC_DATA_LENGTH, CHUNK_SIZE);
 
     % Retrieve Mic ADC data
-    adc1_data = read_data(arduino, ADC_DATA_LENGTH); 
+    adc1_data = read_data(arduino, ADC_DATA_LENGTH, CHUNK_SIZE); 
     
     % High-Pass Filter on adc1 and adc3 Data
     adc3_data_filt = highpass(adc3_data, 30000, SAMPLING_RATE);
@@ -157,10 +152,10 @@ for it = 1:ITERATIONS
     % Frequency mixing (multiply Tx and Rx signals)
     mixed_signal = adc3_data_filt .* adc1_data_filt;
     
-    %Low-pass filter to remove high frequency component
+    % Low-pass filter to remove high frequency component
     mixed_signal_filt = lowpass(mixed_signal, 5000, SAMPLING_RATE);
 
-    %High-Pass FIR filter for coupling signal between Tx and Rx
+    % High-Pass FIR filter for coupling signal between Tx and Rx
     Fstop = 50;              % Stopband Frequency
     Fpass = 300;             % Passband Frequency
     Dstop = 0.01;            % Stopband Attenuation
@@ -178,11 +173,11 @@ for it = 1:ITERATIONS
     [p_mix_filt, f_mix_filt] = periodogram(mixed_signal_filt, hamming(length(mixed_signal_filt)),[], SAMPLING_RATE);
 
     % Extract beat frequency
-    [p_fbeat,fbeat] = findpeaks(p_mix_filt,f_mix_filt,NPeaks=1,SortStr="descend")
+    [p_fbeat,fbeat] = findpeaks(p_mix_filt,f_mix_filt,NPeaks=1,SortStr="descend");
 
     % Calculate distance (distance is for one way and not roundtrip like
     % usual FMCW radar since we use 2 boards here)
-    d = (fbeat * Tc * c) / (2*(f_end - f_start))
+    d = (fbeat * Tc * c) / (2*(f_end - f_start));
     
     % Update the distance & beat frequency display with the new value
     set(distanceText, 'String', sprintf('Distance = %.0f cm', d*100));
@@ -218,22 +213,15 @@ clear arduino;
 fprintf("ADC acquisition and plotting completed.\n");
 
 %% Supporting Functions
-function total_byte_length = read_total_length(arduino)
-    % Reads the 4-byte total length (in bytes) of incoming data from Arduino
-    len_bytes = read(arduino, 4, 'uint8'); % Read header
-    total_byte_length = typecast(uint8(len_bytes), 'uint32'); % Convert to uint32
-end
 
-function data = read_data(arduino, data_length)
-    % Retrieve `data_length` samples from Arduino
-    total_byte_length = data_length * 2;      % Convert samples to bytes (16-bit values)
-    serial_data = zeros(1, total_byte_length, 'uint8'); % Preallocate array
-    
-    % Read data in chunks of 32 bytes (matches Arduino chunking)
-    for i = 1:(total_byte_length / 32)
-        serial_data((32 * i - 31):(32 * i)) = read(arduino, 32, 'uint8');
+function data = read_data(arduino, data_length, chunk_size)
+    total_byte_length = data_length * 2; % 2 bytes per sample
+    serial_rx_data = zeros(1, total_byte_length, 'uint8');
+    bytes_read = 0;
+    while bytes_read < total_byte_length 
+        transfer_size = min(chunk_size, total_byte_length - bytes_read);
+        serial_rx_data(bytes_read + 1 : bytes_read + transfer_size) = read(arduino, transfer_size, 'uint8');
+        bytes_read = bytes_read + transfer_size;
     end
-
-    % Convert received bytes to uint16 samples
-    data = double(typecast(serial_data, 'uint16')); % Cast from raw bytes to 16-bit integers
+    data = double(typecast(uint8(serial_rx_data), 'uint16'));
 end

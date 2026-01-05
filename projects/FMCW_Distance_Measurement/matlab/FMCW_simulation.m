@@ -4,17 +4,17 @@ f1_end = 35000;           % End frequency of transmitted chirp (Hz)
 
 % Radar system parameters
 c = 343;                  % Speed of sound in air (m/s)
-distance = 3.5;             % Distance to object (meters)
+distance = 3.5;           % Distance to object (meters)
 fs = 150000;              % Sampling frequency (Hz)
-T = 0.025;                 % Duration of one chirp (s)
+T = 0.025;                % Duration of one chirp (s)
 num_chirps = 1;           % Number of chirps in the overall signal
 
 % Derived parameters for delay
-delay_time = 2 * distance / c;         % Time delay (seconds)
-delay_samples = round(delay_time * fs);% Convert delay into number of samples
+delay_time = 2 * distance / c;          % Time delay (seconds)
+delay_samples = round(delay_time * fs); % Convert delay into number of samples
 
 % Generate time vector for one chirp
-t = 0:1/fs:(T - 1/fs);                 % Time vector for one chirp
+t = 0:1/fs:(T - 1/fs);                  % Time vector for one chirp
 
 % Generate the transmitted chirp signal for one chirp
 one_chirp = chirp(t, f1_start, T, f1_end, 'linear'); % Linear frequency sweep
@@ -91,10 +91,6 @@ grid on;
 fontsize(16,"points");
 orient('landscape');
 %print('Mix_simulation.pdf','-dpdf', '-fillpage');
-
-
-
-
 
 
 % --- Plot DFTs of the mixed signal (unfiltered and filtered) on another figure ---
