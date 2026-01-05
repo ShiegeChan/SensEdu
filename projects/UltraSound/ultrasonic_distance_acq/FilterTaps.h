@@ -1,5 +1,5 @@
-// bandpass filter taps around 32kHz frequency in order to clean up the signal and 
-// remove audible sound disturbances
+// Bandpass filter taps around 32kHz frequency in order to clean up the signal and 
+// Remove audible sound disturbances
 // Bandpass Filter Coefficients (Fs = 244.0 kHz, 30.0-34.0 kHz)
 
 #define FILTER_TAP_NUM 64
