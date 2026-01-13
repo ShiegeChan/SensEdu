@@ -19,8 +19,7 @@ uint8_t error_led = D86;
 #define IS_TRANSMIT_DETAILED_DATA   true    // activate full raw, filtered, xcorr data transmission
 #define BAN_DISTANCE	            20	    // min distance [cm] - how many self reflections cancelled
 #define ACTUAL_SAMPLING_RATE        250000  // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
-#define STORE_BUF_SIZE              32 * 32 // 2400 for 1 measurement per second. 
-                            	        // only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)
+#define STORE_BUF_SIZE              32 * 32 // 2400 for 1 measurement per second
 
 /* --------------------------------- Filter --------------------------------- */
 #define FILTER_BLOCK_LENGTH     32      // how many samples we want to process every time we call the fir process function AT
@@ -39,13 +38,11 @@ const uint8_t adc2_mic_num = 2; // 2 microphones for adc2
 uint8_t adc1_pins[adc1_mic_num] = {A5, A10}; // mic1 and mic2
 uint8_t adc2_pins[adc2_mic_num] = {A1, A6}; // mic3 and mic4 
 
-// must be:
-// 1. multiple of 32 words (64 half-words) to ensure cache coherence
-// 2. properly aligned
 const uint16_t adc1_data_size = STORE_BUF_SIZE * adc1_mic_num;
 const uint16_t adc2_data_size = STORE_BUF_SIZE * adc2_mic_num;
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc1_data[adc1_data_size];
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc2_data[adc2_data_size];
+
+SENSEDU_DMA_BUFFER(adc1_data, adc1_data_size);
+SENSEDU_DMA_BUFFER(adc2_data, adc2_data_size);
 
 SensEdu_ADC_Settings adc1_settings = {
     .adc = adc1,
