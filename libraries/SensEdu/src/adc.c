@@ -165,7 +165,7 @@ void SensEdu_ADC_Init(SensEdu_ADC_Settings* new_settings) {
     }
 
     if (is_dma_mode_enabled(settings->adc_mode)) {
-        DMA_ADCInit(settings->adc, settings->mem_address, settings->mem_size);
+        DMA_InitDmaForAdc(settings->adc, settings->mem_address, settings->mem_size);
     }
 }
 
@@ -205,7 +205,7 @@ void SensEdu_ADC_Disable(ADC_TypeDef* adc) {
     while (READ_BIT(adc->CR, ADC_CR_ADEN)) {}
 
     if (is_dma_mode_enabled(get_adc_settings(adc)->adc_mode)) {
-        DMA_ADCDisable(adc);
+        DMA_DisableDmaForAdc(adc);
     }
 }
 
@@ -213,7 +213,7 @@ void SensEdu_ADC_Disable(ADC_TypeDef* adc) {
 // Make sure it is enabled first
 void SensEdu_ADC_Start(ADC_TypeDef* adc) {
     if (is_dma_mode_enabled(get_adc_settings(adc)->adc_mode)) {
-        DMA_ADCEnable(adc);
+        DMA_EnableDmaForAdc(adc);
     }
     SET_BIT(adc->CR, ADC_CR_ADSTART);
 }
@@ -322,7 +322,7 @@ void SensEdu_ADC_ClearDmaHalfTransferComplete(ADC_TypeDef* adc) {
     get_adc_state(adc)->dma_half_transfer = false;
 }
 
-// Outputs ADC error code
+// Returns ADC error code
 ADC_ERROR ADC_GetError(void) {
     return error;
 }
