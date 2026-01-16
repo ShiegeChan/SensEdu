@@ -6,6 +6,7 @@ uint8_t pwm_chs[4] = {D4, D37, D48, D71};
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
+
 void setup() {
     Serial.begin(115200);
     Serial.println("Started Initialization...");
@@ -16,12 +17,7 @@ void setup() {
     SensEdu_PWM_Init(pwm_chs[3], 100000, 100);
     SensEdu_PWM_Start();
 
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
-    }
+    check_lib_errors();
 
     Serial.println("Setup is successful.");
 }
@@ -32,6 +28,12 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 
 void loop() {
+    check_lib_errors();
+}
+
+// Checks if the library has risen any internal errors
+// Prints the error code in Serial Monitor
+void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);
@@ -39,4 +41,3 @@ void loop() {
         Serial.println(lib_error, HEX);
     }
 }
-

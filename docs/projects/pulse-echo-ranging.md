@@ -65,12 +65,40 @@ After the burst is sent, ADC starts to collect the data microphones are receivin
 ### Rescaling the ADC signal
 The ADC signal has values in range [0, 65535]. Therefore, we first rescale the signal to the range [-1, 1] with each sample being a 4-byte float value. 
 
+```c
+void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, size_t adc_data_length) {
+    // 0:65535 -> -1:1
+    for(uint16_t i = 0; i < adc_data_length; i++) {
+        rescaled_adc_wave[i] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+    }
+}
+```
+
 {: .NOTE}
 Because of the way multi-channel ADC signals are stored in memory using SensEdu library, the channel number has to be passed to the function we are using. 
+
+
+
 
 ### Filtering the rescaled signal
 
 The microphones have a large bandwidth of 100kHz and the signal is easily distorted by the audible sound. That is why the filtering around the central frequency of 32kHz is needed. Therefore, a Finite Impulse Response (FIR) bandpass filter is applied to the previously resacaled ADC signal. The filter also removes the unwanted DC component, as well as high-frequency noise that is also naturally present. 
+
+```c
+void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
+    static float32_t output_signal[STORE_BUF_SIZE];
+    // initialize this temporal buffer
+    clear_float_buf(output_signal, STORE_BUF_SIZE);
+    // need to take block chunks of the input signal
+    for(uint16_t i = 0; i < adc_data_length; i += FILTER_BLOCK_LENGTH) {
+        // take care of the last block
+        size_t block_size = min(FILTER_BLOCK_LENGTH, adc_data_length - i);
+        // perform the filter operation for the current block
+        arm_fir_f32(&Fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
+    }
+    memcpy(rescaled_adc_wave, output_signal, adc_data_length * sizeof(float));
+}
+```
 
 ### Cross-correlation
 Finally, the cross-correlation method is performed on the filtered signal and output signal from the speaker. The result of the cross-correlation is number of lag samples between the two signals. Then, the distance is computed as: 
@@ -88,6 +116,23 @@ For faster measurements, cross-correlation is performed directly on the microcon
 a requirement, setting a macro *"LOCAL_XCORR"* to *false* will directly send raw ADC data to the PC. 
 
 
+```c
+void custom_xcorr(float* xcorr_buf, const uint16_t* dac_wave, uint32_t adc_data_length) {
+    // delay loop
+    for (int32_t m = 0; m < adc_data_length; m++) {
+        // sum loop
+        float sum = 0;
+        for (uint16_t n = 0; n < dac_wave_size; n++) {
+            uint32_t idx = n + m;
+            if (idx < adc_data_length) {
+                sum += dac_wave[n]*xcorr_buf[idx]; 
+            }
+        }
+        xcorr_buf[m] = sum; 
+    }
+}
+```
+
 ## Receiving the Data
 
 The communication is done using a Half Duplex method and UART communication protocol - each sender and receiver can transmit the data but not at the same time. This is needed since the data acqusition is started only after the PC (sender) sends the starting signal to the board. After the starting signal, data acquisition and data sending is performed for a predefined amount of time. 
@@ -101,6 +146,9 @@ This diagram depicts one iteration of PC receiving the data. This continues for 
 
 {: .IMPORTANT}
 Make sure that *PLOT_DETAILED_DATA* in MATLAB matches the value of *XCORR_DETAILS*, as well as to set *DATA_LENGTH* in MATLAB to be the same as *STORE_BUF_SIZE* macro. Make sure to choose the correct *ARDUINO_PORT* to match the real one. 
+
+
+
 
 ## Showcase 
 

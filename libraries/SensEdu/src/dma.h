@@ -1,7 +1,6 @@
 #ifndef __DMA_H__
 #define __DMA_H__
 
-
 #include "libs.h"
 #include "dac.h"
 
@@ -71,6 +70,7 @@ typedef enum {
 } DMA_ERROR;
 
 DMA_ERROR DMA_GetError(void);
+
 void DMA_ADCInit(ADC_TypeDef* adc, uint16_t* mem_address, const uint16_t mem_size);
 void DMA_DACInit(DAC_Channel* dac_channel, uint16_t* mem_address, const uint16_t mem_size, SENSEDU_DAC_MODE wave_mode);
 void DMA_ADCEnable(ADC_TypeDef* adc);

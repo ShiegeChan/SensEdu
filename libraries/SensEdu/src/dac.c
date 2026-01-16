@@ -5,8 +5,7 @@
 /*                                   Structs                                  */
 /* -------------------------------------------------------------------------- */
 
-typedef struct
-{
+typedef struct {
     volatile uint16_t transfer_cnt;  // current written wave cycle to dac
     volatile uint8_t burst_complete;       
 } dac_data;
@@ -67,7 +66,7 @@ void SensEdu_DAC_Enable(DAC_Channel* dac_channel) {
 
     uint16_t shift = 0U;
     if (dac_channel == DAC_CH2) {
-        shift = 16U;  //all bits in CR register are shifted 16 positions for channel 2
+        shift = 16U;  // All bits in CR register are shifted 16 positions for channel 2
     }
     SET_BIT(DAC1->CR, DAC_CR_EN1 << shift);
     while(!READ_BIT(DAC1->CR, DAC_CR_EN1 << shift));
@@ -122,17 +121,17 @@ void dac_init(DAC_Channel* dac_channel) {
 
     uint16_t shift = 0U;
     if (dac_channel == DAC_CH2) {
-        // all bits in CR register are shifted 16 positions for channel 2
+        // All bits in CR register are shifted 16 positions for channel 2
         shift = 16U;  
     }
 
-    // check for both channels
+    // Check for both channels
     if (READ_BIT(DAC1->CR, ((DAC_CR_EN1 << shift) | (DAC_CR_CEN1 << shift)))) { 
         error = DAC_ERROR_ALREADY_ENABLED;
         return;
     }
 
-    // TODO: check if it is needed in default arduino config and change according to DAC channel
+    // TODO: Check if it is needed in default arduino config and change according to DAC channel
     // GPIO 
     MODIFY_REG(GPIOA->MODER, GPIO_MODER_MODE4, (0b11) << GPIO_MODER_MODE4_Pos);
 
@@ -185,7 +184,7 @@ static DAC_ERROR check_settings(SensEdu_DAC_Settings* settings) {
     } 
 
     if (settings->wave_mode == SENSEDU_DAC_MODE_BURST_WAVE && settings->burst_num < 1) {
-        settings->burst_num = 1; // be careful not to stuck in interrupt
+        settings->burst_num = 1; // Be careful not to stuck in interrupt
         return DAC_ERROR_INIT_CYCLE_NUM;
     }
 

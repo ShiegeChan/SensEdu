@@ -37,7 +37,7 @@ SensEdu_ADC_Enable(ADC1); // Enable ADC1 peripheral
 * [DAC]({% link library/dac.md %})
   * Prefix: `SensEdu_DAC_`
   * Source: `\src\dac.c` and `\src\dma.c`
-* [PWM]()
+* [PWM]({% link library/pwm.md %})
   * Prefix: `SensEdu_PWM_`
   * Source: `\src\pwm.c`
 

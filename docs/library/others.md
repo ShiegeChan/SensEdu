@@ -10,17 +10,208 @@ nav_order: 5
 ---
 
 These examples illustrate more complex, yet fundamental, applications of multiple peripherals.
-{: .fw-500}
 
+{: .fw-500}
 - TOC
 {:toc}
+
+
+{: .IMPORTANT}
+To run these examples, you need to install [MATLAB]. Some examples offer also an alternative in [Python].
+
+## Recording Audio 
+
+This example demonstrates how audio is recorded using one microphone on SensEdu board. The file is recorded using a MATLAB script and data is saved as .wav file. 
+
+### Arduino script
+{: .no_toc}
+
+In Arduino script *Record_Audio.ino*, microphone data is captured by an ADC and sent to a PC via serial port. 
+
+**Step 1**{: .text-blue-000} : Include SensEdu library.
+```c
+#include "SensEdu.h"
+```
+
+**Step 2**{: .text-blue-000} : Define and initialize variables. 
+
+```c
+// Library error container
+static uint32_t lib_error = 0;
+
+// Error indication pin
+static uint8_t error_led = D86;
+
+// Flag to indicate the recording start
+static bool is_recording_started = false;
+
+// Counter for MATLAB synchronization (must match with receiver script)
+static const uint16_t LOOP_COUNT = 500;
+```
+
+**Step 3**{: .text-blue-000} : Initialize ADC that records microphone data. 
+
+```c
+const uint16_t mic_data_size = 2048;
+SENSEDU_ADC_BUFFER(mic_data, mic_data_size);
+
+ADC_TypeDef* adc = ADC1;
+const uint8_t mic_num = 1;
+uint8_t mic_pins[mic_num] = {A1};
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = mic_pins,
+    .pin_num = mic_num,
+
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 44100,
+    
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
+    .mem_address = (uint16_t*)mic_data,
+    .mem_size = mic_data_size
+};
+
+```
+
+**Step 4**{: .text-blue-000} : Setup function: Starting the ADC and checking for initialization errors. 
+
+```c
+void setup() {
+    Serial.begin(115200);
+
+    SensEdu_ADC_Init(&adc_settings);
+    SensEdu_ADC_Enable(adc);
+
+    pinMode(error_led, OUTPUT);
+    digitalWrite(error_led, HIGH);
+}
+```
+
+**Step 5**{: .text-blue-000} : Loop function: Reading and sending microphone data. 
+
+```c
+void loop() {
+    // Recording is initiated by the signal from computing device
+    static char serial_buf = 0;
+    while (!is_recording_started) {
+        while (Serial.available() == 0);
+        serial_buf = Serial.read();
+
+        if (serial_buf == 't') {
+            is_recording_started = true;
+            break;
+        }
+    }
+
+    // Recording loop
+    for (uint16_t i = 0; i < LOOP_COUNT; i++) {
+        SensEdu_ADC_Start(adc);
+        while (!SensEdu_ADC_IsDmaTransferComplete(adc));
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
+        serial_send_array((const uint8_t *)&mic_data, mic_data_size << 1);
+    }
+    is_recording_started = false;
+}
+```
+
+Data is sent using a custom function in chunks of 32 bytes for optimization purposes. The package size is specified by the size of ADC buffer. 
+
+```c
+// send serial data in 32 byte chunks
+void serial_send_array(const uint8_t* data, size_t size) {
+    const size_t chunk_size = 32;
+	for (uint32_t i = 0; i < size/chunk_size; i++) {
+		Serial.write(data + chunk_size * i, chunk_size);
+	}
+}
+```
+
+The script is uploaded to Arduino GIGA with Sensedu shield and the results can be seen in MATLAB script. 
+
+
+### MATLAB Script
+{: .no_toc}
+
+In Matlab script *Record_Audio.m*, measurement trigger is sent to Arduino to start recording microphone data. The data is then 
+
+**Step 1**{: .text-blue-000} : Settings to connect to Arduino
+
+```m
+%% Settings
+ARDUINO_PORT = "COM22";
+ARDUINO_BAUDRATE = 115200;
+ITERATIONS = 200; % match this number with "LOOP_COUNT" in firmware
+DATA_LENGTH = 2048; % match this number with "mic_data_size" in firmware
+Fs = 44100; % sampling frequency (in Hz) required to generate wav file
+```
+
+**Step 2**{: .text-blue-000} : Initializing arduino object
+
+```m
+arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
+```
+
+**Step 3**{: .text-blue-000} : Recording loop
+
+```m
+data = zeros(1,ITERATIONS);
+data_mat = zeros(ITERATIONS, DATA_LENGTH);
+disp('Recording started...');
+write(arduino, 't', "char"); % trigger arduino measurement
+for it = 1:ITERATIONS
+    data = read_data(arduino, DATA_LENGTH);
+    data_mat(it, :) = data;
+end
+disp('Recording ended.');
+
+% set COM port back free
+arduino = [];
+```
+
+**Step 4**{: .text-blue-000} : Saving data to .wav file
+
+```m
+file_name = sprintf('Recordings/%s_%s.wav', "recorded_audio", datetime("now"));
+file_name = strrep(file_name, ' ', '_');
+file_name = strrep(file_name, ':', '-');
+
+% append all data collected
+data_full = reshape(data_mat.', 1, []);
+
+% data normalization [-1, 1]
+y = data_full/65535;
+y = 2*y - 1; 
+
+% center data around 0
+y = y - mean(y);
+
+% convert samples to time 
+t = linspace(0, length(y)/Fs, length(y));
+
+% write to the file 
+audiowrite(file_name, y, Fs);
+```
+
+**Result**{: .text-blue-000} : An example of a recorded audio is provided below. 
+
+<video id="myVideo" width="600" controls>
+<source src="{{site.baseurl}}/assets/videos/recorded_audio_ex.mp4" type="video/mp4">
+Your browser does not support the video tag.
+</video>
+
 
 ## Basic Ultrasound Examples
 
 These examples demonstrate how to transmit a 32kHz ultrasonic wave at a constant sampling rate. The reflected wave is then captured and sent to a PC via Serial or WiFi communication. Using MATLAB, you can visualize and potentially process the wave. By placing an object on top of the SensEdu, you can observe wave reflections.
 
-{: .IMPORTANT}
-To run these examples, you need to install [MATLAB].
+For both the example [Basic_UltraSound]({% link library/others.md %}#basic_ultrasound) and [Basic_UltraSound_4CH]({% link library/others.md %}#basic_ultrasound_4ch) an equivalent Python implementation is also provided to visualize the acquired signals. This is particularly useful because it removes the requirement to use MATLAB, which is proprietary software that requires a paid license. With the Python version, waveform visualization and basic signal analysis can be performed using an open-source programming language, freely available and compatible with the most widely used development environments.
+
+To run examples in python, following libraries need to be installed: 
+
+* *NumPy* - for scientific computing ``` $pip install numpy```
+* *Matplotlib* - for visualization ``` $pip install matplotlib```
+* *PySerial* - for serial port communication ``` $pip install pyserial```
+
 
 ### Basic_UltraSound
 
@@ -81,10 +272,10 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = mic_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic_data,
     .mem_size = mic_data_size
 };
@@ -123,15 +314,15 @@ void loop() {
 
 ```c
     SensEdu_DAC_Enable(dac_ch);
-    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
+    while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
     SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
 ```
 
 **Step 8**{: .text-blue-000} : Start the data acquisition and wait until it is completed.
 
 ```c
-    while(!SensEdu_ADC_GetTransferStatus(adc));
-    SensEdu_ADC_ClearTransferStatus(adc);
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc));
+    SensEdu_ADC_ClearDmaTransferComplete(adc);
 ```
 
 **Step 9**{: .text-blue-000} : Send the received wave data to MATLAB via Serial.
@@ -228,10 +419,10 @@ SensEdu_ADC_Settings adc1_settings = {
     .pins = mic12_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic12_data,
     .mem_size = mic_data_size
 };
@@ -241,10 +432,10 @@ SensEdu_ADC_Settings adc2_settings = {
     .pins = mic34_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic34_data,
     .mem_size = mic_data_size
 };
@@ -253,7 +444,6 @@ SensEdu_ADC_Settings adc2_settings = {
 For each ADC interaction, call both ADC1 and ADC2 (see example below). If you use the A9 pin for older board revisions, don't forget to call `SensEdu_ADC_ShortA4toA9`, which is explained [here]({% link library/adc.md %}#sensedu_adc_shorta4toa9).
 
 ```c
-SensEdu_ADC_ShortA4toA9();
 SensEdu_ADC_Init(&adc1_settings);
 SensEdu_ADC_Init(&adc2_settings);
 SensEdu_ADC_Enable(adc1);
@@ -367,10 +557,10 @@ SensEdu_ADC_Settings adc_settings = {
     .pins = mic_pins,
     .pin_num = mic_num,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 250000,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 250000,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)mic_data,
     .mem_size = mic_data_size
 };
@@ -425,7 +615,7 @@ void loop() {
         Serial.println("Client connected!");
         static char buf = 0;
         
-        while(client.connected()){
+        while (client.connected()){
             if (client.available()) {
                 buf = client.read();
                 if(buf == 't') {
@@ -444,15 +634,15 @@ void loop() {
 
 ```c
     SensEdu_DAC_Enable(dac_ch);
-    while(!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
+    while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
     SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
 ```
 
 **Step 8**{: .text-blue-000} : Start the data acquisition and wait until it is completed.
 
 ```c
-    while(!SensEdu_ADC_GetTransferStatus(adc));
-    SensEdu_ADC_ClearTransferStatus(adc);
+    while (!SensEdu_ADC_IsDmaTransferComplete(adc));
+    SensEdu_ADC_ClearDmaTransferComplete(adc);
 ```
 
 **Step 9**{: .text-blue-000} : Send the received wave data to MATLAB via Serial.
@@ -525,3 +715,4 @@ Notice that with WiFi, your Serial is freed up, allowing to use it for convenien
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
 
 [MATLAB]: https://www.mathworks.com/products/matlab.html
+[Python]: https://www.python.org/ 

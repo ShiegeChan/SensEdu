@@ -13,6 +13,10 @@ Welcome to the SensEdu documentation!
 {: .fs-6 .fw-400}
 ---
 
+<video autoplay loop muted playsinline>
+  <source src="{{site.baseurl}}/assets/videos/animation.mp4" type="video/mp4">
+</video>
+
 SensEdu is an ultrasonic ranging and detection development shield for Arduino GIGA R1, designed as an open-source educational project to lower the barrier to ultrasonic sensing and research.
 {: .fw-500}
 
