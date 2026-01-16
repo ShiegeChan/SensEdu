@@ -1,5 +1,4 @@
 #include "SensEdu.h"
-
 // We need to create a LUT for the sine wave we want to transmit
 const uint16_t sine_lut_size_0 = 64; // sine wave size
 static uint16_t array_bit0[sine_lut_size_0] = {
@@ -25,8 +24,12 @@ static uint16_t array_bit1[sine_lut_size_1] = {
 0x69C, 0x513, 0x3A9, 0x26A, 0x164, 0x0A1, 0x029, 0x000
 };
 
-// Big buffer for the entire LUT
-const uint16_t MAX_LUT_SIZE = 8*64; // All bits ''0'' 
+// Dynamic buffer configuration
+const uint16_t SAMPLES_PER_BIT = 64;
+const uint16_t BIT_PER_BYTE = 8;
+const uint16_t MAX_MESSAGE_LENGTH = 64;
+const uint16_t MAX_LUT_SIZE = MAX_MESSAGE_LENGTH * BIT_PER_BYTE * SAMPLES_PER_BIT; // 
+
 static SENSEDU_DAC_BUFFER(lut , MAX_LUT_SIZE);
 uint8_t serial_buf;
 
@@ -63,16 +66,22 @@ void setup() {
 }
 
 void loop () {
+    delay(5000);
+
     // Opcion 1: esperar al serial input
     //while (Serial.available() == 0); 
     // Lee el primer byte
     //serial_buf = Serial.read(); 
-    delay(5000);
+
     // Opcion 2: fixed bit
-    serial_buf = 'U'; // U: 01010101
+    //serial_buf = 'U'; // U: 01010101
+
+    // Option 3: two characters:
+    uint8_t message[] = {'U', 'U'};
+    uint8_t length = sizeof(message);
 
     digitalWrite(SYNC_PIN, HIGH);
-    sendByte(serial_buf);    // Send while HIGH
+    sendMessage(message, length); 
     digitalWrite(SYNC_PIN, LOW);
 
     check_errors();
@@ -87,37 +96,46 @@ void check_errors() {
     }
 }
 
-void buildByteLUT(uint8_t data) {
+void buildMessageLUT(uint8_t* data, uint8_t num_bytes) {
     uint16_t position = 0;
-    const uint16_t SAMPLES_PER_BIT = 64; 
 
     // Clear the entire LUT first (fill with DC level, e.g., 0x800)
     for (size_t i = 0; i < MAX_LUT_SIZE; i++) {
         lut[i] = 0x800;  // Mid-level (silence)
     }
 
-    // Build the waveform
-    for (int bit_pos = 7; bit_pos >= 0; bit_pos--) {
-        bool bit = (data >> bit_pos) & 1; 
-        
-        // Guardamos el inicio de este bloque de bit
-        uint16_t bit_start_index = (7 - bit_pos) * SAMPLES_PER_BIT;
+    // Limit to maximum message length
+    if (num_bytes > MAX_MESSAGE_LENGTH) {
+        num_bytes = MAX_MESSAGE_LENGTH;
+        Serial.println("Warning: Message truncated to MAX_MESSAGE_LENGTH");
+    }
 
-        if (bit) {
-            for (int i = 0; i < sine_lut_size_1; i++) {
-                lut[bit_start_index + i] = array_bit1[i];
-            }
-        } else {
-            for (int i = 0; i < sine_lut_size_0; i++) {
-                lut[bit_start_index + i] = array_bit0[i];
+    // Build waveform for each byte in the message
+    for (uint8_t byte_idx = 0; byte_idx < num_bytes; byte_idx++) {
+        uint8_t current_byte = data[byte_idx];
+    
+        for (int bit_pos = 7; bit_pos >= 0; bit_pos--) {
+            bool bit = (current_byte >> bit_pos) & 1; 
+            
+            // Guardamos el inicio de este bloque de bit
+            uint16_t bit_start_index = (byte_idx * BIT_PER_BYTE + 7 - bit_pos) * SAMPLES_PER_BIT;
+
+            if (bit) {
+                for (int i = 0; i < sine_lut_size_1; i++) {
+                    lut[bit_start_index + i] = array_bit1[i];
+                }
+            } else {
+                for (int i = 0; i < sine_lut_size_0; i++) {
+                    lut[bit_start_index + i] = array_bit0[i];
+                }
             }
         }
-    }
     // Rest of byte_lut stays at 0x800 (silence padding)
+    }
 }
 
-void sendByte(uint8_t data) {
-    buildByteLUT(data);  // Update byte_lut contents
+void sendMessage(uint8_t* data, uint8_t num_bytes) {
+    buildMessageLUT(data, num_bytes);  // Update byte_lut contents
     
     SensEdu_DAC_Enable(DAC_CH1);
     while (!SensEdu_DAC_GetBurstCompleteFlag(DAC_CH1));
