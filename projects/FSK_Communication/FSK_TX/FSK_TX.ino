@@ -31,13 +31,15 @@ const uint16_t MAX_MESSAGE_LENGTH = 64;
 const uint16_t MAX_LUT_SIZE = MAX_MESSAGE_LENGTH * BIT_PER_BYTE * SAMPLES_PER_BIT; // 
 
 static SENSEDU_DAC_BUFFER(lut , MAX_LUT_SIZE);
-uint8_t serial_buf;
+//uint8_t serial_buf;
 
 /* errors */
 static uint32_t lib_error = 0;
 uint8_t error_led = D86;
 const int SYNC_PIN = 2;
 
+uint8_t message[MAX_MESSAGE_LENGTH];
+uint8_t length = 0;
 
 // Configure the DAC1
 #define DAC_SINE_FREQ    	32800 
@@ -63,6 +65,8 @@ void setup() {
     digitalWrite(SYNC_PIN, LOW);
     
     SensEdu_DAC_Init(&dac_settings_1);
+
+    Serial.println("Enter message:");
 }
 
 void loop () {
@@ -73,17 +77,30 @@ void loop () {
     // Lee el primer byte
     //serial_buf = Serial.read(); 
 
-    // Opcion 2: fixed bit
-    //serial_buf = 'U'; // U: 01010101
+    // // Option 2: two characters:
+    // uint8_t message[] = {'F', 'E', 'R', 'N', 'A', 'N', 'D', 'O'};
+    // uint8_t length = sizeof(message);
 
-    // Option 3: two characters:
-    uint8_t message[] = {'U', 'U'};
-    uint8_t length = sizeof(message);
-
-    digitalWrite(SYNC_PIN, HIGH);
-    sendMessage(message, length); 
-    digitalWrite(SYNC_PIN, LOW);
-
+    // Option 3: asl for a message
+    if (Serial.available() > 0) {
+        length = 0;
+        
+        while (Serial.available() > 0 && length < MAX_MESSAGE_LENGTH) {
+            message[length] = Serial.read();
+            length++;
+            delay(10);
+        }
+        
+        while (length > 0 && (message[length-1] == '\n' || message[length-1] == '\r')) {
+            length--;
+        }
+        
+        if (length > 0) {
+            digitalWrite(SYNC_PIN, HIGH);
+            sendMessage(message, length); 
+            digitalWrite(SYNC_PIN, LOW);
+        }
+    }
     check_errors();
 }
 
