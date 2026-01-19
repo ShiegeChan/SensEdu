@@ -1,6 +1,7 @@
 #include "SensEdu.h"
-// We need to create a LUT for the sine wave we want to transmit
-const uint16_t sine_lut_size_0 = 64; // sine wave size
+
+// We need to create two LUTs for the sine wave we want to transmit
+const uint16_t sine_lut_size_0 = 64; // sine wave size bit '0' 16400 Hz
 static uint16_t array_bit0[sine_lut_size_0] = {
 0x000, 0x00A, 0x029, 0x05B, 0x0A1, 0x0F9, 0x164, 0x1DF, 
 0x26A, 0x303, 0x3A9, 0x459, 0x513, 0x5D5, 0x69C, 0x766, 
@@ -12,7 +13,7 @@ static uint16_t array_bit0[sine_lut_size_0] = {
 0x1DF, 0x164, 0x0F9, 0x0A1, 0x05B, 0x029, 0x00A, 0x000
 };
 
-const uint16_t sine_lut_size_1 = 64; // sine wave size
+const uint16_t sine_lut_size_1 = 64; // sine wave size bit '1' 32800 Hz
 static uint16_t array_bit1[sine_lut_size_1] = {
 0x000, 0x029, 0x0A1, 0x164, 0x26A, 0x3A9, 0x513, 0x69C, 
 0x833, 0x9C7, 0xB4A, 0xCAB, 0xDDC, 0xED3, 0xF84, 0xFE8, 
@@ -24,24 +25,26 @@ static uint16_t array_bit1[sine_lut_size_1] = {
 0x69C, 0x513, 0x3A9, 0x26A, 0x164, 0x0A1, 0x029, 0x000
 };
 
-// Dynamic buffer configuration
-const uint16_t SAMPLES_PER_BIT = 64;
-const uint16_t BIT_PER_BYTE = 8;
-const uint16_t MAX_MESSAGE_LENGTH = 64;
-const uint16_t MAX_LUT_SIZE = MAX_MESSAGE_LENGTH * BIT_PER_BYTE * SAMPLES_PER_BIT; // 
-
-static SENSEDU_DAC_BUFFER(lut , MAX_LUT_SIZE);
-//uint8_t serial_buf;
-
 /* errors */
-static uint32_t lib_error = 0;
-uint8_t error_led = D86;
-const int SYNC_PIN = 2;
+static uint32_t lib_error = 0; // Internal library error container
+uint8_t error_led = D86; 
+const int SYNC_PIN = 2; // Syncronization signal from PIN 2 digital
 
+/* -------------------------------------------------------------------------- */
+/*                                  Settings                                  */
+/* -------------------------------------------------------------------------- */
+
+// Dynamic buffer configuration
+const uint16_t SAMPLES_PER_BIT = 64; 
+const uint16_t BIT_PER_BYTE = 8;
+const uint16_t MAX_MESSAGE_LENGTH = 64; // Maximum allowed by arduino
+const uint16_t MAX_LUT_SIZE = MAX_MESSAGE_LENGTH * BIT_PER_BYTE * SAMPLES_PER_BIT; 
+static SENSEDU_DAC_BUFFER(lut , MAX_LUT_SIZE); 
 uint8_t message[MAX_MESSAGE_LENGTH];
 uint8_t length = 0;
 
-// Configure the DAC1
+
+/* ----------------------------------- DAC ---------------------------------- */
 #define DAC_SINE_FREQ    	32800 
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * 32   // samples per one sine cycle 
 
@@ -53,6 +56,10 @@ SensEdu_DAC_Settings dac_settings_1 = {
     .wave_mode = SENSEDU_DAC_MODE_BURST_WAVE,
     .burst_num = 1
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                    Setup                                   */
+/* -------------------------------------------------------------------------- */
 
 void setup() {
     Serial.begin(115200);
@@ -69,19 +76,14 @@ void setup() {
     Serial.println("Enter message:");
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                    Loop                                    */
+/* -------------------------------------------------------------------------- */
+
 void loop () {
     delay(5000);
 
-    // Opcion 1: esperar al serial input
-    //while (Serial.available() == 0); 
-    // Lee el primer byte
-    //serial_buf = Serial.read(); 
-
-    // // Option 2: two characters:
-    // uint8_t message[] = {'F', 'E', 'R', 'N', 'A', 'N', 'D', 'O'};
-    // uint8_t length = sizeof(message);
-
-    // Option 3: asl for a message
+    // Wait for the message on the serial post and send it
     if (Serial.available() > 0) {
         length = 0;
         
@@ -91,7 +93,7 @@ void loop () {
             delay(10);
         }
         
-        while (length > 0 && (message[length-1] == '\n' || message[length-1] == '\r')) {
+        while (length > 0 && (message[length - 1] == '\n' || message[length - 1] == '\r')) {
             length--;
         }
         
@@ -113,7 +115,8 @@ void check_errors() {
     }
 }
 
-void buildMessageLUT(uint8_t* data, uint8_t num_bytes) {
+// Build the LUT to send
+void buildMessageLUT (uint8_t* data, uint8_t num_bytes) {
     uint16_t position = 0;
 
     // Clear the entire LUT first (fill with DC level, e.g., 0x800)
@@ -134,14 +137,14 @@ void buildMessageLUT(uint8_t* data, uint8_t num_bytes) {
         for (int bit_pos = 7; bit_pos >= 0; bit_pos--) {
             bool bit = (current_byte >> bit_pos) & 1; 
             
-            // Guardamos el inicio de este bloque de bit
+            // Save the start position of every byte
             uint16_t bit_start_index = (byte_idx * BIT_PER_BYTE + 7 - bit_pos) * SAMPLES_PER_BIT;
 
-            if (bit) {
+            if (bit) { // Asign bit '1' to high frequency LUT 
                 for (int i = 0; i < sine_lut_size_1; i++) {
                     lut[bit_start_index + i] = array_bit1[i];
                 }
-            } else {
+            } else { //Asign bit '0' to low frequency LUT
                 for (int i = 0; i < sine_lut_size_0; i++) {
                     lut[bit_start_index + i] = array_bit0[i];
                 }
