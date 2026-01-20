@@ -1,22 +1,14 @@
-// THIS EXAMPLE IS A TEMPLATE FOR THE FUTURE CIRCULAR DMA FEATURE
-// IT DOESN'T WORK AT THE TIME
-
 #include "SensEdu.h"
 
 // Internal library error container
 uint32_t lib_error = 0;
 
-// Counter to show that CPU can do something else while DMA transfer is running
-uint32_t cntr = 0;
-
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-// For DMA you need to initialize a buffer to store conversion results
-// Use the macro SENSEDU_ADC_BUFFER(name, size)
-const uint16_t buf_size = 128;
-SENSEDU_ADC_BUFFER(buf, buf_size);
+const uint16_t buf_size = 2048;
+SENSEDU_DMA_BUFFER(buf, buf_size);
 
 ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 1;
@@ -28,7 +20,7 @@ SensEdu_ADC_Settings adc_settings = {
     .pin_num = adc_pin_num,
 
     .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
-    .sampling_rate_hz = 1000,
+    .sampling_rate_hz = 44100,
     
     .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
     .mem_address = (uint16_t*)buf,
@@ -52,6 +44,8 @@ void setup() {
 
     check_lib_errors();
 
+    SCB_DisableDCache();
+
     Serial.println("Setup is successful.");
 }
 
@@ -59,22 +53,37 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 
+uint32_t capture_remaining = 0;
+bool capture_active = false;
+
 void loop() {
-    // CPU does something
-    cntr += 1;
-    Serial.println(cntr);
-    check_lib_errors();
-    
-    // DMA in background
-    if (SensEdu_ADC_IsDmaTransferComplete(adc)) {
-        Serial.println("------");
-        for (int i = 0; i < buf_size; i++) {
-            Serial.print("ADC value ");
-            Serial.print(i);
-            Serial.print(": ");
-            Serial.println(buf[i]);
-        };
+    char c;
+    if (Serial.available() > 0) {
+        c = Serial.read();
+        if (c == 't') {
+            capture_remaining = 40;
+            capture_active = true;
+            SensEdu_ADC_ClearDmaTransferComplete(adc);
+            SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
+        }
+    }
+
+    if (!capture_active) return;
+
+    if (capture_remaining && SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
+        serial_send_array(&buf[0], buf_size/2, 32);
+        capture_remaining--;
+    }
+
+    if (capture_remaining && SensEdu_ADC_IsDmaTransferComplete(adc)) {
         SensEdu_ADC_ClearDmaTransferComplete(adc);
+        serial_send_array(&(buf[buf_size/2]), buf_size/2, 32);
+        capture_remaining--;
+    }
+
+    if (capture_remaining == 0) {
+        capture_active = false;
     }
 }
 
@@ -86,5 +95,12 @@ void check_lib_errors() {
         delay(1000);
         Serial.print("Error: 0x");
         Serial.println(lib_error, HEX);
+    }
+}
+
+void serial_send_array(uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
+    for (size_t i = 0; i < (data_length << 1); i += chunk_size_byte) {
+        size_t transfer_size = ((data_length << 1) - i < chunk_size_byte) ? ((data_length << 1) - i) : chunk_size_byte;
+        Serial.write((const uint8_t *)data + i, transfer_size);
     }
 }
