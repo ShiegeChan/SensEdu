@@ -1,28 +1,21 @@
 #include "SensEdu.h"
 
 // We need to create two LUTs for the sine wave we want to transmit
-const uint16_t sine_lut_size_0 = 64; // sine wave size bit '0' 16400 Hz
+const uint16_t sine_lut_size_0 = 33; // sine wave size bit '0' 32000 Hz
 static uint16_t array_bit0[sine_lut_size_0] = {
-0x000, 0x00A, 0x029, 0x05B, 0x0A1, 0x0F9, 0x164, 0x1DF, 
-0x26A, 0x303, 0x3A9, 0x459, 0x513, 0x5D5, 0x69C, 0x766, 
-0x833, 0x8FE, 0x9C7, 0xA8C, 0xB4A, 0xBFF, 0xCAB, 0xD4A, 
-0xDDC, 0xE60, 0xED3, 0xF34, 0xF84, 0xFC0, 0xFE8, 0xFFC, 
-0xFFC, 0xFE8, 0xFC0, 0xF84, 0xF34, 0xED3, 0xE60, 0xDDC, 
-0xD4A, 0xCAB, 0xBFF, 0xB4A, 0xA8C, 0x9C7, 0x8FE, 0x833, 
-0x766, 0x69C, 0x5D5, 0x513, 0x459, 0x3A9, 0x303, 0x26A, 
-0x1DF, 0x164, 0x0F9, 0x0A1, 0x05B, 0x029, 0x00A, 0x000
+0x000, 0x027, 0x09C, 0x159, 0x258, 0x38E, 0x4F0, 0x670, 
+0x800, 0x98F, 0xB0F, 0xC71, 0xDA7, 0xEA6, 0xF63, 0xFD8, 
+0xFFF, 0xFD8, 0xF63, 0xEA6, 0xDA7, 0xC71, 0xB0F, 0x98F, 
+0x800, 0x670, 0x4F0, 0x38E, 0x258, 0x159, 0x09C, 0x027, 
+0x000
 };
 
-const uint16_t sine_lut_size_1 = 64; // sine wave size bit '1' 32800 Hz
+const uint16_t sine_lut_size_1 = 31; // sine wave size bit '1' 34000 Hz
 static uint16_t array_bit1[sine_lut_size_1] = {
-0x000, 0x029, 0x0A1, 0x164, 0x26A, 0x3A9, 0x513, 0x69C, 
-0x833, 0x9C7, 0xB4A, 0xCAB, 0xDDC, 0xED3, 0xF84, 0xFE8, 
-0xFFC, 0xFC0, 0xF34, 0xE60, 0xD4A, 0xBFF, 0xA8C, 0x8FE, 
-0x766, 0x5D5, 0x459, 0x303, 0x1DF, 0x0F9, 0x05B, 0x00A, 
-0x00A, 0x05B, 0x0F9, 0x1DF, 0x303, 0x459, 0x5D5, 0x766, 
-0x8FE, 0xA8C, 0xBFF, 0xD4A, 0xE60, 0xF34, 0xFC0, 0xFFC, 
-0xFE8, 0xF84, 0xED3, 0xDDC, 0xCAB, 0xB4A, 0x9C7, 0x833, 
-0x69C, 0x513, 0x3A9, 0x26A, 0x164, 0x0A1, 0x029, 0x000
+0x000, 0x02D, 0x0B1, 0x187, 0x2A5, 0x400, 0x587, 0x729, 
+0x8D6, 0xA78, 0xBFF, 0xD5A, 0xE78, 0xF4E, 0xFD2, 0xFFF, 
+0xFD2, 0xF4E, 0xE78, 0xD5A, 0xBFF, 0xA78, 0x8D6, 0x729, 
+0x587, 0x400, 0x2A5, 0x187, 0x0B1, 0x02D, 0x000
 };
 
 /* errors */
@@ -35,7 +28,7 @@ const int SYNC_PIN = 2; // Syncronization signal from PIN 2 digital
 /* -------------------------------------------------------------------------- */
 
 // Dynamic buffer configuration
-const uint16_t SAMPLES_PER_BIT = 64; 
+const uint16_t SAMPLES_PER_BIT = 33; 
 const uint16_t BIT_PER_BYTE = 8;
 const uint16_t MAX_MESSAGE_LENGTH = 64; // Maximum allowed by arduino
 const uint16_t MAX_LUT_SIZE = MAX_MESSAGE_LENGTH * BIT_PER_BYTE * SAMPLES_PER_BIT; 
@@ -45,7 +38,7 @@ uint8_t length = 0;
 
 
 /* ----------------------------------- DAC ---------------------------------- */
-#define DAC_SINE_FREQ    	32800 
+#define DAC_SINE_FREQ    	33000 
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * 32   // samples per one sine cycle 
 
 SensEdu_DAC_Settings dac_settings_1 = {
@@ -136,18 +129,17 @@ void buildMessageLUT (uint8_t* data, uint8_t num_bytes) {
     
         for (int bit_pos = 7; bit_pos >= 0; bit_pos--) {
             bool bit = (current_byte >> bit_pos) & 1; 
-            
-            // Save the start position of every byte
-            uint16_t bit_start_index = (byte_idx * BIT_PER_BYTE + 7 - bit_pos) * SAMPLES_PER_BIT;
 
             if (bit) { // Asign bit '1' to high frequency LUT 
                 for (int i = 0; i < sine_lut_size_1; i++) {
-                    lut[bit_start_index + i] = array_bit1[i];
+                    lut[position + i] = array_bit1[i];
                 }
+                position += sine_lut_size_1;
             } else { //Asign bit '0' to low frequency LUT
                 for (int i = 0; i < sine_lut_size_0; i++) {
-                    lut[bit_start_index + i] = array_bit0[i];
+                    lut[position + i] = array_bit0[i];
                 }
+                position += sine_lut_size_0;
             }
         }
     // Rest of byte_lut stays at 0x800 (silence padding)
@@ -162,3 +154,5 @@ void sendMessage(uint8_t* data, uint8_t num_bytes) {
     SensEdu_DAC_ClearBurstCompleteFlag(DAC_CH1);
     SensEdu_DAC_Disable(DAC_CH1);  // Clean shutdown
 }
+
+
