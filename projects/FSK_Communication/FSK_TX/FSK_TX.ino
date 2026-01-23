@@ -45,7 +45,6 @@ static uint16_t array_bit1[sine_lut_size_1] = {
 /* errors */
 static uint32_t lib_error = 0; // Internal library error container
 uint8_t error_led = D86; 
-const int SYNC_PIN = 2; // Syncronization signal from PIN 2 digital
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
@@ -59,6 +58,8 @@ const uint16_t MAX_LUT_SIZE = MAX_MESSAGE_LENGTH * BIT_PER_BYTE * SAMPLES_PER_BI
 static SENSEDU_DAC_BUFFER(lut , MAX_LUT_SIZE); 
 uint8_t message[MAX_MESSAGE_LENGTH];
 uint8_t length = 0;
+
+const int SYNC_PIN = 2; // Syncronization signal from PIN 2 digital
 
 
 /* ----------------------------------- DAC ---------------------------------- */
@@ -157,16 +158,16 @@ void buildMessageLUT (uint8_t* data, uint8_t num_bytes) {
     for (uint8_t byte_idx = 0; byte_idx < num_bytes; byte_idx++) {
         uint8_t current_byte = data[byte_idx];
     
-        for (int bit_pos = 7; bit_pos >= 0; bit_pos--) {
+        for (size_t bit_pos = 7; bit_pos >= 0; bit_pos--) {
             bool bit = (current_byte >> bit_pos) & 1; 
 
             if (bit) { // Asign bit '1' to high frequency LUT 
-                for (int i = 0; i < sine_lut_size_1; i++) {
+                for (size_t i = 0; i < sine_lut_size_1; i++) {
                     lut[position + i] = array_bit1[i];
                 }
                 position += sine_lut_size_1;
             } else { //Asign bit '0' to low frequency LUT
-                for (int i = 0; i < sine_lut_size_0; i++) {
+                for (size_t i = 0; i < sine_lut_size_0; i++) {
                     lut[position + i] = array_bit0[i];
                 }
                 position += sine_lut_size_0;
