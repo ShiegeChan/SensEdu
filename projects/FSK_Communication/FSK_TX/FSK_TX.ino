@@ -131,7 +131,7 @@ void buildMessageLUT (uint8_t* data, uint8_t num_bytes) {
     }
 
     // Build waveform for each byte in the message
-    for (uint8_t byte_idx = 0; byte_idx < num_bytes; byte_idx++) {
+    for (size_t byte_idx = 0; byte_idx < num_bytes; byte_idx++) {
         uint8_t current_byte = data[byte_idx];
     
         for (int bit_pos = 7; bit_pos >= 0; bit_pos--) {
@@ -141,11 +141,11 @@ void buildMessageLUT (uint8_t* data, uint8_t num_bytes) {
             uint16_t bit_start_index = (byte_idx * BIT_PER_BYTE + 7 - bit_pos) * SAMPLES_PER_BIT;
 
             if (bit) { // Asign bit '1' to high frequency LUT 
-                for (int i = 0; i < sine_lut_size_1; i++) {
+                for (size_t i = 0; i < sine_lut_size_1; i++) {
                     lut[bit_start_index + i] = array_bit1[i];
                 }
             } else { //Asign bit '0' to low frequency LUT
-                for (int i = 0; i < sine_lut_size_0; i++) {
+                for (size_t i = 0; i < sine_lut_size_0; i++) {
                     lut[bit_start_index + i] = array_bit0[i];
                 }
             }
