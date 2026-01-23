@@ -119,6 +119,7 @@ static bool is_dma_mode_enabled(SENSEDU_ADC_MODE adc_mode);
 static ADC_ERROR check_settings(SensEdu_ADC_Settings* settings);
 static void configure_pll2(void);
 static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num, SENSEDU_ADC_SR_MODE sr_mode, SENSEDU_ADC_MODE adc_mode);
+static void set_external_trigger(ADC_TypeDef* adc);
 static uint16_t* read_sequence_cont(ADC_TypeDef* adc, uint8_t pin_num);
 static uint16_t* read_sequence_one_shot(ADC_TypeDef* adc, uint8_t pin_num);
 
@@ -313,7 +314,7 @@ void SensEdu_ADC_ClearDmaTransferComplete(ADC_TypeDef* adc) {
 }
 
 // Outputs DMA half transfer reached status flag
-bool SensEdu_ADC_IsDmaHalfTransferComplete(ADC_TypeDef *adc) {
+bool SensEdu_ADC_IsDmaHalfTransferComplete(ADC_TypeDef* adc) {
     return get_adc_state(adc)->dma_half_transfer;
 }
 
@@ -564,11 +565,10 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num, SENSEDU_A
     MODIFY_REG(adc->CFGR2, ADC_CFGR2_OVSS, 0b0001 << ADC_CFGR2_OVSS_Pos); // account for x2 with 1-bit right shift
 
     // set operation mode
-    // TODO: verify adc_ext_trg9 and why it is named Timer #1
     switch (sr_mode) {
         case SENSEDU_ADC_SR_MODE_FIXED:
             MODIFY_REG(adc->CFGR, ADC_CFGR_EXTEN, 0b01 << ADC_CFGR_EXTEN_Pos); // enable trigger on rising edge
-            MODIFY_REG(adc->CFGR, ADC_CFGR_EXTSEL, 0b01001 << ADC_CFGR_EXTSEL_Pos); // adc_ext_trg9 from a datasheet (Timer #1)
+            set_external_trigger(adc); // assigns timer trigger
             CLEAR_BIT(adc->CFGR, ADC_CFGR_CONT); // single conversion mode
             break;
         case SENSEDU_ADC_SR_MODE_FREE:
@@ -600,6 +600,26 @@ static void adc_init(ADC_TypeDef* adc, uint8_t* pins, uint8_t pin_num, SENSEDU_A
             NVIC_EnableIRQ(ADC3_IRQn);
         }
     }
+}
+
+// Refer to the page 978 of the reference manual
+static void set_external_trigger(ADC_TypeDef* adc) {
+    TIM_TypeDef* tim = TIMER_GetTimerForAdc(adc);
+
+    if (tim == TIM1) {
+        MODIFY_REG(adc->CFGR, ADC_CFGR_EXTSEL, 0b01001 << ADC_CFGR_EXTSEL_Pos); // adc_ext_trg9
+        return;
+    }
+    if (tim == TIM3) {
+        MODIFY_REG(adc->CFGR, ADC_CFGR_EXTSEL, 0b00100 << ADC_CFGR_EXTSEL_Pos); // adc_ext_trg4
+        return;
+    }
+    if (tim == TIM6) {
+        MODIFY_REG(adc->CFGR, ADC_CFGR_EXTSEL, 0b01101 << ADC_CFGR_EXTSEL_Pos); // adc_ext_trg13
+        return;
+    }
+
+    error = ADC_ERROR_FAILED_TRIGGER_ASSIGNMENT;
 }
 
 static uint16_t* read_sequence_cont(ADC_TypeDef* adc, uint8_t pin_num) {

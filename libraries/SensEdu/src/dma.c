@@ -188,6 +188,9 @@ void init_dma_for_adc(DmaConfig* config) {
     // Priority
     MODIFY_REG(config->stream->CR, DMA_SxCR_PL, 0b10 << DMA_SxCR_PL_Pos); // High Priority
 
+    // Disable FIFO
+    CLEAR_BIT(config->stream->FCR, DMA_SxFCR_DMDIS);
+
     // Half-word (16bit) data sizes
     MODIFY_REG(config->stream->CR, DMA_SxCR_MSIZE, 0b01 << DMA_SxCR_MSIZE_Pos); // memory
     MODIFY_REG(config->stream->CR, DMA_SxCR_PSIZE, 0b01 << DMA_SxCR_PSIZE_Pos); // peripheral
@@ -202,13 +205,6 @@ void init_dma_for_adc(DmaConfig* config) {
     // Data transfer direction
     MODIFY_REG(config->stream->CR, DMA_SxCR_DIR, 0b00 << DMA_SxCR_DIR_Pos); // peripheral -> memory
 
-    // Enable Interrupts
-    SET_BIT(config->stream->CR, DMA_SxCR_TCIE); // transfer complete
-    SET_BIT(config->stream->CR, DMA_SxCR_HTIE); // half-transfer reached
-    SET_BIT(config->stream->CR, DMA_SxCR_TEIE); // transfer error
-    NVIC_SetPriority(config->irq, 3);
-    NVIC_EnableIRQ(config->irq);
-
     // Number of data items to transfer
     MODIFY_REG(config->stream->NDTR, DMA_SxNDT, (config->buf_samples) << DMA_SxNDT_Pos);
     
@@ -217,6 +213,13 @@ void init_dma_for_adc(DmaConfig* config) {
 
     // Memory data register address
     WRITE_REG(config->stream->M0AR, (uintptr_t)config->buf);
+
+    // Enable Interrupts
+    SET_BIT(config->stream->CR, DMA_SxCR_TCIE); // transfer complete
+    SET_BIT(config->stream->CR, DMA_SxCR_HTIE); // half-transfer reached
+    SET_BIT(config->stream->CR, DMA_SxCR_TEIE); // transfer error
+    NVIC_SetPriority(config->irq, 3);
+    NVIC_EnableIRQ(config->irq);
 }
 
 void init_dma_for_dac(DmaConfig* config, SENSEDU_DAC_MODE wave_mode) {
@@ -317,11 +320,20 @@ static void disable_cache(uint16_t* buf, size_t buf_samples) {
         return;
     }
 
+    size_t region_size_bytes = MPU_NEXT_POWER_OF_2(buf_samples * sizeof(uint16_t));
+    uint32_t region_size_attr = MPU_REGION_SIZE_ATTRIBUTE(buf_samples * sizeof(uint16_t));
+
+    // lower 0xFFF must always be 0s
+    if (((uintptr_t)buf & (region_size_bytes - 1)) != 0) {
+        error = DMA_ERROR_MPU_BASE_NOT_ALIGNED;
+        return;
+    }
+
     LL_MPU_Disable();
 
     // Check MPU mapping (e.g., LL_MPU_REGION_SIZE_32B) to understand the region size calculations
     LL_MPU_ConfigRegion(mpu_region, 0x0, (uintptr_t)(buf),
-    MPU_REGION_SIZE_ATTRIBUTE(buf_samples) |
+    region_size_attr |
     LL_MPU_TEX_LEVEL1 |
     LL_MPU_REGION_FULL_ACCESS |
     LL_MPU_INSTRUCTION_ACCESS_DISABLE | 
@@ -330,7 +342,7 @@ static void disable_cache(uint16_t* buf, size_t buf_samples) {
     LL_MPU_ACCESS_NOT_BUFFERABLE);
 
     LL_MPU_EnableRegion(mpu_region);
-    SCB_CleanDCache_by_Addr(buf, buf_samples << 1);
+    SCB_CleanDCache_by_Addr(buf, region_size_bytes);
     LL_MPU_Enable(LL_MPU_CTRL_PRIVILEGED_DEFAULT);
     mpu_region++;
 }

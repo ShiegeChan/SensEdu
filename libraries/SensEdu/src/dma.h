@@ -22,23 +22,8 @@ extern "C" {
 #define MPU_LOG_BASE2(x) \
     ((x) == 0 ? -1 : (31 - __builtin_clz(x)))
 
-#define MPU_REGION_SIZE_BYTES(buf_samples) \
-    MPU_NEXT_POWER_OF_2((buf_samples) * 2)
-#define MPU_REGION_SIZE_ATTRIBUTE(buf_samples) \
-    ((uint32_t)(MPU_LOG_BASE2(MPU_REGION_SIZE_BYTES(buf_samples)) - 1) << MPU_RASR_SIZE_Pos)
-
-// DCache calculation:
-//
-// forces the buffer to be a multiple of DCache line size
-
-// calculate how far the buffer size is from being a DCache multiple
-// DCache is 32bytes for stm32h747, meaning multiple of 16 for uint16_t buffer
-#define DCACHE_REMINDER(x) \
-    (x % (__SCB_DCACHE_LINE_SIZE/2))
-
-// calculate the next multiple of D-Cache line size
-#define DCACHE_NEXT_MULTIPLE(x) \
-    (DCACHE_REMINDER(x) == 0) ? x : (x - DCACHE_REMINDER(x) + (__SCB_DCACHE_LINE_SIZE/2))
+#define MPU_REGION_SIZE_ATTRIBUTE(x) \
+    ((uint32_t)(MPU_LOG_BASE2(MPU_NEXT_POWER_OF_2(x)) - 1) << MPU_RASR_SIZE_Pos)
 
 // DMA buffers:
 //
@@ -69,6 +54,7 @@ typedef enum {
 
     DMA_ERROR_UNEXPECTED_FLAG_MASK = 0xA0,          // Unexpected status or clear mask for DMA flags
     DMA_ERROR_INTERRUPTS_NOT_CLEARED = 0xA1,        // Status DMA flags are not cleared
+    DMA_ERROR_MPU_BASE_NOT_ALIGNED = 0xA2           // Failed MPU address calculations
 } DMA_ERROR;
 
 DMA_ERROR DMA_GetError(void);
