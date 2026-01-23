@@ -31,75 +31,21 @@ hex_char_array_1 = "0x" + string(dec2hex(LUT_f1_scaled));
 
 %% Print in hexadecimal %%
 fprintf(' First LUT: \n');
-for i = 1:8
+for i = 1:68
     fprintf('%s, ', hex_char_array_0(i));
+    if (mod(i, 8) == 0)
+        fprintf('\n');
+    end
 end
-fprintf('\n');
-for i = 9:16
-    fprintf('%s, ', hex_char_array_0(i));
-end
-fprintf('\n');
-for i = 17:24
-    fprintf('%s, ', hex_char_array_0(i));
-end
-fprintf('\n');
-for i = 25:32
-    fprintf('%s, ', hex_char_array_0(i));
-end
-fprintf('\n');
-for i = 33:40
-    fprintf('%s, ', hex_char_array_0(i));
-end
-fprintf('\n');
-for i = 41:48
-    fprintf('%s, ', hex_char_array_0(i));
-end
-fprintf('\n');
-for i = 49:56
-    fprintf('%s, ', hex_char_array_0(i));
-end
-fprintf('\n');
-for i = 57:64
-    fprintf('%s, ', hex_char_array_0(i));
-end
-fprintf('\n');
-for i = 65:68
-    fprintf('%s, ', hex_char_array_0(i));
-end
-fprintf('\n');
 
 fprintf('\nSecond LUT: ');
-for i = 1:8
+for i = 1:51
     fprintf('%s, ', hex_char_array_1(i));
+    if (mod(i, 8) == 0)
+        fprintf('\n');
+    end
 end
-fprintf('\n');
-for i = 9:16
-    fprintf('%s, ', hex_char_array_1(i));
-end
-fprintf('\n');
-for i = 17:24
-    fprintf('%s, ', hex_char_array_1(i));
-end
-fprintf('\n');
-for i = 25:32
-    fprintf('%s, ', hex_char_array_1(i));
-end
-fprintf('\n');
-for i = 33:40
-    fprintf('%s, ', hex_char_array_1(i));
-end
-fprintf('\n');
-for i = 41:48
-    fprintf('%s, ', hex_char_array_1(i));
-end
-fprintf('\n');
-for i = 49:51
-    fprintf('%s, ', hex_char_array_1(i));
-end
-% fprintf('\n');
-% for i = 57:64
-%     fprintf('%s, ', hex_char_array_1(i));
-% end
+
 fprintf('\n');
 plot(t_0, LUT_f0_scaled, 'b')
 hold on
