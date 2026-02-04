@@ -3022,26 +3022,6 @@
 		)
 		(uuid "fc70b9e0-399e-4bcb-bf10-bbaa19a39c3c")
 	)
-	(label "out+"
-		(at 38.1 39.37 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "0638f46a-9904-4929-8226-ab1d664dd38c")
-	)
-	(label "out+"
-		(at 107.442 39.37 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "1a3749c7-c427-4da0-8c4b-e7f8b805930a")
-	)
 	(label "out-"
 		(at 244.094 41.91 0)
 		(effects
@@ -3061,46 +3041,6 @@
 			(justify left bottom)
 		)
 		(uuid "b78e1d12-31d9-463c-a7f3-7aae254e60ad")
-	)
-	(label "out-"
-		(at 38.1 41.91 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "bc064af1-75ef-4469-a255-c130b207b3ad")
-	)
-	(label "out+"
-		(at 172.72 39.37 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "e4b9f3cf-df0b-45d9-af69-6798f15c1594")
-	)
-	(label "out-"
-		(at 107.442 41.91 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "f10ba27c-fd91-4bfd-9617-debcfb2a6405")
-	)
-	(label "out-"
-		(at 172.72 41.91 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left bottom)
-		)
-		(uuid "f4a044ff-7c75-4d66-88d2-a875c6d01b18")
 	)
 	(global_label "mic5_out2"
 		(shape input)

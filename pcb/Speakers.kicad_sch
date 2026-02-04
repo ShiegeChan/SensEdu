@@ -2271,7 +2271,7 @@
 		)
 		(uuid "c9daf453-dc41-4377-8f20-b1c779a67b0f")
 	)
-	(global_label "SE_PWM_2"
+	(global_label "SE_PWM_1"
 		(shape input)
 		(at 53.34 118.11 180)
 		(fields_autoplaced yes)
@@ -2293,7 +2293,7 @@
 			)
 		)
 	)
-	(global_label "SE_PWM_1"
+	(global_label "SE_PWM_3"
 		(shape input)
 		(at 52.07 59.69 180)
 		(fields_autoplaced yes)
