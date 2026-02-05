@@ -1124,7 +1124,7 @@
 					)
 				)
 				(pin power_in line
-					(at 15.24 -15.24 180)
+					(at 15.24 -13.97 180)
 					(length 5.08)
 					(name "EXP"
 						(effects
@@ -1134,63 +1134,6 @@
 						)
 					)
 					(number "13"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at 15.24 -15.24 180)
-					(length 5.08)
-					(hide yes)
-					(name "EXP"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "14"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at 15.24 -15.24 180)
-					(length 5.08)
-					(hide yes)
-					(name "EXP"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "15"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-				)
-				(pin power_in line
-					(at 15.24 -15.24 180)
-					(length 5.08)
-					(hide yes)
-					(name "EXP"
-						(effects
-							(font
-								(size 1.016 1.016)
-							)
-						)
-					)
-					(number "16"
 						(effects
 							(font
 								(size 1.016 1.016)
@@ -2336,6 +2279,16 @@
 	)
 	(wire
 		(pts
+			(xy 77.47 71.12) (xy 77.47 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "8c50547e-ebbb-40e9-839d-fe243de29fdc")
+	)
+	(wire
+		(pts
 			(xy 205.74 105.41) (xy 205.74 107.95)
 		)
 		(stroke
@@ -2523,16 +2476,6 @@
 			(type default)
 		)
 		(uuid "c6d50758-f4d4-4bed-982f-509836b6d806")
-	)
-	(wire
-		(pts
-			(xy 77.47 72.39) (xy 77.47 74.93)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "cc9e56ee-784e-4f55-9973-a7d620d4575f")
 	)
 	(wire
 		(pts
@@ -2903,7 +2846,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
 			(at 262.89 138.43 0)
 			(effects
 				(font
@@ -3368,7 +3311,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
 			(at 123.19 92.71 0)
 			(effects
 				(font
@@ -4326,7 +4269,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
 			(at 260.35 90.17 0)
 			(effects
 				(font
@@ -4703,15 +4646,6 @@
 		(pin "2"
 			(uuid "4380919a-8489-4439-ad51-ed7dce969970")
 		)
-		(pin "15"
-			(uuid "1822ef8c-b150-4f20-9706-0def9a0c9259")
-		)
-		(pin "14"
-			(uuid "662cd428-1353-47b0-a94b-26ae585a9806")
-		)
-		(pin "16"
-			(uuid "fda1c52f-1199-409f-b444-1586bc514289")
-		)
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/980ab19c-1e73-474b-994e-c8e10885075a"
@@ -4749,7 +4683,7 @@
 				(hide yes)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
 			(at 210.82 90.17 0)
 			(effects
 				(font
