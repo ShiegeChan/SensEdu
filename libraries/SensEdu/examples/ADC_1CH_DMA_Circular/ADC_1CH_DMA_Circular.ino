@@ -1,30 +1,35 @@
 #include "SensEdu.h"
 
-// Internal library error container
-uint32_t lib_error = 0;
-
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-const uint16_t buf_size = 2048;
-SENSEDU_DMA_BUFFER(buf, buf_size);
+// Number of half-buffer transfers per host request
+// Must match the MATLAB-side configuration
+static const uint16_t ITERATIONS_PER_REQUEST = 1000; 
 
-ADC_TypeDef* adc = ADC1;
-const uint8_t adc_pin_num = 1;
-uint8_t adc_pins[adc_pin_num] = {A0};
+// Error indicator LED
+static const uint8_t ERROR_LED_PIN = D86;
+
+// DMA buffer size (must be divisible by 2 for ping-pong operation)
+static const uint16_t DMA_BUFFER_SIZE = 64;
+volatile SENSEDU_DMA_BUFFER(dma_buffer, DMA_BUFFER_SIZE);
+
+static ADC_TypeDef* adc = ADC1;
+static const uint8_t ADC_PIN_COUNT = 1;
+static uint8_t adc_pins[ADC_PIN_COUNT] = {A1};
 
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,
-    .pin_num = adc_pin_num,
+    .pin_num = ADC_PIN_COUNT,
 
     .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
     .sampling_rate_hz = 44100,
     
     .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
-    .mem_address = (uint16_t*)buf,
-    .mem_size = buf_size
+    .mem_address = (uint16_t*)dma_buffer,
+    .mem_size = DMA_BUFFER_SIZE
 };
 
 /* -------------------------------------------------------------------------- */
@@ -32,73 +37,81 @@ SensEdu_ADC_Settings adc_settings = {
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-    // Stuck in the loop if Serial Monitor is not opened
-    Serial.begin(115200);
-    while (!Serial) {}
+    Serial.begin(2000000);
 
-    Serial.println("Started Initialization...");
+    pinMode(ERROR_LED_PIN, OUTPUT);
+    digitalWrite(ERROR_LED_PIN, HIGH);
+
+    while (!is_even(DMA_BUFFER_SIZE)) {
+        fatal_error(ERROR_LED_PIN);
+    }
 
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
-
-    check_lib_errors();
-
-    SCB_DisableDCache();
-
-    Serial.println("Setup is successful.");
+    
+    check_lib_errors(ERROR_LED_PIN);
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 
-uint32_t capture_remaining = 0;
-bool capture_active = false;
+uint32_t transfers_remaining = 0;
+bool recording_active = false;
 
 void loop() {
-    char c;
     if (Serial.available() > 0) {
-        c = Serial.read();
-        if (c == 't') {
-            capture_remaining = 40;
-            capture_active = true;
+        char command = Serial.read();
+        if (command == 't') {
+            transfers_remaining = ITERATIONS_PER_REQUEST;
+            recording_active = true;
+
+            // Clear DMA status flags for synchronization
             SensEdu_ADC_ClearDmaTransferComplete(adc);
             SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
         }
     }
 
-    if (!capture_active) return;
+    if (!recording_active) return;
 
-    if (capture_remaining && SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+    if (recording_active && SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
         SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
-        serial_send_array(&buf[0], buf_size/2, 32);
-        capture_remaining--;
+        serial_send_array(&dma_buffer[0], DMA_BUFFER_SIZE / 2, 64);
     }
 
-    if (capture_remaining && SensEdu_ADC_IsDmaTransferComplete(adc)) {
+    if (recording_active && SensEdu_ADC_IsDmaTransferComplete(adc)) {
         SensEdu_ADC_ClearDmaTransferComplete(adc);
-        serial_send_array(&(buf[buf_size/2]), buf_size/2, 32);
-        capture_remaining--;
+        serial_send_array(&(dma_buffer[DMA_BUFFER_SIZE / 2]), DMA_BUFFER_SIZE / 2, 64);
     }
 
-    if (capture_remaining == 0) {
-        capture_active = false;
+    if (transfers_remaining == 0) {
+        recording_active = false;
     }
 }
 
-// Checks if the library has risen any internal errors
-// Prints the error code in Serial Monitor
-void check_lib_errors() {
-    lib_error = SensEdu_GetError();
+// Ensures buffer size is valid for ping-pong DMA
+static bool is_even(uint16_t size) {
+    if (size % 2) return false;
+    return true;
+}
+
+// Check library error state
+static void check_lib_errors(uint8_t error_led) {
+    uint32_t lib_error = SensEdu_GetError();
     while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
+        fatal_error(error_led);
     }
 }
 
-void serial_send_array(uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
+// Halt system on fatal error
+static void fatal_error(uint8_t error_led) {
+    digitalWrite(error_led, !digitalRead(error_led));
+    delay(200);
+}
+
+// Send 16-bit buffer over Serial in byte chunks
+static void serial_send_array(volatile uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
     for (size_t i = 0; i < (data_length << 1); i += chunk_size_byte) {
         size_t transfer_size = ((data_length << 1) - i < chunk_size_byte) ? ((data_length << 1) - i) : chunk_size_byte;
         Serial.write((const uint8_t *)data + i, transfer_size);

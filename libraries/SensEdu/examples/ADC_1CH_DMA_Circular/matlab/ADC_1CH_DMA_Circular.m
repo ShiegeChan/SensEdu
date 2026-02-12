@@ -1,55 +1,42 @@
 %% ADC_1CH_DMA_Circular.m
-% reads config data and then ADC mics meassurements from Arduino
 clear;
 close all;
 clc;
 
 %% Settings
-ARDUINO_PORT = 'COM18';
-ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 40;
+ARDUINO_PORT = 'COM9';
+ARDUINO_BAUDRATE = 2000000;
+ITERATIONS = 200;
 
-ACTIVATE_PLOTS = true;
-CHUNK_SIZE = 32; % number of bytes that are read at once from serial -> 32 is optimal
-DATA_LENGTH = 1024; % HALF BUFFER LENGTH
+BUF_SIZE = 64;
+HALF_BUF_SIZE = BUF_SIZE/2;
+
+CHUNK_SIZE = 64; % Bytes per USB request
 
 %% Arduino Setup
-arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
+arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
 
 %% Readings Loop
-data = zeros(DATA_LENGTH,ITERATIONS);
-time_axis = zeros(1,ITERATIONS);
+data = zeros(HALF_BUF_SIZE, ITERATIONS);
+time_axis = zeros(1, ITERATIONS);
 
-write(arduino, 't', "char"); % trigger arduino measurement
+% Trigger the measurement
+write(arduino, 't', "char");
+
 for it = 1:ITERATIONS
-    data(:,it) = read_data(arduino, DATA_LENGTH, CHUNK_SIZE);
+    data(:,it) = read_data(arduino, HALF_BUF_SIZE, CHUNK_SIZE);
 end
 
 plot_dataset(data);
+plot_boundaries(data, HALF_BUF_SIZE, ITERATIONS);
 
 % set COM port back free
 arduino = [];
 
-% save measurements
-if ~exist("Measurements", 'dir')
-    mkdir("Measurements");
-end
-file_name = sprintf('Measurements/%s_%s.mat', "measurements", datetime("now"));
-file_name = strrep(file_name, ' ', '_');
-file_name = strrep(file_name, ':', '-');
-save(file_name, "data", "time_axis");
-
-% calculate average time between measurements
-buf = time_axis(2) - time_axis(1);
-for i = 2:(length(time_axis) - 1)
-    buf = abs(mean([buf, (time_axis(i+1) - time_axis(i))]));
-end
-fprintf("Plots are activated: %s\n", mat2str(ACTIVATE_PLOTS));
-fprintf("average time between measurements: %fsec\n", buf);
-
-%% functions
-function data = read_data(arduino, data_length, chunk_size)
-    total_byte_length = data_length * 2; % 2 bytes per sample
+%% Functions
+function data = read_data(arduino, buf_size, chunk_size)
+    % 2 bytes per sample
+    total_byte_length = buf_size * 2;
     serial_rx_data = zeros(1, total_byte_length, 'uint8');
     bytes_read = 0;
     while bytes_read < total_byte_length 
@@ -60,17 +47,20 @@ function data = read_data(arduino, data_length, chunk_size)
     data = double(typecast(uint8(serial_rx_data), 'uint16'));
 end
 
-function plot_data(data)
-    plot(data);
-    ylim([0, 65535]);
-    xlabel("Sample #");
-    ylabel("ADC 16bit value");
-    grid on;
-end
-
 function plot_dataset(data)
     OneDArray = reshape(data,1,[]);
     plot(OneDArray)
     ylabel("ADC 16bit value");
     grid on;
+    ylim([0, 65535]);
+end
+
+function plot_boundaries(buf, buf_size, buf_num)
+    hold on;
+    package_idxs = [buf_size, buf_size+1];
+    for it = 2:buf_num
+        package_idxs = [package_idxs, buf_size*it, ((buf_size*it)+1)];
+    end
+    package_idxs = package_idxs(1:(end-1));
+    scatter(package_idxs, buf(package_idxs));
 end
