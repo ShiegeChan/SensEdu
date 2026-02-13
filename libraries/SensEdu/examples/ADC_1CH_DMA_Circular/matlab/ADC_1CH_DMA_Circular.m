@@ -15,6 +15,7 @@ CHUNK_SIZE = 64; % Bytes per USB request
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
+flush(arduino);
 
 %% Readings Loop
 data = zeros(HALF_BUF_SIZE, ITERATIONS);

@@ -88,6 +88,8 @@ void loop() {
     }
 
     if (transfers_remaining == 0) {
+        // Send dummy byte for USB to issue the last stuck packet in some edge alignment cases
+        Serial.write((uint8_t)0x00);
         recording_active = false;
     }
 }

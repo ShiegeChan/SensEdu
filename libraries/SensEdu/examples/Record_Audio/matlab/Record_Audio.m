@@ -18,18 +18,23 @@ CHUNK_SIZE = 64; % Bytes per USB request
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
+flush(arduino);
 
 %% Recording Loop
-iteration_num = round(RECORDING_DURATION_SEC * Fs / HALF_BUF_SIZE);
+iteration_num = round(RECORDING_DURATION_SEC * Fs / HALF_BUF_SIZE) + 1;
 data = zeros(HALF_BUF_SIZE, iteration_num);
 
-disp('Recording started...');
-flush(arduino);
+% Trigger the measurement
 write(arduino, 't', "char"); % trigger arduino measurement
+disp('Recording started...');
+
+% Send the loop config
 write(arduino, uint32(iteration_num), "uint32");
+
 for it = 1:iteration_num
     data(:, it) = read_data(arduino, HALF_BUF_SIZE, CHUNK_SIZE);
 end
+
 disp('Recording ended.');
 
 % set COM port back free
