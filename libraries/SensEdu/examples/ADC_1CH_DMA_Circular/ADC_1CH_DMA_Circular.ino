@@ -6,7 +6,7 @@
 
 // Number of half-buffer transfers per host request
 // Must match the MATLAB-side configuration
-static const uint16_t ITERATIONS_PER_REQUEST = 1000; 
+static const uint16_t ITERATIONS_PER_REQUEST = 200; 
 
 // Error indicator LED
 static const uint8_t ERROR_LED_PIN = D86;
@@ -75,14 +75,16 @@ void loop() {
 
     if (!recording_active) return;
 
-    if (recording_active && SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+    if (transfers_remaining > 0 && SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
         SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
         serial_send_array(&dma_buffer[0], DMA_BUFFER_SIZE / 2, 64);
+        transfers_remaining--;
     }
 
-    if (recording_active && SensEdu_ADC_IsDmaTransferComplete(adc)) {
+    if (transfers_remaining > 0 && SensEdu_ADC_IsDmaTransferComplete(adc)) {
         SensEdu_ADC_ClearDmaTransferComplete(adc);
         serial_send_array(&(dma_buffer[DMA_BUFFER_SIZE / 2]), DMA_BUFFER_SIZE / 2, 64);
+        transfers_remaining--;
     }
 
     if (transfers_remaining == 0) {

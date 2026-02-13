@@ -48,7 +48,7 @@ function data = read_data(arduino, buf_size, chunk_size)
 end
 
 function plot_dataset(data)
-    OneDArray = reshape(data,1,[]);
+    OneDArray = reshape(data, 1, []);
     plot(OneDArray)
     ylabel("ADC 16bit value");
     grid on;
