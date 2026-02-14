@@ -522,7 +522,7 @@
         "bus_width": 12,
         "line_style": 0,
         "name": "PWR",
-        "pcb_color": "rgb(45, 255, 91)",
+        "pcb_color": "rgba(0, 0, 0, 0.000)",
         "priority": 0,
         "schematic_color": "rgba(0, 0, 0, 0.000)",
         "wire_width": 6
@@ -531,7 +531,12 @@
     "meta": {
       "version": 4
     },
-    "net_colors": null,
+    "net_colors": {
+      "+1.25V_REF": "rgb(255, 252, 58)",
+      "+2.5V": "rgb(254, 81, 255)",
+      "+3.3V": "rgb(78, 255, 82)",
+      "-3V3": "rgb(255, 125, 22)"
+    },
     "netclass_assignments": null,
     "netclass_patterns": [
       {

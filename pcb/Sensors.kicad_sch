@@ -4,6 +4,12 @@
 	(generator_version "9.0")
 	(uuid "c667b3b4-beb4-4f48-8137-7ac0f81944b4")
 	(paper "A4")
+	(title_block
+		(title "SensEdu 0.9")
+		(date "2025-12-05")
+		(company "Infineon Technologies")
+		(comment 1 "Author: Arshad Pattathil/Harald Gietler/Azra Talic/Felix Ober")
+	)
 	(lib_symbols
 		(symbol "Device:C"
 			(pin_numbers
@@ -1075,6 +1081,16 @@
 			)
 		)
 		(uuid "7b66d710-fe5c-4896-a12f-7b9f687b77fb")
+	)
+	(text "co2 sensor, not integrated"
+		(exclude_from_sim no)
+		(at 125.73 102.87 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "eccadaab-934b-4192-97e5-6ffb376a5258")
 	)
 	(text "HUMIDITY SENSOR"
 		(exclude_from_sim yes)

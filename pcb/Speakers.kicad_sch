@@ -5,7 +5,7 @@
 	(uuid "7ea7d6d4-69dd-4344-824d-5c615f841cd7")
 	(paper "A4")
 	(title_block
-		(title "SensEdu 0.7")
+		(title "SensEdu 0.9")
 		(date "2025-12-05")
 		(company "Infineon Technologies")
 		(comment 1 "Author: Arshad Pattathil/Harald Gietler/Azra Talic/Felix Ober")
@@ -1519,6 +1519,16 @@
 		)
 		(uuid "57ebc52b-508d-4778-9696-fe922cd09a0f")
 	)
+	(text "1u another cap on both sides"
+		(exclude_from_sim no)
+		(at 166.37 53.34 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "76f65e3f-88fe-4571-85b7-78a5123b58cb")
+	)
 	(text "SPEAKERS\n"
 		(exclude_from_sim no)
 		(at 219.71 134.62 0)
@@ -1546,6 +1556,18 @@
 		(uuid "0026db59-8c8b-40fc-89ba-2a712f397639")
 	)
 	(junction
+		(at 186.69 62.23)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "0510c008-aed4-4c57-8081-b021d44519d9")
+	)
+	(junction
+		(at 179.07 62.23)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "11fcd025-407a-4b59-a122-448dfe6a136f")
+	)
+	(junction
 		(at 78.74 97.79)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -1558,22 +1580,28 @@
 		(uuid "3dd8db1c-a8f5-4888-858c-b275a5123573")
 	)
 	(junction
-		(at 181.61 62.23)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "46aa99c0-b119-4434-a15d-003097b8f248")
-	)
-	(junction
 		(at 148.59 114.3)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "535aaceb-03f6-4064-b785-3a4b485fcbd8")
 	)
 	(junction
+		(at 149.86 62.23)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "59aeb8f7-ec73-4b61-8054-181affff2d1f")
+	)
+	(junction
 		(at 184.15 83.82)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "c3c7996f-b340-40aa-a073-0d875e513422")
+	)
+	(junction
+		(at 142.24 62.23)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c67f0b8f-821e-45c9-845c-157c12860b48")
 	)
 	(junction
 		(at 77.47 40.64)
@@ -1600,10 +1628,16 @@
 		(uuid "da01943e-6531-488d-82d2-b827ddc64aca")
 	)
 	(junction
-		(at 147.32 62.23)
+		(at 179.07 69.85)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "efe3a0fe-a5c0-45b0-86f6-0ebd260fa2de")
+		(uuid "dc02101a-a7a6-4685-8617-c894ba95a428")
+	)
+	(junction
+		(at 149.86 69.85)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "e8243ac2-cab7-47e4-aadb-b74bd2c67983")
 	)
 	(junction
 		(at 102.87 114.3)
@@ -1623,7 +1657,7 @@
 	)
 	(wire
 		(pts
-			(xy 147.32 71.12) (xy 147.32 69.85)
+			(xy 149.86 71.12) (xy 149.86 69.85)
 		)
 		(stroke
 			(width 0)
@@ -1653,7 +1687,7 @@
 	)
 	(wire
 		(pts
-			(xy 181.61 71.12) (xy 181.61 69.85)
+			(xy 179.07 71.12) (xy 179.07 69.85)
 		)
 		(stroke
 			(width 0)
@@ -1680,16 +1714,6 @@
 			(type default)
 		)
 		(uuid "1a23b90b-7407-4b21-92bd-126a4714a9da")
-	)
-	(wire
-		(pts
-			(xy 147.32 62.23) (xy 151.13 62.23)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "27bb7c9b-e82f-4e7a-9480-f37580c22e28")
 	)
 	(wire
 		(pts
@@ -1723,7 +1747,7 @@
 	)
 	(wire
 		(pts
-			(xy 177.8 62.23) (xy 181.61 62.23)
+			(xy 177.8 62.23) (xy 179.07 62.23)
 		)
 		(stroke
 			(width 0)
@@ -1753,13 +1777,23 @@
 	)
 	(wire
 		(pts
-			(xy 138.43 62.23) (xy 147.32 62.23)
+			(xy 138.43 62.23) (xy 142.24 62.23)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
 		(uuid "3fb0a74a-7737-4a42-b7c4-8e048814cad5")
+	)
+	(wire
+		(pts
+			(xy 179.07 62.23) (xy 186.69 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "445cf39b-8f0b-4e42-b8a8-f1a1d3a5225f")
 	)
 	(wire
 		(pts
@@ -1820,6 +1854,16 @@
 			(type default)
 		)
 		(uuid "4c519d9e-2b6f-42fc-81ad-9d4162098b19")
+	)
+	(wire
+		(pts
+			(xy 142.24 69.85) (xy 149.86 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "53ee5ff2-c178-42d5-bc88-d0f3820f1581")
 	)
 	(wire
 		(pts
@@ -1963,6 +2007,26 @@
 	)
 	(wire
 		(pts
+			(xy 149.86 62.23) (xy 151.13 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "9499ad14-6923-4458-9703-4632ca38f834")
+	)
+	(wire
+		(pts
+			(xy 142.24 62.23) (xy 149.86 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "96ba0c90-ca67-4d98-9682-db49fbb245da")
+	)
+	(wire
+		(pts
 			(xy 102.87 59.69) (xy 102.87 55.88)
 		)
 		(stroke
@@ -2083,6 +2147,26 @@
 	)
 	(wire
 		(pts
+			(xy 186.69 69.85) (xy 179.07 69.85)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "de11758d-2025-432e-8bc2-888a4cd14635")
+	)
+	(wire
+		(pts
+			(xy 186.69 62.23) (xy 187.96 62.23)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e47c1c5a-5fa5-448d-8062-5aae514253f0")
+	)
+	(wire
+		(pts
 			(xy 78.74 114.3) (xy 87.63 114.3)
 		)
 		(stroke
@@ -2090,16 +2174,6 @@
 			(type default)
 		)
 		(uuid "e492358e-c8db-491f-9044-c3db491a7131")
-	)
-	(wire
-		(pts
-			(xy 181.61 62.23) (xy 187.96 62.23)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "e8fd77cc-caf5-48b1-b559-65f09ad5d3e4")
 	)
 	(wire
 		(pts
@@ -3167,6 +3241,74 @@
 	)
 	(symbol
 		(lib_id "Device:C")
+		(at 142.24 66.04 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "3ee0faaf-74f9-4ada-b62e-1f740ad33afc")
+		(property "Reference" "C58"
+			(at 137.16 66.04 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "1u"
+			(at 137.16 64.77 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 143.2052 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 142.24 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 142.24 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b71e94b7-585e-466d-99f2-641f0d8b028c")
+		)
+		(pin "2"
+			(uuid "36cdaea0-ba5c-4e8b-b8ae-c0a1459c7d23")
+		)
+		(instances
+			(project "SensEdu"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/32893aec-41b3-4e64-b47a-61deed46b8b4"
+					(reference "C58")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
 		(at 91.44 114.3 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -3847,7 +3989,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 147.32 71.12 0)
+		(at 149.86 71.12 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3856,7 +3998,7 @@
 		(fields_autoplaced yes)
 		(uuid "8095d9c0-c60b-4116-987b-b454731ff8bb")
 		(property "Reference" "#PWR084"
-			(at 147.32 77.47 0)
+			(at 149.86 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3865,7 +4007,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 147.32 76.2 0)
+			(at 149.86 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3874,7 +4016,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 147.32 71.12 0)
+			(at 149.86 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3883,7 +4025,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 147.32 71.12 0)
+			(at 149.86 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3892,7 +4034,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 147.32 71.12 0)
+			(at 149.86 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3907,6 +4049,74 @@
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/32893aec-41b3-4e64-b47a-61deed46b8b4"
 					(reference "#PWR084")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Device:C")
+		(at 186.69 66.04 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8e4bbd0a-c1d8-49ae-ab04-1003175f0166")
+		(property "Reference" "C59"
+			(at 181.61 66.04 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n"
+			(at 181.61 64.77 0)
+			(effects
+				(font
+					(size 0.762 0.762)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+			(at 187.6552 69.85 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 186.69 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 186.69 66.04 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "f417ba7c-dd4b-4946-9b0d-c2ccb4691cf2")
+		)
+		(pin "2"
+			(uuid "3aa71870-4e6a-4950-a8f1-30b6da3e094f")
+		)
+		(instances
+			(project "SensEdu"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/32893aec-41b3-4e64-b47a-61deed46b8b4"
+					(reference "C59")
 					(unit 1)
 				)
 			)
@@ -4655,7 +4865,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 147.32 66.04 0)
+		(at 149.86 66.04 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4663,7 +4873,7 @@
 		(dnp no)
 		(uuid "c7253225-5d4c-4cb9-8f4f-c418135e738e")
 		(property "Reference" "C52"
-			(at 142.24 66.04 0)
+			(at 144.78 66.04 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -4672,7 +4882,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 142.24 64.77 0)
+			(at 144.78 64.77 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -4681,7 +4891,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 148.2852 69.85 0)
+			(at 150.8252 69.85 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4690,7 +4900,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 147.32 66.04 0)
+			(at 149.86 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4699,7 +4909,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 147.32 66.04 0)
+			(at 149.86 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4860,7 +5070,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 181.61 66.04 180)
+		(at 179.07 66.04 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4868,7 +5078,7 @@
 		(dnp no)
 		(uuid "dd248935-54d8-4c07-8579-9e49fa3d7056")
 		(property "Reference" "C53"
-			(at 179.07 66.04 0)
+			(at 176.53 66.04 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -4877,7 +5087,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 179.07 64.77 0)
+			(at 176.53 64.77 0)
 			(effects
 				(font
 					(size 0.762 0.762)
@@ -4886,7 +5096,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 180.6448 62.23 0)
+			(at 178.1048 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4895,7 +5105,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 181.61 66.04 0)
+			(at 179.07 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4904,7 +5114,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 181.61 66.04 0)
+			(at 179.07 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4996,7 +5206,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 181.61 71.12 0)
+		(at 179.07 71.12 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -5005,7 +5215,7 @@
 		(fields_autoplaced yes)
 		(uuid "e2753b1b-aa37-4c36-93bd-5d68c46b27d2")
 		(property "Reference" "#PWR085"
-			(at 181.61 77.47 0)
+			(at 179.07 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5014,7 +5224,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 181.61 76.2 0)
+			(at 179.07 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5023,7 +5233,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 181.61 71.12 0)
+			(at 179.07 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5032,7 +5242,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 181.61 71.12 0)
+			(at 179.07 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5041,7 +5251,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 181.61 71.12 0)
+			(at 179.07 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
