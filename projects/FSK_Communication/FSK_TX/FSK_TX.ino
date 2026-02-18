@@ -58,7 +58,6 @@ static SENSEDU_DAC_BUFFER(lut , MAX_LUT_SIZE);
 uint8_t message[MAX_MESSAGE_LENGTH];
 uint8_t length = 0;
 
-const int SYNC_PIN = 2; // Syncronization signal from PIN 2 digital
 
 /* ----------------------------------- DAC ---------------------------------- */
 #define DAC_SINE_FREQ    	33000
@@ -84,8 +83,6 @@ void setup() {
     //Led in red if there is any problem
     pinMode(error_led, OUTPUT);
     digitalWrite(error_led, HIGH);
-    pinMode(SYNC_PIN, OUTPUT);
-    digitalWrite(SYNC_PIN, LOW);
     
     SensEdu_DAC_Init(&dac_settings_1);
 
@@ -113,9 +110,7 @@ void loop () {
         }
         
         if (length > 0) {
-            digitalWrite(SYNC_PIN, HIGH);
             sendMessage(message, length); 
-            digitalWrite(SYNC_PIN, LOW);
         }
     }
     check_errors();
@@ -138,10 +133,14 @@ void buildMessageLUT (uint8_t* data, uint8_t num_bytes) {
     for (size_t i = 0; i < MAX_LUT_SIZE; i++) {
         lut[i] = 0x800;  // Mid-level (silence)
     }
-    for (size_t i = 0; i < sine_lut_size_1; i++) {
-        lut[position + i] = array_bit1[i];  // Mid-level (silence)
+
+    // Preámbulo: n bits '1'
+    for (int k = 0; k < 1; k++) { // n = 2
+        for (size_t i = 0; i < sine_lut_size_1; i++) {
+            lut[position + i] = array_bit1[i];
+        }
+        position += sine_lut_size_1;
     }
-    position += sine_lut_size_1; // Update the starting position
 
     // Limit to maximum message length
     if (num_bytes > MAX_MESSAGE_LENGTH) {
@@ -180,3 +179,5 @@ void sendMessage(uint8_t* data, uint8_t num_bytes) {
     SensEdu_DAC_ClearBurstCompleteFlag(DAC_CH1);
     SensEdu_DAC_Disable(DAC_CH1);  // Clean shutdown
 }
+
+// 11568

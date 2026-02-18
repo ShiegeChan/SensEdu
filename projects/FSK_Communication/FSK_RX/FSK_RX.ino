@@ -7,19 +7,16 @@ uint8_t error_led = D86;
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-const uint16_t THRESHOLD = 500;  // If the signal goes higher, synchro starts
-const int SYNC_PIN = 2; // Syncronization signal from PIN 2 digital
+const uint16_t THRESHOLD = 10000;  // If the signal goes higher, synchro starts
 const int WINDOW_SIZE = 50;  // Size of sliding window 
 
 const uint16_t SAMPLES_PER_BIT = 272;
 const uint16_t BIT_PER_BYTE = 8;
-const uint16_t MAX_MESSAGE_LENGTH = 30;
+const uint16_t MAX_MESSAGE_LENGTH = 28;
 const uint16_t MIC_DATA_SIZE = MAX_MESSAGE_LENGTH * BIT_PER_BYTE * SAMPLES_PER_BIT;  //match MAX_LUT_SIZE
 SENSEDU_ADC_BUFFER(MIC_DATA, MIC_DATA_SIZE);
 
 int current_sample_ptr = 0; 
-int signal_start_pos = 0;
-bool signal_found = false;
 
 /* -------------------------------------------------------------------------- */
 /*                                Frequencies                                 */
@@ -60,7 +57,6 @@ void setup() {
     pinMode(error_led, OUTPUT);
     digitalWrite(error_led, HIGH);
 
-    pinMode(SYNC_PIN, INPUT);
 
     //Initializing ADC
     SensEdu_ADC_Init(&adc_settings);
@@ -71,12 +67,14 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 
 void loop() {
-    while (digitalRead(SYNC_PIN) == LOW) {};  // Wait for sync
+    check_errors();
+
+    bool signal_found = false;
+
     SensEdu_ADC_Start(adc);
     // wait for the data and send it
     while (!SensEdu_ADC_IsDmaTransferComplete(adc));
     SensEdu_ADC_ClearDmaTransferComplete(adc);
-    while (digitalRead(SYNC_PIN) == HIGH) {};  // Wait for the signal to stop
 
     // Calculate the power of a sliding window with a shift of 5 samples
    for (size_t i = 0; i < MIC_DATA_SIZE - SAMPLES_PER_BIT; i += 5) { // 
@@ -84,12 +82,16 @@ void loop() {
         float p1 = goertzel(&MIC_DATA[i], WINDOW_SIZE, f1, fs);
     
         if ((p0 + p1) > THRESHOLD) {
-            signal_start_pos = i;
             current_sample_ptr = i + SAMPLES_PER_BIT; // Skip preamble
             signal_found = true;
             break; // You found the signal!
         }
     }
+
+    if (!signal_found) {
+        // Serial.println("No signal detected"); // Opcional para debug
+        return; // Skip decoding if no signal found
+    } 
 
     for (size_t byte_idx = 0; byte_idx < MAX_MESSAGE_LENGTH; byte_idx++) {
         uint8_t received_byte = 0;
@@ -141,7 +143,7 @@ float goertzel(uint16_t* samples, int N, float targetFreq, float sampleRate) {
     float omega = (2.0 * PI * k) / N;
     float coeff = 2.0 * cos(omega);
     
-    //DC offset of our samples
+    // DC offset of our samples
     float sum = 0;
     for (size_t i = 0; i < N; i++) {
         sum += samples[i];
