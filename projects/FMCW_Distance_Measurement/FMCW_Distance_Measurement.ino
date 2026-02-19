@@ -4,18 +4,18 @@
 /*                                User Settings                               */
 /* -------------------------------------------------------------------------- */
 
-#define CHIRP_DURATION          0.04   // Duration of the chirp (in seconds)
+#define CHIRP_DURATION          0.04    // Duration of the chirp (in seconds)
 #define START_FREQUENCY         30500   // Start frequency (in Hz)
-#define END_FREQUENCY           35500  // Stop frequency (in Hz)
+#define END_FREQUENCY           35500   // Stop frequency (in Hz)
 
 /* -------------------------------------------------------------------------- */
 /*                                 Settings                                   */
 /* -------------------------------------------------------------------------- */
 
 // ADC Sampling
-const uint16_t mic_data_size = 14400; // ADC buffer size, must be a multiple of 16
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc_dac_data[mic_data_size]; // cache aligned
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc_mic_data[mic_data_size]; // cache aligned
+const uint16_t mic_data_size = 14400; // ADC buffer size
+SENSEDU_DMA_BUFFER(adc_dac_data, mic_data_size);
+SENSEDU_DMA_BUFFER(adc_mic_data, mic_data_size);
 
 // ADC-DMA Hardware Settings
 ADC_TypeDef* adc_dac = ADC3;

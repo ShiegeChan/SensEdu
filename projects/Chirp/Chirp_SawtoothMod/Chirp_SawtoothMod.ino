@@ -4,9 +4,9 @@
 /*                                User Settings                               */
 /* -------------------------------------------------------------------------- */
 
-#define CHIRP_DURATION          0.05   // Duration of the chirp (in seconds)
+#define CHIRP_DURATION          0.05    // Duration of the chirp (in seconds)
 #define START_FREQUENCY         30500   // Start frequency (in Hz)
-#define END_FREQUENCY           35500  // Stop frequency (in Hz)
+#define END_FREQUENCY           35500   // Stop frequency (in Hz)
 
 /* -------------------------------------------------------------------------- */
 /*                              Global Variables                              */

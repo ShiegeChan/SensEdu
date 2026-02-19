@@ -14,7 +14,7 @@
 
 #define NORMAL_PRESSURE             1009            // in hPa
 #define HIGH_PRESSURE               1022            // in hPa
-#define T_OFFSET                    0              // Temperature offset for accurate temperature display (empirical)
+#define T_OFFSET                    0               // Temperature offset for accurate temperature display (empirical)
 #define g                           9.81            // m/s^2
 #define P_0                         101325          // Pa
 #define M                           0.02896         // kg/mol

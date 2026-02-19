@@ -55,14 +55,14 @@ void SensEdu_DAC_Init(SensEdu_DAC_Settings* dac_settings) {
     
     dac_init(dac_settings->dac_channel);
 
-    DMA_DACInit(dac_settings->dac_channel, dac_settings->mem_address, dac_settings->mem_size, dac_settings->wave_mode);
+    DMA_InitDmaForDac(dac_settings->dac_channel, dac_settings->mem_address, dac_settings->mem_size, dac_settings->wave_mode);
 
     // Enable Timer (it always runs even if dac/dma is off)
     TIMER_DAC1Enable();
 }
 
 void SensEdu_DAC_Enable(DAC_Channel* dac_channel) {
-    DMA_DACEnable(dac_channel);
+    DMA_EnableDmaForDac(dac_channel);
 
     uint16_t shift = 0U;
     if (dac_channel == DAC_CH2) {
@@ -80,7 +80,7 @@ void SensEdu_DAC_Disable(DAC_Channel* dac_channel) {
     CLEAR_BIT(DAC1->CR, DAC_CR_EN1 << shift);
     while(READ_BIT(DAC1->CR, DAC_CR_EN1 << shift));
 
-    DMA_DACDisable(dac_channel);
+    DMA_DisableDmaForDac(dac_channel);
 }
 
 uint8_t SensEdu_DAC_GetBurstCompleteFlag(DAC_Channel* dac_channel) {
@@ -175,11 +175,11 @@ static DAC_ERROR check_settings(SensEdu_DAC_Settings* settings) {
         return DAC_ERROR_INIT_SAMPLING_FREQ_TOO_HIGH;
     } 
 
-    if (settings->mem_address == 0x0000) {
+    if (settings->mem_address == NULL) {
         return DAC_ERROR_INIT_DMA_MEMORY;
     } 
     
-    if (settings->mem_address == 0) {
+    if (settings->mem_size == 0) {
         return DAC_ERROR_INIT_DMA_MEMORY;
     } 
 

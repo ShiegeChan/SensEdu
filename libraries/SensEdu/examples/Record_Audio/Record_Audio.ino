@@ -1,42 +1,31 @@
 #include "SensEdu.h"
 
 /* -------------------------------------------------------------------------- */
-/*                                  Variables                                 */
-/* -------------------------------------------------------------------------- */
-
-// Library error container
-static uint32_t lib_error = 0;
-
-// Error indication pin
-static uint8_t error_led = D86;
-
-// Flag to indicate the recording start
-static bool is_recording_started = false;
-
-// Counter for MATLAB synchronization (must match with receiver script)
-static const uint16_t LOOP_COUNT = 500;
-
-/* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-const uint16_t mic_data_size = 2048;
-SENSEDU_ADC_BUFFER(mic_data, mic_data_size);
+// Error indicator LED
+static const uint8_t ERROR_LED_PIN = D86;
 
-ADC_TypeDef* adc = ADC1;
-const uint8_t mic_num = 1;
-uint8_t mic_pins[mic_num] = {A1};
+// DMA buffer size (must be divisible by 2 for ping-pong operation)
+static const uint16_t DMA_BUFFER_SIZE = 64;
+volatile SENSEDU_DMA_BUFFER(dma_buffer, DMA_BUFFER_SIZE);
+
+static ADC_TypeDef* adc = ADC1;
+static const uint8_t ADC_PIN_COUNT = 1;
+static uint8_t adc_pins[ADC_PIN_COUNT] = {A5};
+
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
-    .pins = mic_pins,
-    .pin_num = mic_num,
+    .pins = adc_pins,
+    .pin_num = ADC_PIN_COUNT,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = 44100,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 44100,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
-    .mem_address = (uint16_t*)mic_data,
-    .mem_size = mic_data_size
+    .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
+    .mem_address = (uint16_t*)dma_buffer,
+    .mem_size = DMA_BUFFER_SIZE
 };
 
 /* -------------------------------------------------------------------------- */
@@ -44,62 +33,90 @@ SensEdu_ADC_Settings adc_settings = {
 /* -------------------------------------------------------------------------- */
 
 void setup() {
+    Serial.begin(2000000);
 
-    Serial.begin(115200);
+    pinMode(ERROR_LED_PIN, OUTPUT);
+    digitalWrite(ERROR_LED_PIN, HIGH);
+
+    while (!is_even(DMA_BUFFER_SIZE)) {
+        fatal_error(ERROR_LED_PIN);
+    }
 
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
-
-    pinMode(error_led, OUTPUT);
-    digitalWrite(error_led, HIGH);
-
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        digitalWrite(error_led, LOW);
-    }
+    SensEdu_ADC_Start(adc);
+    
+    check_lib_errors(ERROR_LED_PIN);
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 
-void loop() {
-    // Recording is initiated by the signal from computing device
-    static char serial_buf = 0;
-    while (!is_recording_started) {
-        while (Serial.available() == 0);
-        serial_buf = Serial.read();
+uint32_t transfers_remaining = 0;
+bool recording_active = false;
 
-        if (serial_buf == 't') {
-            is_recording_started = true;
-            break;
+void loop() {
+    if (Serial.available() > 0) {
+        char command = Serial.read();
+        if (command == 't') {
+            uint32_t value = 0;
+            while (Serial.available() < 4) {}
+            Serial.readBytes((char*)&value, 4);
+            transfers_remaining = value;
+            recording_active = true;
+
+            // Clear DMA status flags for synchronization
+            SensEdu_ADC_ClearDmaTransferComplete(adc);
+            SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
         }
     }
 
-    // Recording loop
-    for (uint16_t i = 0; i < LOOP_COUNT; i++) {
-        SensEdu_ADC_Start(adc);
-        while(!SensEdu_ADC_GetTransferStatus(adc));
-        SensEdu_ADC_ClearTransferStatus(adc);
-        serial_send_array((const uint8_t *)&mic_data, mic_data_size << 1);
-    }
-    is_recording_started = false;
+    if (!recording_active) return;
 
-    // Check errors
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        digitalWrite(error_led, LOW);
+    if (transfers_remaining > 0 && SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
+        serial_send_array(&dma_buffer[0], DMA_BUFFER_SIZE / 2, 64);
+        transfers_remaining--;
+    }
+
+    if (transfers_remaining > 0 && SensEdu_ADC_IsDmaTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
+        serial_send_array(&(dma_buffer[DMA_BUFFER_SIZE / 2]), DMA_BUFFER_SIZE / 2, 64);
+        transfers_remaining--;
+    }
+
+    if (transfers_remaining == 0) {
+        // Send dummy byte for USB to issue the last stuck packet in some edge alignment cases
+        Serial.write((uint8_t)0x00);
+        recording_active = false;
     }
 }
 
-/* -------------------------------------------------------------------------- */
-/*                                  Functions                                 */
-/* -------------------------------------------------------------------------- */
+// Ensures buffer size is valid for ping-pong DMA
+static bool is_even(uint16_t size) {
+    if (size % 2) return false;
+    return true;
+}
 
-// send serial data in 32 byte chunks
-void serial_send_array(const uint8_t* data, size_t size) {
-    const size_t chunk_size = 32;
-	for (uint32_t i = 0; i < size/chunk_size; i++) {
-		Serial.write(data + chunk_size * i, chunk_size);
-	}
+// Check library error state
+static void check_lib_errors(uint8_t error_led) {
+    uint32_t lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        fatal_error(error_led);
+    }
+}
+
+// Halt system on fatal error
+static void fatal_error(uint8_t error_led) {
+    digitalWrite(error_led, !digitalRead(error_led));
+    delay(200);
+}
+
+// Send 16-bit buffer over Serial in byte chunks
+static void serial_send_array(volatile uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
+    for (size_t i = 0; i < (data_length << 1); i += chunk_size_byte) {
+        size_t transfer_size = ((data_length << 1) - i < chunk_size_byte) ? ((data_length << 1) - i) : chunk_size_byte;
+        Serial.write((const uint8_t *)data + i, transfer_size);
+    }
 }

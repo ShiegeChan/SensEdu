@@ -33,7 +33,6 @@ static void tim6_adc3_init(void);
 static void tim2_delay_init(void);
 static void tim4_dac1_init(void);
 static void tim8_pwm_init(void);
-static TIM_TypeDef* get_tim(ADC_TypeDef* adc);
 
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
@@ -90,6 +89,14 @@ TIMER_ERROR TIMER_GetError(void) {
     return error;
 }
 
+TIM_TypeDef* TIMER_GetTimerForAdc(ADC_TypeDef* adc) {
+    if (adc == ADC1) return TIM1;
+    if (adc == ADC2) return TIM3;
+    if (adc == ADC3) return TIM6;
+    error = TIMER_ERROR_PICKED_WRONG_ADC;
+    return NULL;
+}
+
 void TIMER_ADCxInit(ADC_TypeDef* adc) {
     if (adc == ADC1) return tim1_adc1_init();
     if (adc == ADC2) return tim3_adc2_init();
@@ -98,7 +105,7 @@ void TIMER_ADCxInit(ADC_TypeDef* adc) {
 }
 
 void TIMER_ADCxEnable(ADC_TypeDef* adc) {
-    TIM_TypeDef* tim = get_tim(adc);
+    TIM_TypeDef* tim = TIMER_GetTimerForAdc(adc);
     if (tim == NULL) {
         return;
     }
@@ -107,7 +114,7 @@ void TIMER_ADCxEnable(ADC_TypeDef* adc) {
 }
 
 void TIMER_ADCxDisable(ADC_TypeDef* adc) {
-    TIM_TypeDef* tim = get_tim(adc);
+    TIM_TypeDef* tim = TIMER_GetTimerForAdc(adc);
     if (tim == NULL) {
         return;
     }
@@ -115,7 +122,7 @@ void TIMER_ADCxDisable(ADC_TypeDef* adc) {
 }
 
 void TIMER_ADCxSetFreq(ADC_TypeDef* adc, uint32_t freq) {
-    TIM_TypeDef* tim = get_tim(adc);
+    TIM_TypeDef* tim = TIMER_GetTimerForAdc(adc);
     if (tim == NULL) {
         return;
     }
@@ -236,14 +243,6 @@ static void calculate_tim_freq_settings_16bit(uint32_t freq, uint16_t *PSC, uint
     }
     *PSC = psc;
     *ARR = (uint16_t)arr;
-}
-
-static TIM_TypeDef* get_tim(ADC_TypeDef* adc) {
-    if (adc == ADC1) return TIM1;
-    if (adc == ADC2) return TIM3;
-    if (adc == ADC3) return TIM6;
-    error = TIMER_ERROR_PICKED_WRONG_ADC;
-    return NULL;
 }
 
 static void calculate_tim_freq_settings_32bit(uint32_t freq, uint16_t *PSC, uint32_t *ARR) {
