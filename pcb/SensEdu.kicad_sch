@@ -2041,10 +2041,6 @@
 		(uuid "3f994198-6fc3-45e0-aaf0-15d3a11a7739")
 	)
 	(no_connect
-		(at 81.28 60.96)
-		(uuid "40eaf07f-3066-41da-bb43-7764bb57360d")
-	)
-	(no_connect
 		(at 82.55 91.44)
 		(uuid "42cee964-153a-4d6c-a707-9623bb218263")
 	)
@@ -2175,10 +2171,6 @@
 	(no_connect
 		(at 114.3 157.48)
 		(uuid "cd34a25b-d5bf-4284-a047-b0c3fc662e65")
-	)
-	(no_connect
-		(at 81.28 58.42)
-		(uuid "d153f439-2bee-466a-84b6-f40e06920756")
 	)
 	(no_connect
 		(at 82.55 121.92)
@@ -3138,6 +3130,16 @@
 		)
 		(uuid "fd6fc375-df85-4753-8944-e7b528b82ae2")
 	)
+	(wire
+		(pts
+			(xy 152.4 41.91) (xy 166.37 41.91)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ffe449ee-302b-4ef7-92d7-1beec4621cae")
+	)
 	(label "OUT_MIC6"
 		(at 66.04 83.82 0)
 		(effects
@@ -3638,6 +3640,16 @@
 		)
 		(uuid "a4bc4c0a-6ffc-445e-a55c-54263bda23ad")
 	)
+	(label "3V3_INO"
+		(at 152.4 41.91 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "a5fa09d8-7ae4-4674-9fdb-fc92090802df")
+	)
 	(label "33"
 		(at 101.6 157.48 90)
 		(effects
@@ -3708,7 +3720,7 @@
 		)
 		(uuid "b02435c9-e146-4291-9459-14fc738903ea")
 	)
-	(label "3V3"
+	(label "3V3_INO"
 		(at 81.28 60.96 180)
 		(effects
 			(font
@@ -5172,6 +5184,16 @@
 		(pin "+5V_ARDUINO" input
 			(at 166.37 45.72 180)
 			(uuid "22d60e7c-5860-4c26-9cc6-c6f6d1fc1349")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "3V3_INO" input
+			(at 166.37 41.91 180)
+			(uuid "ad5b821f-cbc7-4da7-b178-4aaf0b456d67")
 			(effects
 				(font
 					(size 1.27 1.27)

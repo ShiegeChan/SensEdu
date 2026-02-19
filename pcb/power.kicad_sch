@@ -2159,6 +2159,16 @@
 	)
 	(wire
 		(pts
+			(xy 198.12 90.17) (xy 205.74 90.17)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6ef93844-db3d-4c96-9397-c85bdc6ca71f")
+	)
+	(wire
+		(pts
 			(xy 46.99 72.39) (xy 33.02 72.39)
 		)
 		(stroke
@@ -2266,16 +2276,6 @@
 			(type default)
 		)
 		(uuid "85909e90-f0a8-406d-9185-55fa3300e8f8")
-	)
-	(wire
-		(pts
-			(xy 199.39 90.17) (xy 205.74 90.17)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "8929436b-70b5-4006-a0a7-bb937107391e")
 	)
 	(wire
 		(pts
@@ -2769,6 +2769,17 @@
 			(justify left)
 		)
 		(uuid "2587505e-9613-46c3-b99b-efda8d4feab2")
+	)
+	(hierarchical_label "3V3_INO"
+		(shape input)
+		(at 198.12 90.17 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "b182fbf9-af35-45c1-a83a-8111711e96d0")
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -3365,71 +3376,6 @@
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/980ab19c-1e73-474b-994e-c8e10885075a"
 					(reference "TP_NEG_3V3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3.3V")
-		(at 199.39 90.17 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "300e03da-0e1a-49d9-89bd-8ced8c6f88b4")
-		(property "Reference" "#PWR011"
-			(at 199.39 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+3.3V"
-			(at 199.39 86.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 199.39 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 199.39 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 199.39 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "1e41d451-0556-4175-9126-5b862538546c")
-		)
-		(instances
-			(project "SensEdu"
-				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/980ab19c-1e73-474b-994e-c8e10885075a"
-					(reference "#PWR011")
 					(unit 1)
 				)
 			)
@@ -4670,73 +4616,6 @@
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/980ab19c-1e73-474b-994e-c8e10885075a"
 					(reference "U1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Connector:TestPoint")
-		(at 205.74 90.17 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "b98942e5-4c8d-4e67-bf92-ceaa6b25dc7d")
-		(property "Reference" "TP_3V3"
-			(at 205.74 85.09 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "TestPoint"
-			(at 208.28 88.1379 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-		(property "Footprint" "TestPoint:TestPoint_THTPad_D2.0mm_Drill1.0mm"
-			(at 210.82 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 210.82 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "test point"
-			(at 205.74 90.17 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "bdaae1e3-aa23-4fde-888b-8c6c5d4544e1")
-		)
-		(instances
-			(project "SensEdu"
-				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/980ab19c-1e73-474b-994e-c8e10885075a"
-					(reference "TP_3V3")
 					(unit 1)
 				)
 			)
