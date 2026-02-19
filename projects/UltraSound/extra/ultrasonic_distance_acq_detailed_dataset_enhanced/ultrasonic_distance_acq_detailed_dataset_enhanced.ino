@@ -19,7 +19,7 @@ uint8_t error_led = D86;
 #define IS_TRANSMIT_DETAILED_DATA   true    // activate full raw, filtered, xcorr data transmission
 #define BAN_DISTANCE	            20	    // min distance [cm] - how many self reflections cancelled
 #define ACTUAL_SAMPLING_RATE        250000  // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
-#define STORE_BUF_SIZE              32 * 32 // 2400 for 1 measurement per second
+#define STORE_BUF_SIZE              32 * 32 // DMA Buffer size
 
 /* --------------------------------- Filter --------------------------------- */
 #define FILTER_BLOCK_LENGTH     32      // how many samples we want to process every time we call the fir process function AT
