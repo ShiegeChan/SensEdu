@@ -1,7 +1,6 @@
 #include <SensEdu.h>
 
 uint32_t lib_error = 0; // Internal library error container
-const uint8_t error_led = D86; // Error indication pin
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
@@ -38,9 +37,6 @@ void setup() {
 
     SensEdu_DAC_Init(&dac_settings);
 
-    pinMode(error_led, OUTPUT);
-    digitalWrite(error_led, HIGH);
-
     check_lib_errors();
 
     Serial.println("Setup is successful.");
@@ -63,11 +59,12 @@ void loop() {
 /* -------------------------------------------------------------------------- */
 
 // Checks if the library has risen any internal errors
-// Doesn't print the error code, since Serial is occupied
-// Turns on the red LED on Arduino board instead
+// Prints the error code in Serial Monitor
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
-        digitalWrite(error_led, LOW);
+        delay(1000);
+        Serial.print("Error: 0x");
+        Serial.println(lib_error, HEX);
     }
 }
