@@ -1,5 +1,5 @@
 const uint32_t x = 5; // Sine LUT resolution
-const float Pi = 3.14159; // Oi
+const float Pi = 3.14159; // Pi
 
 // Generate chirp signal with a sawtooth modulation
 void generateSawtoothChirp(uint16_t* array) {
