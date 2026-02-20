@@ -7,11 +7,11 @@ clc;
 %% Settings
 ARDUINO_PORT = 'COM6';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 1000;
+ITERATIONS = 100;
 
 ACTIVATE_PLOTS = true;
 
-DATA_LENGTH = 2048; % ensure this value matches `mic_data_size` in firmware
+DATA_LENGTH = 2048*4; % ensure this value matches `mic_data_size` in firmware
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
