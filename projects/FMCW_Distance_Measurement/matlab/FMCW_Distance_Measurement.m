@@ -13,12 +13,11 @@ Tc = 0.040;              % Duration of one chirp (s)
 c = 343;                 % Speed of sound in air for T=300K (m/s)
 
 %% Settings
-ARDUINO_PORT = 'COM22';
+ARDUINO_PORT = 'COM39';
 ARDUINO_BAUDRATE = 115200;
 ITERATIONS = 100;          % Number of real-time ADC measurements
 SAMPLING_RATE = 250000;     % ADC Sampling rate
 ACTIVATE_PLOTS = true;      % Toggle plotting on/off
-ADC_DATA_LENGTH = 14400;
 CHUNK_SIZE = 32;            % Matches the memory chunk size in firmware
 % Connect to Arduino
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % Initialize Arduino serial communication
@@ -138,6 +137,10 @@ fbeatText = uicontrol('Style', 'text', ...
 for it = 1:ITERATIONS
     % Trigger ADC data acquisition
     write(arduino, 't', "char");
+
+    % Retrieve size header for ADC data
+    adc_byte_length = read_total_length(arduino);      % Total length of ADC data in bytes
+    ADC_DATA_LENGTH = adc_byte_length / 2;             % Total number of ADC samples
 
     % Retrieve DAC to ADC data
     adc3_data = read_data(arduino, ADC_DATA_LENGTH, CHUNK_SIZE);
