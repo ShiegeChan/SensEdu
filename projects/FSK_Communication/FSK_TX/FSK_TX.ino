@@ -23,7 +23,7 @@ const uint16_t MAX_MESSAGE_LENGTH = 30;
 // ASCII standard 1 byte per letter
 const uint16_t BIT_PER_CHARACTER = 8;
 
-// Arbitrary chosen number to send ~7-9 cycles per bit
+// Arbitrary chosen number to send ~10-12 cycles per bit
 // 35kHz ~15 samples per cycle
 // 31kHz ~17 samples per cycle
 const uint16_t SAMPLES_PER_BIT = 200;
@@ -96,6 +96,7 @@ void loop () {
     }
 }
 
+// Transmits the entire constructed message
 void send_message(uint8_t* data, uint8_t num_bytes) {
     construct_buffer(data, num_bytes);
     SensEdu_DAC_Enable(DAC_CH1);
@@ -104,7 +105,7 @@ void send_message(uint8_t* data, uint8_t num_bytes) {
     SensEdu_DAC_Disable(DAC_CH1); // Clean shutdown
 }
 
-// Phase resets between messages
+// Fills the buffer with the message encoded via 12-bit values of ASCII characters
 void construct_buffer(uint8_t* data, uint8_t num_bytes) {
 
     // Position in a LUT buffer
@@ -120,7 +121,7 @@ void construct_buffer(uint8_t* data, uint8_t num_bytes) {
 
     // Preamble 10101010 x PREAMBLE_LENGTH times
     for (size_t i = 0; i < PREAMBLE_LENGTH * BIT_PER_CHARACTER; i++) {
-        //send_bit(i % 2, &phase, &position);
+        construct_bit(i % 2, &phase, &position);
     }
 
     // Payload
@@ -128,12 +129,13 @@ void construct_buffer(uint8_t* data, uint8_t num_bytes) {
         uint8_t cur_byte = data[byte_idx];
         for (size_t bit_idx = 0; bit_idx < 8; bit_idx++) {
             bool bit = (cur_byte >> (7 - bit_idx)) & 1;
-            send_bit(bit, &phase, &position);
+            construct_bit(bit, &phase, &position);
         }
     }
 }
 
-void send_bit(bool bit, float* phase, uint16_t* buf_pos) {
+// Fills the buffer with one bit worth of data
+void construct_bit(bool bit, float* phase, uint16_t* buf_pos) {
     float phase_inc = bit ? PHASE_INC1 : PHASE_INC0;
     for (size_t i = 0; i < SAMPLES_PER_BIT; i++) {
         *phase += phase_inc;
