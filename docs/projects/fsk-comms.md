@@ -72,17 +72,124 @@ The two boards are placed directly in front of each other to ensure a direct tra
 
 ## Software implementation
 
-### LUT Generator (MATLAB)
-
-To ensure high-fidelity signal generation without taxing the Arduino’s CPU during transmission, the waveforms for the bit '0' and bit '1' were pre-calculated using a MATLAB script.
-
-This LUT Generator produces two arrays of 12-bit integers, tailored to the DAC’s resolution and the specific frequencies of 31 kHz and 35 kHz. By pre-computing these sine waves, the transmitter only needs to cycle through the arrays, significantly reducing real-time computational overhead and ensuring a stable, jitter-free carrier signal. 
+The software architecture is divided into two main modules: the **Signal Generation** on the transmitter side and the **Digital Signal Processing (DSP)** on the receiver side. Both modules are optimized to leverage the Arduino GIGA’s hardware capabilities.
 
 
+### Transmitter
 
+The transmitter’s primary role is to convert digital data into a continuous FSK-modulated acoustic wave, i.e. the current implementation handles waveform synthesis directly, ensuring a more flexible and integrated approach. Im order to do that, the system utilizes the internal 12-bit DAC to produce high-resolution sine waves. By switching between the two target frequencies mentioned above, the transmitter creates the necessary frequency shifts to encode information. To improve stability and frequency precission, a phase accumulation logic is defined for each frequency.
 
+Due to the finite size of the hardware memory buffer, the maximun message length is set to **30 characters**. This limit is carefully calculated considering the **200 samples** allocated per bit; this duration provides the ultrasonic transducer with sufficient time to stabilize and adapt to each frequency shift, ensuring a clean transition between logic states.
 
+To make sure the wave is perfectly continuous, the system uses the SENSEDU_DAC_MODE_BURST_WAVE. By connecting the dma_buffer directly to the DAC through DMA, the transmission stays stable and avoids any gaps or delays between the bits. For more information about DAC configurations, go to [DAC_Burst_Sine](https://sensedu-shield.com/library/dac/#dac_burst_sine).
 
+```c
+// Maximum number of characters to send between separate messages
+const uint16_t MAX_MESSAGE_LENGTH = 30;
 
+// Arbitrary chosen number to send ~10-12 cycles per bit
+const uint16_t SAMPLES_PER_BIT = 200;
 
+// DMA buffer size
+const uint16_t MAX_LUT_SIZE = (MAX_MESSAGE_LENGTH + PREAMBLE_LENGTH) * SAMPLES_PER_CHARACTER; 
 
+volatile SENSEDU_DAC_BUFFER(dma_buffer, MAX_LUT_SIZE);
+SensEdu_DAC_Settings dac_settings = {
+    .dac_channel = DAC_CH1, 
+    .sampling_freq = SAMPLE_RATE,
+    .mem_address = (uint16_t*)dma_buffer,
+    .mem_size = MAX_LUT_SIZE, 
+    .wave_mode = SENSEDU_DAC_MODE_BURST_WAVE,
+    .burst_num = 1
+};
+```
+The main core of the transmitter is the ``` construct bit``` function, which translates logical bits into phzsical sound waves. During the process, the function calculates a sine value for every sample and constantly updates the phase to ensure the wave is smooth, avoiding any sudden jumps between bits. Finally, the signal is shifted and scaled to use the full wange of the hardware.
+
+```c
+// Fills the buffer with one bit worth of data
+void construct_bit(bool bit, float* phase, uint16_t* buf_pos) {
+    float phase_inc = bit ? PHASE_INC1 : PHASE_INC0;
+    for (size_t i = 0; i < SAMPLES_PER_BIT; i++) {
+        *phase += phase_inc;
+        if (*phase > TWO_PI) {
+            *phase -= TWO_PI;
+        }
+
+        float sample = sinf(*phase);
+        dma_buffer[*buf_pos] = (uint16_t)((sample + 1.0f) * 2047.5f);
+        (*buf_pos)++;
+    }
+}
+```
+Once we have the logic to create a single bit, we need to organize the entire message in memory. The ```construct_buffer``` function acts as the "architect" of the transmission by preparing a continuous stream of data. First, the system clears the memory buffer to ensure no old data interferes with the new message. Then, it generates a **Preamble**, which is a repetitive pattern of '1's and '0's. This is crucial because it acts as a "wake-up call" for the receiver, allowing it to detect that a transmission is starting and to synchronize its clock. Finally, the function breaks down each character of the message into its 8 individual bits and calls the ```construct_bit``` function to fill the buffer with the corresponding 31 kHz or 35 kHz waves.
+
+```c
+
+// Fills the buffer with the message encoded via 12-bit values of ASCII characters
+void construct_buffer(uint8_t* data, uint8_t num_bytes) {
+
+    // Position in a LUT buffer
+    uint16_t position = 0;
+
+    // Current phase of the output sine wave
+    float phase = 0.0f;
+
+    // Clear the entire LUT first with DC level
+    for (size_t i = 0; i < MAX_LUT_SIZE; i++) {
+        dma_buffer[i] = 0x000;
+    }
+
+    // Preamble 10101010 x PREAMBLE_LENGTH times
+    for (size_t i = 0; i < PREAMBLE_LENGTH * BIT_PER_CHARACTER; i++) {
+        construct_bit(i % 2, &phase, &position);
+    }
+
+    // Payload
+    for (size_t byte_idx = 0; byte_idx < num_bytes; byte_idx++) {
+        uint8_t cur_byte = data[byte_idx];
+        for (size_t bit_idx = 0; bit_idx < 8; bit_idx++) {
+            bool bit = (cur_byte >> (7 - bit_idx)) & 1;
+            construct_bit(bit, &phase, &position);
+        }
+    }
+}
+```
+Finally ```send_message``` function is responsible for the actual execution of the transmission. It first triggers the buffer assembly to prepare the entire message in memory. Once the data is ready, it enables the DAC hardware to begin streaming the acoustic wave. 
+
+```c
+// Transmits the entire constructed message
+void send_message(uint8_t* data, uint8_t num_bytes) {
+    construct_buffer(data, num_bytes);
+    SensEdu_DAC_Enable(DAC_CH1);
+    while (!SensEdu_DAC_GetBurstCompleteFlag(DAC_CH1));
+    SensEdu_DAC_ClearBurstCompleteFlag(DAC_CH1);
+    SensEdu_DAC_Disable(DAC_CH1); // Clean shutdown
+}
+```
+
+The final component of the transmitter is the main loop, which acts as the "control center" of the system. Its primary task is to constantly monitor the Serial Port for any incoming text from the user. Once the message is typed, the loop ensures it does not exceed the ```MAX_MESSAGE_LENGTH```, and also performs a quick clean up by removing any extra line breaks. Finally, the system prints and sends the message through an acoustic wave into the air.
+
+```c
+void loop () {
+    if (Serial.available() > 0) {
+        length = 0;
+        while (Serial.available() > 0 && length < MAX_MESSAGE_LENGTH) {
+            message[length] = Serial.read();
+            length++;
+        }
+        
+        while (length > 0 && (message[length - 1] == '\n' || message[length - 1] == '\r')) {
+            length--;
+        }
+        
+        if (length > 0) {
+            Serial.println("Transmitted message: ");
+            Serial.write(message, length);
+            Serial.println("");
+            send_message(message, length); 
+        }
+    }
+}
+```
+
+### Receiver 
