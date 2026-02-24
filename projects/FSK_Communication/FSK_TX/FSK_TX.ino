@@ -91,7 +91,7 @@ void loop () {
             Serial.println("Transmitted message: ");
             Serial.write(message, length);
             Serial.println("");
-            send_message(message, length); 
+            send_message(message, length);
         }
     }
 }
