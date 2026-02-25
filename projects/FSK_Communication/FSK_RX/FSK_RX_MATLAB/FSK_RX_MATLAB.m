@@ -31,6 +31,9 @@ end
 plot_dataset(data);
 %plot_boundaries(data, HALF_BUF_SIZE, ITERATIONS);
 
+OneDArray = reshape(data, 1, []);
+data = OneDArray;
+
 % set COM port back free
 arduino = [];
 

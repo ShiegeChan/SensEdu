@@ -1,85 +1,107 @@
 %% AnalyzeFSK.m
+% Decodes FSK-modulated ultrasonic data
 clear;
 close all;
 clc;
 
 %% Settings
-filename = "tarnished-air.mat";
+FILENAME = "tarnished-air.mat";
 
-fs = 240e3;
+% Sampling Rates
+Fs_tx = 480e3;  % TX SR
+Fs = 240e3;     % RX SR (must be a multiple of TX)
 
-fs_tx = 480e3;
-N_tx = 200; % samples per bit in TX
+% Samples per bit
+N_tx = 200;
+N = round(N_tx * (Fs/Fs_tx));
 
-f0 = 31200; % multiple of fs/N
-f1 = 36000;
+% FSK Encoding frequencies
+% Must be the multiples of fs/N!
+F0 = 31200;
+F1 = 36000;
+F = [F0, F1];
 
-threshold = 1e6;
+% Framing Correction Offset Step
+HOP = N/20;
 
-%%
-load(filename);
+% Preamble 0xFF00FF00
+% Must match with TX Arduino sketch
+PREAMBLE = [1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0];
+
+% Bandpass Filter Toggle
+IS_FILTER_ON = false;
+
+%% Data Load
+load(FILENAME);
 x = data;
 
-%% Filter
-[B,A] = butter(2, [f0-5e3 f1+5e3]/(fs/2));
+%% Bandpass Filter
+[B,A] = butter(2, [F0-5e3 F1+5e3]/(Fs/2));
 x_filt = filtfilt(B, A, x);
 
 figure;
-plot(x);
 hold on;
+title("Recorded Ultrasonic Wave")
+plot(x);
 plot(x_filt);
+legend(["Original Wave", "Bandpass +-5kHz Filtered Wave"]);
+xlabel("Sample Index");
+ylabel("Amplitude");
+hold off;
 
 %% FFT
 y = fft(x);
-L = numel(x);
-f = (-L/2:L/2-1) * (fs/L);
+l = numel(x);
+f = (-l/2:l/2-1) * (Fs/l);
 
 figure;
 subplot(2,1,1)
-plot(f, abs(fftshift(y))/L, 'LineWidth', 3);
+title("FFT (Original Wave)");
+plot(f, abs(fftshift(y))/l, 'LineWidth', 3);
 xlabel('Frequency (Hz)');
-ylabel('Amplitude');
+ylabel("Magnitude");
 yscale log
 
 y = fft(x_filt);
-L = numel(x_filt);
-f = (-L/2:L/2-1) * (fs/L);
+l = numel(x_filt);
+f = (-l/2:l/2-1) * (Fs/l);
 
 subplot(2,1,2)
-plot(f, abs(fftshift(y))/L, 'LineWidth', 3);
+title("FFT (Filtered Wave)");
+plot(f, abs(fftshift(y))/l, 'LineWidth', 3);
 xlabel('Frequency (Hz)');
-ylabel('Amplitude');
+ylabel("Magnitude");
 yscale log
 
-%% Logic
-N = round(N_tx * (fs/fs_tx));
-hop = N/20;
-f = [f0, f1];
-k = (f/fs)*N + 1;
+%% Decoding Logic
+if IS_FILTER_ON == false
+    x_filt = x;
+    disp("Filter is off. Using the original signal for decoding.");
+end
 
-[energy_diff, energy_x_labels] = run_goertzel(x_filt, hop, N, k);
+% Goertzel Coefficient (must be integers)
+k = (F/Fs)*N + 1;
 
-preamble = [1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0];
-[best_hop, preamble_pos] = analyze_preamble(energy_diff, preamble);
+% 1. Apply Goertzel to calculate each bit frequency energy.
+%    Whole dataset is processed multiple times with N/HOP offsets for further frame correction.
+[energy_diff, energy_x_labels] = run_goertzel(x_filt, HOP, N, k);
 
-c = conv(energy_diff(best_hop, :), fliplr(preamble*2 - 1));
-plot(c);
-title("Preamble Convolution");
-hold on;
-stem(energy_diff(best_hop, :));
-stem(preamble_pos, max(energy_diff(best_hop, :)));
-legend(["Convolution", "Goertzel Decisions", "Detected Preamble Position"]);
-hold off;
+% 2. Find best preamble position and frame offset
+[best_hop, preamble_pos] = analyze_preamble(energy_diff, PREAMBLE);
+best_energy_diff = energy_diff(best_hop, :);
 
-plot_goertzel(x_filt, energy_diff(best_hop, :), energy_x_labels(best_hop, :), N);
+% 3. Plot best convolution with preamble
+plot_conv(best_energy_diff, PREAMBLE, preamble_pos);
 
-bits = energy2bits(energy_diff(best_hop, :), threshold);
+% 4. Visualize Goertzel decisions with frame markers
+plot_goertzel(x_filt, best_energy_diff, energy_x_labels(best_hop, :), N);
 
-decode_bitstream(bits, preamble, preamble_pos);
+% 5. Decode bitstream to ASCII message
+bits = energy2bits(best_energy_diff);
+decode_bitstream(bits, PREAMBLE, preamble_pos);
 
 %% functions
 function [energy_diff, x_labels] = run_goertzel(data, hop, N, k)
-
     bit_num = floor((length(data) - N)/N);
     hop_num = N/hop;
 
@@ -102,66 +124,79 @@ function [energy_diff, x_labels] = run_goertzel(data, hop, N, k)
 end
 
 function [best_hop, best_preamble_pos] = analyze_preamble(energy_diff, preamble)
-    correlations = zeros(1, size(energy_diff, 1));
-    preamble_pos = zeros(size(correlations));
+    hop_num = size(energy_diff, 1);
+    correlations = zeros(1, hop_num);
+    preamble_pos = zeros(1, hop_num);
 
-    figure;
     for i = 1:length(correlations)
         data = energy_diff(i, :);
         c = abs(conv(data, fliplr(preamble*2 - 1)));
-        plot(c);
-        title("Preamble Convolution");
         [correlations(i), idx] = max(c);
         preamble_pos(i) = idx - length(preamble) + 1;
     end
+
     [~, best_hop] = max(correlations);
-    %best_hop = 18;
     best_preamble_pos = preamble_pos(best_hop);
 end
 
-function bitstream = energy2bits(energy, threshold)
+function bitstream = energy2bits(energy)
     bitstream = energy > 0;
 end
 
 function msg = decode_bitstream(bits, preamble, preamble_pos)
 
-    % first sample of the payload
+    % i is the first sample of the payload
     i = preamble_pos + length(preamble);
     msg = "";
-    while (true)
+
+    while (i + 7 <= length(bits))
         ascii = bits(i:i+7);
-        ascii_char = char(bit2int(ascii', 8));
-        
-        % remove the msg before the dot
-        if (bit2int(ascii', 8) == 0)
-            bits = bits(i:end);
+        ascii_val = bit2int(ascii', 8);
+                
+        if (ascii_val == 0)
             break;
         end
 
-        msg = msg + ascii_char;
+        msg = msg + char(ascii_val);
         i = i + 8;
     end
-    
+
+    disp("Decoded Message:");
     disp(msg);
-    
+
+end
+
+function plot_conv(energy_diff, preamble, preamble_pos)
+    c = conv(energy_diff, fliplr(preamble*2 - 1));
+    figure;
+    hold on;
+    title("Preamble Convolution");
+    plot(c);
+    stem(energy_diff);
+    stem(preamble_pos, max(energy_diff), 'g', 'LineWidth', 1.5);
+    legend(["Convolution", "Goertzel Energy Difference", "Detected Preamble"]);
+    xlabel("Bit Index");
+    ylabel("Energy / Correlation");
+    hold off;
 end
 
 function plot_goertzel(original_data, energy_array, energy_x_labels, N)
     figure;
     hold on;
+    title("Goertzel Decision Frames")
 
     wave = original_data./max(abs(original_data));
     wave = wave - mean(wave);
     plot(wave, 'LineWidth', 1);
 
-    energy = energy_array ./ max(abs(energy_array));
-    stem(energy_x_labels, energy, 'LineWidth', 1.5);
+    energy_norm = energy_array ./ max(abs(energy_array));
+    stem(energy_x_labels, energy_norm, 'LineWidth', 1.5);
 
     symbol_starts  = energy_x_labels - N/2;
-
-    %yl = ylim;
-
-    stem(symbol_starts, 0.5.*ones(1,length(symbol_starts)), '--', 'LineWidth', 0.5); %'--', 'Color', [0.2 0.6 1], 'LineWidth', 0.5
+    stem(symbol_starts, 0.5.*ones(1,length(symbol_starts)), '--', 'LineWidth', 0.5);
     
+    legend(["Normalized Wave", "Frame Centers", "Frame Boundaries"]);
+    xlabel("Sample Index");
+    ylabel("Normalized Amplitude");
     hold off;
 end
