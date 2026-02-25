@@ -4,21 +4,21 @@ close all;
 clc;
 
 %% Settings
-filename = "tarnished-dac.mat";
+filename = "tarnished-air.mat";
 
-fs = 264e3;
+fs = 240e3;
 
-fs_tx = 528e3;
+fs_tx = 480e3;
 N_tx = 200; % samples per bit in TX
 
-f0 = 16e3;
-f1 = 32e3;
+f0 = 31200; % multiple of fs/N
+f1 = 36000;
 
-threshold = 1e11;
+threshold = 1e6;
 
 %%
 load(filename);
-x = data(383850:500000);
+x = data;
 
 %% Filter
 [B,A] = butter(2, [f0-5e3 f1+5e3]/(fs/2));
@@ -51,76 +51,117 @@ xlabel('Frequency (Hz)');
 ylabel('Amplitude');
 yscale log
 
-%% Slide Goertzel
+%% Logic
 N = round(N_tx * (fs/fs_tx));
+hop = N/20;
 f = [f0, f1];
 k = (f/fs)*N + 1;
-L = length(x_filt);
 
-num_steps = floor((L - N)/N);
-decision = zeros(1, num_steps);
+[energy_diff, energy_x_labels] = run_goertzel(x_filt, hop, N, k);
 
-diff = zeros(1, num_steps);
-plot_x = zeros(1, num_steps);
+preamble = [1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0];
+[best_hop, preamble_pos] = analyze_preamble(energy_diff, preamble);
 
-%figure;
-for i = 1:num_steps
-    idx = (i-1)*N + 1;
-    plot_x(i) = idx + (idx+N - 1 - idx)/2;
+c = conv(energy_diff(best_hop, :), fliplr(preamble*2 - 1));
+plot(c);
+title("Preamble Convolution");
+hold on;
+stem(energy_diff(best_hop, :));
+stem(preamble_pos, max(energy_diff(best_hop, :)));
+legend(["Convolution", "Goertzel Decisions", "Detected Preamble Position"]);
+hold off;
 
-    segment = x_filt(idx : idx+N - 1);
-    %plot(idx : idx+N - 1, segment)
-    %ylim([-65535, 65535])
+plot_goertzel(x_filt, energy_diff(best_hop, :), energy_x_labels(best_hop, :), N);
+
+bits = energy2bits(energy_diff(best_hop, :), threshold);
+
+decode_bitstream(bits, preamble, preamble_pos);
+
+%% functions
+function [energy_diff, x_labels] = run_goertzel(data, hop, N, k)
+
+    bit_num = floor((length(data) - N)/N);
+    hop_num = N/hop;
+
+    energy_diff = zeros(hop_num, bit_num);
+    x_labels = zeros(hop_num, bit_num);
+
+    for j = 1:hop_num
+        for i = 1:bit_num
+            idx = (j-1)*hop + (i-1)*N + 1;
+            segment = data(idx : idx+N - 1);
     
-    dtft1 = abs(goertzel(segment, k(1)))^2;
-    dtft2 = abs(goertzel(segment, k(2)))^2;
+            dtft1 = abs(goertzel(segment, k(1)))^2;
+            dtft2 = abs(goertzel(segment, k(2)))^2;
+        
+            energy_diff(j, i) = dtft2 - dtft1;
 
-    diff(i) = dtft2 - dtft1;
-    if abs(diff(i)) > threshold
-        decision(i) = sign(diff(i));
+            x_labels(j, i) = idx + N/2;
+        end
     end
-
-    %hold on;
-    %stem(plot_x(i), diff(i)/1e6);
-    %hold off;
 end
 
-figure;
-plot(x_filt);
-hold on;
-stem(plot_x, 65535.*decision);
+function [best_hop, best_preamble_pos] = analyze_preamble(energy_diff, preamble)
+    correlations = zeros(1, size(energy_diff, 1));
+    preamble_pos = zeros(size(correlations));
 
-%% Find Preamble
-preamble = [1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0 1 0];
-bits = decision > 0;
-
-figure;
-while (true)
-    c = xcorr(bits, fliplr(preamble));
-    c = c(length(bits):end);
-    
-    plot(c);
-    
-    [preamble_val, preamble_pos] = max(c);
-    
-    if preamble_val < 1 || length(bits) < length(preamble)
-        break;
+    figure;
+    for i = 1:length(correlations)
+        data = energy_diff(i, :);
+        c = abs(conv(data, fliplr(preamble*2 - 1)));
+        plot(c);
+        title("Preamble Convolution");
+        [correlations(i), idx] = max(c);
+        preamble_pos(i) = idx - length(preamble) + 1;
     end
+    [~, best_hop] = max(correlations);
+    %best_hop = 18;
+    best_preamble_pos = preamble_pos(best_hop);
+end
 
+function bitstream = energy2bits(energy, threshold)
+    bitstream = energy > 0;
+end
+
+function msg = decode_bitstream(bits, preamble, preamble_pos)
+
+    % first sample of the payload
     i = preamble_pos + length(preamble);
     msg = "";
     while (true)
         ascii = bits(i:i+7);
         ascii_char = char(bit2int(ascii', 8));
-        msg = msg + ascii_char;
-    
-        if (ascii == 0)
+        
+        % remove the msg before the dot
+        if (bit2int(ascii', 8) == 0)
             bits = bits(i:end);
             break;
         end
+
+        msg = msg + ascii_char;
         i = i + 8;
     end
     
     disp(msg);
+    
+end
 
+function plot_goertzel(original_data, energy_array, energy_x_labels, N)
+    figure;
+    hold on;
+
+    wave = original_data./max(abs(original_data));
+    wave = wave - mean(wave);
+    plot(wave, 'LineWidth', 1);
+
+    energy = energy_array ./ max(abs(energy_array));
+    stem(energy_x_labels, energy, 'LineWidth', 1.5);
+
+    symbol_starts  = energy_x_labels - N/2;
+
+    %yl = ylim;
+
+    stem(symbol_starts, 0.5.*ones(1,length(symbol_starts)), '--', 'LineWidth', 0.5); %'--', 'Color', [0.2 0.6 1], 'LineWidth', 0.5
+    
+    hold off;
 end

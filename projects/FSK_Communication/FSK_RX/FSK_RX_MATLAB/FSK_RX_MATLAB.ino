@@ -25,7 +25,7 @@ SensEdu_ADC_Settings adc_settings = {
     .pin_num = ADC_PIN_COUNT,
 
     .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
-    .sampling_rate_hz = 264000, // Should be multiple of TX SR
+    .sampling_rate_hz = 240000, // Should be multiple of TX SR
     
     .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
     .mem_address = (uint16_t*)dma_buffer,

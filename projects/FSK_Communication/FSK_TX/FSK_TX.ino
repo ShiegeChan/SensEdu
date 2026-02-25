@@ -6,10 +6,10 @@
 
 #define TWO_PI  (6.28318530718f)
 
-#define FREQ0   (16000.0f)
-#define FREQ1   (32000.0f)
+#define FREQ0   (31200.0f)
+#define FREQ1   (36000.0f)
 
-#define SAMPLE_RATE (33000 * 16)
+#define SAMPLE_RATE (480000)
 
 const float PHASE_INC0 = (TWO_PI * FREQ0) / SAMPLE_RATE;
 const float PHASE_INC1 = (TWO_PI * FREQ1) / SAMPLE_RATE;
@@ -32,8 +32,11 @@ const uint16_t SAMPLES_PER_CHARACTER = SAMPLES_PER_BIT * BIT_PER_CHARACTER;
 // x4 extra characters reserved for the preamble
 const uint16_t PREAMBLE_LENGTH = 4;
 
+// Endline character for finishing the message
+const uint16_t ENDLINE_LENGTH = 2;
+
 // DMA buffer size
-const uint16_t MAX_LUT_SIZE = (MAX_MESSAGE_LENGTH + PREAMBLE_LENGTH) * SAMPLES_PER_CHARACTER; 
+const uint16_t MAX_LUT_SIZE = (MAX_MESSAGE_LENGTH + PREAMBLE_LENGTH + ENDLINE_LENGTH) * SAMPLES_PER_CHARACTER; 
 
 volatile SENSEDU_DAC_BUFFER(dma_buffer, MAX_LUT_SIZE);
 SensEdu_DAC_Settings dac_settings = {
@@ -119,9 +122,11 @@ void construct_buffer(uint8_t* data, uint8_t num_bytes) {
         dma_buffer[i] = 0x000;
     }
 
-    // Preamble 10101010 x PREAMBLE_LENGTH times
-    for (size_t i = 0; i < PREAMBLE_LENGTH * BIT_PER_CHARACTER; i++) {
-        construct_bit(i % 2, &phase, &position);
+    // Preamble 0xFF00FF00
+    for (size_t i = 0; i < PREAMBLE_LENGTH; i++) {
+        for (size_t j = 0; j < BIT_PER_CHARACTER; j++) {
+            construct_bit((i + 1) % 2, &phase, &position);
+        }
     }
 
     // Payload
@@ -130,6 +135,13 @@ void construct_buffer(uint8_t* data, uint8_t num_bytes) {
         for (size_t bit_idx = 0; bit_idx < 8; bit_idx++) {
             bool bit = (cur_byte >> (7 - bit_idx)) & 1;
             construct_bit(bit, &phase, &position);
+        }
+    }
+
+    // Endline
+    for (size_t i = 0; i < ENDLINE_LENGTH; i++) {
+        for (size_t j = 0; j < BIT_PER_CHARACTER; j++) {
+            construct_bit(0, &phase, &position);
         }
     }
 }
