@@ -29,10 +29,10 @@ for it = 1:ITERATIONS
 end
 
 plot_dataset(data);
-%plot_boundaries(data, HALF_BUF_SIZE, ITERATIONS);
 
 OneDArray = reshape(data, 1, []);
 data = OneDArray;
+save("recording", "data");
 
 % set COM port back free
 arduino = [];

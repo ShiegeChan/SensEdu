@@ -5,7 +5,7 @@ close all;
 clc;
 
 %% Settings
-FILENAME = "tarnished-air.mat";
+FILENAME = "recording.mat";
 
 % Sampling Rates
 Fs_tx = 480e3;  % TX SR
