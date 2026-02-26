@@ -5,8 +5,8 @@
 	(uuid "c667b3b4-beb4-4f48-8137-7ac0f81944b4")
 	(paper "A4")
 	(title_block
-		(title "SensEdu 0.9")
-		(date "2025-12-05")
+		(title "SensEdu")
+		(date "2026-02-26")
 		(rev "0.9")
 		(company "Infineon Technologies")
 		(comment 1 "Author: Azra Talic / Felix Ober / Vlad Sorokin / Harald Gietler / Arshad Pattathil")
