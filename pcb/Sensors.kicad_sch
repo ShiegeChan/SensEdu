@@ -7,11 +7,290 @@
 	(title_block
 		(title "SensEdu 0.9")
 		(date "2025-12-05")
+		(rev "0.9")
 		(company "Infineon Technologies")
-		(comment 1 "Author: Arshad Pattathil/Harald Gietler/Azra Talic/Felix Ober")
+		(comment 1 "Author: Azra Talic / Felix Ober / Vlad Sorokin / Harald Gietler / Arshad Pattathil")
 	)
 	(lib_symbols
-		(symbol "Device:C"
+		(symbol "SHT35-DIS-B2.5KS_1"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at 19.9233 7.62 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Value" "SHT35-DIS-B2.5KS"
+				(at 19.9233 5.08 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left)
+				)
+			)
+			(property "Footprint" "SensEdu:SHT35-DIS-B2.5KS"
+				(at 31.75 -94.92 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://media.digikey.com/pdf/Data%20Sheets/Sensirion%20PDFs/HT_DS_SHT3x_DIS.pdf"
+				(at 31.75 -194.92 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(property "Description" "SENSOR HUMI/TEMP 5V I2C 1.5% SMD"
+				(at 1.27 17.018 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Height" "1"
+				(at 31.75 -394.92 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(property "Mouser Part Number" "403-SHT35-DIS-B"
+				(at 31.75 -494.92 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Sensirion/SHT35-DIS-B2.5kS?qs=y6ZabgHbY%252BxyJLNSvkWFsA%3D%3D"
+				(at 31.75 -594.92 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(property "Manufacturer_Name" "Sensirion"
+				(at 31.75 -694.92 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(property "Manufacturer_Part_Number" "SHT35-DIS-B2.5KS"
+				(at 31.75 -794.92 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(justify left top)
+					(hide yes)
+				)
+			)
+			(symbol "SHT35-DIS-B2.5KS_1_1_1"
+				(rectangle
+					(start 8.89 2.54)
+					(end 25.4 -15.24)
+					(stroke
+						(width 0.254)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(pin passive line
+					(at 3.81 -3.81 0)
+					(length 5.08)
+					(name "ADDR"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 -6.35 0)
+					(length 5.08)
+					(name "NRESET"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 3.81 -8.89 0)
+					(length 5.08)
+					(name "R"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 12.7 -20.32 90)
+					(length 5.08)
+					(name "EXP"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 17.78 7.62 270)
+					(length 5.08)
+					(name "VDD"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 17.78 -20.32 90)
+					(length 5.08)
+					(name "VSS"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 30.48 -2.54 180)
+					(length 5.08)
+					(name "SCL"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 30.48 -5.08 180)
+					(length 5.08)
+					(name "SDA"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 30.48 -10.16 180)
+					(length 5.08)
+					(name "ALERT"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
+		(symbol "SensEdu:C"
 			(pin_numbers
 				(hide yes)
 			)
@@ -132,130 +411,6 @@
 				(pin passive line
 					(at 0 -3.81 90)
 					(length 2.794)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "Device:R"
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "R"
-				(at 2.032 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" "R"
-				(at 0 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at -1.778 0 90)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "~"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Resistor"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "R res resistor"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_fp_filters" "R_*"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "R_0_1"
-				(rectangle
-					(start -1.016 -2.54)
-					(end 1.016 2.54)
-					(stroke
-						(width 0.254)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "R_1_1"
-				(pin passive line
-					(at 0 3.81 270)
-					(length 1.27)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 0 -3.81 90)
-					(length 1.27)
 					(name "~"
 						(effects
 							(font
@@ -532,50 +687,34 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "SensEdu:SHT35-DIS-B2.5KS"
+		(symbol "SensEdu:R"
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+			)
 			(exclude_from_sim no)
 			(in_bom yes)
 			(on_board yes)
-			(property "Reference" "IC2"
-				(at 19.9233 7.62 0)
+			(property "Reference" "R"
+				(at 2.032 0 90)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Value" "SHT35-DIS-B2.5KS"
-				(at 19.9233 5.08 0)
+			(property "Value" "R"
+				(at 0 0 90)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left)
 				)
 			)
-			(property "Footprint" "SensEdu:SHT35-DIS-B2.5KS"
-				(at 31.75 -94.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://media.digikey.com/pdf/Data%20Sheets/Sensirion%20PDFs/HT_DS_SHT3x_DIS.pdf"
-				(at 31.75 -194.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(property "Description" "SENSOR HUMI/TEMP 5V I2C 1.5% SMD"
-				(at 1.27 17.018 0)
+			(property "Footprint" ""
+				(at -1.778 0 90)
 				(effects
 					(font
 						(size 1.27 1.27)
@@ -583,199 +722,60 @@
 					(hide yes)
 				)
 			)
-			(property "Height" "1"
-				(at 31.75 -394.92 0)
+			(property "Datasheet" "~"
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left top)
 					(hide yes)
 				)
 			)
-			(property "Mouser Part Number" "403-SHT35-DIS-B"
-				(at 31.75 -494.92 0)
+			(property "Description" "Resistor"
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left top)
 					(hide yes)
 				)
 			)
-			(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Sensirion/SHT35-DIS-B2.5kS?qs=y6ZabgHbY%252BxyJLNSvkWFsA%3D%3D"
-				(at 31.75 -594.92 0)
+			(property "ki_keywords" "R res resistor"
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left top)
 					(hide yes)
 				)
 			)
-			(property "Manufacturer_Name" "Sensirion"
-				(at 31.75 -694.92 0)
+			(property "ki_fp_filters" "R_*"
+				(at 0 0 0)
 				(effects
 					(font
 						(size 1.27 1.27)
 					)
-					(justify left top)
 					(hide yes)
 				)
 			)
-			(property "Manufacturer_Part_Number" "SHT35-DIS-B2.5KS"
-				(at 31.75 -794.92 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(justify left top)
-					(hide yes)
-				)
-			)
-			(symbol "SHT35-DIS-B2.5KS_1_1"
+			(symbol "R_0_1"
 				(rectangle
-					(start 8.89 2.54)
-					(end 25.4 -15.24)
+					(start -1.016 -2.54)
+					(end 1.016 2.54)
 					(stroke
 						(width 0.254)
 						(type default)
 					)
 					(fill
-						(type background)
+						(type none)
 					)
 				)
+			)
+			(symbol "R_1_1"
 				(pin passive line
-					(at 3.81 -3.81 0)
-					(length 5.08)
-					(name "ADDR"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 -6.35 0)
-					(length 5.08)
-					(name "NRESET"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "6"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 3.81 -8.89 0)
-					(length 5.08)
-					(name "R"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "7"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 12.7 -20.32 90)
-					(length 5.08)
-					(hide yes)
-					(name "EXP"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "9"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 17.78 7.62 270)
-					(length 5.08)
-					(name "VDD"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "5"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 17.78 -20.32 90)
-					(length 5.08)
-					(name "VSS"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "8"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 30.48 -2.54 180)
-					(length 5.08)
-					(name "SCL"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin passive line
-					(at 30.48 -5.08 180)
-					(length 5.08)
-					(name "SDA"
+					(at 0 3.81 270)
+					(length 1.27)
+					(name "~"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -791,16 +791,16 @@
 					)
 				)
 				(pin passive line
-					(at 30.48 -10.16 180)
-					(length 5.08)
-					(name "ALERT"
+					(at 0 -3.81 90)
+					(length 1.27)
+					(name "~"
 						(effects
 							(font
 								(size 1.27 1.27)
 							)
 						)
 					)
-					(number "3"
+					(number "2"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -1039,8 +1039,8 @@
 		)
 	)
 	(rectangle
-		(start 22.86 26.67)
-		(end 142.24 86.36)
+		(start 40.386 57.15)
+		(end 133.604 116.84)
 		(stroke
 			(width 0)
 			(type dash)
@@ -1051,8 +1051,8 @@
 		(uuid 85caf2e4-a4f7-44f0-9367-0032210d2e6c)
 	)
 	(rectangle
-		(start 153.67 26.67)
-		(end 273.05 86.36)
+		(start 167.64 58.42)
+		(end 251.46 118.11)
 		(stroke
 			(width 0)
 			(type dash)
@@ -1062,19 +1062,9 @@
 		)
 		(uuid fde407c9-8df5-4a64-9d79-85d0734f20fb)
 	)
-	(text "The recommendation in ds is to have VDD and VDDIO\n to 1.8V with a cap to reduce ripple below 50mVpp"
-		(exclude_from_sim no)
-		(at 85.09 90.17 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "763a0399-ad50-45c6-928a-da14d7144457")
-	)
 	(text "PRESSURE SENSOR"
 		(exclude_from_sim yes)
-		(at 40.64 25.4 0)
+		(at 59.69 54.102 0)
 		(effects
 			(font
 				(size 2.54 2.54)
@@ -1082,19 +1072,9 @@
 		)
 		(uuid "7b66d710-fe5c-4896-a12f-7b9f687b77fb")
 	)
-	(text "co2 sensor, not integrated"
-		(exclude_from_sim no)
-		(at 125.73 102.87 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "eccadaab-934b-4192-97e5-6ffb376a5258")
-	)
 	(text "HUMIDITY SENSOR"
 		(exclude_from_sim yes)
-		(at 170.18 25.4 0)
+		(at 186.69 55.626 0)
 		(effects
 			(font
 				(size 2.54 2.54)
@@ -1103,114 +1083,112 @@
 		(uuid "f4074b94-3847-4cb8-a34c-1b48a51682c9")
 	)
 	(junction
-		(at 109.22 50.8)
+		(at 120.65 81.28)
 		(diameter 0)
 		(color 0 0 0 0)
-		(uuid "26e862ed-9b6f-4035-9613-bc9ff79c5093")
+		(uuid "1d97caf3-1507-45ac-af14-3f062e8afdf7")
 	)
 	(junction
-		(at 240.03 54.61)
+		(at 232.41 86.36)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "364c91c6-aaeb-45fe-bbdc-eb8aec011467")
 	)
 	(junction
-		(at 229.87 39.37)
+		(at 222.25 71.12)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "368c6e4b-f2c5-4ff5-a94b-bacd6b455aec")
 	)
 	(junction
-		(at 62.23 50.8)
+		(at 67.31 81.28)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "4b5dae8b-5471-46a0-b590-519474ee6539")
 	)
 	(junction
-		(at 201.93 39.37)
+		(at 109.22 83.82)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "6b9788f3-285e-4c82-8e19-98cd0559d0eb")
+	)
+	(junction
+		(at 194.31 71.12)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "74f40640-c6fa-4188-aa37-c775f442149c")
 	)
 	(junction
-		(at 229.87 52.07)
+		(at 109.22 81.28)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "7d288ad3-e28f-442e-bdb1-be365004d496")
+	)
+	(junction
+		(at 222.25 83.82)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "9c756def-f703-4401-928c-62db6c664f33")
 	)
 	(junction
-		(at 53.34 58.42)
+		(at 194.31 101.6)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "c85f192f-08e2-46ae-afa9-99bc8a37aa97")
+	)
+	(junction
+		(at 58.42 88.9)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "d06a85d1-639b-4867-a9e1-d8f69aea23fe")
 	)
 	(junction
-		(at 102.87 68.58)
+		(at 107.95 99.06)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f2f7da0b-e7da-4cdb-961d-bd69a84aad02")
 	)
 	(junction
-		(at 62.23 40.64)
+		(at 67.31 71.12)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f3805800-7951-4973-9c3f-f331255f0af5")
 	)
 	(junction
-		(at 182.88 58.42)
+		(at 175.26 90.17)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f3b17eb1-21d8-4f01-96be-ee5150e80013")
 	)
-	(junction
-		(at 109.22 53.34)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "f6680e28-282d-47f4-9ef7-2eb5de638175")
-	)
 	(no_connect
-		(at 69.85 53.34)
+		(at 74.93 83.82)
 		(uuid "06f5abd3-27d8-42db-b367-a45db57d860a")
 	)
 	(no_connect
-		(at 69.85 60.96)
+		(at 74.93 91.44)
 		(uuid "5aac2e96-42e9-4be9-9d47-931d73d0df46")
 	)
 	(no_connect
-		(at 196.85 69.85)
-		(uuid "71de7911-1fc7-44a4-a647-6bcdf6341746")
-	)
-	(no_connect
-		(at 214.63 59.69)
+		(at 207.01 91.44)
 		(uuid "a46c74f1-ed65-44d4-96b6-89d7a09bfc61")
 	)
 	(no_connect
-		(at 187.96 55.88)
+		(at 180.34 87.63)
 		(uuid "bf1b730c-027b-4155-8b51-79128356e77a")
 	)
 	(wire
 		(pts
-			(xy 190.5 39.37) (xy 190.5 41.91)
+			(xy 109.22 81.28) (xy 109.22 83.82)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "0d1fc507-1338-4c65-8659-80f1637ad734")
+		(uuid "11bfd364-3ccb-4241-8c34-3c74ccd855ad")
 	)
 	(wire
 		(pts
-			(xy 109.22 46.99) (xy 109.22 50.8)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "0dd19b98-d7ef-4109-858d-1ef1adb1f0ef")
-	)
-	(wire
-		(pts
-			(xy 45.72 50.8) (xy 62.23 50.8)
+			(xy 50.8 81.28) (xy 67.31 81.28)
 		)
 		(stroke
 			(width 0)
@@ -1220,17 +1198,7 @@
 	)
 	(wire
 		(pts
-			(xy 109.22 50.8) (xy 109.22 53.34)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "19e60d96-4310-48cf-870c-35119f7a68b8")
-	)
-	(wire
-		(pts
-			(xy 229.87 41.91) (xy 229.87 39.37)
+			(xy 222.25 73.66) (xy 222.25 71.12)
 		)
 		(stroke
 			(width 0)
@@ -1240,7 +1208,7 @@
 	)
 	(wire
 		(pts
-			(xy 62.23 50.8) (xy 69.85 50.8)
+			(xy 67.31 81.28) (xy 74.93 81.28)
 		)
 		(stroke
 			(width 0)
@@ -1250,7 +1218,7 @@
 	)
 	(wire
 		(pts
-			(xy 102.87 68.58) (xy 102.87 66.04)
+			(xy 107.95 99.06) (xy 107.95 96.52)
 		)
 		(stroke
 			(width 0)
@@ -1260,7 +1228,7 @@
 	)
 	(wire
 		(pts
-			(xy 109.22 55.88) (xy 109.22 53.34)
+			(xy 109.22 85.09) (xy 109.22 83.82)
 		)
 		(stroke
 			(width 0)
@@ -1270,7 +1238,7 @@
 	)
 	(wire
 		(pts
-			(xy 229.87 49.53) (xy 229.87 52.07)
+			(xy 222.25 81.28) (xy 222.25 83.82)
 		)
 		(stroke
 			(width 0)
@@ -1280,7 +1248,7 @@
 	)
 	(wire
 		(pts
-			(xy 53.34 40.64) (xy 62.23 40.64)
+			(xy 58.42 71.12) (xy 67.31 71.12)
 		)
 		(stroke
 			(width 0)
@@ -1290,17 +1258,17 @@
 	)
 	(wire
 		(pts
-			(xy 100.33 50.8) (xy 109.22 50.8)
+			(xy 109.22 81.28) (xy 120.65 81.28)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "4072f357-a8af-4cdc-8db2-cad7d92be6b5")
+		(uuid "36ec44c0-d980-470b-bfb2-5e113ac7439d")
 	)
 	(wire
 		(pts
-			(xy 187.96 58.42) (xy 182.88 58.42)
+			(xy 180.34 90.17) (xy 175.26 90.17)
 		)
 		(stroke
 			(width 0)
@@ -1310,7 +1278,7 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 49.53) (xy 240.03 54.61)
+			(xy 232.41 81.28) (xy 232.41 86.36)
 		)
 		(stroke
 			(width 0)
@@ -1320,7 +1288,7 @@
 	)
 	(wire
 		(pts
-			(xy 100.33 68.58) (xy 102.87 68.58)
+			(xy 105.41 99.06) (xy 107.95 99.06)
 		)
 		(stroke
 			(width 0)
@@ -1330,7 +1298,7 @@
 	)
 	(wire
 		(pts
-			(xy 187.96 53.34) (xy 182.88 53.34)
+			(xy 180.34 85.09) (xy 175.26 85.09)
 		)
 		(stroke
 			(width 0)
@@ -1340,7 +1308,17 @@
 	)
 	(wire
 		(pts
-			(xy 102.87 66.04) (xy 100.33 66.04)
+			(xy 120.65 77.47) (xy 120.65 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "50358c81-4fa3-4222-a06a-cdfee63d62e9")
+	)
+	(wire
+		(pts
+			(xy 107.95 96.52) (xy 105.41 96.52)
 		)
 		(stroke
 			(width 0)
@@ -1350,7 +1328,17 @@
 	)
 	(wire
 		(pts
-			(xy 45.72 58.42) (xy 53.34 58.42)
+			(xy 105.41 81.28) (xy 109.22 81.28)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6346afe3-9d21-4037-aa68-68f5530ef86e")
+	)
+	(wire
+		(pts
+			(xy 50.8 88.9) (xy 58.42 88.9)
 		)
 		(stroke
 			(width 0)
@@ -1360,7 +1348,7 @@
 	)
 	(wire
 		(pts
-			(xy 201.93 69.85) (xy 201.93 71.12)
+			(xy 194.31 101.6) (xy 194.31 102.87)
 		)
 		(stroke
 			(width 0)
@@ -1370,7 +1358,7 @@
 	)
 	(wire
 		(pts
-			(xy 182.88 58.42) (xy 182.88 66.04)
+			(xy 175.26 90.17) (xy 175.26 97.79)
 		)
 		(stroke
 			(width 0)
@@ -1380,7 +1368,7 @@
 	)
 	(wire
 		(pts
-			(xy 229.87 52.07) (xy 214.63 52.07)
+			(xy 222.25 83.82) (xy 207.01 83.82)
 		)
 		(stroke
 			(width 0)
@@ -1390,7 +1378,7 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 39.37) (xy 229.87 39.37)
+			(xy 232.41 71.12) (xy 222.25 71.12)
 		)
 		(stroke
 			(width 0)
@@ -1400,17 +1388,7 @@
 	)
 	(wire
 		(pts
-			(xy 191.77 39.37) (xy 190.5 39.37)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "932a228f-41a3-41a0-abb2-1c89a7020362")
-	)
-	(wire
-		(pts
-			(xy 240.03 54.61) (xy 214.63 54.61)
+			(xy 232.41 86.36) (xy 207.01 86.36)
 		)
 		(stroke
 			(width 0)
@@ -1420,7 +1398,7 @@
 	)
 	(wire
 		(pts
-			(xy 201.93 35.56) (xy 201.93 39.37)
+			(xy 194.31 67.31) (xy 194.31 71.12)
 		)
 		(stroke
 			(width 0)
@@ -1430,7 +1408,7 @@
 	)
 	(wire
 		(pts
-			(xy 69.85 58.42) (xy 53.34 58.42)
+			(xy 74.93 88.9) (xy 58.42 88.9)
 		)
 		(stroke
 			(width 0)
@@ -1440,7 +1418,17 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 41.91) (xy 240.03 39.37)
+			(xy 189.23 101.6) (xy 194.31 101.6)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a2b33490-6777-481b-8395-10c900abefa6")
+	)
+	(wire
+		(pts
+			(xy 232.41 73.66) (xy 232.41 71.12)
 		)
 		(stroke
 			(width 0)
@@ -1450,7 +1438,7 @@
 	)
 	(wire
 		(pts
-			(xy 62.23 48.26) (xy 62.23 50.8)
+			(xy 67.31 78.74) (xy 67.31 81.28)
 		)
 		(stroke
 			(width 0)
@@ -1460,7 +1448,7 @@
 	)
 	(wire
 		(pts
-			(xy 240.03 54.61) (xy 248.92 54.61)
+			(xy 232.41 86.36) (xy 241.3 86.36)
 		)
 		(stroke
 			(width 0)
@@ -1470,7 +1458,7 @@
 	)
 	(wire
 		(pts
-			(xy 53.34 48.26) (xy 53.34 58.42)
+			(xy 58.42 78.74) (xy 58.42 88.9)
 		)
 		(stroke
 			(width 0)
@@ -1480,7 +1468,7 @@
 	)
 	(wire
 		(pts
-			(xy 201.93 39.37) (xy 201.93 41.91)
+			(xy 194.31 71.12) (xy 194.31 73.66)
 		)
 		(stroke
 			(width 0)
@@ -1490,7 +1478,7 @@
 	)
 	(wire
 		(pts
-			(xy 229.87 39.37) (xy 201.93 39.37)
+			(xy 222.25 71.12) (xy 194.31 71.12)
 		)
 		(stroke
 			(width 0)
@@ -1500,7 +1488,7 @@
 	)
 	(wire
 		(pts
-			(xy 100.33 53.34) (xy 109.22 53.34)
+			(xy 105.41 83.82) (xy 109.22 83.82)
 		)
 		(stroke
 			(width 0)
@@ -1510,7 +1498,7 @@
 	)
 	(wire
 		(pts
-			(xy 182.88 53.34) (xy 182.88 58.42)
+			(xy 175.26 85.09) (xy 175.26 90.17)
 		)
 		(stroke
 			(width 0)
@@ -1520,7 +1508,7 @@
 	)
 	(wire
 		(pts
-			(xy 102.87 71.12) (xy 102.87 68.58)
+			(xy 107.95 101.6) (xy 107.95 99.06)
 		)
 		(stroke
 			(width 0)
@@ -1530,7 +1518,7 @@
 	)
 	(wire
 		(pts
-			(xy 229.87 52.07) (xy 248.92 52.07)
+			(xy 222.25 83.82) (xy 241.3 83.82)
 		)
 		(stroke
 			(width 0)
@@ -1540,17 +1528,7 @@
 	)
 	(wire
 		(pts
-			(xy 199.39 39.37) (xy 201.93 39.37)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "f353cd15-d3e5-4a91-9201-4122a0941643")
-	)
-	(wire
-		(pts
-			(xy 62.23 38.1) (xy 62.23 40.64)
+			(xy 67.31 68.58) (xy 67.31 71.12)
 		)
 		(stroke
 			(width 0)
@@ -1558,9 +1536,19 @@
 		)
 		(uuid "f67f25bf-32be-4f6a-9c90-6f66013b8f2e")
 	)
+	(wire
+		(pts
+			(xy 179.07 71.12) (xy 194.31 71.12)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fe40cb0e-8b0c-4c5e-a477-7e7b21898a9e")
+	)
 	(hierarchical_label "SCL"
 		(shape input)
-		(at 248.92 52.07 0)
+		(at 241.3 83.82 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1571,7 +1559,7 @@
 	)
 	(hierarchical_label "SDA"
 		(shape input)
-		(at 248.92 54.61 0)
+		(at 241.3 86.36 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1582,7 +1570,7 @@
 	)
 	(hierarchical_label "SDA"
 		(shape input)
-		(at 45.72 58.42 180)
+		(at 50.8 88.9 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1593,7 +1581,7 @@
 	)
 	(hierarchical_label "SCL"
 		(shape input)
-		(at 45.72 50.8 180)
+		(at 50.8 81.28 180)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -1604,7 +1592,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 201.93 71.12 0)
+		(at 194.31 102.87 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1612,8 +1600,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0352e198-2d49-42dd-aae0-2eb21334e33a")
-		(property "Reference" "#PWR098"
-			(at 201.93 77.47 0)
+		(property "Reference" "#PWR097"
+			(at 194.31 109.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1622,7 +1610,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 201.93 76.2 0)
+			(at 194.31 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1631,7 +1619,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 201.93 71.12 0)
+			(at 194.31 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1640,7 +1628,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 201.93 71.12 0)
+			(at 194.31 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1649,7 +1637,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 201.93 71.12 0)
+			(at 194.31 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1663,7 +1651,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
-					(reference "#PWR098")
+					(reference "#PWR097")
 					(unit 1)
 				)
 			)
@@ -1671,7 +1659,7 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 201.93 35.56 0)
+		(at 194.31 67.31 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1679,8 +1667,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "089f77c0-6877-4952-a8d3-72faa0eda741")
-		(property "Reference" "#PWR097"
-			(at 201.93 39.37 0)
+		(property "Reference" "#PWR089"
+			(at 194.31 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1689,7 +1677,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 201.93 30.48 0)
+			(at 194.31 62.23 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1697,7 +1685,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 201.93 35.56 0)
+			(at 194.31 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1706,7 +1694,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 201.93 35.56 0)
+			(at 194.31 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1715,7 +1703,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 201.93 35.56 0)
+			(at 194.31 67.31 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1729,23 +1717,155 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
-					(reference "#PWR097")
+					(reference "#PWR089")
 					(unit 1)
 				)
 			)
 		)
 	)
 	(symbol
-		(lib_id "Device:C")
-		(at 195.58 39.37 90)
+		(lib_id "power:+3.3V")
+		(at 67.31 68.58 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "12c022d0-5e85-42ab-b7e0-a8e74ea1e166")
+		(property "Reference" "#PWR090"
+			(at 67.31 72.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 67.31 63.5 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 67.31 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 67.31 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 67.31 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "b7644964-df42-4f2a-8c2c-6a5d599e3067")
+		)
+		(instances
+			(project "SensEdu"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
+					(reference "#PWR090")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 120.65 88.9 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "1578d2fe-9eb1-4d6f-ba33-a2ca958014b2")
+		(property "Reference" "#PWR093"
+			(at 120.65 95.25 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 120.65 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 120.65 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 120.65 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 120.65 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "e5c38bb7-5914-442c-9544-994d6dd5ce46")
+		)
+		(instances
+			(project "SensEdu"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
+					(reference "#PWR093")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "SensEdu:C")
+		(at 179.07 74.93 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "174f8a9b-01e4-4c2c-aba0-e1e25e7e2743")
-		(property "Reference" "C59"
-			(at 193.04 35.56 90)
+		(property "Reference" "C58"
+			(at 175.26 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1754,7 +1874,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 194.31 38.1 90)
+			(at 176.276 80.264 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1762,8 +1882,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 199.39 38.4048 0)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 178.1048 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1771,8 +1891,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
-			(at 195.58 39.37 0)
+		(property "Datasheet" ""
+			(at 179.07 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1781,7 +1901,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 195.58 39.37 0)
+			(at 179.07 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1797,15 +1917,15 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
-					(reference "C59")
+					(reference "C58")
 					(unit 1)
 				)
 			)
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 53.34 44.45 0)
+		(lib_id "SensEdu:R")
+		(at 58.42 74.93 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -1813,7 +1933,7 @@
 		(dnp no)
 		(uuid "1b4a1a3e-2897-470c-a9f9-264258d14519")
 		(property "Reference" "R40"
-			(at 48.26 45.72 0)
+			(at 53.34 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1821,8 +1941,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5k6"
-			(at 48.26 43.18 0)
+		(property "Value" "10k"
+			(at 53.34 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1830,8 +1950,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
-			(at 51.562 44.45 90)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 56.642 74.93 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1839,8 +1959,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
-			(at 53.34 44.45 0)
+		(property "Datasheet" ""
+			(at 58.42 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1849,7 +1969,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 53.34 44.45 0)
+			(at 58.42 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1872,16 +1992,16 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:C")
-		(at 109.22 59.69 0)
+		(lib_id "SensEdu:C")
+		(at 109.22 88.9 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(uuid "30885cfc-c31b-4186-93f4-00fa761239c8")
-		(property "Reference" "C58"
-			(at 113.03 58.42 0)
+		(property "Reference" "C60"
+			(at 113.03 87.63 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1890,7 +2010,7 @@
 			)
 		)
 		(property "Value" "100n"
-			(at 113.03 60.96 0)
+			(at 113.03 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1898,8 +2018,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
-			(at 110.1852 63.5 0)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 110.1852 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1907,8 +2027,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
-			(at 109.22 59.69 0)
+		(property "Datasheet" ""
+			(at 109.22 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1917,7 +2037,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 109.22 59.69 0)
+			(at 109.22 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1933,7 +2053,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
-					(reference "C58")
+					(reference "C60")
 					(unit 1)
 				)
 			)
@@ -1941,16 +2061,16 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
-		(at 109.22 46.99 0)
+		(at 120.65 77.47 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
 		(dnp no)
 		(fields_autoplaced yes)
-		(uuid "59c680d5-51cf-4742-9ddd-c9181cbbfb3f")
-		(property "Reference" "#PWR093"
-			(at 109.22 50.8 0)
+		(uuid "35a1a95a-eed9-4e68-87c3-69c43a17743d")
+		(property "Reference" "#PWR091"
+			(at 120.65 81.28 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1958,8 +2078,8 @@
 				(hide yes)
 			)
 		)
-		(property "Value" "+2.5V"
-			(at 109.22 41.91 0)
+		(property "Value" "+3.3V"
+			(at 120.65 72.39 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1967,7 +2087,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 109.22 46.99 0)
+			(at 120.65 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1976,7 +2096,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 109.22 46.99 0)
+			(at 120.65 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1985,7 +2105,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 109.22 46.99 0)
+			(at 120.65 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1994,12 +2114,156 @@
 			)
 		)
 		(pin "1"
-			(uuid "a315ae5a-2e1a-42d8-bba9-7f8ee1f97eac")
+			(uuid "523f9718-77d2-4339-92d3-2ff28761c931")
 		)
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
-					(reference "#PWR093")
+					(reference "#PWR091")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_name "SHT35-DIS-B2.5KS_1")
+		(lib_id "SensEdu:SHT35-DIS-B2.5KS")
+		(at 176.53 81.28 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "549bb62d-6fa7-4c1d-87c5-dc968c6931ab")
+		(property "Reference" "U3"
+			(at 196.4533 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "SHT35-DIS-B2.5KS"
+			(at 196.4533 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "SensEdu:SHT35-DIS-B2.5KS"
+			(at 208.28 176.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://media.digikey.com/pdf/Data%20Sheets/Sensirion%20PDFs/HT_DS_SHT3x_DIS.pdf"
+			(at 208.28 276.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Description" "SENSOR HUMI/TEMP 5V I2C 1.5% SMD"
+			(at 177.8 64.262 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Height" "1"
+			(at 208.28 476.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Mouser Part Number" "403-SHT35-DIS-B"
+			(at 208.28 576.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Sensirion/SHT35-DIS-B2.5kS?qs=y6ZabgHbY%252BxyJLNSvkWFsA%3D%3D"
+			(at 208.28 676.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer_Name" "Sensirion"
+			(at 208.28 776.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer_Part_Number" "SHT35-DIS-B2.5KS"
+			(at 208.28 876.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+				(hide yes)
+			)
+		)
+		(pin "4"
+			(uuid "b8989053-d8f6-4caa-9290-1c7685a5b85b")
+		)
+		(pin "7"
+			(uuid "6b9e8c6b-b927-45b3-b6b3-049e753337b0")
+		)
+		(pin "5"
+			(uuid "4264be66-03ba-4d7d-b8d3-fd17f159a323")
+		)
+		(pin "2"
+			(uuid "0be11bdb-32ba-4733-825e-3ff64f50153e")
+		)
+		(pin "9"
+			(uuid "48c11baf-055d-4a26-b1be-58f739fa2993")
+		)
+		(pin "6"
+			(uuid "cd04e2a2-7a99-47e4-b049-738d134b74e8")
+		)
+		(pin "3"
+			(uuid "993beeb0-6b0e-4a0b-a6ae-da41e8c40139")
+		)
+		(pin "1"
+			(uuid "1070e488-d18e-468a-8d72-fc0e2b2b33ca")
+		)
+		(pin "8"
+			(uuid "be68b874-bfc0-4431-9dbc-2dfc92083249")
+		)
+		(instances
+			(project ""
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
+					(reference "U3")
 					(unit 1)
 				)
 			)
@@ -2007,7 +2271,7 @@
 	)
 	(symbol
 		(lib_id "SensEdu:DPS368XTSA1")
-		(at 69.85 50.8 0)
+		(at 74.93 81.28 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2016,7 +2280,7 @@
 		(fields_autoplaced yes)
 		(uuid "65ca1991-5157-4c28-beb6-a04784c9bb41")
 		(property "Reference" "U10"
-			(at 85.09 41.91 0)
+			(at 90.17 72.39 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2024,7 +2288,7 @@
 			)
 		)
 		(property "Value" "DPS368XTSA1"
-			(at 85.09 44.45 0)
+			(at 90.17 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2032,7 +2296,7 @@
 			)
 		)
 		(property "Footprint" "SensEdu:DPS368XTSA1"
-			(at 96.52 145.72 0)
+			(at 101.6 176.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2042,7 +2306,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.infineon.com/dgdl/Infineon-DPS368-DataSheet-v01_01-EN.pdf?fileId=5546d46269e1c019016a0c45105d4b40"
-			(at 96.52 245.72 0)
+			(at 101.6 276.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2052,7 +2316,7 @@
 			)
 		)
 		(property "Description" "Infineon PRESSURE SENSOR"
-			(at 76.2 40.132 0)
+			(at 81.28 70.612 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2061,7 +2325,7 @@
 			)
 		)
 		(property "Height" "1.1"
-			(at 96.52 445.72 0)
+			(at 101.6 476.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2071,7 +2335,7 @@
 			)
 		)
 		(property "Mouser Part Number" "726-DPS368XTSA1"
-			(at 96.52 545.72 0)
+			(at 101.6 576.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2081,7 +2345,7 @@
 			)
 		)
 		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Infineon-Technologies/DPS368XTSA1?qs=l7cgNqFNU1issZx9oeCNag%3D%3D"
-			(at 96.52 645.72 0)
+			(at 101.6 676.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2091,7 +2355,7 @@
 			)
 		)
 		(property "Manufacturer_Name" "Infineon"
-			(at 96.52 745.72 0)
+			(at 101.6 776.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2101,7 +2365,7 @@
 			)
 		)
 		(property "Manufacturer_Part_Number" "DPS368XTSA1"
-			(at 96.52 845.72 0)
+			(at 101.6 876.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2144,8 +2408,8 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 240.03 45.72 0)
+		(lib_id "SensEdu:R")
+		(at 232.41 77.47 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2153,7 +2417,7 @@
 		(dnp no)
 		(uuid "739d122c-445b-4290-bcd8-888879dd3ab3")
 		(property "Reference" "R43"
-			(at 234.95 46.99 0)
+			(at 227.33 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2162,7 +2426,7 @@
 			)
 		)
 		(property "Value" "10k"
-			(at 234.95 44.45 0)
+			(at 227.33 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2170,8 +2434,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
-			(at 238.252 45.72 90)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 230.632 77.47 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2179,8 +2443,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
-			(at 240.03 45.72 0)
+		(property "Datasheet" ""
+			(at 232.41 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2189,7 +2453,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 240.03 45.72 0)
+			(at 232.41 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2212,8 +2476,8 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 229.87 45.72 0)
+		(lib_id "SensEdu:R")
+		(at 222.25 77.47 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2221,7 +2485,7 @@
 		(dnp no)
 		(uuid "801078c6-8b90-4cac-b57b-715fdf635ec4")
 		(property "Reference" "R42"
-			(at 224.79 46.99 0)
+			(at 217.17 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2230,7 +2494,7 @@
 			)
 		)
 		(property "Value" "10k"
-			(at 224.79 44.45 0)
+			(at 217.17 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2238,8 +2502,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
-			(at 228.092 45.72 90)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 220.472 77.47 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2247,8 +2511,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
-			(at 229.87 45.72 0)
+		(property "Datasheet" ""
+			(at 222.25 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2257,7 +2521,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 229.87 45.72 0)
+			(at 222.25 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2281,7 +2545,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 190.5 41.91 0)
+		(at 179.07 78.74 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2289,8 +2553,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "84995315-dd5b-4321-b209-6c87a1ca63f1")
-		(property "Reference" "#PWR096"
-			(at 190.5 48.26 0)
+		(property "Reference" "#PWR092"
+			(at 179.07 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2299,7 +2563,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 190.5 46.99 0)
+			(at 179.07 83.82 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2308,7 +2572,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 190.5 41.91 0)
+			(at 179.07 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2317,7 +2581,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 190.5 41.91 0)
+			(at 179.07 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2326,7 +2590,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 190.5 41.91 0)
+			(at 179.07 78.74 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2340,216 +2604,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
-					(reference "#PWR096")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:+3.3V")
-		(at 62.23 38.1 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "8ca6d6c6-3dbb-4831-a025-68fb98d1e425")
-		(property "Reference" "#PWR091"
-			(at 62.23 41.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "+2.5V"
-			(at 62.23 34.29 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" ""
-			(at 62.23 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 62.23 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-			(at 62.23 38.1 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "bb5b5836-852a-4cbd-9513-cb186c9a56fa")
-		)
-		(instances
-			(project "SensEdu"
-				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
-					(reference "#PWR091")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "SensEdu:SHT35-DIS-B2.5KS")
-		(at 184.15 49.53 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "a1908338-a472-45b2-aa23-91ddb327752b")
-		(property "Reference" "IC2"
-			(at 204.0733 41.91 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Value" "SHT35-DIS-B2.5KS"
-			(at 204.0733 44.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
-		(property "Footprint" "SensEdu:SHT35-DIS-B2.5KS"
-			(at 215.9 144.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://media.digikey.com/pdf/Data%20Sheets/Sensirion%20PDFs/HT_DS_SHT3x_DIS.pdf"
-			(at 215.9 244.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Description" "SENSOR HUMI/TEMP 5V I2C 1.5% SMD"
-			(at 185.42 32.512 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Height" "1"
-			(at 215.9 444.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Mouser Part Number" "403-SHT35-DIS-B"
-			(at 215.9 544.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Sensirion/SHT35-DIS-B2.5kS?qs=y6ZabgHbY%252BxyJLNSvkWFsA%3D%3D"
-			(at 215.9 644.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Name" "Sensirion"
-			(at 215.9 744.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer_Part_Number" "SHT35-DIS-B2.5KS"
-			(at 215.9 844.45 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left top)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "d397a9ac-c60e-4e03-ba64-36e4085f3818")
-		)
-		(pin "1"
-			(uuid "a4af8b15-8d84-4ac5-8d54-2ba6c3649226")
-		)
-		(pin "2"
-			(uuid "0f113963-fd3f-42dd-9338-156e383fb3ae")
-		)
-		(pin "4"
-			(uuid "779c5d2f-9a5b-46ce-838e-be2d57adcf30")
-		)
-		(pin "5"
-			(uuid "1f6072c3-fccc-4e51-a3b8-01e0a7329f7d")
-		)
-		(pin "8"
-			(uuid "8de22039-4770-45d3-9b5a-fbad06a5addd")
-		)
-		(pin "7"
-			(uuid "6690be0e-adc7-4b74-ae53-da652cfcf125")
-		)
-		(pin "6"
-			(uuid "12295c78-64b9-4ced-a42f-941d7e71a9f3")
-		)
-		(pin "9"
-			(uuid "1d7bfc3d-69e7-439f-8674-2369b3f3324b")
-		)
-		(instances
-			(project "SensEdu"
-				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
-					(reference "IC2")
+					(reference "#PWR092")
 					(unit 1)
 				)
 			)
@@ -2557,7 +2612,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 182.88 66.04 0)
+		(at 175.26 97.79 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2566,7 +2621,7 @@
 		(fields_autoplaced yes)
 		(uuid "a592e753-15f0-4a53-87a0-23b808064589")
 		(property "Reference" "#PWR095"
-			(at 182.88 72.39 0)
+			(at 175.26 104.14 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2575,7 +2630,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 182.88 71.12 0)
+			(at 175.26 102.87 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2584,7 +2639,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 182.88 66.04 0)
+			(at 175.26 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2593,7 +2648,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 182.88 66.04 0)
+			(at 175.26 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2602,7 +2657,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 182.88 66.04 0)
+			(at 175.26 97.79 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2624,7 +2679,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 102.87 71.12 0)
+		(at 107.95 101.6 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2632,8 +2687,8 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b50a04de-7717-45a7-a841-2bf88bb4da31")
-		(property "Reference" "#PWR092"
-			(at 102.87 77.47 0)
+		(property "Reference" "#PWR096"
+			(at 107.95 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2642,7 +2697,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 102.87 76.2 0)
+			(at 107.95 106.68 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2651,7 +2706,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 102.87 71.12 0)
+			(at 107.95 101.6 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2660,7 +2715,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 102.87 71.12 0)
+			(at 107.95 101.6 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2669,7 +2724,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 102.87 71.12 0)
+			(at 107.95 101.6 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2683,7 +2738,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
-					(reference "#PWR092")
+					(reference "#PWR096")
 					(unit 1)
 				)
 			)
@@ -2691,7 +2746,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 109.22 63.5 0)
+		(at 109.22 92.71 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2699,7 +2754,7 @@
 		(dnp no)
 		(uuid "bf848a95-ae26-4fe0-ab76-06d803a6d983")
 		(property "Reference" "#PWR094"
-			(at 109.22 69.85 0)
+			(at 109.22 99.06 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2708,7 +2763,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 109.22 67.31 0)
+			(at 109.22 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2717,7 +2772,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 109.22 63.5 0)
+			(at 109.22 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2726,7 +2781,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 109.22 63.5 0)
+			(at 109.22 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2735,7 +2790,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 109.22 63.5 0)
+			(at 109.22 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2756,8 +2811,8 @@
 		)
 	)
 	(symbol
-		(lib_id "Device:R")
-		(at 62.23 44.45 180)
+		(lib_id "SensEdu:R")
+		(at 67.31 74.93 180)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2765,7 +2820,7 @@
 		(dnp no)
 		(uuid "ccdd091e-9d9c-4536-89ca-0323deb49e8d")
 		(property "Reference" "R41"
-			(at 60.96 45.72 0)
+			(at 66.04 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2773,8 +2828,8 @@
 				(justify left)
 			)
 		)
-		(property "Value" "5k6"
-			(at 60.96 43.18 0)
+		(property "Value" "10k"
+			(at 66.04 73.66 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2782,8 +2837,8 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0805_2012Metric"
-			(at 64.008 44.45 90)
+		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+			(at 69.088 74.93 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2791,8 +2846,8 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" "~"
-			(at 62.23 44.45 0)
+		(property "Datasheet" ""
+			(at 67.31 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2801,7 +2856,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 62.23 44.45 0)
+			(at 67.31 74.93 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2818,6 +2873,74 @@
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
 					(reference "R41")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "SensEdu:C")
+		(at 120.65 85.09 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "e655a314-f8fb-41b1-a586-1fcb80a2b3b9")
+		(property "Reference" "C59"
+			(at 124.46 83.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "100n"
+			(at 124.46 86.36 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+			(at 121.6152 88.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 120.65 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 120.65 85.09 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "b7bc3b44-c607-4287-b9c0-cab5303a9196")
+		)
+		(pin "2"
+			(uuid "d1988fd2-4520-42d8-bed4-9f31a134b2ba")
+		)
+		(instances
+			(project "SensEdu"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/d6e506e4-1660-4f12-9b07-0782300f1012"
+					(reference "C59")
 					(unit 1)
 				)
 			)
