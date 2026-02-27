@@ -3,39 +3,74 @@ clear;
 close all;
 clc;
 
-%% Settings
+%% FSK Settings
+
+% Plot Processing Steps (slows down the script)
+ENABLE_PLOTS = true;
+
+% Sampling Rates
+Fs_tx = 480e3;  % TX SR
+Fs = 240e3;     % RX SR (must be a multiple of TX)
+
+% Samples per bit
+N_tx = 200;
+N = round(N_tx * (Fs/Fs_tx));
+
+% FSK Encoding frequencies
+% Must be the multiples of fs/N!
+F0 = 31200;
+F1 = 36000;
+F = [F0, F1];
+
+% Framing Correction Offset Step
+% (Affects a lot the accuracy vs performance trade-off)
+HOP_STEPS = 5;
+HOP = N/HOP_STEPS;
+
+% Preamble 0xFF00FF00
+% Must match with TX Arduino sketch
+PREAMBLE = [1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0];
+
+%% Connection Settings
 ARDUINO_PORT = 'COM4';
 ARDUINO_BAUDRATE = 2000000;
-ITERATIONS = 50000;
 
 BUF_SIZE = 64;
-HALF_BUF_SIZE = BUF_SIZE/2;
-
 CHUNK_SIZE = 64; % Bytes per USB request
+
+MSG_RECORD_WINDOW_SEC = 3;
+ITERATIONS = (Fs * MSG_RECORD_WINDOW_SEC) / (BUF_SIZE/2);
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
-flush(arduino);
 
 %% Readings Loop
-data = zeros(HALF_BUF_SIZE, ITERATIONS);
-time_axis = zeros(1, ITERATIONS);
+half_buf_size = BUF_SIZE/2;
+data = zeros(half_buf_size, ITERATIONS);
 
 % Trigger the measurement
-write(arduino, 't', "char");
+while (true)
+    fprintf("Recording the message... (%d seconds)\n", MSG_RECORD_WINDOW_SEC);
+    flush(arduino);
+    write(arduino, 't', "char");
+    
+    for it = 1:ITERATIONS
+        data(:,it) = read_data(arduino, half_buf_size, CHUNK_SIZE);
+    end
+    
+    data_reshaped = reshape(data, 1, []);
 
-for it = 1:ITERATIONS
-    data(:,it) = read_data(arduino, HALF_BUF_SIZE, CHUNK_SIZE);
+    fprintf("Decoding the message... ");
+    tic;
+    msg = decode_fsk_message(data_reshaped, PREAMBLE, F, Fs, HOP, N, ENABLE_PLOTS);
+    fprintf("(elapsed time: %f seconds)\n", toc);
+    if msg ~= ""
+        fprintf("Received message: %s\n", msg);
+    else
+        fprintf("No message detected.\n");
+    end
+    fprintf("\n");
 end
-
-plot_dataset(data);
-
-OneDArray = reshape(data, 1, []);
-data = OneDArray;
-save("recording", "data");
-
-% set COM port back free
-arduino = [];
 
 %% Functions
 function data = read_data(arduino, buf_size, chunk_size)
@@ -49,22 +84,4 @@ function data = read_data(arduino, buf_size, chunk_size)
         bytes_read = bytes_read + transfer_size;
     end
     data = double(typecast(uint8(serial_rx_data), 'uint16'));
-end
-
-function plot_dataset(data)
-    OneDArray = reshape(data, 1, []);
-    plot(OneDArray)
-    ylabel("ADC 16bit value");
-    grid on;
-    ylim([0, 65535]);
-end
-
-function plot_boundaries(buf, buf_size, buf_num)
-    hold on;
-    package_idxs = [buf_size, buf_size+1];
-    for it = 2:buf_num
-        package_idxs = [package_idxs, buf_size*it, ((buf_size*it)+1)];
-    end
-    package_idxs = package_idxs(1:(end-1));
-    scatter(package_idxs, buf(package_idxs));
 end

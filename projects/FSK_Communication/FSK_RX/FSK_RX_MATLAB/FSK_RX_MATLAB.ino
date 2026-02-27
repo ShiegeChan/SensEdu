@@ -4,16 +4,19 @@
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-// Number of half-buffer transfers per host request
+// Recording time per one message
 // Must match the MATLAB-side configuration
-static const uint16_t ITERATIONS_PER_REQUEST = 50000; 
+static const uint16_t MSG_RECORD_WINDOW_SEC = 3;
 
-// Error indicator LED
-static const uint8_t ERROR_LED_PIN = D86;
+// Must be multiple of TX SR
+static const uint32_t SAMPLING_RATE = 240000;
 
 // DMA buffer size (must be divisible by 2 for ping-pong operation)
 static const uint16_t DMA_BUFFER_SIZE = 64;
 volatile SENSEDU_DMA_BUFFER(dma_buffer, DMA_BUFFER_SIZE);
+
+// Number of half-buffer transfers per host request
+static const uint16_t ITERATIONS_PER_REQUEST = (SAMPLING_RATE * MSG_RECORD_WINDOW_SEC) / (DMA_BUFFER_SIZE / 2); 
 
 static ADC_TypeDef* adc = ADC1;
 static const uint8_t ADC_PIN_COUNT = 1;
@@ -25,12 +28,15 @@ SensEdu_ADC_Settings adc_settings = {
     .pin_num = ADC_PIN_COUNT,
 
     .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
-    .sampling_rate_hz = 240000, // Must be multiple of TX SR
+    .sampling_rate_hz = SAMPLING_RATE, 
     
     .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
     .mem_address = (uint16_t*)dma_buffer,
     .mem_size = DMA_BUFFER_SIZE
 };
+
+// Error indicator LED
+static const uint8_t ERROR_LED_PIN = D86;
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
