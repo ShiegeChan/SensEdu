@@ -1,5 +1,7 @@
 function msg = decode_fsk_message(wave, preamble, f, fs, hop, samples_per_bit, enable_plot)
     % Convolution Threshold
+    % Chosen experimentally and may be required to change based on your
+    % specific test conditions.
     conv_th = 1e10;
 
     % Goertzel Coefficient (must be integers)

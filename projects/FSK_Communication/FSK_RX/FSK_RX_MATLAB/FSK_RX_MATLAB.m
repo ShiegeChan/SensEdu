@@ -18,8 +18,9 @@ N = round(N_tx * (Fs/Fs_tx));
 
 % FSK Encoding frequencies
 % Must be the multiples of fs/N!
-F0 = 31200;
-F1 = 36000;
+% Ensure these frequncies are exactly the same as in FSK_TX sketch
+F0 = 13 * Fs / N; % 31200 Hz
+F1 = 15 * Fs / N; % 36000 Hz
 F = [F0, F1];
 
 % Framing Correction Offset Step
@@ -39,13 +40,13 @@ BUF_SIZE = 64;
 CHUNK_SIZE = 64; % Bytes per USB request
 
 MSG_RECORD_WINDOW_SEC = 3;
-ITERATIONS = (Fs * MSG_RECORD_WINDOW_SEC) / (BUF_SIZE/2);
+ITERATIONS = (Fs * MSG_RECORD_WINDOW_SEC) / (BUF_SIZE / 2);
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
 
 %% Readings Loop
-half_buf_size = BUF_SIZE/2;
+half_buf_size = BUF_SIZE / 2;
 data = zeros(half_buf_size, ITERATIONS);
 
 % Trigger the measurement
@@ -55,7 +56,7 @@ while (true)
     write(arduino, 't', "char");
     
     for it = 1:ITERATIONS
-        data(:,it) = read_data(arduino, half_buf_size, CHUNK_SIZE);
+        data(:, it) = read_data(arduino, half_buf_size, CHUNK_SIZE);
     end
     
     data_reshaped = reshape(data, 1, []);
