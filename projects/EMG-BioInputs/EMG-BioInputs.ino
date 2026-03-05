@@ -1,33 +1,42 @@
 #include "SensEdu.h"
 
-static uint16_t lib_error = 0x0000;     // lib error container
-static uint32_t error = 0x0000FFFF;     // error detector (0000 to FFFF instantly)
-
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-ADC_TypeDef* adc = ADC1;
-const uint16_t channel_count = 4;
-uint8_t adc_pins[channel_count] = {A0, A2, A11, A7};
-const uint16_t sampling_rate = 25600;
-// must be:
-// 1. multiple of 32 bytes to ensure cache coherence
-// 2. properly aligned
-const uint16_t mem_size = 16 * channel_count * 64; // multiple of 16 for 2 byte values
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t emg_data[mem_size];
+// Error Indicator LED
+static const uint8_t ERROR_LED_PIN = D86;
 
+// EMG Chunk Configuration
+static const uint16_t EMG_CHUNK_NUM = 3;
+static const uint16_t EMG_CHUNK_SIZE = EMG_CHUNK_NUM * (64 / sizeof(uint16_t));
+
+// ADC Settings
+static ADC_TypeDef* adc = ADC1;
+
+static const uint16_t CHANNEL_NUM_PER_ADC = 4;
+static uint8_t adc_pins[CHANNEL_NUM_PER_ADC] = {A0, A2, A11, A7};
+
+static const uint16_t SAMPLING_RATE_PER_CH = 5000;
+static const uint16_t ADC_SAMPLING_RATE = SAMPLING_RATE_PER_CH * CHANNEL_NUM_PER_ADC;
+
+// DMA Settings
+static const uint16_t DMA_BUFFER_SIZE = 64;
+volatile SENSEDU_DMA_BUFFER(dma_buffer, DMA_BUFFER_SIZE);
+static const uint16_t ITERATIONS_PER_REQUEST = (EMG_CHUNK_SIZE * CHANNEL_NUM_PER_ADC) / (DMA_BUFFER_SIZE / 2);
+
+// Config Structure
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,
-    .pin_num = channel_count,
+    .pin_num = CHANNEL_NUM_PER_ADC,
 
     .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
-    .sampling_rate_hz = sampling_rate,
+    .sampling_rate_hz = ADC_SAMPLING_RATE,
     
-    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
-    .mem_address = (uint16_t*)emg_data,
-    .mem_size = mem_size
+    .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
+    .mem_address = (uint16_t*)dma_buffer,
+    .mem_size = DMA_BUFFER_SIZE
 };
 
 /* -------------------------------------------------------------------------- */
@@ -35,70 +44,73 @@ SensEdu_ADC_Settings adc_settings = {
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-    // doesn't boot without opened serial monitor
-    Serial.begin(115200);
-    while (!Serial) {
-        delay(1);
-    }
+    Serial.begin(2000000);
+
+    pinMode(ERROR_LED_PIN, OUTPUT);
+    digitalWrite(ERROR_LED_PIN, HIGH);
 
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
+
+    check_lib_errors(ERROR_LED_PIN);
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 
+uint32_t transfers_remaining = 0;
+bool recording_active = false;
+
 void loop() {
-    // loop is triggered with character sent from PC
-    static char serial_buf = 0;
-    while (1) {
-        while (Serial.available() == 0); // Wait for a signal
-        serial_buf = Serial.read();
-        if (serial_buf == 'c') {
-            // config character
-            send_config(&mem_size, &channel_count, &sampling_rate);
-            return;
-        }
-        if (serial_buf == 'm') {
-            // measurement character
-            break;
+    if (!recording_active && Serial.available() > 0) {
+        char command = Serial.read();
+        if (command == 't') {
+            transfers_remaining = ITERATIONS_PER_REQUEST;
+            recording_active = true;
+
+            // Clear DMA status flags for synchronization
+            SensEdu_ADC_ClearDmaTransferComplete(adc);
+            SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
         }
     }
 
-    // check errors
-    lib_error = SensEdu_GetError();
+    if (!recording_active) return;
+
+    if (transfers_remaining > 0 && SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
+        transfer_64byte_buf(&dma_buffer[0]);
+        transfers_remaining--;
+    }
+
+    if (transfers_remaining > 0 && SensEdu_ADC_IsDmaTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
+        transfer_64byte_buf(&dma_buffer[DMA_BUFFER_SIZE / 2]);
+        transfers_remaining--;
+    }
+
+    if (transfers_remaining == 0) {
+        // Send dummy byte for USB to issue the last stuck packet in some edge alignment cases
+        Serial.write((uint8_t)0x00);
+        recording_active = false;
+    }
+}
+
+static void transfer_64byte_buf(volatile uint16_t* data) {
+    Serial.write((uint8_t*)data, 64);
+}
+
+// Check library error state
+static void check_lib_errors(uint8_t error_led) {
+    uint32_t lib_error = SensEdu_GetError();
     while (lib_error != 0) {
-        // Send error marker and then error code
-        Serial.write((const uint8_t*) &error, 4);
-        for (uint16_t i = 0; i < (mem_size - 2); i++) {
-            Serial.write((const uint8_t*) &lib_error, 2);
-        }
-        delay(1000);
+        fatal_error(error_led);
     }
-
-    // wait till ADC is ready
-    while(!SensEdu_ADC_IsDmaTransferComplete(adc));
-
-    // send data
-    transfer_serial_data(&(emg_data[0]), mem_size, 64);
-
-    // restart ADC
-    SensEdu_ADC_ClearDmaTransferComplete(adc);
-    SensEdu_ADC_Start(adc);
-    
 }
 
-void send_config(const uint16_t* mem_size, const uint16_t* channel_count, const uint16_t* sampling_rate) {
-    Serial.write((const uint8_t*) mem_size, 2);
-    Serial.write((const uint8_t*) channel_count, 2);
-    Serial.write((const uint8_t*) sampling_rate, 2);
-}
-
-void transfer_serial_data(uint16_t* data, const uint16_t data_length, const uint16_t chunk_size_byte) {
-    for (uint16_t i = 0; i < (data_length*2); i += chunk_size_byte) {
-        uint16_t transfer_size = ((data_length*2) - i < chunk_size_byte) ? (data_length*2 - i) : chunk_size_byte;
-        Serial.write((const uint8_t *) data + i, transfer_size);
-    }
+// Halt system on fatal error
+static void fatal_error(uint8_t error_led) {
+    digitalWrite(error_led, !digitalRead(error_led));
+    delay(200);
 }
