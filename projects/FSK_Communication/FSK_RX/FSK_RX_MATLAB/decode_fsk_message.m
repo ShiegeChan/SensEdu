@@ -113,7 +113,7 @@ function plot_goertzel(original_data, energy_array, energy_x_labels, N)
     figure(3);
     title("Goertzel Decision Frames")
 
-    wave = original_data./max(abs(original_data));
+    wave = original_data ./ max(abs(original_data));
     wave = wave - mean(wave);
     plot(wave, 'LineWidth', 1);
     hold on;
