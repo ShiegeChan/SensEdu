@@ -5,7 +5,7 @@ function msg = decode_fsk_message(wave, preamble, f, fs, hop, samples_per_bit, e
     conv_th = 1e10;
 
     % Goertzel Coefficient (must be integers)
-    k = (f/fs)*samples_per_bit + 1;
+    k = (f/fs) * samples_per_bit + 1;
     
     % 1. Apply Goertzel to calculate each bit frequency energy.
     %    Whole dataset is processed multiple times with N/HOP offsets for further frame correction.
@@ -44,7 +44,7 @@ function [energy_diff, x_labels] = run_goertzel(data, hop, N, k)
     for j = 1:hop_num
         for i = 1:bit_num
             idx = (j-1)*hop + (i-1)*N + 1;
-            segment = data(idx : idx+N - 1);
+            segment = data(idx : (idx + N - 1));
     
             dtft1 = abs(goertzel(segment, k(1)))^2;
             dtft2 = abs(goertzel(segment, k(2)))^2;
@@ -63,7 +63,7 @@ function [best_hop, best_preamble_pos, best_conv] = analyze_preamble(energy_diff
 
     for i = 1:length(correlations)
         data = energy_diff(i, :);
-        c = abs(conv(data, fliplr(preamble*2 - 1)));
+        c = abs(conv(data, fliplr((preamble * 2) - 1)));
         [correlations(i), idx] = max(c);
         preamble_pos(i) = idx - length(preamble) + 1;
     end
@@ -83,7 +83,7 @@ function msg = decode_bitstream(bits, preamble, preamble_pos)
     msg = "";
 
     while (i + 7 <= length(bits))
-        ascii = bits(i:i+7);
+        ascii = bits(i:(i + 7));
         ascii_val = bit2int(ascii', 8);
                 
         if (ascii_val == 0)
@@ -122,7 +122,7 @@ function plot_goertzel(original_data, energy_array, energy_x_labels, N)
     stem(energy_x_labels, energy_norm, 'LineWidth', 1.5);
 
     symbol_starts  = energy_x_labels - N/2;
-    stem(symbol_starts, 0.5.*ones(1,length(symbol_starts)), '--', 'LineWidth', 0.5);
+    stem(symbol_starts, 0.5.*ones(1, length(symbol_starts)), '--', 'LineWidth', 0.5);
     
     legend(["Normalized Wave", "Frame Centers", "Frame Boundaries"]);
     xlabel("Sample Index");
