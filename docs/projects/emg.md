@@ -99,7 +99,7 @@ A typical electrode consists of 3 connectors: **Reference**, **Positive Input**,
 | Reference           |   GND  | 4th Pin    |
 
 {: .WARNING}
-Most commercially available electrodes use connectors that are not directly compatible with typical 2.54 headers. For specific chosen electrode you will need a solution how to make this connection possible via soldering, custom adapters, or ready-made solutions.
+Most of the commercially available electrodes use connectors that are not directly compatible with typical 2.54 headers. For specific chosen electrode you will need a solution how to make this connection possible via soldering, custom adapters, or ready-made solutions.
 
 In our example, we used the following electrodes:
 
@@ -108,7 +108,7 @@ In our example, we used the following electrodes:
 | SparkFun Electronics | Electrode Pads | 12970 | [link](https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/2277/CAB-12970_Web.pdf) | [link](https://www.digikey.at/de/products/detail/sparkfun-electronics/12970/6833933?gclsrc=aw.ds&gad_source=1&gad_campaignid=20265439570&gclid=CjwKCAjwqKzEBhANEiwAeQaPVawVKSgXTIiVYtlIXGx7Bx94wvNKO64lkmGlu8jQ0lByNxnXmPGLFhoCgNcQAvD_BwE) |
 | MTG Imiella Medizintechnik | Liquid Gel Disposable Electrodes for ECG (Ø40mm) | S40LG | [link](https://static.mercateo.com/ec/2c36d66dd9904e92ad9e3075734affb2/pdf/106366.pdf?v=2297) | [link](https://www.mercateo.at/p/2768-028002/Einmal_Klebeelektroden_40_mm_Liquid_Gel_30_Stueck.html) |
 
-These electrodes use a mini-jack connector. To simplify the connection, we designed a simple PCB adapter called **MiniJack2Jumper**. This adapter is inserted vertically into the SensEdu header, providing a mini-jack socket and eliminating the need for soldering. All PCB source files, including Gerbers and BOM, are available in the directory: `/projects/EMG-BioInputs/pcbs/MiniJack2Jumper`. To replicate our setup, you can use archive `MiniJack2Jumper/manufacturing/MiniJack2Jumper-Gerber.zip` to order the PCB from any cheap Chinese manufacturer. The cost typically ranges from $15–$30 depending on shipping.
+These electrodes use a mini-jack connector. To simplify the connection, we designed a simple PCB adapter called **MiniJack2Jumper**. This adapter is inserted vertically into the SensEdu header, providing a mini-jack socket and eliminating the need for soldering. All PCB source files, including Gerbers and BOM, are available in the directory: `/projects/EMG-BioInputs/pcbs/MiniJack2Jumper`. To replicate our setup, you can use archive `MiniJack2Jumper/manufacturing/MiniJack2Jumper-Gerber.zip` to order the PCB. For this simple adapter you can use any cheap manufacturer with the final cost typically ranging from $15–$30 depending on the shipping.
 
 <img src="{{site.baseurl}}/assets/images/EMG_MiniJack2Jumper.png"/>
 {: .text-center .mb-1}
@@ -128,19 +128,19 @@ Electrode connection to SensEdu
 
 The first stage after the input electrodes is signal amplification. 
 
-The idea is to detect a signal at two points, amplify the "difference", and remove everything "common" between them. This way, the local EMG signal will be isolated and amplified. For that, we need a differential amplifier with a **high Common Mode Rejection Ratio** (CMRR), at least >$$90dB$$. 
+The idea is to detect a signal at two points, amplify the "difference", and remove everything "common" between them. This way, the local EMG signal will be isolated and amplified. For that, we need a differential amplifier with a **high Common Mode Rejection Ratio** (CMRR), at least $$90dB$$. 
 
-Besides CMRR, an amplifier is also required to have a **high input impedance**. The impedance of the electrode-skin interface can vary from several thousand ohms to several megohms for dry skin. In order to prevent attenuation and distortion of the detected signal due to the effects of input loading, the input impedance of the differential amplifier should be as large as possible.
+Besides CMRR, an amplifier must also have a **high input impedance**. The impedance of the electrode-skin interface can vary from several thousand ohms to several megohms for dry skin. To prevent attenuation and distortion of the detected signal due to input loading, the input impedance of the differential amplifier should be as large as possible.
 
-A differential amplifier with input buffer amplifiers, which features very high CMRR and input impedance, is called an [Instrumentation Amplifier](https://en.wikipedia.org/wiki/Instrumentation_amplifier). SensEdu is equipped with this type of amplifiers, specifically the x2 dual-channel [AD8222](https://www.analog.com/media/en/technical-documentation/data-sheets/ad8222.pdf), making the platform suitable for bio-signal measurements.
+A differential amplifier with input buffer amplifiers, which features very high CMRR and input impedance, is called an [Instrumentation Amplifier](https://en.wikipedia.org/wiki/Instrumentation_amplifier). SensEdu is equipped with this type of amplifiers, specifically the x2 dual-channel [AD8426](https://www.analog.com/media/en/technical-documentation/data-sheets/AD8426.pdf), making the platform suitable for biosignal measurements.
 
-<img src="{{site.baseurl}}/assets/images/EMG_Amp_Circuit.png"/>
+<img src="{{site.baseurl}}/assets/images/emg-amp.png"/>
 {: .text-center .mb-1}
 
 Amplification Circuit
 {: .text-center .mt-0 .fw-500}
 
-Gain is set by $$R_G$$ resistor, using the following formula:
+Gain is set by the $$R_G$$ resistor, using the following formula:
 
 $$G = 1 + \frac{49.4kΩ}{R_G} = 1 + \frac{49.4kΩ}{1kΩ} = 50.4$$
 
@@ -151,7 +151,7 @@ $${f_c}_{DIFF} = \frac{1}{2\pi × R(2C_D + C_C)} = \frac{1}{2\pi × 3.9kΩ(2×4
 $${f_c}_{CM} = \frac{1}{2\pi × R × C_C} = \frac{1}{2\pi × 3.9kΩ × 100pF} = 392.2\mathrm{kHz}$$
 
 {: .NOTE}
-Mismatch between $$R × C_C$$ at the positive and negative inputs degrades the CMRR of the AD8222. By using a value for $$C_D$$ that is ~10× larger than $$C_C$$, the effect of the mismatch is reduced and performance is improved.
+Mismatch between $$R \times C_C$$ at the positive and negative inputs degrades the CMRR of the AD8426. By using a value for $$C_D$$ that is ~10× larger than $$C_C$$, the effect of the mismatch is reduced and performance is improved.
 
 We used the default $${f_c}_{DIFF}$$ and $${f_c}_{CM}$$ cutoff frequencies for all projects, which were originally selected to suit the ultrasonic use case. Additional optimization is possible by reducing these cutoff frequencies to align with the working range of EMG signals (up to ~$$500\mathrm{Hz}$$). It could result in improved signal quality and reduced post‐processing requirements.
 
@@ -159,7 +159,10 @@ To write Arduino scripts for EMG signal acquisition, it is crucial to understand
 * Which input header is connected to each amplifier channel
 * Which amplifier output corresponds to which ADC channel on the MCU
 
-All these details are available in the [SensEdu schematics](https://github.com/vladysor/SensEdu/blob/main/pcb/SensEdu_Schematics.pdf) and [ADC mapping table]({% link library/adc.md %}#adc_mapping). For convenience, the table below provides a summary of the relevant connections:
+All these details are available in the [SensEdu schematics]({{site.baseurl}}/assets/pdf/schematics.pdf) and [ADC mapping table]({% link library/adc.md %}#adc_mapping). For convenience, the table below provides a summary of the relevant connections:
+
+#### SensEdu 0.7
+{: .no_toc}
 
 | Input Header | Amplifier Channel | Output Arduino Pin | Output STM32 Pin | Available ADCs
 |:------|:--------|:------|:------|:------------|
@@ -168,82 +171,134 @@ All these details are available in the [SensEdu schematics](https://github.com/v
 | J12   | U6 CH1  | A11   | PA0_C | ADC1 & ADC2 |
 | J20   | U6 CH2  | A7    | PA0   | ADC1        |
 
-### Data Acquisition
+#### SensEdu 0.8+
+{: .no_toc}
 
-The next step is to write and configure the Arduino sketch responsible for data acquisition. This involves configuring ADC parameters, such as sampling rate, buffer size, memory mode, etc.
-
-For EMG, a sampling rate of about $$1.5\mathrm{kHz}$$ is usually sufficient. However, to improve the quality of future digital post-processing, this project uses a high oversampling rate of $$f_s = 25.6\mathrm{kHz}$$. Each channel uses a buffer of $$N_s = 1024 \ \mathrm{samples}$$. ADC is configured with DMA to minimize CPU load and maximize performance. The ideal theoretical duration of one complete measurement cycle is given as:
-
-$$d_{meas, \ ideal} = \frac{N_s}{f_s} = \frac{1024 \ \mathrm{samples}}{25.6\mathrm{kHz}} = 40\mathrm{ms} $$
+| Input Header | Amplifier Channel | Output Arduino Pin | Output STM32 Pin | Available ADCs
+|:------|:--------|:------|:------|:------------|
+| J8    | U6 CH1  | A8    | PC2_C | ADC3        |
+| J9    | U6 CH2  | A9    | PC3_C | ADC3        |
+| J10   | U7 CH1  | A10   | PA1_C | ADC1 & ADC2 |
+| J11   | U7 CH2  | A11   | PA0_C | ADC1 & ADC2 |
 
 {: .NOTE}
-The measurement duration is independent of the number of selected channels. ADC is designed to maintain its sampling frequency **per channel**.
+`PC2_C (A8)` and `PC3_C (A9)` can be shorted to their non-C pins: `PC2 (A5)` and `PC3 (A4)` respectively. This allows to use all possible ADCs through one of these pins. To do that, SensEdu Library introduces `SensEdu_ShortA4toA9()` and `SensEdu_ShortA5toA8()` calls.
 
-In practice, the actual $$d_{meas}$$ varies between approximately $$46-51\mathrm{ms}$$ due to delays from data transmission, wasted CPU cycles, ADC conversion rate fluctuations, and other factors. In the end, it results in a practical measurement rate at around $$20$$ measurements per second. If this performance is not satisfactory, revisit the adjustment of ADC parameters.
+### Data Acquisition
 
-Keeping selected parameters in mind, the ADC can be configured using [SensEdu Library]({% link library/index.md %}). The configuration follows similar structure to the [Read_ADC_3CH_DMA]({% link library/adc.md %}#read_adc_3ch_dma) example. Below is a minimal code example, focusing on the essential lines.
+The next step is to develop the Arduino sketch responsible for data acquisition. This involves configuring ADC parameters, such as sampling rate, buffer size, memory mode, etc.
+
+For EMG, a sampling rate of $$1\mathrm{kHz}$$ is the minimum requirement. To improve the quality of signal acquisition, this project uses a higher one of $$f_s = 5\mathrm{kHz}$$. Each channel uses a buffer of $$N_s = 96 \ \mathrm{samples}$$. ADC is configured with circular DMA to minimize CPU load and maximize performance. The ideal theoretical duration of one measurement chunk is given as:
+
+$$d_{chunk, \ ideal} = \frac{N_s}{f_s} = \frac{96 \ \mathrm{samples}}{5\mathrm{kHz}} = 19.2\mathrm{ms} $$
+
+{: .NOTE}
+The measurement duration is calculated for one channel. If you use multiple channels and intend to maintain the same measurement chunk, make sure to multiply the sampling frequency $$f_s$$ by the number of channels.
+
+In practice, the actual $$d_{chunk}$$ is approximately $$50\mathrm{ms}$$ due to delays from data transmission, ADC conversion rate fluctuations, signal processing delay, and other factors. In the end, it results in a practical measurement rate of around $$20$$ measurements per second. If this performance is not satisfactory, revisit the adjustment of ADC parameters.
+
+Keeping selected parameters in mind, the ADC can be configured using [SensEdu Library]({% link library/index.md %}). The configuration follows similar structure to the [ADC_1CH_DMA_Circular]({% link library/adc.md %}#adc_1ch_dma_circular) example. Below is a minimal code example, focusing on the essential lines. Code snippets show the EMG config for all x4 channels.
+
+Since DMA is set to the circular mode, the optimal size is 64 samples. For the initially planned $$N_s = 96 \ \mathrm{samples}$$, this means x3 DMA half-transfers per channel, labeled as `EMG_CHUNK_NUM`. Considering 4 channels, the final total number of transfers is 12, labeled as `ITERATIONS_PER_REQUEST`.
 
 ```c
-ADC_TypeDef* adc = ADC1;
-const uint16_t channel_count = 4;
-uint8_t adc_pins[channel_count] = {A0, A2, A11, A7};
-const uint16_t sampling_rate = 25600;
+// EMG Chunk Configuration
+static const uint16_t EMG_CHUNK_NUM = 3;
+static const uint16_t EMG_CHUNK_SIZE = EMG_CHUNK_NUM * (64 / sizeof(uint16_t));
 
-const uint16_t mem_size = 16 * channel_count * 64; // must be a multiple of 16
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t emg_data[mem_size];
+// ADC Settings
+static ADC_TypeDef* adc = ADC1;
 
+static const uint16_t CHANNEL_NUM_PER_ADC = 4;
+static uint8_t adc_pins[CHANNEL_NUM_PER_ADC] = {A8, A9, A10, A11};
+
+static const uint16_t SAMPLING_RATE_PER_CH = 5000;
+static const uint16_t ADC_SAMPLING_RATE = SAMPLING_RATE_PER_CH * CHANNEL_NUM_PER_ADC;
+
+// DMA Settings
+static const uint16_t DMA_BUFFER_SIZE = 64;
+volatile SENSEDU_DMA_BUFFER(dma_buffer, DMA_BUFFER_SIZE);
+static const uint16_t ITERATIONS_PER_REQUEST = (EMG_CHUNK_SIZE * CHANNEL_NUM_PER_ADC)/(DMA_BUFFER_SIZE / 2);
+
+// Config Structure
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,
-    .pin_num = channel_count,
+    .pin_num = CHANNEL_NUM_PER_ADC,
 
-    .conv_mode = SENSEDU_ADC_MODE_CONT_TIM_TRIGGERED,
-    .sampling_freq = sampling_rate,
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = ADC_SAMPLING_RATE,
     
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
-    .mem_address = (uint16_t*)emg_data,
-    .mem_size = mem_size
+    .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
+    .mem_address = (uint16_t*)dma_buffer,
+    .mem_size = DMA_BUFFER_SIZE
 };
 ```
 
-Once the parameters are selected, the ADC must be initialized, enabled, and started.
+For simplicity, `ADC1` is used for all 4 channels. Since `A8` and `A9` have access only to `ADC3`, shorting `A4→A9` and `A5→A8` is required to route these pins through `ADC1`. Then, initialize, enable, and start the ADC.
 
 ```c
 void setup() {
-    Serial.begin(115200);
+    Serial.begin(2000000);
+
+    SensEdu_ShortA4toA9();
+    SensEdu_ShortA5toA8();
+
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
     SensEdu_ADC_Start(adc);
 }
 ```
 
-In the main loop, ensure that ADC completed its conversions and that DMA transferred the data. Transfer the data to PC, and restart the ADC again.
+In the main loop, wait for the measurement trigger from MATLAB, reset the ADC flags, start data acquisition, and transfer the data.
 
 ```c
-void loop() {
-    while(!SensEdu_ADC_GetTransferStatus(adc));
-    transfer_serial_data(&(emg_data[0]), mem_size, 64);
+uint32_t transfers_remaining = 0;
+bool recording_active = false;
 
-    SensEdu_ADC_ClearTransferStatus(adc);
-    SensEdu_ADC_Start(adc);
+void loop() {
+    if (!recording_active && Serial.available() > 0) {
+        char command = Serial.read();
+        if (command == 't') {
+            transfers_remaining = ITERATIONS_PER_REQUEST;
+            recording_active = true;
+
+            SensEdu_ADC_ClearDmaTransferComplete(adc);
+            SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
+        }
+    }
+
+    if (!recording_active) return;
+
+    if (transfers_remaining > 0 && SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
+        transfer_64byte_buf(&dma_buffer[0]);
+        transfers_remaining--;
+    }
+
+    if (transfers_remaining > 0 && SensEdu_ADC_IsDmaTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
+        transfer_64byte_buf(&dma_buffer[DMA_BUFFER_SIZE / 2]);
+        transfers_remaining--;
+    }
+
+    if (transfers_remaining == 0) {
+        recording_active = false;
+    }
 }
 ```
 
-The final expanded sketch is available at `/projects/EMG-BioInputs/EMG-BioInputs.ino`. It differs from above snippets in that it sends all configuration data to MATLAB during initialization. Additionally, the measurement process is triggered by MATLAB at each iteration to simplify data synchronization.
+The final expanded sketch is available at `/projects/EMG-BioInputs/EMG-BioInputs.ino`. It has some additional functionality, but the same core structure.
 
 ### Data Transfer
 
 Arduino GIGA R1 doesn't use a typical UART interface for serial communication. Instead, it uses USB communication abstracted to behave like a serial link. This implementation makes the connection baud rate independent, meaning the number in `Serial.begin()` has no effect on the actual transfer speed. For further details on the USB implementation, refer to Figure 793 (Page 2747) of [STM32H747 Reference Manual] (OTG_FS) and the USB0 in the [Arduino GIGA R1 Schematics]. 
 
-**To maximize the USB efficiency, data should be arranged and transferred in chunks**. Based on tests in [this repository](https://github.com/vladysor/giga-r1-serial-transfer-tests), the optimal chunk size is 64 bytes, as specified in the OTG_FS section of the reference manual. Below is an example of how to implement chunked data transfer via USB.
+To maximize USB efficiency, data should be arranged and transferred in chunks. Based on tests in [this repository](https://github.com/vladysor/giga-r1-serial-transfer-tests), the optimal chunk size is 64 bytes, as specified in the OTG_FS section of the reference manual. Since the chosen buffer size for circular DMA is 128 bytes, its half-transfer is exactly 64 bytes, thus for communication speed optimization the hard-coded 64-byte transfer function is used.
 
 ```c
-// chunk_size in bytes, for OTG_FS "64" is passed
-void transfer_serial_data(uint16_t* buf, const uint16_t buf_size, const uint16_t chunk_size) {
-    for (uint16_t i = 0; i < (buf_size*2); i += chunk_size) {
-        uint16_t cur_chunk_size = ((buf_size*2) - i < chunk_size) ? (buf_size*2 - i) : chunk_size;
-        Serial.write((const uint8_t *) buf + i, cur_chunk_size);
-    }
+static void transfer_64byte_buf(volatile uint16_t* data) {
+    Serial.write((uint8_t*)data, 64);
 }
 ```
 

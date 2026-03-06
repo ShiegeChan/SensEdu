@@ -65,7 +65,7 @@ The PCB for this project was designed using [KiCad](https://kicad.org/), an open
     - Navigate to the directory where the `SensEdu` project files are located and select the project file `.kicad_pro`
 
 ## KiCad Files  
-- **Schematic**: <a href="{{site.baseurl}}/assets/pdf/Schematics.pdf" target="_blank">Download the PDF</a>
+- **Schematic**: <a href="{{site.baseurl}}/assets/pdf/schematics.pdf" target="_blank">Download the PDF</a>
 
 
 ### PCB Layout
