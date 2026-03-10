@@ -119,7 +119,7 @@ During installtion you will be asked which components to install, press `Enter` 
 3. Install gems with `bundle install` command.
 4. Boot the website with `bundle exec jekyll serve --livereload`. Parameter
 `--livereload` is optional, it enables automatic website reloading if you make any changes to styles/text etc.
-5. Go to the page `localhost:4000/SensEdu/` in your browser to see the website.
+5. Go to the page `localhost:4000` in your browser to see the website.
 
 #### Notes:
 {: .no_toc}
