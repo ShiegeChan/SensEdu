@@ -36,10 +36,7 @@ if ACTIVATE_PLOTS == true
     [mixed_signal_plot, adc1_filt_plot, adc3_filt_plot, mixed_signal_filt_plot, mixed_signal_filt_PS, distanceText, fbeatText] = plotting();
 end
 
-%while arduino.NumBytesAvailable > 0
 flush(arduino);
-    %pause(0.1);
-%end
 
 for it = 1:ITERATIONS
     % Trigger ADC data acquisition
