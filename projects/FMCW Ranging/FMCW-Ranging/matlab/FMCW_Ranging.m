@@ -1,4 +1,4 @@
-%% FMCW_Distance_Measurement.m 
+%% FMCW_Ranging.m 
 % adc3 = DAC (to ADC) data
 % adc1 = MIC DATA
 clear;

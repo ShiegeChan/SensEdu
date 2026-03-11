@@ -11,9 +11,9 @@ nav_order: 4
 ---
 
 {: .NOTE}
-This project is currently in its initial development phase and is subject to significant changes, updates, and improvements. The project enables a rudimentary implementation of an FMCW ranging techniqe (commonly used in radar applications) using ultrasound waves, and requires an Arduino GIGA board with SensEdu shield. 
+This project is currently in its initial development phase and is subject to significant changes, updates, and improvements. The project enables a rudimentary implementation of an FMCW ranging technique (commonly used in radar applications) using ultrasound waves, and requires an Arduino GIGA board with SensEdu shield. 
 
-The **FMCW Ranging Project**{: .text-green-000} utilizes the **SensEdu Shield**{: .text-green-000} to perform **distance measurements**{: .text-green-000} using FMCW radar techniques. Although we use ultrasound and not radio waves in this project, the techniqe is explained using the radar example since it is more common to use radio waves for this type of application.
+The **FMCW Ranging Project**{: .text-green-000} utilizes the **SensEdu Shield**{: .text-green-000} to perform **distance measurements**{: .text-green-000} using FMCW radar techniques. Although we use ultrasound and not radio waves in this project, the technique is explained using the radar example since it is more common to use radio waves for this type of application.
 
 {:.fs-5}
 
@@ -54,7 +54,7 @@ where
 
 ### Distance
 {: .text-yellow-100}
-Where pulse radars measure time and TOF to evaluate distance, FMCW radars measure frequencies! The TOF $$t_0$$ cannot be estimated directly since we are sending waves continuously but we have another valuable information : The beat frequency $$f_b$$.
+Where pulse radars measure time and TOF to evaluate distance, FMCW radars measure frequencies! The TOF $$t_0$$ cannot be estimated directly since we are sending waves continuously but we have another valuable information: The beat frequency $$f_b$$.
 
 The beat frequency is defined as the frequency equal to the difference between two sinusoids. $$f_b$$ appears in the figure below:
 
@@ -70,7 +70,7 @@ The geometrical approach is the simplest way to understand how to derive the dis
   $$f_b = s t_0 = s \frac{2d}{c} \tag{2}$$
 </div>
 
-Thus, the distance can easily be derived :
+Thus, the distance can easily be derived:
 
 <div id="eq3" class="fs-5 text-center">
   $$\fcolorbox{red}{}{$\displaystyle d = \frac{c f_b}{2s}$} \tag{3}$$
@@ -92,11 +92,11 @@ At a given time, $$y_{mix}$$ is expressed as
   $$
 </div>
 
-The mixing operation produces a signal which is the sum of two sinusoids :
+The mixing operation produces a signal which is the sum of two sinusoids:
 - One at the frequency $$f_{T}-f_{R}$$
 - One at the frequency $$f_{T}+f_{R}$$
 
-The high frequency component HF at $$f_{T}+f_{R}$$ can easily be removed with a low pass filter. The remaining signal is a simple sinudoid at the beat frequency $$f_b=f_{T}-f_{R}$$. Below is a representation of the mixing signal operation :
+The high frequency component HF at $$f_{T}+f_{R}$$ can easily be removed with a low pass filter. The remaining signal is a simple sinudoid at the beat frequency $$f_b=f_{T}-f_{R}$$. Below is a representation of the mixing signal operation:
 
 <video autoplay loop muted playsinline>
   <source src="{{site.baseurl}}/assets/videos/Mixing.mp4" type="video/mp4">
@@ -176,7 +176,7 @@ Make sure to wire the DAC output to ADC3 (analog pin `A8`).
 - ADC3 receives the DAC data
 - ADC1 receives the microphone #3 data
 
-A size header `adc_byte_length` is sent to MATLAB to indicate the size of each ADC frame in bytes. Since ADCs are 16-bit, each data is coded with 2 bytes. The data from both ADCs is sent to MATLAB using the `serial_send_array` function.
+A size header `adc_byte_length` is sent to MATLAB to indicate the size of each ADC frame in bytes. Since ADCs are 16-bit, each data is coded with 2 bytes. `serial_send_array` function is used for transferring ADC data to the PC. 
 
 ```c
 // Send ADC data (16-bit values, continuously)

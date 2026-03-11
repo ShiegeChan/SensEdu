@@ -18,20 +18,20 @@ nav_order: 3
 ## Introduction
 {: .text-yellow-300}
 
-The **Chirp Signal Generation Project**{: .text-green-000} aims at proviving basic code to generate **frequency modulated continuous waves (FMCW)** on the **SensEdu Shield**{: .text-green-000} using the **Arduino Giga R1**{: .text-green-000}. The projects provides two types of frequency modulation: **sawtooth** and **triangular**.
+The **Chirp Signal Generation Project**{: .text-green-000} aims at providing basic code to generate **Frequency Modulated Continuous Wave (FMCW)** on the **SensEdu Shield**{: .text-green-000} using the **Arduino Giga R1**{: .text-green-000}. The projects provides two types of waveform for Linear Frequency Modulation (LFM): **sawtooth** and **triangular**.
 
-FMCW, also called chirp signals, are encountered in numerous fields, like radar & sonar systems, telecommunications, signal processing and more. You will find more information on the potential applications from our upcoming FMCW ranging project.
+A signal whose frequency varies over time is called **chirp**. Chirp signals are encountered in numerous fields, like radar and sonar systems, telecommunications, signal processing and more. Further information about potential applications are provided in the documentation of our FMCW ranging project. The following figures show an example of a chirp with frequency range between 100Hz and 10kHz, and the spectrogram of the same chirp, respectively.
 
 <img src="{{site.baseurl}}/assets/images/Chirp_signal.png" alt="drawing" width="500"/>
 {: .text-center}
 
-_Chirp signal sweeping from 100 Hz to 10 kHz_
+_Chirp signal sweeping from 100Hz to 10kHz_
 {: .text-center}
 
 <img src="{{site.baseurl}}/assets/images/Chirp_spectro.png" alt="drawing" width="499"/>
 {: .text-center}
 
-_Spectrogram of chirp sweeping from 100 Hz to 10 kHz_
+_Spectrogram of a chirp sweeping from 100Hz to 10kHz_
 {: .text-center .}
 
 ## Chirp Generation Function
@@ -47,13 +47,13 @@ void generateTriangularChirp(uint16_t* array)
 
 ### Parameters
 {: .text-yellow-100}
-* `uint16_t* array` : A pointer to an array where the generated chirp signal will be stored.
+* `uint16_t* array`: A pointer to an array where the generated chirp signal will be stored.
 
 
 
 ### Description
 {: .text-yellow-100}
-The generate chirp functions use two arrays `lut_sine` and `vChirp` to calculate the chirp values:
+The chirp generating functions use two arrays `lut_sine` and `vChirp` to calculate the chirp values:
 
 * `lut_sine` is a LUT containing the values of a quarter sine wave. The `x` variable defines the resolution of `lut_sine`. A larger `x` will result in a more detailed LUT with more values which in turn increases the precision of the chirp values which will be calculated.
 * `vChirp` is the array in which the chirp values are calculated.
