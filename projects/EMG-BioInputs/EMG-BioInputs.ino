@@ -13,12 +13,10 @@ static const uint16_t EMG_CHUNK_SIZE = 75;
 
 // ADC Settings
 static ADC_TypeDef* adc = ADC1;
+static const uint16_t SAMPLING_RATE_PER_CH = 5000;
 
 static const uint16_t CHANNEL_NUM_PER_ADC = 4;
 static uint8_t adc_pins[CHANNEL_NUM_PER_ADC] = {A0, A2, A11, A7};
-
-static const uint16_t SAMPLING_RATE_PER_CH = 5000;
-static const uint16_t ADC_SAMPLING_RATE = SAMPLING_RATE_PER_CH * CHANNEL_NUM_PER_ADC;
 
 // DMA Settings
 static const uint16_t DMA_BUFFER_SIZE = EMG_CHUNK_SIZE * 2 * CHANNEL_NUM_PER_ADC;
@@ -31,7 +29,7 @@ SensEdu_ADC_Settings adc_settings = {
     .pin_num = CHANNEL_NUM_PER_ADC,
 
     .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
-    .sampling_rate_hz = 5000,
+    .sampling_rate_hz = SAMPLING_RATE_PER_CH,
     
     .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
     .mem_address = (uint16_t*)dma_buffer,
@@ -59,9 +57,6 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 
-uint32_t transfers_remaining = 0;
-bool recording_active = false;
-
 void loop() {
     if (SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
         SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
@@ -76,7 +71,7 @@ void loop() {
 
 static void transfer_buf(volatile uint16_t* data, uint16_t data_length) {
     uint8_t* ptr = (uint8_t*)data;
-    Serial.write(ptr, data_length * 2);
+    Serial.write(ptr, data_length * sizeof(uint16_t));
 }
 
 // Check library error state

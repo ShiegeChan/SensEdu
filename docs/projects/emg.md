@@ -188,37 +188,33 @@ All these details are available in the [SensEdu schematics]({{site.baseurl}}/ass
 
 The next step is to develop the Arduino sketch responsible for data acquisition. This involves configuring ADC parameters, such as sampling rate, buffer size, memory mode, etc.
 
-For EMG, a sampling rate of $$1\mathrm{kHz}$$ is the minimum requirement. To improve the quality of signal acquisition, this project uses a higher one of $$f_s = 5\mathrm{kHz}$$. Each channel uses a buffer of $$N_s = 96 \ \mathrm{samples}$$. ADC is configured with circular DMA to minimize CPU load and maximize performance. The ideal theoretical duration of one measurement chunk is given as:
+For EMG, a sampling rate of $$1\mathrm{kHz}$$ is the minimum requirement. To improve the quality of signal acquisition, this project uses a higher one of $$f_s = 5\mathrm{kHz}$$. Each channel uses a buffer of $$N_s = 75 \ \mathrm{samples}$$. ADC is configured with circular DMA to minimize CPU load and maximize performance. The ideal theoretical duration of one measurement chunk is given as:
 
-$$d_{chunk, \ ideal} = \frac{N_s}{f_s} = \frac{96 \ \mathrm{samples}}{5\mathrm{kHz}} = 19.2\mathrm{ms} $$
+$$d_{chunk, \ ideal} = \frac{N_s}{f_s} = \frac{75 \ \mathrm{samples}}{5\mathrm{kHz}} = 15\mathrm{ms} $$
 
 {: .NOTE}
-The measurement duration is calculated for one channel. If you use multiple channels and intend to maintain the same measurement chunk, make sure to multiply the sampling frequency $$f_s$$ by the number of channels.
+The measurement duration is calculated for one channel. If you use multiple channels and intend to maintain the same measurement chunk, **do not change the sampling rate**, it is shared across all channels. You need only to increase the DMA buffer size.
 
 In practice, the actual $$d_{chunk}$$ is approximately $$50\mathrm{ms}$$ due to delays from data transmission, ADC conversion rate fluctuations, signal processing delay, and other factors. In the end, it results in a practical measurement rate of around $$20$$ measurements per second. If this performance is not satisfactory, revisit the adjustment of ADC parameters.
 
 Keeping selected parameters in mind, the ADC can be configured using [SensEdu Library]({% link library/index.md %}). The configuration follows similar structure to the [ADC_1CH_DMA_Circular]({% link library/adc.md %}#adc_1ch_dma_circular) example. Below is a minimal code example, focusing on the essential lines. Code snippets show the EMG config for all x4 channels.
 
-Since DMA is set to the circular mode, the optimal size is 64 samples. For the initially planned $$N_s = 96 \ \mathrm{samples}$$, this means x3 DMA half-transfers per channel, labeled as `EMG_CHUNK_NUM`. Considering 4 channels, the final total number of transfers is 12, labeled as `ITERATIONS_PER_REQUEST`.
+Since DMA is set to the circular mode, the optimal DMA buffer size should be small. Since EMG chunk is planned as $$N_s = 75 \ \mathrm{samples}$$, the size could be just picked as double for half-transfer being exactly $$75$$ samples. Considering 4 channels, the final total DMA buffer size is: $$75 \times 2 \times 4 = 600$$ samples.
 
 ```c
 // EMG Chunk Configuration
-static const uint16_t EMG_CHUNK_NUM = 3;
-static const uint16_t EMG_CHUNK_SIZE = EMG_CHUNK_NUM * (64 / sizeof(uint16_t));
+static const uint16_t EMG_CHUNK_SIZE = 75;
 
 // ADC Settings
 static ADC_TypeDef* adc = ADC1;
+static const uint16_t SAMPLING_RATE_PER_CH = 5000;
 
 static const uint16_t CHANNEL_NUM_PER_ADC = 4;
 static uint8_t adc_pins[CHANNEL_NUM_PER_ADC] = {A8, A9, A10, A11};
 
-static const uint16_t SAMPLING_RATE_PER_CH = 5000;
-static const uint16_t ADC_SAMPLING_RATE = SAMPLING_RATE_PER_CH * CHANNEL_NUM_PER_ADC;
-
 // DMA Settings
-static const uint16_t DMA_BUFFER_SIZE = 64;
+static const uint16_t DMA_BUFFER_SIZE = EMG_CHUNK_SIZE * 2 * CHANNEL_NUM_PER_ADC;
 volatile SENSEDU_DMA_BUFFER(dma_buffer, DMA_BUFFER_SIZE);
-static const uint16_t ITERATIONS_PER_REQUEST = (EMG_CHUNK_SIZE * CHANNEL_NUM_PER_ADC)/(DMA_BUFFER_SIZE / 2);
 
 // Config Structure
 SensEdu_ADC_Settings adc_settings = {
@@ -227,7 +223,7 @@ SensEdu_ADC_Settings adc_settings = {
     .pin_num = CHANNEL_NUM_PER_ADC,
 
     .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
-    .sampling_rate_hz = ADC_SAMPLING_RATE,
+    .sampling_rate_hz = SAMPLING_RATE_PER_CH,
     
     .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
     .mem_address = (uint16_t*)dma_buffer,
@@ -250,40 +246,18 @@ void setup() {
 }
 ```
 
-In the main loop, wait for the measurement trigger from MATLAB, reset the ADC flags, start data acquisition, and transfer the data.
+In the main loop, data is continuously recorded, and transferred to PC.
 
 ```c
-uint32_t transfers_remaining = 0;
-bool recording_active = false;
-
 void loop() {
-    if (!recording_active && Serial.available() > 0) {
-        char command = Serial.read();
-        if (command == 't') {
-            transfers_remaining = ITERATIONS_PER_REQUEST;
-            recording_active = true;
-
-            SensEdu_ADC_ClearDmaTransferComplete(adc);
-            SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
-        }
-    }
-
-    if (!recording_active) return;
-
-    if (transfers_remaining > 0 && SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+    if (SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
         SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
-        transfer_64byte_buf(&dma_buffer[0]);
-        transfers_remaining--;
+        transfer_buf(&dma_buffer[0], (DMA_BUFFER_SIZE / 2));
     }
 
-    if (transfers_remaining > 0 && SensEdu_ADC_IsDmaTransferComplete(adc)) {
+    if (SensEdu_ADC_IsDmaTransferComplete(adc)) {
         SensEdu_ADC_ClearDmaTransferComplete(adc);
-        transfer_64byte_buf(&dma_buffer[DMA_BUFFER_SIZE / 2]);
-        transfers_remaining--;
-    }
-
-    if (transfers_remaining == 0) {
-        recording_active = false;
+        transfer_buf(&dma_buffer[DMA_BUFFER_SIZE / 2], (DMA_BUFFER_SIZE / 2));
     }
 }
 ```
@@ -292,17 +266,34 @@ The final expanded sketch is available at `/projects/EMG-BioInputs/EMG-BioInputs
 
 ### Data Transfer
 
-Arduino GIGA R1 doesn't use a typical UART interface for serial communication. Instead, it uses USB communication abstracted to behave like a serial link. This implementation makes the connection baud rate independent, meaning the number in `Serial.begin()` has no effect on the actual transfer speed. For further details on the USB implementation, refer to Figure 793 (Page 2747) of [STM32H747 Reference Manual] (OTG_FS) and the USB0 in the [Arduino GIGA R1 Schematics]. 
+The GIGA R1 USB-C "Serial" port is a USB CDC-ACM (virtual COM port), not a hardware UART. As a result, the baud rate passed to `Serial.begin()` does not actually affect the USB link speed; it is retained for API compatibility. The board uses USB Full-Speed (FS) with maximum packet size of 64 bytes. For hardware details, refer to the Figure 793 (Page 2747) of [STM32H747 Reference Manual] (OTG_FS) and the USB0 in the [Arduino GIGA R1 Schematics].
 
-To maximize USB efficiency, data should be arranged and transferred in chunks. Based on tests in [this repository](https://github.com/vladysor/giga-r1-serial-transfer-tests), the optimal chunk size is 64 bytes, as specified in the OTG_FS section of the reference manual. Since the chosen buffer size for circular DMA is 128 bytes, its half-transfer is exactly 64 bytes, thus for communication speed optimization the hard-coded 64-byte transfer function is used.
+On the host (PC), the OS driver reads from the CDC using URBs (USB Request Blocks). The URB read size is driver/OS dependent (on our Windows 11 test system it is 4096 bytes). A host read typically completes when either:
+
+- The URB buffer fills, or
+- The device sends a short packet (smaller than max packet size), or
+- A driver-specific timeout occurs.
+
+If the device continuously writes data in exact multiples of the USB max packet size (FS: 64 bytes), the driver may wait until an entire URB fills, increasing latency. To reduce latency, ensure each application-level chunk ends with a short packet.
+
+In our EMG case, the short packet needs to be created manually; `Serial` doesn't offer a proper API to flush the URB. Prefer chunk sizes whose total byte count is not a multiple of the max 64 bytes packet size, which naturally creates the short packet in the end of the URB. Alternatively, you could add a small padding, so the final packet is short, and make the receiver ignore the pad. 
 
 ```c
-static void transfer_64byte_buf(volatile uint16_t* data) {
-    Serial.write((uint8_t*)data, 64);
+static void transfer_buf(volatile uint16_t* data, uint16_t data_length) {
+    uint8_t* ptr = (uint8_t*)data;
+    Serial.write(ptr, data_length * sizeof(uint16_t));
 }
 ```
 
-Alternatively, WiFi can be used for data transfer by implementing a method similar to the [Basic_UltraSound_WiFi]({% link library/others.md %}#basic_ultrasound_wifi) example.
+Below is the table with measurements for different selected EMG chunks.
+
+| EMG Chunk Size (samples) | EMG Chunk Size (bytes) | Measured Latency |
+|:------|:------|:--------|
+| 32    | 64    | 102 ms  |
+| 64    | 128   | 103 ms  |
+| 75    | 150   | 16 ms   |
+
+The ultimate solutions include implementing a custom USB class or customizing the CDC driver to force short packets at frame boundaries. If you want to fix this, see the related [issue](https://github.com/ShiegeChan/SensEdu/issues/92).
 
 ## Signal Processing
 
