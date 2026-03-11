@@ -10,7 +10,7 @@ addpath("plot scripts\");
 ITERATIONS = 25; 
 MIC_NUM = 4;
 MIC_NAMES = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
-DATA_LENGTH = 32 * 32;
+DATA_LENGTH = 1024;
 PROCESSING_STEPS = 3; % raw, fitlered, xcorr
 ENABLE_LIVE_PLOTS = true;
 

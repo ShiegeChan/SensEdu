@@ -20,7 +20,7 @@ uint8_t error_led = D86;
 #define IS_TRANSMIT_DETAILED_DATA   true    // Activate full raw, filtered, xcorr data transmission
 #define BAN_DISTANCE	            20	    // Min distance [cm] - how many self reflections cancelled
 #define SAMPLING_RATE               250000  // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
-#define STORE_BUF_SIZE              3125    // 2400 for 1 measurement per second. 
+#define STORE_BUF_SIZE              1024    // 2400 for 1 measurement per second. 
 
 /* --------------------------------- Filter --------------------------------- */
 #define FILTER_BLOCK_LENGTH     32      // How many samples we want to process every time we call the fir process function AT
@@ -31,7 +31,7 @@ arm_fir_instance_f32 Fir_filt; // Creating an object instance
 
 /* ----------------------------------- ADC ---------------------------------- */
 
-const uint16_t mic_data_size = 2048*2;
+const uint16_t mic_data_size = STORE_BUF_SIZE * 2;
 SENSEDU_ADC_BUFFER(mic12_data, mic_data_size);
 SENSEDU_ADC_BUFFER(mic34_data, mic_data_size);
 
@@ -39,7 +39,7 @@ ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
 const uint8_t adc1_mic_num = 2;
 const uint8_t adc2_mic_num = 2;
-uint8_t mic12_pins[adc1_mic_num] = {A5, A4};
+uint8_t mic12_pins[adc1_mic_num] = {A5, A10};
 uint8_t mic34_pins[adc2_mic_num] = {A1, A6};
 
 SensEdu_ADC_Settings adc1_settings = {

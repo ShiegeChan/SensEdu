@@ -32,7 +32,7 @@ arm_fir_instance_f32 Fir_filt; // Creating an object instance
 
 /* ----------------------------------- ADC ---------------------------------- */
 
-const uint16_t mic_data_size = 2048*2;
+const uint16_t mic_data_size = STORE_BUF_SIZE * 2;
 SENSEDU_ADC_BUFFER(mic12_data, mic_data_size);
 SENSEDU_ADC_BUFFER(mic34_data, mic_data_size);
 
@@ -40,7 +40,7 @@ ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
 const uint8_t adc1_mic_num = 2;
 const uint8_t adc2_mic_num = 2;
-uint8_t mic12_pins[adc1_mic_num] = {A5, A4};
+uint8_t mic12_pins[adc1_mic_num] = {A5, A10};
 uint8_t mic34_pins[adc2_mic_num] = {A1, A6};
 
 SensEdu_ADC_Settings adc1_settings = {
