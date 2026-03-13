@@ -250,12 +250,12 @@ Here are the different steps in order to compute the distance in MATLAB.
 {: .IMPORTANT}
 Make sure the parameters in MATLAB match the parameters of the chirp you are sending (f_start, f_end, Tc, etc...).
 
-After running the MATLAB code, you should see the following display. This example is with an object placed at 50 cm from the board and using the following radar parameters :
+After running the MATLAB code, you should see the following display. This example is with an object placed at 30 cm from the board and using the following radar parameters :
 - f_start = 30.5 kHz
 - f_end = 35.5 kHz
 - Tc = 40 ms
 
-<img src="{{site.baseurl}}/assets/images/Measurement.png" alt="drawing" width="800"/>
+<img src="{{site.baseurl}}/assets/images/fmcw_example.png" alt="drawing" width="800"/>
 {: .text-center}
 
 Measurement display in MATLAB
