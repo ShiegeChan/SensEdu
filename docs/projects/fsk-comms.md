@@ -33,7 +33,7 @@ _Binary FSK signal generation_
 
 To decode these frequency shifts, we require an efficient method to detect specific tones within a continuous stream of acoustic data. While the Fast Fourier Transform (FFT) is the most common tool for spectral analysis, it is computationally expensive because it analyzes the entire frequency spectrum at once.
 
-Instead, our system utilizes the Goertzel Algorithm. Unlike the FFT, Goertzel is a digital filter that focuses exclusively on pre-selected frequencies. In our case, as the resonance frequency of our transducers is around 33 kHz, we have chosen 31 kHz and 35 kHz tones. This selection provides us with enough bandwidth to detect each tone without interference, making the algorithm significantly faster and more resource-efficient for embedded systems. By calculating the energy of only these two specific frequency components, the SensEdu board can determine in real-time whether a bit '0' or a bit '1' is being received, effectively filtering out ambient noise and ensuring high-speed, reliable communication.
+Instead, our system utilizes the Goertzel Algorithm. Unlike the FFT, Goertzel is a digital filter that focuses exclusively on pre-selected frequencies. We will select the frequencies so that the difference provides us with enough bandwidth to detect each tone without interference, making the algorithm significantly faster and more resource-efficient for embedded systems. By calculating the energy of only these two specific frequency components, the SensEdu board can determine in real-time whether a bit '0' or a bit '1' is being received, effectively filtering out ambient noise and ensuring high-speed, reliable communication.
 
 To implement this algorithm, we separate it into a specialized two-stage digital filter. The first stage is a second-order **IIR filter** that process the ADC input sequence **x[n]** to calculate an intermediate value **s[n]**. This is highly efficient as it only requires one multiplication per sample:
 
@@ -77,9 +77,9 @@ The software architecture is divided into two main modules: the **Signal Generat
 
 ### Transmitter
 
-The transmitter’s primary role is to convert digital data into a continuous FSK-modulated acoustic wave, i.e. the current implementation handles waveform synthesis directly, ensuring a more flexible and integrated approach. Im order to do that, the system utilizes the internal 12-bit DAC to produce high-resolution sine waves. By switching between the two target frequencies mentioned above, the transmitter creates the necessary frequency shifts to encode information. To improve stability and frequency precission, a phase accumulation logic is defined for each frequency.
+The transmitter’s primary role is to convert digital data into a continuous FSK-modulated acoustic wave, i.e. the current implementation handles waveform synthesis directly, ensuring a more flexible and integrated approach. Im order to do that, the system utilizes the internal 12-bit DAC to produce high-resolution sine waves. By switching between two target frequencies, the transmitter creates the necessary frequency shifts to encode information. To improve stability and frequency precission, a phase accumulation logic is defined for each frequency. 
 
-Due to the finite size of the hardware memory buffer, the maximun message length is set to **30 characters**. This limit is carefully calculated considering the **200 samples** allocated per bit; this duration provides the ultrasonic transducer with sufficient time to stabilize and adapt to each frequency shift, ensuring a clean transition between logic states.
+Due to the finite size of the hardware memory buffer, the maximun message length is set to **30 characters**. This limit is carefully calculated considering the **200 samples** allocated per bit; this duration provides the ultrasonic transducer with sufficient time to stabilize and adapt to each frequency shift, ensuring a clean transition between logic states. With a 480 kHz sampling rate and 200 samples per bit, the frequency resolution is 2.4 kHz. We therefore select tones that land exactly on Goertzel bin centers, 31.2 kHz (13 × 2.4 kHz) and 36.0 kHz (15 × 2.4 kHz), while keeping them near the transducer’s ≈33 kHz resonance to maximize acoustic efficiency and detection robustness.
 
 To make sure the wave is perfectly continuous, the system uses the SENSEDU_DAC_MODE_BURST_WAVE. By connecting the dma_buffer directly to the DAC through DMA, the transmission stays stable and avoids any gaps or delays between the bits. For more information about DAC configurations, go to [DAC_Burst_Sine](https://sensedu-shield.com/library/dac/#dac_burst_sine).
 
@@ -90,8 +90,16 @@ const uint16_t MAX_MESSAGE_LENGTH = 30;
 // Arbitrary chosen number to send ~10-12 cycles per bit
 const uint16_t SAMPLES_PER_BIT = 200;
 
+const uint16_t SAMPLES_PER_CHARACTER = SAMPLES_PER_BIT * BIT_PER_CHARACTER;
+
+// x4 extra characters reserved for the preamble
+const uint16_t PREAMBLE_LENGTH = 4;
+
+// Endline character for finishing the message
+const uint16_t ENDLINE_LENGTH = 2;
+
 // DMA buffer size
-const uint16_t MAX_LUT_SIZE = (MAX_MESSAGE_LENGTH + PREAMBLE_LENGTH) * SAMPLES_PER_CHARACTER; 
+const uint16_t MAX_LUT_SIZE = (MAX_MESSAGE_LENGTH + PREAMBLE_LENGTH + ENDLINE_LENGTH) * SAMPLES_PER_CHARACTER; 
 
 volatile SENSEDU_DAC_BUFFER(dma_buffer, MAX_LUT_SIZE);
 SensEdu_DAC_Settings dac_settings = {
@@ -103,7 +111,7 @@ SensEdu_DAC_Settings dac_settings = {
     .burst_num = 1
 };
 ```
-The main core of the transmitter is the ``` construct bit``` function, which translates logical bits into phzsical sound waves. During the process, the function calculates a sine value for every sample and constantly updates the phase to ensure the wave is smooth, avoiding any sudden jumps between bits. Finally, the signal is shifted and scaled to use the full wange of the hardware.
+The main core of the transmitter is the ``` construct bit``` function, which translates logical bits into physical sound waves. During the process, the function calculates a sine value for every sample and constantly updates the phase to ensure the wave is smooth, avoiding any sudden jumps between bits. Finally, the signal is shifted and scaled to use the full wange of the hardware.
 
 ```c
 // Fills the buffer with one bit worth of data
@@ -121,7 +129,7 @@ void construct_bit(bool bit, float* phase, uint16_t* buf_pos) {
     }
 }
 ```
-Once we have the logic to create a single bit, we need to organize the entire message in memory. The ```construct_buffer``` function acts as the "architect" of the transmission by preparing a continuous stream of data. First, the system clears the memory buffer to ensure no old data interferes with the new message. Then, it generates a **Preamble**, which is a repetitive pattern of '1's and '0's. This is crucial because it acts as a "wake-up call" for the receiver, allowing it to detect that a transmission is starting and to synchronize its clock. Finally, the function breaks down each character of the message into its 8 individual bits and calls the ```construct_bit``` function to fill the buffer with the corresponding 31 kHz or 35 kHz waves.
+Once we have the logic to create a single bit, we need to organize the entire message in memory. The ```construct_buffer``` function acts as the "architect" of the transmission by preparing a continuous stream of data. First, the system clears the memory buffer to ensure no old data interferes with the new message. Then, it generates a **Preamble**, which is a repetitive pattern of '1's and '0's. This is crucial because it acts as a "wake-up call" for the receiver, allowing it to detect that a transmission is starting and to synchronize its clock. Next, the function breaks down each character of the message into its 8 individual bits and calls the ```construct_bit``` function to fill the buffer with the corresponding 31.2 kHz or 36 kHz waves. It also includes an ending line, so that the receiver knows when to stop recording.
 
 ```c
 
@@ -139,9 +147,11 @@ void construct_buffer(uint8_t* data, uint8_t num_bytes) {
         dma_buffer[i] = 0x000;
     }
 
-    // Preamble 10101010 x PREAMBLE_LENGTH times
-    for (size_t i = 0; i < PREAMBLE_LENGTH * BIT_PER_CHARACTER; i++) {
-        construct_bit(i % 2, &phase, &position);
+    // Preamble 0xFF00FF00
+    for (size_t i = 0; i < PREAMBLE_LENGTH; i++) {
+        for (size_t j = 0; j < BIT_PER_CHARACTER; j++) {
+            construct_bit((i + 1) % 2, &phase, &position);
+        }
     }
 
     // Payload
@@ -150,6 +160,13 @@ void construct_buffer(uint8_t* data, uint8_t num_bytes) {
         for (size_t bit_idx = 0; bit_idx < 8; bit_idx++) {
             bool bit = (cur_byte >> (7 - bit_idx)) & 1;
             construct_bit(bit, &phase, &position);
+        }
+    }
+
+    // Endline
+    for (size_t i = 0; i < ENDLINE_LENGTH; i++) {
+        for (size_t j = 0; j < BIT_PER_CHARACTER; j++) {
+            construct_bit(0, &phase, &position);
         }
     }
 }
