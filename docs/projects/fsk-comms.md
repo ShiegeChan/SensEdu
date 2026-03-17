@@ -58,7 +58,7 @@ The system then compares the resulting Power values, decoding the bit as '0' or 
 
 ## Hardware set up
 
-To perform this modulated communication, the essential components required are a transmitter and a receiver. For this project, we use two SensEdu boardes based on the Arduino GIGA R! WIFI:  
+To perform this modulated communication, the essential components required are a transmitter and a receiver. For this project, we use two SensEdu boardes based on the Arduino GIGA R1 WIFI:  
 
 * **Transmitter (Tx):** Uses an ultrasonic **tranducer**{: .text-green-000} to generate and emit the modulated acoustic waves.
 
@@ -69,6 +69,9 @@ To perform this modulated communication, the essential components required are a
 
 The two boards are placed directly in front of each other to ensure a direct transmission path and to minimize signal attenuation caused by the environment. For our tests, they were separated by a distance of 40 to 50 cm, providing a stable channel for data exchange.
 
+{: .NOTE}
+The communication between the two boards is completely wireless, so only USB / USB-C connection to the computer is needed.
+
 
 ## Software implementation
 
@@ -77,7 +80,7 @@ The software architecture is divided into two main modules: the **Signal Generat
 
 ### Transmitter
 
-The transmitter’s primary role is to convert digital data into a continuous FSK-modulated acoustic wave, i.e. the current implementation handles waveform synthesis directly, ensuring a more flexible and integrated approach. Im order to do that, the system utilizes the internal 12-bit DAC to produce high-resolution sine waves. By switching between two target frequencies, the transmitter creates the necessary frequency shifts to encode information. To improve stability and frequency precission, a phase accumulation logic is defined for each frequency. 
+The transmitter’s primary role is to **convert digital data into a continuous FSK-modulated acoustic wave**{: .text-green-000}, i.e. the current implementation handles waveform synthesis directly, ensuring a more flexible and integrated approach. Im order to do that, the system utilizes the internal 12-bit DAC to produce high-resolution sine waves. By switching between two target frequencies, the transmitter creates the necessary frequency shifts to encode information. To improve stability and frequency precission, a phase accumulation logic is defined for each frequency. 
 
 Due to the finite size of the hardware memory buffer, the maximun message length is set to **30 characters**. This limit is carefully calculated considering the **200 samples** allocated per bit; this duration provides the ultrasonic transducer with sufficient time to stabilize and adapt to each frequency shift, ensuring a clean transition between logic states. With a 480 kHz sampling rate and 200 samples per bit, the frequency resolution is 2.4 kHz. We therefore select tones that land exactly on Goertzel bin centers, 31.2 kHz (13 × 2.4 kHz) and 36.0 kHz (15 × 2.4 kHz), while keeping them near the transducer’s ≈33 kHz resonance to maximize acoustic efficiency and detection robustness.
 
@@ -210,3 +213,104 @@ void loop () {
 ```
 
 ### Receiver 
+Once the ultrasonic wave reaches the receiver, we **acquire and process the signal**{: .text-green-000}. We include the library and set the main parameters, choosing the **sampling rate at 240 kHz**, an integer **submultiple** of the transmitter’s 480 kHz rate. Using a lower sampling rate (with our fixed analysis window) increases frequency resolution and reduces data throughput while still comfortably capturing the 31.2/36 kHz tones. We record each iterations during **3 seconds**, that can be change but always matching MATLAB configuration.
+
+```c
+// Recording time per one message
+static const uint16_t MSG_RECORD_WINDOW_SEC = 3;
+
+// Must be multiple of TX SR
+static const uint32_t SAMPLING_RATE = 240000;
+```
+
+The ADC runs continuously and writes into a **double (ping‑pong) buffer** so one half can be forwarded while the other is filling, avoiding gaps. Each chunk is then sent to MATLAB for decoding, and basic error checks report and stop the system if something unexpected occurs. To get more information about circular DMA mode go to [ADC_1CH_DMA_CIRCULAR](https://sensedu-shield.com/library/adc/#adc_1ch_dma_circular).
+
+```c
+static ADC_TypeDef* adc = ADC1;
+static const uint8_t ADC_PIN_COUNT = 1;
+static uint8_t adc_pins[ADC_PIN_COUNT] = {A1};
+
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = adc_pins,
+    .pin_num = ADC_PIN_COUNT,
+
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = SAMPLING_RATE, 
+    
+    .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
+    .mem_address = (uint16_t*)dma_buffer,
+    .mem_size = DMA_BUFFER_SIZE
+};
+```
+
+### Signal Decoding in MATLAB
+
+Now that the full message has been sent to MATLAB, we can start decoding. First, set the receiver parameters: sampling rate, samples per bit (N), the two FSK tone frequencies, the preamble, etc. Make sure every value matches the transmitter and capture setup.
+
+{: .NOTE}
+Be careful setting the parameters, everything must match with both receiver and transmitter.
+
+Our main entry point is ```decode_fsk_message```. At its core, ```run_goertzel``` splits the recording into bit‑sized pieces, checks a few nearby start positions for each piece, compares which of the two target tones is louder, and outputs the difference. Positive values mean the higher‑frequency tone wins; negative values mean the lower‑frequency tone wins.
+
+```matlab
+% Goertzel Coefficient (must be integers)
+k = (f/fs) * samples_per_bit + 1;
+
+% (Affects a lot the accuracy vs performance trade-off)
+HOP_STEPS = 5;
+HOP = N/HOP_STEPS;
+
+function [energy_diff, x_labels] = run_goertzel(data, hop, N, k)
+    bit_num = floor((length(data) - N)/N);
+    hop_num = N/hop;
+
+    energy_diff = zeros(hop_num, bit_num);
+    x_labels = zeros(hop_num, bit_num);
+
+    for j = 1:hop_num
+        for i = 1:bit_num
+            idx = (j-1)*hop + (i-1)*N + 1;
+            segment = data(idx : (idx + N - 1));
+    
+            dtft1 = abs(goertzel(segment, k(1)))^2;
+            dtft2 = abs(goertzel(segment, k(2)))^2;
+        
+            energy_diff(j, i) = dtft2 - dtft1;
+
+            x_labels(j, i) = idx + N/2;
+        end
+    end
+end
+```
+
+Next step will be to detect the **preamble**{: .text-green-000} of our signal. In order to do so, we have implemented the function ```analyze_preamble```, that scans our measured energy difference, slides the preamble pattern across it, and finds where it fits best. Finally, it chooses the alignment (hop) with the best overall score and returns the one that fits best, the possition where the preamble start, and the result of the strongest match.
+
+```matlab
+% Preamble 0xFF00FF00
+PREAMBLE = [1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0];
+
+function [best_hop, best_preamble_pos, best_conv] = analyze_preamble(energy_diff, preamble)
+    hop_num = size(energy_diff, 1);
+    correlations = zeros(1, hop_num);
+    preamble_pos = zeros(1, hop_num);
+
+    for i = 1:length(correlations)
+        data = energy_diff(i, :);
+        c = abs(conv(data, fliplr((preamble * 2) - 1)));
+        [correlations(i), idx] = max(c);
+        preamble_pos(i) = idx - length(preamble) + 1;
+    end
+
+    [best_conv, best_hop] = max(correlations);
+    best_preamble_pos = preamble_pos(best_hop);
+end
+```
+
+Last but not least we perform the decoding of the message into ASCII and plot both the result of the convolution and goertzel. We can finally see our **transmitted message on the command window**{: .text-green-000}.
+
+
+
+
+
+
