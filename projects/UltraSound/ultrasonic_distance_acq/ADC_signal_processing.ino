@@ -74,7 +74,41 @@ void remove_coupling(float* adc_wave, const uint16_t banned_sample_num) {
 /*                             CALCULATE DISTANCES                            */
 /* -------------------------------------------------------------------------- */
 
-float calculate_distance(float* echo, uint16_t echo_length, uint32_t sampling_rate) {
+// Comparison function for sorting peaks in descending order
+int comparePeaks(const void* a, const void* b) {
+    Peak* peakA = (Peak*)a;
+    Peak* peakB = (Peak*)b;
+    if (peakB->value > peakA->value) return 1;
+    if (peakB->value < peakA->value) return -1;
+    return 0;
+}
+
+
+//  float envelope_process(float input) {
+//       static float envelopeValue = 0.0f;
+
+//       float absoluteInput = abs(input); // Use abs() for the upper envelope
+//       if (absoluteInput > envelopeValue) {
+//         // Attack: Track rising peaks
+//         envelopeValue = absoluteInput + 0.001 * (envelopeValue - absoluteInput);
+//       } else {
+//         // Release: Decay slowly
+//         envelopeValue = absoluteInput + 0.01 * (envelopeValue - absoluteInput);
+//       }
+
+//       return envelopeValue;
+//     }
+
+// void envelopeBuffer(float* signal, float* output, int length) {
+//   for (int i = 0; i < length; i++) {
+//     // signal[i] is the same as *(signal + i)
+//     output[i] = envelope_process(signal[i]);
+//     Serial.println( output[i]);
+//   }
+// }
+
+
+void calculate_distance_new(float* echo, uint16_t echo_length, uint32_t sampling_rate, uint32_t* dist_um) {
     uint16_t peak_index = 0u;
     float max_value = 0.0f;
     for (uint16_t i = 0u; i < echo_length; i++) {
@@ -83,9 +117,106 @@ float calculate_distance(float* echo, uint16_t echo_length, uint32_t sampling_ra
             peak_index = i;
         }
     }
-    
-    // (lag_samples * sample_time) * air_speed / 2
-    float dist_um = (float)peak_index * HALF_AIR_SPEED_UM_S;
-    dist_um = (dist_um / sampling_rate);
-    return dist_um;
+
+
+// // Envelope attempt 2
+// float envelope_res[echo_length];
+// envelopeBuffer(echo, envelope_res, echo_length);
+
+
+// Envelope attempt 3
+    int windowSize = 20;
+    float envelope_res[echo_length];
+
+    for (uint16_t i = 0u; i < echo_length; i++) {
+        float maxVal = 0;
+        
+        // Look back and forward by half the window size
+        int start = max(0, i - windowSize / 2);
+        int end = min(echo_length - 1, i + windowSize / 2);
+        
+        for (int j = start; j <= end; j++) {
+            float absVal = abs(echo[j]);
+            if (absVal > maxVal) {
+                maxVal = absVal;
+            }
+        }
+        envelope_res[i] = maxVal;
+        //Serial.println( envelope_res[i]);
+    }
+// add moving average to remove flat parts:
+    int smoothWin = 50; 
+    for (uint16_t i = 0u; i < echo_length; i++) {
+        float sum = 0;
+        int count = 0;
+        int start = max(0, i - smoothWin / 2);
+        int end = min(echo_length - 1, i + smoothWin / 2);
+        
+        for (int j = start; j <= end; j++) {
+            sum += (envelope_res[j]/10000.0);
+            count++;
+        }
+// check memory errors:
+        if (envelope_res != nullptr && i < echo_length) {
+            envelope_res[i] = sum / (float)count;
+           // Serial.println(envelope_res[i]);
+        } else {
+            Serial.println("Error: Array pointer is null or index is out of bounds!");
+        }
+    }
+
+//Single Peak search:
+    float max_value_envelope = 0.0f;
+    for (uint16_t i = 0u; i < echo_length; i++) {
+        if (envelope_res[i] > max_value_envelope) {
+            max_value_envelope = envelope_res[i];
+        // peak_index = i;
+        }
+    }
+    int tempCount = 0;
+    float minPeakHeight = 0.7*max_value_envelope;
+    // for (uint16_t i = 1u; i < echo_length - 1; i++) {
+    //     if (envelope_res[i] > envelope_res[i-1] && envelope_res[i] >= envelope_res[i+1]) {
+    //         if (envelope_res[i] >= minPeakHeight) {
+    //             tempCount++;
+    //         }
+    //     }
+    // }
+
+ //Serial.println(tempCount);
+// Multi peak search
+    Peak* tempPeaks = (Peak*)malloc(tempCount * sizeof(Peak));
+    if (tempPeaks == NULL) return;
+    int idx = 0;
+    for (uint16_t i = 1u; i < echo_length - 1; i++) {
+        if (envelope_res[i] > envelope_res[i-1] && envelope_res[i] >= envelope_res[i+1]) {
+            if (envelope_res[i] >= minPeakHeight) {
+                tempPeaks[idx].value = envelope_res[i];
+                tempPeaks[idx].location = i;
+                idx++;
+            }
+        }
+    }
+    qsort(tempPeaks, idx, sizeof(Peak), comparePeaks); // sort them in ascending order. We'll take the first ones and check distances
+    // Serial.println(idx);
+    // Serial.print(tempPeaks[0].location);Serial.print(" ");Serial.println(tempPeaks[0].value);
+    // Serial.print(tempPeaks[1].location);Serial.print(" ");Serial.println(tempPeaks[1].value);
+    // Serial.print(tempPeaks[2].location);Serial.print(" ");Serial.println(tempPeaks[2].value);
+//     for (int i = peaksToCopy; i < 3; i++) {
+//     topThree[i].value = 0;
+//     topThree[i].location = 0;
+// }
+
+    // float dist_um[MAX_PEAKS] = {0.0f, 0.0f, 0.0f};
+    for (int p = 0; p < MAX_PEAKS; p++) {
+         dist_um[p] = (float)tempPeaks[p].location * HALF_AIR_SPEED_UM_S / sampling_rate;
+        //  Serial.println(dist_um[p]);
+    }
+
+
+
+    // // (lag_samples * sample_time) * air_speed / 2
+    // float dist_um = (float)peak_index * HALF_AIR_SPEED_UM_S;
+    // dist_um = (dist_um / sampling_rate);
+    // return dist_um;
 }

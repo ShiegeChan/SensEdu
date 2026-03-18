@@ -7,7 +7,7 @@ close all;
 addpath("plot scripts\");
 
 %% Parameters
-ITERATIONS = 25; 
+ITERATIONS = 250; 
 MIC_NUM = 4;
 MIC_NAMES = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
 DATA_LENGTH = 32 * 32;
@@ -15,7 +15,7 @@ PROCESSING_STEPS = 3; % Raw, fitlered, xcorr
 
 %% Arduino Setup + Config
 % Serial port configuration 
-ARDUINO_PORT = 'COM22';
+ARDUINO_PORT = 'COM4';
 ARDUINO_BAUDRATE = 115200;
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % Select port and baudrate 
 
