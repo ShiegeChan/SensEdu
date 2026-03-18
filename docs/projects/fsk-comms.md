@@ -311,6 +311,18 @@ Last but not least we perform the decoding of the message into ASCII and plot bo
 
 
 
+## Showcase
+This last section shows a real test using the FSK communication. We upload both receiver and transmitter codes to the respective arduino board, and run the MATLAB code. 
 
+{: .NOTE}
+You will probably need to change the ```ARDUINO_PORT``` as well as the ```ARDUINO_BAUDRATE``` to match the receiver.
 
+Once you run the code in the transmitter you can open the serial monitor and start typing your message.
 
+<img src="{{site.baseurl}}/assets/images/fsk_transmitted_message.png" width="500"/>
+
+You will see the result in the Command Window of MATLAB. 
+
+<img src="{{site.baseurl}}/assets/images/fsk_received_message.png" width="500"/>
+
+**The only thing left to do is to enjoy!**
