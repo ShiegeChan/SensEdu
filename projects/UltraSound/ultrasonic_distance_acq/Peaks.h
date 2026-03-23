@@ -3,6 +3,9 @@
 
 #define MAX_PEAKS 3
 
+#define FULL_AVG_WIN 50
+
+
 struct Peak {
     float value;
     int location;
