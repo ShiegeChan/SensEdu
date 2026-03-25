@@ -599,6 +599,131 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "SensEdu:+3.3V"
+			(power)
+			(pin_numbers
+				(hide yes)
+			)
+			(pin_names
+				(offset 0)
+				(hide yes)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "#PWR"
+				(at 0 -3.81 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Value" "+3.3V"
+				(at 0 3.556 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "ki_keywords" "global power"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "+3.3V_0_1"
+				(polyline
+					(pts
+						(xy -0.762 1.27) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 2.54) (xy 0.762 1.27)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "+3.3V_1_1"
+				(pin power_in line
+					(at 0 0 90)
+					(length 0)
+					(name "~"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "SensEdu:AD8426ACPZ-R7"
 			(pin_names
 				(offset 1.016)
@@ -1583,131 +1708,6 @@
 						)
 					)
 					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
-		(symbol "power:+3.3V"
-			(power)
-			(pin_numbers
-				(hide yes)
-			)
-			(pin_names
-				(offset 0)
-				(hide yes)
-			)
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "#PWR"
-				(at 0 -3.81 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Value" "+3.3V"
-				(at 0 3.556 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Power symbol creates a global label with name \"+3.3V\""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "ki_keywords" "global power"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "+3.3V_0_1"
-				(polyline
-					(pts
-						(xy -0.762 1.27) (xy 0 2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 2.54) (xy 0.762 1.27)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 0) (xy 0 2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-			)
-			(symbol "+3.3V_1_1"
-				(pin power_in line
-					(at 0 0 90)
-					(length 0)
-					(name "~"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-					(number "1"
 						(effects
 							(font
 								(size 1.27 1.27)
@@ -3540,7 +3540,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
+		(property "Footprint" "SensEdu:PinSocket_1x04_P2.54mm_Vertical"
 			(at 30.48 39.37 0)
 			(effects
 				(font
@@ -3833,7 +3833,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 104.14 118.11 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -3841,7 +3841,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "09a4adec-91de-4f17-aa1e-6bdc84f97aae")
-		(property "Reference" "#PWR0101"
+		(property "Reference" "#PWR071"
 			(at 104.14 124.46 0)
 			(effects
 				(font
@@ -3892,7 +3892,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR0101")
+					(reference "#PWR071")
 					(unit 1)
 				)
 			)
@@ -3907,7 +3907,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0b66c651-35cd-4932-a8fa-026c2e0aefc0")
-		(property "Reference" "C62"
+		(property "Reference" "C48"
 			(at 100.33 113.03 0)
 			(effects
 				(font
@@ -3923,7 +3923,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 105.1052 118.11 0)
 			(effects
 				(font
@@ -3958,7 +3958,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C62")
+					(reference "C48")
 					(unit 1)
 				)
 			)
@@ -3966,7 +3966,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 179.07 73.66 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -3974,7 +3974,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0d50a6e8-0e5a-4194-ad67-0798545305bd")
-		(property "Reference" "#PWR061"
+		(property "Reference" "#PWR063"
 			(at 179.07 80.01 0)
 			(effects
 				(font
@@ -4025,7 +4025,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR061")
+					(reference "#PWR063")
 					(unit 1)
 				)
 			)
@@ -4033,7 +4033,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 241.3 48.26 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4041,7 +4041,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0ea3e627-99d9-419d-b18f-5b3d5ce04275")
-		(property "Reference" "#PWR055"
+		(property "Reference" "#PWR057"
 			(at 241.3 54.61 0)
 			(effects
 				(font
@@ -4092,7 +4092,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR055")
+					(reference "#PWR057")
 					(unit 1)
 				)
 			)
@@ -4124,7 +4124,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 200.66 35.8648 0)
 			(effects
 				(font
@@ -4182,7 +4182,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "10e3d031-a28d-47a9-afc4-468796013c15")
-		(property "Reference" "C38"
+		(property "Reference" "C40"
 			(at 107.95 69.85 0)
 			(effects
 				(font
@@ -4200,7 +4200,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 109.5248 64.77 0)
 			(effects
 				(font
@@ -4243,7 +4243,7 @@
 					(unit 1)
 				)
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C38")
+					(reference "C40")
 					(unit 1)
 				)
 			)
@@ -4258,7 +4258,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "11a87076-c1bb-459c-8898-68ad148f01c7")
-		(property "Reference" "C34"
+		(property "Reference" "C35"
 			(at 118.11 54.61 90)
 			(effects
 				(font
@@ -4274,7 +4274,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 114.3 61.9252 0)
 			(effects
 				(font
@@ -4317,7 +4317,7 @@
 					(unit 1)
 				)
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C34")
+					(reference "C35")
 					(unit 1)
 				)
 			)
@@ -4325,7 +4325,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 110.49 73.66 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4333,7 +4333,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "139ea08b-284d-4331-8308-26d99a705dcb")
-		(property "Reference" "#PWR057"
+		(property "Reference" "#PWR061"
 			(at 110.49 80.01 0)
 			(effects
 				(font
@@ -4384,7 +4384,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR057")
+					(reference "#PWR061")
 					(unit 1)
 				)
 			)
@@ -4392,7 +4392,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 125.73 73.66 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4400,7 +4400,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "1870e2c6-0e59-47cd-9d4e-6ee44ff0ec0a")
-		(property "Reference" "#PWR058"
+		(property "Reference" "#PWR062"
 			(at 125.73 80.01 0)
 			(effects
 				(font
@@ -4451,7 +4451,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR058")
+					(reference "#PWR062")
 					(unit 1)
 				)
 			)
@@ -4459,7 +4459,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 58.42 172.72 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4467,7 +4467,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "1afaf071-b666-4ac2-a636-1ba1237a8c02")
-		(property "Reference" "#PWR069"
+		(property "Reference" "#PWR073"
 			(at 58.42 179.07 0)
 			(effects
 				(font
@@ -4518,7 +4518,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR069")
+					(reference "#PWR073")
 					(unit 1)
 				)
 			)
@@ -4533,7 +4533,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "1dfb036f-a608-4f2d-ade6-62cc5f81a3c8")
-		(property "Reference" "C47"
+		(property "Reference" "C49"
 			(at 110.49 113.03 0)
 			(effects
 				(font
@@ -4549,7 +4549,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 115.2652 118.11 0)
 			(effects
 				(font
@@ -4584,7 +4584,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C47")
+					(reference "C49")
 					(unit 1)
 				)
 			)
@@ -4615,7 +4615,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
+		(property "Footprint" "SensEdu:PinSocket_1x04_P2.54mm_Vertical"
 			(at 236.22 39.37 0)
 			(effects
 				(font
@@ -4668,7 +4668,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 194.31 73.66 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4676,7 +4676,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "26014058-d13e-45b3-8e90-146d6620a7e7")
-		(property "Reference" "#PWR062"
+		(property "Reference" "#PWR064"
 			(at 194.31 80.01 0)
 			(effects
 				(font
@@ -4727,7 +4727,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR062")
+					(reference "#PWR064")
 					(unit 1)
 				)
 			)
@@ -4760,7 +4760,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 245.872 48.26 90)
 			(effects
 				(font
@@ -4832,7 +4832,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 182.88 61.9252 0)
 			(effects
 				(font
@@ -4883,7 +4883,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 134.62 36.83 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4892,7 +4892,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "33e56cad-d7da-4322-b7fb-e7cd24a934fb")
-		(property "Reference" "#PWR050"
+		(property "Reference" "#PWR052"
 			(at 140.97 36.83 0)
 			(effects
 				(font
@@ -4944,7 +4944,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR050")
+					(reference "#PWR052")
 					(unit 1)
 				)
 			)
@@ -4952,7 +4952,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 203.2 36.83 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -4960,7 +4960,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "357d065b-ecc0-4ddd-b01b-eb4b07a13637")
-		(property "Reference" "#PWR051"
+		(property "Reference" "#PWR053"
 			(at 209.55 36.83 0)
 			(effects
 				(font
@@ -5011,7 +5011,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR051")
+					(reference "#PWR053")
 					(unit 1)
 				)
 			)
@@ -5019,7 +5019,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 43.18 118.11 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5027,7 +5027,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3b87b214-725c-44f5-b670-828f71781da2")
-		(property "Reference" "#PWR067"
+		(property "Reference" "#PWR070"
 			(at 43.18 124.46 0)
 			(effects
 				(font
@@ -5078,7 +5078,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR067")
+					(reference "#PWR070")
 					(unit 1)
 				)
 			)
@@ -5093,7 +5093,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3c02dcbe-3fd8-4265-baeb-0585288eb0bc")
-		(property "Reference" "C37"
+		(property "Reference" "C34"
 			(at 45.72 54.61 90)
 			(effects
 				(font
@@ -5111,7 +5111,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 44.45 61.9252 0)
 			(effects
 				(font
@@ -5154,7 +5154,7 @@
 					(unit 1)
 				)
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C37")
+					(reference "C34")
 					(unit 1)
 				)
 			)
@@ -5185,7 +5185,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 64.77 35.8648 0)
 			(effects
 				(font
@@ -5236,7 +5236,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 114.3 118.11 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5244,7 +5244,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "403a1ade-f78f-4127-add8-9164017b7521")
-		(property "Reference" "#PWR068"
+		(property "Reference" "#PWR072"
 			(at 114.3 124.46 0)
 			(effects
 				(font
@@ -5295,14 +5295,14 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR068")
+					(reference "#PWR072")
 					(unit 1)
 				)
 			)
 		)
 	)
 	(symbol
-		(lib_id "power:+3.3V")
+		(lib_id "SensEdu:+3.3V")
 		(at 53.34 31.75 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5310,7 +5310,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "441a303d-c488-440c-9ad3-59c4baa19d4a")
-		(property "Reference" "#PWR045"
+		(property "Reference" "#PWR047"
 			(at 53.34 35.56 0)
 			(effects
 				(font
@@ -5360,7 +5360,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR045")
+					(reference "#PWR047")
 					(unit 1)
 				)
 			)
@@ -5391,7 +5391,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
+		(property "Footprint" "SensEdu:PinSocket_1x04_P2.54mm_Vertical"
 			(at 100.33 39.37 0)
 			(effects
 				(font
@@ -5451,7 +5451,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "463cca51-e78f-4130-9214-b66d473ddc37")
-		(property "Reference" "C46"
+		(property "Reference" "C47"
 			(at 36.576 113.03 0)
 			(effects
 				(font
@@ -5469,7 +5469,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 44.1452 118.11 0)
 			(effects
 				(font
@@ -5504,14 +5504,14 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C46")
+					(reference "C47")
 					(unit 1)
 				)
 			)
 		)
 	)
 	(symbol
-		(lib_id "power:+3.3V")
+		(lib_id "SensEdu:+3.3V")
 		(at 124.46 31.75 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5519,7 +5519,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "489dcb07-4b43-4e1c-9260-716d84988b27")
-		(property "Reference" "#PWR046"
+		(property "Reference" "#PWR048"
 			(at 124.46 35.56 0)
 			(effects
 				(font
@@ -5569,7 +5569,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR046")
+					(reference "#PWR048")
 					(unit 1)
 				)
 			)
@@ -5602,7 +5602,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 178.1048 64.77 0)
 			(effects
 				(font
@@ -5678,7 +5678,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 192.532 48.26 90)
 			(effects
 				(font
@@ -5750,7 +5750,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 262.382 48.26 90)
 			(effects
 				(font
@@ -5797,7 +5797,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 64.77 36.83 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -5805,7 +5805,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5789f830-7298-46a9-bb13-a67f6d3f752d")
-		(property "Reference" "#PWR049"
+		(property "Reference" "#PWR051"
 			(at 71.12 36.83 0)
 			(effects
 				(font
@@ -5857,7 +5857,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR049")
+					(reference "#PWR051")
 					(unit 1)
 				)
 			)
@@ -5872,7 +5872,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5e9891e9-00fa-4cfc-aa2f-9877d78e5c4d")
-		(property "Reference" "C35"
+		(property "Reference" "C37"
 			(at 255.27 55.88 90)
 			(effects
 				(font
@@ -5890,7 +5890,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 252.73 61.9252 0)
 			(effects
 				(font
@@ -5933,7 +5933,7 @@
 					(unit 1)
 				)
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C35")
+					(reference "C37")
 					(unit 1)
 				)
 			)
@@ -5966,7 +5966,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 193.3448 64.77 0)
 			(effects
 				(font
@@ -6042,7 +6042,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 38.862 48.26 90)
 			(effects
 				(font
@@ -6096,7 +6096,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5fd1fcfb-f389-4d7e-acb6-b5d0d087f54e")
-		(property "Reference" "C41"
+		(property "Reference" "C45"
 			(at 261.62 69.85 0)
 			(effects
 				(font
@@ -6114,7 +6114,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 263.1948 64.77 0)
 			(effects
 				(font
@@ -6157,7 +6157,7 @@
 					(unit 1)
 				)
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C41")
+					(reference "C45")
 					(unit 1)
 				)
 			)
@@ -6190,7 +6190,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 41.148 157.48 90)
 			(effects
 				(font
@@ -6233,7 +6233,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 247.65 73.66 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6241,7 +6241,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "6cd16995-6f3f-4e8b-998c-edc2b82a7cb0")
-		(property "Reference" "#PWR059"
+		(property "Reference" "#PWR065"
 			(at 247.65 80.01 0)
 			(effects
 				(font
@@ -6292,7 +6292,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR059")
+					(reference "#PWR065")
 					(unit 1)
 				)
 			)
@@ -6323,7 +6323,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x04_P2.54mm_Vertical"
+		(property "Footprint" "SensEdu:PinSocket_1x04_P2.54mm_Vertical"
 			(at 165.1 39.37 0)
 			(effects
 				(font
@@ -6401,7 +6401,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 112.268 157.48 90)
 			(effects
 				(font
@@ -6451,7 +6451,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "8cbb7346-be85-46cc-a389-9513bb021bf1")
-		(property "Reference" "C45"
+		(property "Reference" "C39"
 			(at 54.61 68.58 0)
 			(effects
 				(font
@@ -6469,7 +6469,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 56.1848 63.5 0)
 			(effects
 				(font
@@ -6512,7 +6512,7 @@
 					(unit 1)
 				)
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C45")
+					(reference "C39")
 					(unit 1)
 				)
 			)
@@ -6545,7 +6545,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 123.952 48.26 90)
 			(effects
 				(font
@@ -6618,7 +6618,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 75.692 157.48 90)
 			(effects
 				(font
@@ -6660,7 +6660,7 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+3.3V")
+		(lib_id "SensEdu:+3.3V")
 		(at 125.73 109.22 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6668,7 +6668,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a41d8a8f-bfea-42b5-b0ee-091b0fba72c1")
-		(property "Reference" "#PWR066"
+		(property "Reference" "#PWR068"
 			(at 125.73 113.03 0)
 			(effects
 				(font
@@ -6718,7 +6718,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR066")
+					(reference "#PWR068")
 					(unit 1)
 				)
 			)
@@ -6749,7 +6749,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 270.51 35.8648 0)
 			(effects
 				(font
@@ -6825,7 +6825,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 55.372 48.26 90)
 			(effects
 				(font
@@ -6879,7 +6879,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "ab0b2636-870e-4169-b7d7-e8c5f652ce55")
-		(property "Reference" "C40"
+		(property "Reference" "C44"
 			(at 245.11 69.85 0)
 			(effects
 				(font
@@ -6897,7 +6897,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 246.6848 64.77 0)
 			(effects
 				(font
@@ -6940,7 +6940,7 @@
 					(unit 1)
 				)
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C40")
+					(reference "C44")
 					(unit 1)
 				)
 			)
@@ -6948,7 +6948,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 40.64 72.39 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -6956,7 +6956,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "b152aed5-1638-4d66-b2fd-27cdab02bb69")
-		(property "Reference" "#PWR063"
+		(property "Reference" "#PWR059"
 			(at 40.64 78.74 0)
 			(effects
 				(font
@@ -7007,7 +7007,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR063")
+					(reference "#PWR059")
 					(unit 1)
 				)
 			)
@@ -7015,7 +7015,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 271.78 36.83 90)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7023,7 +7023,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "b8602dc3-55e4-4830-ba00-738b5d8459a1")
-		(property "Reference" "#PWR052"
+		(property "Reference" "#PWR054"
 			(at 278.13 36.83 0)
 			(effects
 				(font
@@ -7074,7 +7074,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR052")
+					(reference "#PWR054")
 					(unit 1)
 				)
 			)
@@ -7323,7 +7323,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 264.16 73.66 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7331,7 +7331,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "ba37323b-61f3-47a9-8dc5-2217297fe57a")
-		(property "Reference" "#PWR060"
+		(property "Reference" "#PWR066"
 			(at 264.16 80.01 0)
 			(effects
 				(font
@@ -7382,7 +7382,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR060")
+					(reference "#PWR066")
 					(unit 1)
 				)
 			)
@@ -7413,7 +7413,7 @@
 				)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 134.62 35.8648 0)
 			(effects
 				(font
@@ -7463,7 +7463,7 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+3.3V")
+		(lib_id "SensEdu:+3.3V")
 		(at 54.61 109.22 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7471,7 +7471,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c49a0469-8bc6-4745-8d64-5f4afb72d3fb")
-		(property "Reference" "#PWR065"
+		(property "Reference" "#PWR067"
 			(at 54.61 113.03 0)
 			(effects
 				(font
@@ -7521,7 +7521,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR065")
+					(reference "#PWR067")
 					(unit 1)
 				)
 			)
@@ -7529,7 +7529,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 57.15 72.39 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7537,7 +7537,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c98dc069-5016-4752-b041-6fc68d3c3049")
-		(property "Reference" "#PWR064"
+		(property "Reference" "#PWR060"
 			(at 57.15 78.74 0)
 			(effects
 				(font
@@ -7588,7 +7588,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR064")
+					(reference "#PWR060")
 					(unit 1)
 				)
 			)
@@ -7603,7 +7603,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "cbabcb57-547d-45e4-9ed6-2cda1c5b6878")
-		(property "Reference" "C61"
+		(property "Reference" "C46"
 			(at 25.146 113.03 0)
 			(effects
 				(font
@@ -7621,7 +7621,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 32.7152 118.11 0)
 			(effects
 				(font
@@ -7656,7 +7656,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C61")
+					(reference "C46")
 					(unit 1)
 				)
 			)
@@ -7671,7 +7671,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "cbd5db9a-0864-4c1e-b891-4d0ad5120a45")
-		(property "Reference" "C44"
+		(property "Reference" "C38"
 			(at 38.1 68.58 0)
 			(effects
 				(font
@@ -7689,7 +7689,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 39.6748 63.5 0)
 			(effects
 				(font
@@ -7732,7 +7732,7 @@
 					(unit 1)
 				)
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C44")
+					(reference "C38")
 					(unit 1)
 				)
 			)
@@ -7747,7 +7747,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d6342756-c547-41df-a8f4-7701c8720f68")
-		(property "Reference" "C39"
+		(property "Reference" "C41"
 			(at 123.19 69.85 0)
 			(effects
 				(font
@@ -7765,7 +7765,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+		(property "Footprint" "SensEdu:C_0603_1608Metric"
 			(at 124.7648 64.77 0)
 			(effects
 				(font
@@ -7808,14 +7808,14 @@
 					(unit 1)
 				)
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "C39")
+					(reference "C41")
 					(unit 1)
 				)
 			)
 		)
 	)
 	(symbol
-		(lib_id "power:+3.3V")
+		(lib_id "SensEdu:+3.3V")
 		(at 260.35 33.02 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7823,7 +7823,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "e26f3565-ae6b-4a6a-92b4-734a07a69912")
-		(property "Reference" "#PWR048"
+		(property "Reference" "#PWR050"
 			(at 260.35 36.83 0)
 			(effects
 				(font
@@ -7873,7 +7873,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR048")
+					(reference "#PWR050")
 					(unit 1)
 				)
 			)
@@ -7881,7 +7881,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 129.54 172.72 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7889,7 +7889,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "e7d887af-1ce3-49a4-b92d-beefd0faf35e")
-		(property "Reference" "#PWR070"
+		(property "Reference" "#PWR074"
 			(at 129.54 179.07 0)
 			(effects
 				(font
@@ -7940,7 +7940,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR070")
+					(reference "#PWR074")
 					(unit 1)
 				)
 			)
@@ -7973,7 +7973,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 108.712 48.26 90)
 			(effects
 				(font
@@ -8020,7 +8020,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 105.41 49.53 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8028,7 +8028,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "eb16c2b0-1a9c-474e-8fc5-4b7c2f55f69a")
-		(property "Reference" "#PWR056"
+		(property "Reference" "#PWR058"
 			(at 105.41 55.88 0)
 			(effects
 				(font
@@ -8079,7 +8079,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR056")
+					(reference "#PWR058")
 					(unit 1)
 				)
 			)
@@ -8087,7 +8087,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 170.18 48.26 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8095,7 +8095,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "ee8edc82-2cb5-4788-b462-e708112efd28")
-		(property "Reference" "#PWR054"
+		(property "Reference" "#PWR056"
 			(at 170.18 54.61 0)
 			(effects
 				(font
@@ -8146,7 +8146,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR054")
+					(reference "#PWR056")
 					(unit 1)
 				)
 			)
@@ -8179,7 +8179,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 150.368 157.48 90)
 			(effects
 				(font
@@ -8222,7 +8222,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 35.56 48.26 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8230,7 +8230,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f28299f9-3967-41c1-9478-57526736413b")
-		(property "Reference" "#PWR053"
+		(property "Reference" "#PWR055"
 			(at 35.56 54.61 0)
 			(effects
 				(font
@@ -8281,7 +8281,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR053")
+					(reference "#PWR055")
 					(unit 1)
 				)
 			)
@@ -8289,7 +8289,7 @@
 	)
 	(symbol
 		(lib_name "GND_1")
-		(lib_id "power:GND")
+		(lib_id "SensEdu:GND_1")
 		(at 31.75 118.11 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8297,7 +8297,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f7641360-7def-4aed-804c-43ba5e62368a")
-		(property "Reference" "#PWR0100"
+		(property "Reference" "#PWR069"
 			(at 31.75 124.46 0)
 			(effects
 				(font
@@ -8348,7 +8348,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR0100")
+					(reference "#PWR069")
 					(unit 1)
 				)
 			)
@@ -8381,7 +8381,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+		(property "Footprint" "SensEdu:R_0603_1608Metric"
 			(at 177.292 48.26 90)
 			(effects
 				(font
@@ -8427,7 +8427,7 @@
 		)
 	)
 	(symbol
-		(lib_id "power:+3.3V")
+		(lib_id "SensEdu:+3.3V")
 		(at 182.88 33.02 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8435,7 +8435,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "fef01af6-225c-4f20-abf1-8e2739b134ab")
-		(property "Reference" "#PWR047"
+		(property "Reference" "#PWR049"
 			(at 182.88 36.83 0)
 			(effects
 				(font
@@ -8485,7 +8485,7 @@
 		(instances
 			(project "SensEdu"
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "#PWR047")
+					(reference "#PWR049")
 					(unit 1)
 				)
 			)
