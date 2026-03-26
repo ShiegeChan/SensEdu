@@ -2003,16 +2003,6 @@
 		)
 		(uuid "aa0f4c3a-b926-4d33-977e-1c6044d809ea")
 	)
-	(text "features to debug"
-		(exclude_from_sim no)
-		(at 59.69 87.63 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-		)
-		(uuid "c924c398-c766-4607-b7d3-fa94d6738aab")
-	)
 	(text "LOW DROPOUT VOLTAGE REFERENCE 3.3V->2.5V"
 		(exclude_from_sim yes)
 		(at 218.948 20.32 0)
@@ -3196,7 +3186,7 @@
 		(dnp no)
 		(uuid "0e52df76-3f90-4a6d-9fe2-f200a534d76d")
 		(property "Reference" "TP5"
-			(at 241.554 76.454 0)
+			(at 244.348 76.2 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3205,7 +3195,7 @@
 			)
 		)
 		(property "Value" "+1.25V"
-			(at 242.824 78.232 0)
+			(at 242.062 78.232 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3660,7 +3650,7 @@
 		(dnp no)
 		(uuid "29af81b3-3d98-42fc-91e9-fba37b4052d4")
 		(property "Reference" "TP6"
-			(at 116.078 95.25 0)
+			(at 118.364 87.884 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3669,7 +3659,7 @@
 			)
 		)
 		(property "Value" "-3.3V"
-			(at 112.776 97.028 0)
+			(at 116.84 86.106 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5195,7 +5185,7 @@
 		(dnp no)
 		(uuid "b92da414-5a87-4b59-9863-8a253c38154a")
 		(property "Reference" "TP2"
-			(at 106.172 45.974 0)
+			(at 103.378 47.498 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5204,7 +5194,7 @@
 			)
 		)
 		(property "Value" "+3.3V"
-			(at 110.744 48.514 0)
+			(at 102.108 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
