@@ -5,22 +5,10 @@
 	(layer "F.Cu")
 	(descr "SOT23-5L_")
 	(tags "Integrated Circuit")
-	(property "Reference" "REF**"
-		(at -0.17 2.425 0)
-		(layer "F.SilkS")
-		(uuid "366a22a2-27f6-43fc-a6ab-5da3e5061971")
-		(effects
-			(font
-				(size 1 1)
-				(thickness 0.12)
-			)
-		)
-	)
-	(property "Value" "LDLN025M25R"
+	(property "Reference" "IC**"
 		(at 0 0 0)
 		(layer "F.SilkS")
-		(hide yes)
-		(uuid "b5c6d896-5e41-41d5-af9f-419252d8d0ce")
+		(uuid "4fd3bcc8-916f-496e-8d39-919cb73e0ee6")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -28,11 +16,23 @@
 			)
 		)
 	)
-	(property "Datasheet" "https://www.st.com/resource/en/datasheet/ldln025.pdf"
+	(property "Value" "SOT95P280X145-5N"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "c5506764-5a78-4d83-9119-c03d6c3cf358")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(property "Datasheet" ""
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "27807e19-31fc-4ff7-8009-c1cc98bf441d")
+		(uuid "fd3c35af-a8ef-4360-ac9f-c22455cbcd71")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -40,139 +40,28 @@
 			)
 		)
 	)
-	(property "Description" "250 mA ultra low noise LDO"
+	(property "Description" ""
 		(at 0 0 0)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "c33ae144-71ca-43bd-8d5c-138e6118e59e")
+		(uuid "bce5b8ce-ec7e-485e-a2d2-4e0c26d18cfe")
 		(effects
 			(font
 				(size 1.27 1.27)
-				(thickness 0.15)
-			)
-		)
-	)
-	(property "Height" "1.45"
-		(at 0 0 180)
-		(unlocked yes)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "b2f35f8d-5f3a-4d76-a1af-2095ee4764fb")
-		(effects
-			(font
-				(size 1 1)
-				(thickness 0.15)
-			)
-		)
-	)
-	(property "Manufacturer_Name" "STMicroelectronics"
-		(at 0 0 180)
-		(unlocked yes)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "48774e58-a545-41e5-8e56-69bb9f21df01")
-		(effects
-			(font
-				(size 1 1)
-				(thickness 0.15)
-			)
-		)
-	)
-	(property "Manufacturer_Part_Number" "LDLN025M25R"
-		(at 0 0 180)
-		(unlocked yes)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "73606aa2-ffd3-46cb-af81-b33547ced30d")
-		(effects
-			(font
-				(size 1 1)
-				(thickness 0.15)
-			)
-		)
-	)
-	(property "Mouser Part Number" "511-LDLN025M25R"
-		(at 0 0 180)
-		(unlocked yes)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "3e3599ae-bee9-4bc7-b751-b36a4d800822")
-		(effects
-			(font
-				(size 1 1)
-				(thickness 0.15)
-			)
-		)
-	)
-	(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/STMicroelectronics/LDLN025M25R?qs=5aG0NVq1C4wSHhiEnEzM%2Fg%3D%3D"
-		(at 0 0 180)
-		(unlocked yes)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "81a14b20-bc01-4353-ac0a-ff73f12268d5")
-		(effects
-			(font
-				(size 1 1)
-				(thickness 0.15)
-			)
-		)
-	)
-	(property "Arrow Part Number" "LDLN025M25R"
-		(at 0 0 180)
-		(unlocked yes)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "54c43c24-9495-4941-a130-57ae5275f095")
-		(effects
-			(font
-				(size 1 1)
-				(thickness 0.15)
-			)
-		)
-	)
-	(property "Arrow Price/Stock" "https://www.arrow.com/en/products/ldln025m25r/stmicroelectronics?utm_currency=USD&region=nac"
-		(at 0 0 180)
-		(unlocked yes)
-		(layer "F.Fab")
-		(hide yes)
-		(uuid "257b35a2-4f40-4b7f-b401-2c2ad94881af")
-		(effects
-			(font
-				(size 1 1)
 				(thickness 0.15)
 			)
 		)
 	)
 	(attr smd)
 	(fp_line
-		(start 0.325 1.475)
-		(end -0.325 1.475)
+		(start -1.825 -1.5)
+		(end -0.675 -1.5)
 		(stroke
 			(width 0.2)
 			(type solid)
 		)
 		(layer "F.SilkS")
-		(uuid "8aaaacbf-8796-405a-be7e-a8b1372a5975")
-	)
-	(fp_line
-		(start 0.325 -1.475)
-		(end 0.325 1.475)
-		(stroke
-			(width 0.2)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "70199773-3f9f-47ca-8fd2-ae18e934fe14")
-	)
-	(fp_line
-		(start -0.325 1.475)
-		(end -0.325 -1.475)
-		(stroke
-			(width 0.2)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "3087c534-e621-4392-8f0c-4063841b70b6")
+		(uuid "e604d066-4d11-4dc9-8bc1-44963f4741b3")
 	)
 	(fp_line
 		(start -0.325 -1.475)
@@ -182,47 +71,37 @@
 			(type solid)
 		)
 		(layer "F.SilkS")
-		(uuid "f1175457-fdba-4a52-bc62-868deb0e15cf")
+		(uuid "8a3350ff-8145-4361-a2dd-d951fc66a9a8")
 	)
 	(fp_line
-		(start -1.825 -1.5)
-		(end -0.675 -1.5)
+		(start -0.325 1.475)
+		(end -0.325 -1.475)
 		(stroke
 			(width 0.2)
 			(type solid)
 		)
 		(layer "F.SilkS")
-		(uuid "39c819a8-59b3-400c-93f4-6afa2f4c0b85")
+		(uuid "4b7a61c4-925e-46c1-9a00-f790db0feb75")
 	)
 	(fp_line
-		(start 2.075 1.725)
-		(end -2.075 1.725)
+		(start 0.325 -1.475)
+		(end 0.325 1.475)
 		(stroke
-			(width 0.05)
+			(width 0.2)
 			(type solid)
 		)
-		(layer "F.CrtYd")
-		(uuid "c4206180-289e-4b87-ac91-b77cc3ab37d4")
+		(layer "F.SilkS")
+		(uuid "4ce200a7-0b6c-4488-94fc-7695940bfbd9")
 	)
 	(fp_line
-		(start 2.075 -1.725)
-		(end 2.075 1.725)
+		(start 0.325 1.475)
+		(end -0.325 1.475)
 		(stroke
-			(width 0.05)
+			(width 0.2)
 			(type solid)
 		)
-		(layer "F.CrtYd")
-		(uuid "2177220d-1d9b-4bd9-8511-588b0502a327")
-	)
-	(fp_line
-		(start -2.075 1.725)
-		(end -2.075 -1.725)
-		(stroke
-			(width 0.05)
-			(type solid)
-		)
-		(layer "F.CrtYd")
-		(uuid "96e394b7-c16c-454b-9525-8568e4b1b114")
+		(layer "F.SilkS")
+		(uuid "834ce70a-29e3-4616-83cd-472ed65a3f04")
 	)
 	(fp_line
 		(start -2.075 -1.725)
@@ -232,47 +111,37 @@
 			(type solid)
 		)
 		(layer "F.CrtYd")
-		(uuid "3443707d-039d-481e-b56d-533221ff8491")
+		(uuid "71733e00-5f8a-4dae-a7c6-fba4c3824ef3")
 	)
 	(fp_line
-		(start 0.8 1.475)
-		(end -0.8 1.475)
+		(start -2.075 1.725)
+		(end -2.075 -1.725)
 		(stroke
-			(width 0.1)
+			(width 0.05)
 			(type solid)
 		)
-		(layer "F.Fab")
-		(uuid "2f77102f-bdc5-4d13-8782-7f92888322f8")
+		(layer "F.CrtYd")
+		(uuid "2eba2214-99f0-4585-8502-38b918ec6498")
 	)
 	(fp_line
-		(start 0.8 -1.475)
-		(end 0.8 1.475)
+		(start 2.075 -1.725)
+		(end 2.075 1.725)
 		(stroke
-			(width 0.1)
+			(width 0.05)
 			(type solid)
 		)
-		(layer "F.Fab")
-		(uuid "dd709fa5-ed5f-44e3-9528-65f6a8b0a855")
+		(layer "F.CrtYd")
+		(uuid "c8b3451e-adb9-4cf0-ad80-993aa22e4d91")
 	)
 	(fp_line
-		(start -0.8 1.475)
-		(end -0.8 -1.475)
+		(start 2.075 1.725)
+		(end -2.075 1.725)
 		(stroke
-			(width 0.1)
+			(width 0.05)
 			(type solid)
 		)
-		(layer "F.Fab")
-		(uuid "eb5f48bf-c0d5-49fc-8b0f-5c7d95162b30")
-	)
-	(fp_line
-		(start -0.8 -0.525)
-		(end 0.15 -1.475)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.Fab")
-		(uuid "a2d4f68b-e141-414c-982a-480cf55dd3e1")
+		(layer "F.CrtYd")
+		(uuid "46125788-0463-4dcd-8f7e-21612cc723ae")
 	)
 	(fp_line
 		(start -0.8 -1.475)
@@ -282,12 +151,52 @@
 			(type solid)
 		)
 		(layer "F.Fab")
-		(uuid "32c5edfa-40c7-4d30-8c0b-59649411c6d3")
+		(uuid "85dce47b-0ac6-4bf3-9bcb-345fe3840243")
+	)
+	(fp_line
+		(start -0.8 -0.525)
+		(end 0.15 -1.475)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "af8661c4-c585-455c-b47d-971ab7a9499c")
+	)
+	(fp_line
+		(start -0.8 1.475)
+		(end -0.8 -1.475)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "8c14667d-ee78-4dac-b71b-026248b78fb8")
+	)
+	(fp_line
+		(start 0.8 -1.475)
+		(end 0.8 1.475)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "b645d52f-f397-4548-ab77-1593588a952b")
+	)
+	(fp_line
+		(start 0.8 1.475)
+		(end -0.8 1.475)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "b25c0ded-eea5-42ce-9d33-c1643fae2a38")
 	)
 	(fp_text user "${REFERENCE}"
 		(at 0 0 0)
 		(layer "F.Fab")
-		(uuid "00516a68-c6c0-4ee1-8d22-7bb40860ebd7")
+		(uuid "90a0ff02-7d1b-420a-8e69-784c43ff902b")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -296,34 +205,34 @@
 		)
 	)
 	(pad "1" smd rect
-		(at -1.25 -0.95 270)
+		(at -1.25 -0.95 90)
 		(size 0.6 1.15)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "260fa5da-8711-4e3c-8f14-15e4042227cf")
+		(uuid "e8bebd60-8272-4b9d-b0a7-9c154d9309b7")
 	)
 	(pad "2" smd rect
-		(at -1.25 0 270)
+		(at -1.25 0 90)
 		(size 0.6 1.15)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "1eae81c6-3bb1-4a93-a706-849958e0f07a")
+		(uuid "25ef1c54-418f-4be0-86be-1e8a5d563115")
 	)
 	(pad "3" smd rect
-		(at -1.25 0.95 270)
+		(at -1.25 0.95 90)
 		(size 0.6 1.15)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "0e7c19a4-1e37-4e09-acda-7744b55ee22c")
+		(uuid "d201bd49-2159-4743-ac5d-69123fbbb5eb")
 	)
 	(pad "4" smd rect
-		(at 1.25 0.95 270)
+		(at 1.25 0.95 90)
 		(size 0.6 1.15)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "a925dfa4-8abe-426d-b9ee-c4479d6fbb0a")
+		(uuid "7243ebde-e7c9-4702-96d9-1fd9c546ad50")
 	)
 	(pad "5" smd rect
-		(at 1.25 -0.95 270)
+		(at 1.25 -0.95 90)
 		(size 0.6 1.15)
 		(layers "F.Cu" "F.Mask" "F.Paste")
-		(uuid "a287c915-6124-4a2d-bb44-982a59198645")
+		(uuid "9e90674c-4efb-4151-92e2-39c26f07fc48")
 	)
 	(embedded_fonts no)
 	(model "C:\\Users\\ober\\Nextcloud\\Tech\\PCB Libraries\\SamacSys_Parts.3dshapes\\LDLN025M25R.stp"
