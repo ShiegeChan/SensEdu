@@ -424,6 +424,11 @@ Another thing to note is, even though the frequency changes in both cases in the
 
 ## Developer Notes
 
+### Output Buffer
+AC coupling circuit right after the DAC takes more current than DAC normally can deliver, resulting in a signal attenuation. To drive bigger currents, the internal buffer right at the DAC output can be enabled by setting the `MCR` register to `0b000` (page 1109 of the [Reference Manual]).
+
+<img src="{{site.baseurl}}/assets/images/dac_buffer.png" alt="drawing"/> 
+
 ### DMA Streams
 
 Each DAC channel occupies one DMA Stream:
