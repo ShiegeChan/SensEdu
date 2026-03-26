@@ -52,13 +52,13 @@ The symbols and footprints are integrated into the project with internal project
 **Front side**
 {: .mb-1}
 
-<img src="{{site.baseurl}}/assets/images/sensedu_front_bg.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/sensedu-0.9-front-bg-rm.png" alt="drawing"/>
 {: .text-center .mt-0}
 
 **Back side**
 {: .mb-1}
 
-<img src="{{site.baseurl}}/assets/images/sensedu_back_bg.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/sensedu-0.9-back-bg-rm.png" alt="drawing"/>
 {: .text-center .mt-0}
 
 ## Power Supply
@@ -198,7 +198,7 @@ I2C2 (D20 and D21) corresponds to the correct instance of the Arduino.
 | SHT40-AD1F | 0x44 | 
 
 {: .NOTE}
-Use Wire2 to be able to talk to the sensors via I2C2 of the Arduino GIGA.
+Use Wire (D20/D21) to be able to talk to the sensors via I2C (Default) of the Arduino GIGA.
 
 
 ### Barometric Pressure Sensor ([Infineon DPS368](https://www.infineon.com/assets/row/public/documents/24/49/infineon-dps368-datasheet-en.pdf))
