@@ -15,13 +15,13 @@ nav_order: 7
 
 ## Introduction
 
-Telecommunications are undeniably fascinating, yet they have historically been fraught with significant technical challenges. For decades, the field has been almost exclusively dominated by Radio Frequency (RF) and electromagnetic waves. While effective, these methods often face limitations in specidic environments, such as interference or higher attenuation (in salty water, for example). This leads to an interesting alternative: why not use ultrasound as a communication medium instead? By shifting our foucs from the electromagnetic spectrum to acoustic propagation, we can develop alternative commucation systems that are both innovative and remarkably efficient for shot-range, interference-free data exchange. 
+Telecommunications are undeniably fascinating, yet they have historically been fraught with significant technical challenges. For decades, the field has been almost exclusively dominated by Radio Frequency (RF) and electromagnetic waves. While effective, these methods often face limitations in specific environments, such as interference or higher attenuation (in salty water, for example). This leads to an interesting alternative: why not use ultrasound as a communication medium instead? By shifting our foucs from the electromagnetic spectrum to acoustic propagation, we can develop alternative commucation systems that are both innovative and remarkably efficient for shot-range, low-interference data exchange. 
 
 Since we are still dealing with waves, the same fundamental principles of signal modulation apply. Traditionally, two primary methods have been established to enconde information into a carrier wave:
-* **Amplitude Modulation (AM):** This technique involves varying the strenght or amplitude of the signal. While simple to implement, it is highly susceptible to noise and atmospheric interference, which can earily distort the data
+* **Amplitude Modulation (AM):** This technique involves varying the strength or amplitude of the signal. While simple to implement, it is highly susceptible to noise and atmospheric interference, which can easily distort the data
 * **Frequency Modulation (FM):** Instead of changing the amplitude, this method varies the frequency of the carrier wave. It offers much greater resilience against background noise and signal fading. 
 
-Our main focus will be on the latter, given that frequency-based modulation is inherently more robust for acoustic environments, as it effectively filters out most ambient noise and ensures a more reliable decoding process. Specifically, we will implement Frequency Shift Keying (FSK) as our modulation scheme. This method relies on a fundamental wave known as the 'carrier.' In our system, we assign the bit '0' to this base frequency. To represent a bit '1,' we shift the signal to a slightly higher frequency. As illustrated in the diagram, data is transmitted by switching the frequency of the acoustic wave between these two predefined values. By sending these controlled 'trains of bits,' we can effectively encode and transmit complex data and text through ultrasonic waves.
+Our main focus will be on the latter, given that frequency-based modulation is inherently more robust for acoustic environments, as it effectively filters out most ambient noise and ensures a more reliable decoding process. Specifically, we will implement Frequency Shift Keying (FSK) as our modulation scheme. This method relies on a fundamental wave known as the 'carrier.' In our system, we assign the bit '0' to this base frequency. To represent a bit '1,' we shift the signal to a slightly higher frequency. As illustrated in the diagram, data is transmitted by switching the frequency of the acoustic wave between these two predefined values. By sending these controlled bit sequences, we can effectively encode and transmit complex data and text through ultrasonic waves.
 
 <img src="{{site.baseurl}}/assets/images/fsk_carrier_representation.png"/>
 {: .text-center}
@@ -33,7 +33,7 @@ _Binary FSK signal generation_
 
 To decode these frequency shifts, we require an efficient method to detect specific tones within a continuous stream of acoustic data. While the Fast Fourier Transform (FFT) is the most common tool for spectral analysis, it is computationally expensive because it analyzes the entire frequency spectrum at once.
 
-Instead, our system utilizes the Goertzel Algorithm. Unlike the FFT, Goertzel is a digital filter that focuses exclusively on pre-selected frequencies. We will select the frequencies so that the difference provides us with enough bandwidth to detect each tone without interference, making the algorithm significantly faster and more resource-efficient for embedded systems. By calculating the energy of only these two specific frequency components, the SensEdu board can determine in real-time whether a bit '0' or a bit '1' is being received, effectively filtering out ambient noise and ensuring high-speed, reliable communication.
+Instead, our system utilizes the Goertzel Algorithm. Unlike the FFT, Goertzel is a digital filter that focuses exclusively on pre-selected frequencies. We will select the frequencies so that the difference provides us with enough bandwidth to detect each tone without interference, making the algorithm significantly faster and more resource-efficient for embedded systems. By calculating the energy of only these two specific frequency components, the embedded system could determine in real-time whether a bit '0' or a bit '1' is being received, effectively filtering out ambient noise and ensuring high-speed, reliable communication.
 
 To implement this algorithm, we separate it into a specialized two-stage digital filter. The first stage is a second-order **IIR filter** that process the ADC input sequence **x[n]** to calculate an intermediate value **s[n]**. This is highly efficient as it only requires one multiplication per sample:
 
@@ -44,7 +44,7 @@ s[n] = x[n] + 2 \cos(\omega_0) \cdot s[n - 1] - s[n - 2]
 \end{equation}
 $$
 
-Where s[-1] = s[-2] = 0 at the start of each bit window. After processing the 
+Where $$s[-1] = s[-2] = 0 $$ at the start of each bit window. After processing the 
  samples, the second stage (a **FIR filter**) computes the final power of the frequency components:
 
 $$
@@ -56,35 +56,35 @@ $$
 
 The system then compares the resulting Power values, decoding the bit as '0' or '1' based on the frequency component which exhibits the highest energy.
 
-## Hardware set up
+## Hardware Setup
 
-To perform this modulated communication, the essential components required are a transmitter and a receiver. For this project, we use two SensEdu boardes based on the Arduino GIGA R1 WIFI:  
+To perform this modulated communication, the essential required components are a transmitter and a receiver. For this project, we use two SensEdu boards based on the Arduino GIGA R1 WIFI:  
 
 * **Transmitter (Tx):** Uses an ultrasonic **tranducer**{: .text-green-000} to generate and emit the modulated acoustic waves.
 
-* **Receiver (Rx):** Captures the incoming signal using the onboard **MEMS microphones**{: .text-green-000}, which provides the high sensitivity needed for ultrasonic frequencies.
+* **Receiver (Rx):** Captures the incoming signal using the onboard **MEMS microphones**{: .text-green-000}.
 
 <img src="{{site.baseurl}}/assets/images/two_boards_fsk.jpeg" width="500"/>
 {: .text-center}
 
-The two boards are placed directly in front of each other to ensure a direct transmission path and to minimize signal attenuation caused by the environment. For our tests, they were separated by a distance of 40 to 50 cm, providing a stable channel for data exchange.
+The two boards are placed directly in front of each other to ensure a direct transmission path and to minimize signal attenuation caused by the environment. For our tests, they were separated by a distance of 40 to 100 cm, providing a stable channel for data exchange.
 
 {: .NOTE}
 The communication between the two boards is completely wireless, so only USB / USB-C connection to the computer is needed.
 
 
-## Software implementation
+## Software Implementation
 
-The software architecture is divided into two main modules: the **Signal Generation** on the transmitter side and the **Digital Signal Processing (DSP)** on the receiver side. Both modules are optimized to leverage the Arduino GIGA’s hardware capabilities.
+The software architecture is divided into two main modules: the **Signal Generation** on the transmitter side and the **Digital Signal Processing (DSP)** on the receiver side. 
 
 
 ### Transmitter
 
-The transmitter’s primary role is to **convert digital data into a continuous FSK-modulated acoustic wave**{: .text-green-000}, i.e. the current implementation handles waveform synthesis directly, ensuring a more flexible and integrated approach. Im order to do that, the system utilizes the internal 12-bit DAC to produce high-resolution sine waves. By switching between two target frequencies, the transmitter creates the necessary frequency shifts to encode information. To improve stability and frequency precission, a phase accumulation logic is defined for each frequency. 
+The transmitter’s primary role is to **convert digital data into a continuous FSK-modulated acoustic wave**{: .text-green-000}, i.e. the current implementation handles waveform synthesis directly, ensuring a more flexible and integrated approach. In order to do that, the system utilizes the internal 12-bit DAC to produce high-resolution sine waves. By switching between two target frequencies, the transmitter creates the necessary frequency shifts to encode information. To improve stability and frequency precission, a phase accumulation logic is defined for each frequency. 
 
-Due to the finite size of the hardware memory buffer, the maximun message length is set to **30 characters**. This limit is carefully calculated considering the **200 samples** allocated per bit; this duration provides the ultrasonic transducer with sufficient time to stabilize and adapt to each frequency shift, ensuring a clean transition between logic states. With a 480 kHz sampling rate and 200 samples per bit, the frequency resolution is 2.4 kHz. We therefore select tones that land exactly on Goertzel bin centers, 31.2 kHz (13 × 2.4 kHz) and 36.0 kHz (15 × 2.4 kHz), while keeping them near the transducer’s ≈33 kHz resonance to maximize acoustic efficiency and detection robustness.
+Due to the finite size of the hardware memory buffer, the maximun message length is set to **30 characters**. This limit is calculated considering the **200 samples** allocated per bit; this duration provides the ultrasonic transducer with sufficient time to stabilize and adapt to each frequency shift, ensuring a clean transition between logic states. With a 480 kHz sampling rate and 200 samples per bit, the frequency resolution is 2.4 kHz. We therefore select tones that land exactly on Goertzel bin centers, 31.2 kHz (13 × 2.4 kHz) and 36.0 kHz (15 × 2.4 kHz), while keeping them near the transducer’s ≈33 kHz resonance to maximize acoustic efficiency and detection robustness.
 
-To make sure the wave is perfectly continuous, the system uses the SENSEDU_DAC_MODE_BURST_WAVE. By connecting the dma_buffer directly to the DAC through DMA, the transmission stays stable and avoids any gaps or delays between the bits. For more information about DAC configurations, go to [DAC_Burst_Sine](https://sensedu-shield.com/library/dac/#dac_burst_sine).
+The system uses SENSEDU_DAC_MODE_BURST_WAVE to transmit tone bursts. By connecting the dma_buffer directly to the DAC through DMA, the transmission stays stable and avoids any gaps or delays between the bits. For more information about DAC configurations, go to [DAC_Burst_Sine]({% link library/dac.md %}#dac_burst_sine).
 
 ```c
 // Maximum number of characters to send between separate messages
@@ -132,6 +132,12 @@ void construct_bit(bool bit, float* phase, uint16_t* buf_pos) {
     }
 }
 ```
+
+We use an oscilloscope to verify how the signal is transmitted. The trace below shows an example captured while sending a single character.
+
+<img src="{{site.baseurl}}/assets/images/fsk_transmitter_oscilloscope.png" width="500"/>
+{: .text-center}
+
 Once we have the logic to create a single bit, we need to organize the entire message in memory. The ```construct_buffer``` function acts as the "architect" of the transmission by preparing a continuous stream of data. First, the system clears the memory buffer to ensure no old data interferes with the new message. Then, it generates a **Preamble**, which is a repetitive pattern of '1's and '0's. This is crucial because it acts as a "wake-up call" for the receiver, allowing it to detect that a transmission is starting and to synchronize its clock. Next, the function breaks down each character of the message into its 8 individual bits and calls the ```construct_bit``` function to fill the buffer with the corresponding 31.2 kHz or 36 kHz waves. It also includes an ending line, so that the receiver knows when to stop recording.
 
 ```c
@@ -223,7 +229,7 @@ static const uint16_t MSG_RECORD_WINDOW_SEC = 3;
 static const uint32_t SAMPLING_RATE = 240000;
 ```
 
-The ADC runs continuously and writes into a **double (ping‑pong) buffer** so one half can be forwarded while the other is filling, avoiding gaps. Each chunk is then sent to MATLAB for decoding, and basic error checks report and stop the system if something unexpected occurs. To get more information about circular DMA mode go to [ADC_1CH_DMA_CIRCULAR](https://sensedu-shield.com/library/adc/#adc_1ch_dma_circular).
+The ADC runs continuously and writes into a **double (ping‑pong) buffer** so one half can be forwarded while the other is filling, avoiding gaps. Each chunk is then sent to MATLAB for decoding, and basic error checks report and stop the system if something unexpected occurs. To get more information about circular DMA mode go to [ADC_1CH_DMA_CIRCULAR]({% link library/adc.md %}#adc_1ch_dma_circular).
 
 ```c
 static ADC_TypeDef* adc = ADC1;
@@ -246,7 +252,7 @@ SensEdu_ADC_Settings adc_settings = {
 
 ### Signal Decoding in MATLAB
 
-Now that the full message has been sent to MATLAB, we can start decoding. First, set the receiver parameters: sampling rate, samples per bit (N), the two FSK tone frequencies, the preamble, etc. Make sure every value matches the transmitter and capture setup.
+Now that the full message has been sent to MATLAB, we can start decoding. First, set the receiver parameters: sampling rate, samples per bit (N), the two FSK tone frequencies, the preamble, etc. Make sure every value matches the transmitter and capture firmware.
 
 {: .NOTE}
 Be careful setting the parameters, everything must match with both receiver and transmitter.
@@ -284,6 +290,11 @@ function [energy_diff, x_labels] = run_goertzel(data, hop, N, k)
 end
 ```
 
+The figure below shows the **MATLAB visualization of the captured data**{: .text-green-000}. The waveform is segmented into equal, bit‑sized chunks (yellow). Each chunk contains a tone burst at either the lower or the higher FSK frequency, forming the transmitted bit pattern. Although some amplitude noise is present, the frequency shifts are clear and the transitions between chunks are smooth. The differing amplitudes of the two tones also highlight the method’s robustness: even though the tones are offset from the transducer’s resonance and thus attenuated differently, the decoder still separates them reliably.
+
+<img src="{{site.baseurl}}/assets/images/fsk_received_message_MATLAB.png" width="900"/>
+{: .text-center}
+
 Next step will be to detect the **preamble**{: .text-green-000} of our signal. In order to do so, we have implemented the function ```analyze_preamble```, that scans our measured energy difference, slides the preamble pattern across it, and finds where it fits best. Finally, it chooses the alignment (hop) with the best overall score and returns the one that fits best, the possition where the preamble start, and the result of the strongest match.
 
 ```matlab
@@ -310,9 +321,11 @@ end
 Last but not least we perform the decoding of the message into ASCII and plot both the result of the convolution and goertzel. We can finally see our **transmitted message on the command window**{: .text-green-000}.
 
 
-
 ## Showcase
-This last section shows a real test using the FSK communication. We upload both receiver and transmitter codes to the respective arduino board, and run the MATLAB code. 
+This last section shows a real test using the FSK communication. While placing the boards in front of eachother at a distance close to one meter, we upload both receiver and transmitter codes to the respective arduino board, and run the MATLAB code. 
+
+<img src="{{site.baseurl}}/assets/images/fsk_setup.jpeg" width="500"/>
+{: .text-center}
 
 {: .NOTE}
 You will probably need to change the ```ARDUINO_PORT``` as well as the ```ARDUINO_BAUDRATE``` to match the receiver.
@@ -323,6 +336,6 @@ Once you run the code in the transmitter you can open the serial monitor and sta
 
 You will see the result in the Command Window of MATLAB. 
 
-<img src="{{site.baseurl}}/assets/images/fsk_received_message.png" width="500"/>
+<img src="{{site.baseurl}}/assets/images/fsk_received_message_1.png" width="500"/>
 
 **The only thing left to do is to enjoy!**
