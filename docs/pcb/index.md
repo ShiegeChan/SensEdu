@@ -244,7 +244,7 @@ Use Wire (D20/D21) to be able to talk to the sensors via I2C (Default) of the Ar
 
 ### Ultrasound Speakers ([Prowave 328ST160](http://www.prowave.com.tw/pdf/T328S16.PDF))
    
-The Prowave 328ST160 is an ultrasound speaker designed specifically for emitting high-frequency sound waves. With a Helmholtz resonance frequency of 32.8 kHz, it is ideal for generating ultrasound signals that can be used in various applications such as distance measurement and object detection.
+The Prowave 328ST160 is an ultrasound speaker designed specifically for emitting high-frequency sound waves. With a resonance frequency of 32.8&#8239;kHz, it is ideal for generating ultrasound signals that can be used in various applications such as distance measurement and object detection.
 
 <img src="{{site.baseurl}}/assets/images/speaker.png" alt="drawing" width="250"/>
 
@@ -274,7 +274,17 @@ The Prowave 328ST160 is an ultrasound speaker designed specifically for emitting
   - **Driving Ultrasound Transmitters**: The ADA4511-2 amplifiers are used to symmetrically drive the Prowave 328ST160 speakers, providing the necessary power and precision to generate effective ultrasonic signals
   - **Power Supply**: Operates with dual 3.3&#8239;V supply
 
+### Amplification 
 
+After the AC coupling of the DAC output, the ADA4511-2 amplifies the signal by a factor of around 2 considering losses in the path. The corner frequency is at 3.710&#8239;kHz, which the DAC signal passes with very little attenuation at ~32&#8239;kHz.
+
+A LTSPice simulation for the setup is found in `pcb/simulation/SpeakerSimulation.asc`.
+
+**Lab measurement**
+{: .mb-1}
+
+<img src="{{site.baseurl}}/assets/images/Amp-Ultrasound-0.9.png" alt="drawing"/>
+{: .text-center .mt-0}
 
 [link1]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
 [link2]: https://just-the-docs.com/
