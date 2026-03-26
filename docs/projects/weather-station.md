@@ -3,7 +3,7 @@ title: Weather Station
 layout: default
 math: mathjax
 parent: Projects
-nav_order: 6
+nav_order: 7
 ---
 
 # Weather Station

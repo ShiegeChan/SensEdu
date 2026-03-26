@@ -3,7 +3,7 @@ title: FSK Communication
 layout: default
 math: mathjax
 parent: Projects
-nav_order: 7
+nav_order: 5
 ---
 
 # FSK Communication
@@ -15,53 +15,57 @@ nav_order: 7
 
 ## Introduction
 
-Telecommunications are undeniably fascinating, yet they have historically been fraught with significant technical challenges. For decades, the field has been almost exclusively dominated by Radio Frequency (RF) and electromagnetic waves. While effective, these methods often face limitations in specific environments, such as interference or higher attenuation (in salty water, for example). This leads to an interesting alternative: why not use ultrasound as a communication medium instead? By shifting our foucs from the electromagnetic spectrum to acoustic propagation, we can develop alternative commucation systems that are both innovative and remarkably efficient for shot-range, low-interference data exchange. 
+Telecommunications is undeniably fascinating, yet it has historically faced significant technical challenges. For decades, wireless communication has been dominated by radio‑frequency (RF) electromagnetic waves. While effective, RF can be limited in certain contexts, such as severe attenuation in saltwater or heavy interference in crowded spectrum. This leads to an interesting alternative: why not use ultrasound as a communication medium instead? By shifting from electromagnetic to acoustic propagation, we can develop systems that are well suited to short‑range, EMI‑resilient data exchange in specific environments, though acoustic links have their own constraints on range and bandwidth.
 
-Since we are still dealing with waves, the same fundamental principles of signal modulation apply. Traditionally, two primary methods have been established to enconde information into a carrier wave:
-* **Amplitude Modulation (AM):** This technique involves varying the strength or amplitude of the signal. While simple to implement, it is highly susceptible to noise and atmospheric interference, which can easily distort the data
-* **Frequency Modulation (FM):** Instead of changing the amplitude, this method varies the frequency of the carrier wave. It offers much greater resilience against background noise and signal fading. 
+Since we are still dealing with waves, the same fundamental principles of signal modulation apply. In digital communication, three primary classes are commonly used to encode information onto a carrier:
+- **Amplitude Shift Keying (ASK):** Varies the signal's amplitude. Simple to implement but susceptible to ambient acoustic noise and amplitude fading.
+- **Frequency Shift Keying (FSK):** Varies the carrier frequency among discrete tones. Often more resilient to amplitude fluctuations and certain noise/multipath conditions, at the cost of bandwidth.
+- **Phase Shift Keying (PSK):** Varies the signal's phase. Can be spectrally efficient but may be sensitive to phase distortion.
 
-Our main focus will be on the latter, given that frequency-based modulation is inherently more robust for acoustic environments, as it effectively filters out most ambient noise and ensures a more reliable decoding process. Specifically, we will implement Frequency Shift Keying (FSK) as our modulation scheme. This method relies on a fundamental wave known as the 'carrier.' In our system, we assign the bit '0' to this base frequency. To represent a bit '1,' we shift the signal to a slightly higher frequency. As illustrated in the diagram, data is transmitted by switching the frequency of the acoustic wave between these two predefined values. By sending these controlled bit sequences, we can effectively encode and transmit complex data and text through ultrasonic waves.
+Our main focus will be on FSK, which is often robust for acoustic links under typical noisy conditions. Specifically, we will implement binary FSK (BFSK). This method uses two carrier frequencies: we assign the bit '0' to a base frequency $$f_0$$ and the bit '1' to a higher frequency $$f_1$$, separated by a defined spacing $$Δf$$. As illustrated in the diagram, data is transmitted by switching the frequency of the acoustic wave between these two predefined values. By sending these controlled bit sequences, we can effectively encode and transmit data and text through ultrasonic waves.
 
 <img src="{{site.baseurl}}/assets/images/fsk_carrier_representation.png"/>
 {: .text-center}
 
-_Binary FSK signal generation_
+_Binary FSK (BFSK) signal generation_
 {: .text-center}
 
 ### Goertzel Algorithm
+To decode these frequency shifts, we need an efficient way to detect a small set of tones in a continuous stream of acoustic data. While the Fast Fourier Transform (FFT) is the standard tool for wideband spectral analysis, it is not the most efficient choice when only a few specific frequencies are of interest. In such cases, the Goertzel algorithm is more efficient, as it directly evaluates selected Discrete Fourier Transform (DFT) bins.
 
-To decode these frequency shifts, we require an efficient method to detect specific tones within a continuous stream of acoustic data. While the Fast Fourier Transform (FFT) is the most common tool for spectral analysis, it is computationally expensive because it analyzes the entire frequency spectrum at once.
+Our system uses the Goertzel algorithm to evaluate the two predetermined tones used by BFSK ($$f_0$$ for bit '0' and $$f_1$$ for bit '1'). Goertzel computes the energy of a specific frequency component over a block of samples, enabling direct symbol detection.
 
-Instead, our system utilizes the Goertzel Algorithm. Unlike the FFT, Goertzel is a digital filter that focuses exclusively on pre-selected frequencies. We will select the frequencies so that the difference provides us with enough bandwidth to detect each tone without interference, making the algorithm significantly faster and more resource-efficient for embedded systems. By calculating the energy of only these two specific frequency components, the embedded system could determine in real-time whether a bit '0' or a bit '1' is being received, effectively filtering out ambient noise and ensuring high-speed, reliable communication.
+Let $$F_s$$ be the sampling rate and $$N$$ the number of samples per symbol (bit) window. For a tone at frequency $$f$$, define:
 
-To implement this algorithm, we separate it into a specialized two-stage digital filter. The first stage is a second-order **IIR filter** that process the ADC input sequence **x[n]** to calculate an intermediate value **s[n]**. This is highly efficient as it only requires one multiplication per sample:
+$$\omega = 2\pi \frac{f}{F_s}$$
+
+The Goertzel algorithm can be viewed as a two-stage digital filter. The first stage is a second-order **IIR filter** that processes the discrete-time input sequence $$x[n]$$ to compute an intermediate state $$s[n]$$:
 
 $$
 \begin{equation}
-s[n] = x[n] + 2 \cos(\omega_0) \cdot s[n - 1] - s[n - 2]
+s[n] = x[n] + 2 \cos(\omega) \cdot s[n - 1] - s[n - 2]
 \label{eq:goertzel}
 \end{equation}
 $$
 
-Where $$s[-1] = s[-2] = 0 $$ at the start of each bit window. After processing the 
- samples, the second stage (a **FIR filter**) computes the final power of the frequency components:
+where $$s[-1] = s[-2] = 0$$ at the start of each symbol window. This structure is computationally efficient, requiring only one multiplication per sample per target frequency.
+
+After processing the block, the second stage (effectively a **FIR filter**) computes the power of the frequency component:
 
 $$
 \begin{equation}
-Power = s[n]^2 + s[n - 1]^2 - s[n] \cdot s[n - 1] \cdot 2\cos(\omega_0)
+Power = s[n]^2 + s[n - 1]^2 - 2\cos(\omega) \cdot s[n] \cdot s[n - 1]
 \label{eq:power}
 \end{equation}
 $$
 
-The system then compares the resulting Power values, decoding the bit as '0' or '1' based on the frequency component which exhibits the highest energy.
+The system compares the power values for $$f_0$$ and $$f_1$$ and decodes the bit based on which tone has higher energy.
 
 ## Hardware Setup
 
 To perform this modulated communication, the essential required components are a transmitter and a receiver. For this project, we use two SensEdu boards based on the Arduino GIGA R1 WIFI:  
 
 * **Transmitter (Tx):** Uses an ultrasonic **tranducer**{: .text-green-000} to generate and emit the modulated acoustic waves.
-
 * **Receiver (Rx):** Captures the incoming signal using the onboard **MEMS microphones**{: .text-green-000}.
 
 <img src="{{site.baseurl}}/assets/images/two_boards_fsk.jpeg" width="500"/>
@@ -70,7 +74,7 @@ To perform this modulated communication, the essential required components are a
 The two boards are placed directly in front of each other to ensure a direct transmission path and to minimize signal attenuation caused by the environment. For our tests, they were separated by a distance of 40 to 100 cm, providing a stable channel for data exchange.
 
 {: .NOTE}
-The communication between the two boards is completely wireless, so only USB / USB-C connection to the computer is needed.
+The communication between the two boards is completely wireless, each boards needs only USB / USB-C connection to the computer.
 
 
 ## Software Implementation
@@ -84,7 +88,7 @@ The transmitter’s primary role is to **convert digital data into a continuous 
 
 Due to the finite size of the hardware memory buffer, the maximun message length is set to **30 characters**. This limit is calculated considering the **200 samples** allocated per bit; this duration provides the ultrasonic transducer with sufficient time to stabilize and adapt to each frequency shift, ensuring a clean transition between logic states. With a 480 kHz sampling rate and 200 samples per bit, the frequency resolution is 2.4 kHz. We therefore select tones that land exactly on Goertzel bin centers, 31.2 kHz (13 × 2.4 kHz) and 36.0 kHz (15 × 2.4 kHz), while keeping them near the transducer’s ≈33 kHz resonance to maximize acoustic efficiency and detection robustness.
 
-The system uses SENSEDU_DAC_MODE_BURST_WAVE to transmit tone bursts. By connecting the dma_buffer directly to the DAC through DMA, the transmission stays stable and avoids any gaps or delays between the bits. For more information about DAC configurations, go to [DAC_Burst_Sine]({% link library/dac.md %}#dac_burst_sine).
+The system uses `SENSEDU_DAC_MODE_BURST_WAVE` to transmit tone bursts. By connecting the `dma_buffer` directly to the DAC through DMA, the transmission stays stable and avoids any gaps or delays between the bits. For more information about DAC configurations, go to [DAC_Burst_Sine]({% link library/dac.md %}#dac_burst_sine).
 
 ```c
 // Maximum number of characters to send between separate messages
@@ -102,7 +106,8 @@ const uint16_t PREAMBLE_LENGTH = 4;
 const uint16_t ENDLINE_LENGTH = 2;
 
 // DMA buffer size
-const uint16_t MAX_LUT_SIZE = (MAX_MESSAGE_LENGTH + PREAMBLE_LENGTH + ENDLINE_LENGTH) * SAMPLES_PER_CHARACTER; 
+const uint16_t MAX_LUT_SIZE =
+        (MAX_MESSAGE_LENGTH + PREAMBLE_LENGTH + ENDLINE_LENGTH) * SAMPLES_PER_CHARACTER; 
 
 volatile SENSEDU_DAC_BUFFER(dma_buffer, MAX_LUT_SIZE);
 SensEdu_DAC_Settings dac_settings = {
