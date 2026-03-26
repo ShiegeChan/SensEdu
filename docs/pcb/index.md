@@ -25,7 +25,7 @@ This shield extends the Arduino GIGA’s capabilities for ultrasound application
 - [SHT40-AD1F temperature and humidity sensor](https://sensirion.com/media/documents/33FD6951/67EB9032/HT_DS_Datasheet_SHT4x_5.pdf) for environmental compensation
 
 ## Schematics
- <a href="{{site.baseurl}}/assets/pdf/sensedu_schematic.pdf" target="_blank">Download the PDF</a>
+ <a href="{{site.baseurl}}/assets/pdf/SensEdu_Schematics.pdf" target="_blank">Download the PDF</a>
 
 ## Software
 
