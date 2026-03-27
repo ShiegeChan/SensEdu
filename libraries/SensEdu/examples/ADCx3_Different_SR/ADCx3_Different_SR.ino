@@ -69,6 +69,7 @@ const uint8_t error_led = D86;
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
+
 void setup() {
     Serial.begin(115200);
 
@@ -89,6 +90,7 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
+
 void loop() {
     // Wait for trigger character 't' from computing device
     char c;
@@ -106,7 +108,7 @@ void loop() {
     SensEdu_ADC_Start(adc2);
     SensEdu_ADC_Start(adc3);
     
-    // wait for the data and send it
+    // Wait for the data and send it
     while (!SensEdu_ADC_IsDmaTransferComplete(adc1));
     SensEdu_ADC_ClearDmaTransferComplete(adc1);
 

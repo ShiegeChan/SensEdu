@@ -14,7 +14,7 @@
 
 #define NORMAL_PRESSURE             1009            // in hPa
 #define HIGH_PRESSURE               1022            // in hPa
-#define T_OFFSET                    0              // Temperature offset for accurate temperature display (empirical)
+#define T_OFFSET                    0               // Temperature offset for accurate temperature display (empirical)
 #define g                           9.81            // m/s^2
 #define P_0                         101325          // Pa
 #define M                           0.02896         // kg/mol
@@ -63,12 +63,12 @@ instant measurement. It should measure the rate of change in pressure over time
 (e.g. in hPa/hour) to predict weather. The rate should be measured by comparing an
 initial pressure measurement with the current measurement.
 This function should also include a humidity parameter from the humidity sensor to
-help predict weather more accurately*/
+help predict weather more accurately */
 
 void WeatherPredict(float temp, float pressure, float humidity) {
-    // temp -> in degreees 
-    // pressure -> in hPa (hectopascal is 100 pascals)
-    // humidity -> in % 
+    // Temp -> in degreees 
+    // Pressure -> in hPa (hectopascal is 100 pascals)
+    // Humidity -> in % 
 
     if (humidity > 70 && pressure < 1000 && (15 < temp < 25)) {
         Serial.println("Weather Status: Rain"); 
@@ -124,7 +124,7 @@ void loop()
 {
     Serial.println();
 
-    // ----------------------------- dps temperature measurement -------------------------
+    // ----------------------------- DPS temperature measurement -------------------------
 
     ret = dps_sensor.measureTempOnce(temperature, oversampling);
     if (ret != 0) {
@@ -137,7 +137,7 @@ void loop()
         Serial.println("°C");
     }
 
-    // ----------------------------- dps pressure measurement -------------------------
+    // ----------------------------- DPS pressure measurement -------------------------
 
     ret = dps_sensor.measurePressureOnce(pressure, oversampling);
     if (ret != 0) {
@@ -153,7 +153,7 @@ void loop()
     }
 
 
-    // ----------------------------- sht humidity & temperature measurement -------------------------
+    // ----------------------------- SHT humidity & temperature measurement -------------------------
     if (sht_sensor.readSample()) {
         humidity = sht_sensor.getHumidity();
         temperature = sht_sensor.getTemperature();
@@ -167,13 +167,13 @@ void loop()
         Serial.println("SHT sensor Error\n");
     }
 
-    // ----------------------------- sea pressure level -------------------------
+    // ----------------------------- Sea pressure level -------------------------
     seaLevelPressure = calculateSeaLevelPressure(pressure, temperature); 
     Serial.print("Equivalent Sea Level Pressure: ");
     Serial.print(seaLevelPressure / 100);
     Serial.println(" hPa");
 
-    // ----------------------------- weather prediction call -------------------------
+    // ----------------------------- Weather prediction call -------------------------
     WeatherPredict(temperature, seaLevelPressure, humidity);
 
     delay(10000);

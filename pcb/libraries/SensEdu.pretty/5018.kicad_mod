@@ -1,0 +1,337 @@
+(footprint "5018"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "5018-1")
+	(tags "Test Point")
+	(property "Reference" "REF**"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "1e028e22-ac64-45f4-8953-58b803015a76")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(property "Value" "5018"
+		(at 0 0 0)
+		(layer "F.SilkS")
+		(hide yes)
+		(uuid "fbaca8bf-46b3-4665-b8b4-8ae920a1e6df")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(property "Datasheet" "https://www.keyelco.com/product-pdf.cfm?p=1356"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "82b918f7-153d-42f1-9d4e-a2ba6d19a18c")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "KEYSTONE - 5018 - TEST POINT, PCB, COMPACT, SMT"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "19709e37-6c62-4f23-a771-492148bf39e5")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Height" "2.29"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "872aab92-0c2b-4c68-bab1-d653232f088a")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Manufacturer_Name" "Keystone Electronics"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "bc5e772d-24c1-4eb7-815a-72b5fc5a673f")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Manufacturer_Part_Number" "5018"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "e8b9906b-617a-4e9c-bf28-e7e8797072a3")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Mouser Part Number" "534-5018"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "72ed8466-3688-4c83-800a-56e05b100500")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Mouser Price/Stock" "https://www.mouser.co.uk/ProductDetail/Keystone-Electronics/5018?qs=Rc9fedAPY0PzKk2xT4uTaw%3D%3D"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "b45f3232-3d15-4d65-becb-393615872da5")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Arrow Part Number" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "e0e9c4b9-896c-4e14-8da6-28543e1544c1")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Arrow Price/Stock" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "8aea7d66-fb4f-4e98-8d40-46848f6c6f02")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr smd)
+	(fp_line
+		(start -2.5 -1.9)
+		(end 2.5 -1.9)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "7f4c72a5-0a28-4c0c-8621-c90e4b7a42b0")
+	)
+	(fp_line
+		(start -2.5 1.9)
+		(end -2.5 -1.9)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "9889320f-9560-4f8e-a3f4-f027d527554d")
+	)
+	(fp_line
+		(start 2.5 -1.9)
+		(end 2.5 1.9)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "67926cbf-576a-44f0-9f79-512ffbd3fc3c")
+	)
+	(fp_line
+		(start 2.5 1.9)
+		(end -2.5 1.9)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.SilkS")
+		(uuid "c0d9d2c0-6fc8-440b-824b-f37ad0acae0f")
+	)
+	(fp_line
+		(start -3.35 -2.715)
+		(end 3.35 -2.715)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "5aab7dcc-359d-4399-829e-69d4edd6518e")
+	)
+	(fp_line
+		(start -3.35 2.715)
+		(end -3.35 -2.715)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "7a679ee2-5c85-49af-840c-1f99c14cbefc")
+	)
+	(fp_line
+		(start 3.35 -2.715)
+		(end 3.35 2.715)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "6b42035c-b247-4fb2-85b4-b0b7a4274e36")
+	)
+	(fp_line
+		(start 3.35 2.715)
+		(end -3.35 2.715)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "c3de0d37-ed03-4b99-bfb4-6cc663a04fbb")
+	)
+	(fp_line
+		(start -1.905 -0.51)
+		(end 1.905 -0.51)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "db5be19f-c41e-46de-a41f-6fbe20c402f3")
+	)
+	(fp_line
+		(start -1.905 0.51)
+		(end -1.905 -0.51)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "b9245e4c-ec35-4e1a-b454-e0ea3f1c2a49")
+	)
+	(fp_line
+		(start -1.905 0.51)
+		(end -1.175 -1.42)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "69d33a1d-fff0-4136-8c47-15b0cb4b5bc2")
+	)
+	(fp_line
+		(start -1.175 -1.42)
+		(end 1.905 -0.51)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "b552653b-b575-4333-91ce-1e8a1b8a515a")
+	)
+	(fp_line
+		(start 1.175 1.42)
+		(end -1.905 0.51)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "c32cb81f-31dc-4a85-949c-0e6280669eb5")
+	)
+	(fp_line
+		(start 1.905 -0.51)
+		(end 1.175 1.42)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "58446f40-6d40-486d-801c-0e0b3a2f6370")
+	)
+	(fp_line
+		(start 1.905 -0.51)
+		(end 1.905 0.51)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "ae321700-3b30-4ddf-9b90-17c599dd6662")
+	)
+	(fp_line
+		(start 1.905 0.51)
+		(end -1.905 0.51)
+		(stroke
+			(width 0.2)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "81095713-026f-4d23-aa13-cd4696fb526c")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0 0 0)
+		(layer "F.Fab")
+		(uuid "17f5cefe-978e-43d1-90de-62b272c64231")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.254)
+			)
+		)
+	)
+	(pad "1" smd rect
+		(at 0 0 90)
+		(size 3.43 4.7)
+		(layers "F.Cu" "F.Mask" "F.Paste")
+		(uuid "7125c2b1-ca0b-45b3-bf08-5b3720438d12")
+	)
+	(embedded_fonts no)
+	(model "${KIPRJMOD}/libraries/3D/5018-TP.STEP"
+		(offset
+			(xyz 1.8 1 0)
+		)
+		(scale
+			(xyz 1 1 1)
+		)
+		(rotate
+			(xyz -90 -0 -90)
+		)
+	)
+)

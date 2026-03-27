@@ -1,5 +1,5 @@
-// how many LUT repeats for one DAC transfer
-// for ultrasound sine wave more than 10 -> worse
+// How many LUT repeats for one DAC transfer
+// For ultrasound sine wave more than 10 -> worse
 const uint16_t dac_cycle_num = 10;
 
 // DAC transfered symbols

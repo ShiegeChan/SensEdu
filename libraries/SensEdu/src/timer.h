@@ -25,6 +25,7 @@ void SensEdu_TIMER_Delay_ns(uint32_t delay_ns);
 
 TIMER_ERROR TIMER_GetError(void);
 
+TIM_TypeDef* TIMER_GetTimerForAdc(ADC_TypeDef* adc);
 void TIMER_ADCxInit(ADC_TypeDef* adc);
 void TIMER_ADCxEnable(ADC_TypeDef* adc);
 void TIMER_ADCxDisable(ADC_TypeDef* adc);

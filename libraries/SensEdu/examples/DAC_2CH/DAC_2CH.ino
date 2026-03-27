@@ -56,13 +56,12 @@ SensEdu_DAC_Settings dac2_settings = {
 void setup() {
     // Stuck in the loop if Serial Monitor is not opened
     Serial.begin(115200);
-    while (!Serial) {}
 
     Serial.println("Started Initialization...");
 
     SensEdu_DAC_Init(&dac1_settings);
     SensEdu_DAC_Init(&dac2_settings);
-
+    
     check_lib_errors();
 
     Serial.println("Setup is successful.");
@@ -80,6 +79,10 @@ void loop() {
     
     delay(100);
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                  Functions                                 */
+/* -------------------------------------------------------------------------- */
 
 // Checks if the library has risen any internal errors
 // Prints the error code in Serial Monitor

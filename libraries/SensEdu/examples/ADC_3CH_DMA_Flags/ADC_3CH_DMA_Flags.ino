@@ -10,8 +10,8 @@ uint32_t lib_error = 0;
 // For DMA you need to initialize a buffer to store conversion results
 // Use the macro SENSEDU_ADC_BUFFER(name, size)
 const uint16_t buf_size = 90;
-SENSEDU_ADC_BUFFER(buf_ct, buf_size);   // buffer for complete transfer
-SENSEDU_ADC_BUFFER(buf_ht, buf_size);   // buffer for half transfer
+SENSEDU_ADC_BUFFER(buf_ct, buf_size);   // Buffer for complete transfer
+SENSEDU_ADC_BUFFER(buf_ht, buf_size);   // Buffer for half transfer
 
 ADC_TypeDef* adc = ADC1;
 const uint8_t adc_pin_num = 3;
@@ -100,6 +100,10 @@ void loop() {
 
     check_lib_errors();
 }
+
+/* -------------------------------------------------------------------------- */
+/*                                  Functions                                 */
+/* -------------------------------------------------------------------------- */
 
 // Checks if the library has risen any internal errors
 // Prints the error code in Serial Monitor

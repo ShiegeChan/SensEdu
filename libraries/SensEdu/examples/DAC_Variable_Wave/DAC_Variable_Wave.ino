@@ -1,11 +1,12 @@
 #include <SensEdu.h>
 
 static uint32_t lib_error = 0;
-static uint8_t increment_flag = 1; // run time modification flag
+static uint8_t increment_flag = 1; // Run time modification flag
 
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
+
 const size_t lut_size = 4;
 static SENSEDU_DAC_BUFFER(lut, lut_size) = {
     0x0000,0x0001,0x0002,0x0003
@@ -24,18 +25,17 @@ SensEdu_DAC_Settings dac_settings = {
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
+
 void setup() {
     Serial.begin(115200);
 
     SensEdu_DAC_Init(&dac_settings);
     SensEdu_DAC_Enable(dac_ch);
+    
+    pinMode(error_led, OUTPUT);
+    digitalWrite(error_led, HIGH);
 
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        delay(1000);
-        Serial.print("Error: 0x");
-        Serial.println(lib_error, HEX);
-    }
+    check_lib_errors();
 
     Serial.println("Setup is successful.");
 }
@@ -43,8 +43,9 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
+
 void loop() {
-    // modify lut
+    // Modify lut
     for (uint16_t i = 0; i < lut_size; i++) {
         if (increment_flag) {
             lut[i]++;
@@ -53,7 +54,7 @@ void loop() {
         }
     }
 
-    // out of bounds checks
+    // Out of bounds checks
     if (lut[0] == 0x0000) {
         increment_flag = 1;
     }
@@ -61,7 +62,17 @@ void loop() {
         increment_flag = 0;
     }
     
-    // check errors
+    // Check errors
+    check_lib_errors();
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                  Functions                                 */
+/* -------------------------------------------------------------------------- */
+
+// Checks if the library has risen any internal errors
+// Prints the error code in Serial Monitor
+void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
         delay(1000);

@@ -2,7 +2,7 @@
 #include "CMSIS_DSP.h"
 #include "SineLUT.h"
 #include "FilterTaps.h"
-#include "DACWave.h" // contains wave and its size
+#include "DACWave.h" // Contains wave and its size
 
 uint32_t lib_error = 0;
 uint8_t error_led = D86;
@@ -16,71 +16,73 @@ uint8_t error_led = D86;
 /* -------------------------------------------------------------------------- */
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
-#define IS_TRANSMIT_DETAILED_DATA   true    // activate full raw, filtered, xcorr data transmission
-#define BAN_DISTANCE	            20	    // min distance [cm] - how many self reflections cancelled
-#define ACTUAL_SAMPLING_RATE        250000  // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
-#define STORE_BUF_SIZE              32 * 32 // 2400 for 1 measurement per second. 
-                            	        // only multiples of 32!!!!!! (64 chunk size of bytes, so 32 for 16bit)
+
+#define IS_TRANSMIT_DETAILED_DATA   true    // Activate full raw, filtered, xcorr data transmission
+#define BAN_DISTANCE	            20	    // Min distance [cm] - how many self reflections cancelled
+#define SAMPLING_RATE               250000  // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
+#define STORE_BUF_SIZE              1024    // 2400 for 1 measurement per second. 
 
 /* --------------------------------- Filter --------------------------------- */
-#define FILTER_BLOCK_LENGTH     32      // how many samples we want to process every time we call the fir process function AT
-#define FILTER_TAP_NUM          32      // tap number for the bandpass filter
+#define FILTER_BLOCK_LENGTH     32      // How many samples we want to process every time we call the fir process function AT
+#define FILTER_TAP_NUM          32      // Tap number for the bandpass filter
 
-static float32_t firStateBuffer[FILTER_BLOCK_LENGTH + FILTER_TAP_NUM - 1]; // current filter state buffer
-arm_fir_instance_f32 Fir_filt; // creating an object instance
+static float32_t firStateBuffer[FILTER_BLOCK_LENGTH + FILTER_TAP_NUM - 1]; // Current filter state buffer
+arm_fir_instance_f32 Fir_filt; // Creating an object instance
 
 /* ----------------------------------- ADC ---------------------------------- */
+
+const uint16_t mic_data_size = STORE_BUF_SIZE * 2;
+SENSEDU_ADC_BUFFER(mic12_data, mic_data_size);
+SENSEDU_ADC_BUFFER(mic34_data, mic_data_size);
+
 ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
-
-const uint8_t adc1_mic_num = 2; // 2 microphones for adc1
-const uint8_t adc2_mic_num = 2; // 2 microphones for adc2
-
-uint8_t adc1_pins[adc1_mic_num] = {A5, A10}; // mic1 and mic2
-uint8_t adc2_pins[adc2_mic_num] = {A1, A6}; // mic3 and mic4 
-
-// must be:
-// 1. multiple of 32 words (64 half-words) to ensure cache coherence
-// 2. properly aligned
-const uint16_t adc1_data_size = STORE_BUF_SIZE * adc1_mic_num;
-const uint16_t adc2_data_size = STORE_BUF_SIZE * adc2_mic_num;
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc1_data[adc1_data_size];
-__attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t adc2_data[adc2_data_size];
+const uint8_t adc1_mic_num = 2;
+const uint8_t adc2_mic_num = 2;
+uint8_t mic12_pins[adc1_mic_num] = {A5, A10};
+uint8_t mic34_pins[adc2_mic_num] = {A1, A6};
 
 SensEdu_ADC_Settings adc1_settings = {
     .adc = adc1,
-    .pins = adc1_pins,
+    .pins = mic12_pins,
     .pin_num = adc1_mic_num,
 
     .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
     .sampling_rate_hz = 250000,
     
     .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
-    .mem_address = (uint16_t*)adc1_data,
-    .mem_size = adc1_data_size
+    .mem_address = (uint16_t*)mic12_data,
+    .mem_size = mic_data_size
 };
 
 SensEdu_ADC_Settings adc2_settings = {
     .adc = adc2,
-    .pins = adc2_pins,
+    .pins = mic34_pins,
     .pin_num = adc2_mic_num,
 
     .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
     .sampling_rate_hz = 250000,
     
     .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
-    .mem_address = (uint16_t*)&adc2_data,
-    .mem_size = adc2_data_size
+    .mem_address = (uint16_t*)mic34_data,
+    .mem_size = mic_data_size
 };
 
+
 /* ----------------------------------- DAC ---------------------------------- */
-DAC_Channel* dac_channel = DAC_CH1;
-// lut settings are in SineLUT.h
+
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
-SensEdu_DAC_Settings dac_settings = {dac_channel, DAC_SAMPLE_RATE, (uint16_t*)sine_lut, sine_lut_size, 
-    SENSEDU_DAC_MODE_BURST_WAVE, dac_cycle_num}; // specifying burst mode 
+DAC_Channel* dac_channel = DAC_CH1;
+SensEdu_DAC_Settings dac_settings = {
+    .dac_channel = dac_channel, 
+    .sampling_freq = DAC_SAMPLE_RATE,
+    .mem_address = (uint16_t*)sine_lut,
+    .mem_size = sine_lut_size,
+    .wave_mode = SENSEDU_DAC_MODE_BURST_WAVE,
+    .burst_num = dac_cycle_num
+};
 
 /* -------------------------------------------------------------------------- */
 /*                                  Constants                                 */
@@ -89,16 +91,17 @@ SensEdu_DAC_Settings dac_settings = {dac_channel, DAC_SAMPLE_RATE, (uint16_t*)si
 const uint16_t air_speed = 343; // m/s
 
 // e.g. 25cm ban means 0.25*2/343 time ban, then multiply by sample rate
-const uint32_t c_banned_sample_num = ((BAN_DISTANCE*2*ACTUAL_SAMPLING_RATE)/air_speed)/100; 
+const uint32_t c_banned_sample_num = ((BAN_DISTANCE*2*SAMPLING_RATE)/air_speed)/100; 
 
 /* -------------------------------------------------------------------------- */
 /*                              Global Structure                              */
 /* -------------------------------------------------------------------------- */
+
 typedef struct {
-	uint8_t ban_flag; // activate self reflections ban
+	uint8_t ban_flag; // Activate self reflections ban
 	char serial_read_buf;
-    float processing_buffer[STORE_BUF_SIZE]; // reusable float buffer for signal processing
-    uint16_t channel_buffer[STORE_BUF_SIZE]; // data rearrangement
+    float processing_buffer[STORE_BUF_SIZE]; // Reusable float buffer for signal processing
+    uint16_t channel_buffer[STORE_BUF_SIZE]; // Data rearrangement
 } SenseduBoard;
 
 static SenseduBoard SenseduBoardObj;
@@ -111,26 +114,26 @@ void setup() {
 	SenseduBoard* main_obj_ptr = &SenseduBoardObj;
 	main_obj_init(main_obj_ptr);
 
-    // initializing the filter
+    // Initializing the filter
     arm_fir_init_f32(&Fir_filt, FILTER_TAP_NUM, filter_taps, firStateBuffer, FILTER_BLOCK_LENGTH); 
 
     Serial.begin(115200);
 
-    /* DAC */
+    // DAC
     SensEdu_DAC_Init(&dac_settings);
     
-    /* ADC 1 */
+    // ADC1
     SensEdu_ADC_Init(&adc1_settings);
     SensEdu_ADC_Enable(adc1);
 
-    /* ADC 2 */
+    // ADC2
     SensEdu_ADC_Init(&adc2_settings);
     SensEdu_ADC_Enable(adc2);
+    
+    pinMode(error_led, OUTPUT);
+    digitalWrite(error_led, HIGH);
 
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        handle_error();
-    }
+    check_lib_errors();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -171,14 +174,14 @@ void loop() {
     // Calculating distance for each microphone
     static uint32_t distance[adc1_mic_num + adc2_mic_num];
     for (uint8_t i = 0; i < adc1_mic_num; i++) {
-        get_channel_data(adc1_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc1_mic_num, i);
+        get_channel_data(mic12_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc1_mic_num, i);
         process_and_transmit_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag, IS_TRANSMIT_DETAILED_DATA);
-        distance[i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, ACTUAL_SAMPLING_RATE);
+        distance[i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
     }
     for (uint8_t i = 0; i < adc2_mic_num; i++) {
-        get_channel_data(adc2_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc2_mic_num, i);
+        get_channel_data(mic34_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc2_mic_num, i);
         process_and_transmit_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag, IS_TRANSMIT_DETAILED_DATA);
-        distance[adc1_mic_num + i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, ACTUAL_SAMPLING_RATE);
+        distance[adc1_mic_num + i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
     }
 
     // Sending the distance measurements
@@ -186,11 +189,8 @@ void loop() {
         Serial.write((const uint8_t *) &distance[i], 4);
     }
 
-    // check errors
-    lib_error = SensEdu_GetError();
-    while (lib_error != 0) {
-        handle_error();
-    }
+    // Check errors
+    check_lib_errors();
 }
 
 void process_and_transmit_data(float* buf, const uint16_t buf_size, uint16_t* ch_array, const uint16_t ch_array_size, uint8_t ban_flag, uint8_t is_detailed_transmission) {
@@ -231,7 +231,9 @@ void transfer_serial_data_float(float* data, const uint16_t data_length, const u
     }
 }
 
-void handle_error() {
-    // serial is taken by matlab, use LED as indication
-    digitalWrite(error_led, LOW);
+void check_lib_errors() {
+    lib_error = SensEdu_GetError();
+    while (lib_error != 0) {
+        digitalWrite(error_led, LOW);
+    }
 }
