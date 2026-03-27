@@ -65,7 +65,7 @@ The system compares the power values for $$f_0$$ and $$f_1$$ and decodes the bit
 
 To perform this modulated communication, the essential required components are a transmitter and a receiver. For this project, we use two SensEdu boards based on the Arduino GIGA R1 WIFI:  
 
-* **Transmitter (Tx):** Uses an ultrasonic **tranducer**{: .text-green-000} to generate and emit the modulated acoustic waves.
+* **Transmitter (Tx):** Uses an ultrasonic **transducer**{: .text-green-000} to generate and emit the modulated acoustic waves.
 * **Receiver (Rx):** Captures the incoming signal using the onboard **MEMS microphones**{: .text-green-000}.
 
 <img src="{{site.baseurl}}/assets/images/two_boards_fsk.jpeg" width="500"/>
@@ -74,7 +74,7 @@ To perform this modulated communication, the essential required components are a
 The two boards are placed directly in front of each other to ensure a direct transmission path and to minimize signal attenuation caused by the environment. For our tests, they were separated by a distance of 40 to 100 cm, providing a stable channel for data exchange.
 
 {: .NOTE}
-The communication between the two boards is completely wireless, each boards needs only USB / USB-C connection to the computer.
+The communication between the two boards is completely wireless, each board needs only USB / USB-C connection to the computer.
 
 
 ## Software Implementation
@@ -84,9 +84,9 @@ The software architecture is divided into two main modules: the **Signal Generat
 
 ### Transmitter
 
-The transmitter’s primary role is to **convert digital data into a continuous FSK-modulated acoustic wave**{: .text-green-000}, i.e. the current implementation handles waveform synthesis directly, ensuring a more flexible and integrated approach. In order to do that, the system utilizes the internal 12-bit DAC to produce high-resolution sine waves. By switching between two target frequencies, the transmitter creates the necessary frequency shifts to encode information. To improve stability and frequency precission, a phase accumulation logic is defined for each frequency. 
+The transmitter’s primary role is to **convert digital data into a continuous FSK-modulated acoustic wave**{: .text-green-000}, i.e. the current implementation handles waveform synthesis directly, ensuring a more flexible and integrated approach. In order to do that, the system utilizes the internal 12-bit DAC to produce high-resolution sine waves. By switching between two target frequencies, the transmitter creates the necessary frequency shifts to encode information. To improve stability and frequency precision, a phase accumulation logic is defined for each frequency. 
 
-Due to the finite size of the hardware memory buffer, the maximun message length is set to **30 characters**. This limit is calculated considering the **200 samples** allocated per bit; this duration provides the ultrasonic transducer with sufficient time to stabilize and adapt to each frequency shift, ensuring a clean transition between logic states. With a 480 kHz sampling rate and 200 samples per bit, the frequency resolution is 2.4 kHz. We therefore select tones that land exactly on Goertzel bin centers, 31.2 kHz (13 × 2.4 kHz) and 36.0 kHz (15 × 2.4 kHz), while keeping them near the transducer’s ≈33 kHz resonance to maximize acoustic efficiency and detection robustness.
+Due to the finite size of the hardware memory buffer, the maximum message length is set to **30 characters**. This limit is calculated considering the **200 samples** allocated per bit; this duration provides the ultrasonic transducer with sufficient time to stabilize and adapt to each frequency shift, ensuring a clean transition between logic states. With a 480 kHz sampling rate and 200 samples per bit, the frequency resolution is 2.4 kHz. We therefore select tones that land exactly on Goertzel bin centers, 31.2 kHz (13 × 2.4 kHz) and 36.0 kHz (15 × 2.4 kHz), while keeping them near the transducer’s ≈33 kHz resonance to maximize acoustic efficiency and detection robustness.
 
 The system uses `SENSEDU_DAC_MODE_BURST_WAVE` to transmit tone bursts. By connecting the `dma_buffer` directly to the DAC through DMA, the transmission stays stable and avoids any gaps or delays between the bits. For more information about DAC configurations, go to [DAC_Burst_Sine]({% link library/dac.md %}#dac_burst_sine).
 
@@ -94,9 +94,11 @@ The system uses `SENSEDU_DAC_MODE_BURST_WAVE` to transmit tone bursts. By connec
 // Maximum number of characters to send between separate messages
 const uint16_t MAX_MESSAGE_LENGTH = 30;
 
+// ASCII standard 1 byte per letter
+const uint16_t BIT_PER_CHARACTER = 8;
+
 // Arbitrary chosen number to send ~10-12 cycles per bit
 const uint16_t SAMPLES_PER_BIT = 200;
-
 const uint16_t SAMPLES_PER_CHARACTER = SAMPLES_PER_BIT * BIT_PER_CHARACTER;
 
 // x4 extra characters reserved for the preamble
@@ -119,7 +121,7 @@ SensEdu_DAC_Settings dac_settings = {
     .burst_num = 1
 };
 ```
-The main core of the transmitter is the ``` construct bit``` function, which translates logical bits into physical sound waves. During the process, the function calculates a sine value for every sample and constantly updates the phase to ensure the wave is smooth, avoiding any sudden jumps between bits. Finally, the signal is shifted and scaled to use the full wange of the hardware.
+The main core of the transmitter is the ``` construct bit``` function, which translates logical bits into physical sound waves. During the process, the function calculates a sine value for every sample and constantly updates the phase to ensure the wave is smooth, avoiding any sudden jumps between bits. Finally, the signal is shifted and scaled to use the full range of the hardware.
 
 ```c
 // Fills the buffer with one bit worth of data
@@ -185,7 +187,7 @@ void construct_buffer(uint8_t* data, uint8_t num_bytes) {
     }
 }
 ```
-Finally ```send_message``` function is responsible for the actual execution of the transmission. It first triggers the buffer assembly to prepare the entire message in memory. Once the data is ready, it enables the DAC hardware to begin streaming the acoustic wave. 
+Finally, ```send_message``` function is responsible for the actual execution of the transmission. It first triggers the buffer assembly to prepare the entire message in memory. Once the data is ready, it enables the DAC hardware to begin streaming the acoustic wave. 
 
 ```c
 // Transmits the entire constructed message
@@ -224,7 +226,7 @@ void loop () {
 ```
 
 ### Receiver 
-Once the ultrasonic wave reaches the receiver, we **acquire and process the signal**{: .text-green-000}. We include the library and set the main parameters, choosing the **sampling rate at 240 kHz**, an integer **submultiple** of the transmitter’s 480 kHz rate. Using a lower sampling rate (with our fixed analysis window) increases frequency resolution and reduces data throughput while still comfortably capturing the 31.2/36 kHz tones. We record each iterations during **3 seconds**, that can be change but always matching MATLAB configuration.
+Once the ultrasonic wave reaches the receiver, we **acquire and process the signal**{: .text-green-000}. We include the library and set the main parameters, choosing the **sampling rate at 240 kHz**, an integer **submultiple** of the transmitter’s 480 kHz rate. Using a lower sampling rate (with our fixed analysis window) increases frequency resolution and reduces data throughput while still comfortably capturing the 31.2/36 kHz tones. We record each iteration during **3 seconds**, that can be change but always matching MATLAB configuration.
 
 ```c
 // Recording time per one message
@@ -234,7 +236,7 @@ static const uint16_t MSG_RECORD_WINDOW_SEC = 3;
 static const uint32_t SAMPLING_RATE = 240000;
 ```
 
-The ADC runs continuously and writes into a **double (ping‑pong) buffer** so one half can be forwarded while the other is filling, avoiding gaps. Each chunk is then sent to MATLAB for decoding, and basic error checks report and stop the system if something unexpected occurs. To get more information about circular DMA mode go to [ADC_1CH_DMA_CIRCULAR]({% link library/adc.md %}#adc_1ch_dma_circular).
+The ADC runs continuously and writes into a **double (ping‑pong) buffer**, so one half can be forwarded while the other is filling, avoiding gaps. Each chunk is then sent to MATLAB for decoding, and basic error checks report and stop the system if something unexpected occurs. To get more information about circular DMA mode go to [ADC_1CH_DMA_CIRCULAR]({% link library/adc.md %}#adc_1ch_dma_circular).
 
 ```c
 static ADC_TypeDef* adc = ADC1;
@@ -300,7 +302,7 @@ The figure below shows the **MATLAB visualization of the captured data**{: .text
 <img src="{{site.baseurl}}/assets/images/fsk_received_message_MATLAB.png" width="900"/>
 {: .text-center}
 
-Next step will be to detect the **preamble**{: .text-green-000} of our signal. In order to do so, we have implemented the function ```analyze_preamble```, that scans our measured energy difference, slides the preamble pattern across it, and finds where it fits best. Finally, it chooses the alignment (hop) with the best overall score and returns the one that fits best, the possition where the preamble start, and the result of the strongest match.
+Next step will be to detect the **preamble**{: .text-green-000} of our signal. In order to do so, we have implemented the function ```analyze_preamble```, that scans our measured energy difference, slides the preamble pattern across it, and finds where it fits best. Finally, it chooses the alignment (hop) with the best overall score and returns the one that fits best, the position where the preamble start, and the result of the strongest match.
 
 ```matlab
 % Preamble 0xFF00FF00
@@ -323,11 +325,11 @@ function [best_hop, best_preamble_pos, best_conv] = analyze_preamble(energy_diff
 end
 ```
 
-Last but not least we perform the decoding of the message into ASCII and plot both the result of the convolution and goertzel. We can finally see our **transmitted message on the command window**{: .text-green-000}.
+Last but not least we perform the decoding of the message into ASCII and plot both the result of the convolution and Goertzel. We can finally see our **transmitted message on the command window**{: .text-green-000}.
 
 
 ## Showcase
-This last section shows a real test using the FSK communication. While placing the boards in front of eachother at a distance close to one meter, we upload both receiver and transmitter codes to the respective arduino board, and run the MATLAB code. 
+This last section shows a real test using the FSK communication. While placing the boards in front of each other at a distance close to one meter, we upload both receiver and transmitter codes to the respective Arduino board, and run the MATLAB code. 
 
 <img src="{{site.baseurl}}/assets/images/fsk_setup.jpeg" width="500"/>
 {: .text-center}
@@ -339,7 +341,7 @@ Once you run the code in the transmitter you can open the serial monitor and sta
 
 <img src="{{site.baseurl}}/assets/images/fsk_transmitted_message.png" width="500"/>
 
-You will see the result in the Command Window of MATLAB. 
+You will see the result in the MATLAB Command Window. 
 
 <img src="{{site.baseurl}}/assets/images/fsk_received_message_1.png" width="500"/>
 
