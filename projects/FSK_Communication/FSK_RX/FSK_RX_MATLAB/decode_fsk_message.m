@@ -6,6 +6,9 @@ function msg = decode_fsk_message(wave, preamble, f, fs, hop, samples_per_bit, e
 
     % Goertzel Coefficient (must be integers)
     k = (f/fs) * samples_per_bit + 1;
+    if (mod(k,2) ~= 0)
+        warning("Goertzel Coefficient k is not integer. Unexpected behaviour; check the settings.")
+    end
     
     % 1. Apply Goertzel to calculate each bit frequency energy.
     %    Whole dataset is processed multiple times with N/HOP offsets for further frame correction.
