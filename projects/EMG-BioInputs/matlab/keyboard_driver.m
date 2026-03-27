@@ -1,6 +1,6 @@
 %% keyboard_driver.m
 clear;
-close all;
+%close all;
 clc;
 
 %% Include
@@ -19,16 +19,16 @@ BUFFER_DURATION_MS = 1000; % buffer for proper digital filtering
 CUT_RAW_SAMPLES = 8;   % removes couple of first readings
                        % they are error prone due to ADC input having a high capacitance
 
-FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
+FILTER_TAPS_FILENAME = 'EMG_Filter_old.mat';
 
 % Plotting
-PLOT_ON = false;
+PLOT_ON = false;  
 
-% Saving
-SAVE_ON = false;
+% Saving   
+SAVE_ON = true;
 FOLDERNAME = "measurements";
-SETNAME = "DarkSouls_2rolls";
-IS_OVERWRITE = false;
+SETNAME = "DarkSouls_VadymRolls";
+IS_OVERWRITE = true;
 
 % Maximum Values
 SHORT_MAXIMUM_SEC = 1;
@@ -71,7 +71,7 @@ data_length = double(mem_size/channel_n);
 meas_duration_ms = 1000*(data_length/fs);
 
 if numel(keys) ~= channel_n
-    error_msg = ['Configured keys count does not match channel count.\n',
+    error_msg = ['Configured keys count does not match channel count.\n', ...
                  'Correct "keys" and "keys_state" vectors to match arduino configuration.'];
     error(error_msg, numel(keys));
 end

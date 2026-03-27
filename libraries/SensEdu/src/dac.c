@@ -147,7 +147,7 @@ void dac_init(DAC_Channel* dac_channel) {
     SET_BIT(DAC1->CR, DAC_CR_TEN1 << shift); // Enable Trigger
 
     // Channel Mode
-    MODIFY_REG(DAC1->MCR, DAC_MCR_MODE1 << shift, (0b010) << (DAC_MCR_MODE1_Pos + shift)); // Connected to external pin with buffer disabled
+    MODIFY_REG(DAC1->MCR, DAC_MCR_MODE1 << shift, (0b000) << (DAC_MCR_MODE1_Pos + shift)); // Connected to external pin with buffer enabled
 }
 
 SensEdu_DAC_Settings* get_dac_settings(DAC_Channel* dac_channel) {
