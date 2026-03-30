@@ -83,9 +83,8 @@ void SensEdu_TIMER_Delay_ns(uint32_t delay_ns);
 {: .no_toc}
 * For `delay_ns` $$\gt$$ $$1000\text{us}$$, the function internally switches to `SensEdu_TIMER_Delay_us()` to avoid potential 32-bit overflow in the `NS_TO_TICKS(ns)` macro.
 * The lowest achievable timer resolution on STM32H747 MCU is ~$$4.17\text{ns}$$, calculated as: $$\text{tick} = 1/240\text{MHz} \times 10^9 \approx4.17\text{ns}$$. Delays are therefore multiples of this tick, approximately: $$4\text{ns}$$, $$8\text{ns}$$, $$13\text{ns}$$, $$17\text{ns}$$, etc.
-* Theoretically, delays shorter than $$250\text{ns}$$ are not practical, due to set frequencies being close to the system clock frequency of the MCU. These delays become overpowered by the software overhead. Execution of the function itself takes around $$60-120$$ CPU cycles, corresponding to ~$$125-250\text{ns}$$ on a $$480\text{MHz}$$ core. In practice, when software overhead is included, the effective minimum delay is closer to $$550\text{ns}$$.
+* In theory, delays shorter than about $$250\text{ns}$$ are not achievable because the configured frequencies are close to the MCU system clock frequency. These delays become overpowered by the software overhead. Executing the function itself takes roughly $$60-120$$ CPU cycles, which corresponds to ~$$125-250\text{ns}$$ on a $$480\text{MHz}$$ core. In practice, including software overhead, the effective minimum delay is closer to $$550\text{ns}$$.
 * To account for software overhead, a hardcoded compensation of $$550\text{ns}$$ is applied. Additionally, any requested delays below this threshold are automatically raised to $$550\text{ns}$$. The reasons for this exact number are explained in the [compensation section]({% link library/timers.md %}#software-overhead-compensation-in-nanosecond-delays).
-
 ## Examples
 
 ### Blink_Delay
