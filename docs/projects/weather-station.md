@@ -14,7 +14,7 @@ nav_order: 7
 {:toc}
 
 ## Introduction
-<img src="{{site.baseurl}}/assets/images/Weather_forecasting.jpg"/>
+<img src="{{site.baseurl}}/assets/images/weather_forecasting.jpg"/>
 
 [Weather prediction or weather forecasting](https://en.wikipedia.org/wiki/Weather_forecasting) is the application of science and technology to predict the atmospheric conditions for a particular location and time. People have been trying to predict the weather for years, since it highly affects our lives. Albeit predicting the weather became much more precise and accurate, it remains a difficult task, especially when predicting far into the future. This is due to the chaotic nature of the atmosphere and many different parameters that need to be taken into account. This nonlinearity requires a massive computational power to solve such equations, and the more difference between the current time and the time for which the forecast is being made increases, the less accurate forecasts are. In simple terms, the initial conditions become less accurate, and the fact that we don't fully understand the atmosphere, thus we can never incorporate all the different parameters that affect the weather.
 

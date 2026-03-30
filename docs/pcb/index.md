@@ -278,12 +278,12 @@ The Prowave 328ST160 is an ultrasound speaker designed specifically for emitting
 
 After the AC coupling of the DAC output, the ADA4511-2 amplifies the signal by a factor of around 2 considering losses in the path. The corner frequency is at 3.710&#8239;kHz, which the DAC signal passes with very little attenuation at ~32&#8239;kHz.
 
-A LTSPice simulation for the setup is found in `pcb/simulation/SpeakerSimulation.asc`.
+A LTSpice simulation for the setup is found in `pcb/simulation/SpeakerSimulation.asc`.
 
 **Lab measurement**
 {: .mb-1}
 
-<img src="{{site.baseurl}}/assets/images/Amp-Ultrasound-0.9.png" alt="drawing"/>
+<img src="{{site.baseurl}}/assets/images/dac-amplification.png" alt="drawing"/>
 {: .text-center .mt-0}
 
 [link1]: https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax
