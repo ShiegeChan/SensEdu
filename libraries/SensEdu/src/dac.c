@@ -35,7 +35,7 @@ typedef struct {
     volatile uint16_t transfers_done_in_burst;
 
     // Flag when burst transfer is completed
-    volatile uint8_t burst_complete;       
+    volatile bool burst_complete;
 } DacState;
 
 /* -------------------------------------------------------------------------- */
@@ -102,7 +102,7 @@ void SensEdu_DAC_Init(SensEdu_DAC_Settings* settings) {
     DacState* dac_state = get_dac_state(settings->dac_channel);
     if (dac_state == NULL) return;
     dac_state->transfers_done_in_burst = 0;
-    dac_state->burst_complete = 0;
+    dac_state->burst_complete = false;
 
     // Initialize timer for DAC sampling (both DAC channels use the same timer)
     TIMER_DAC1Init(settings->sampling_freq);
@@ -182,7 +182,7 @@ void SensEdu_DAC_ClearBurstCompleteFlag(DAC_Channel* dac_channel) {
 
     DacState* state = get_dac_state(dac_channel);
     if (state == NULL) return;
-    state->burst_complete = 0;
+    state->burst_complete = false;
 }
 
 // Returns DAC driver's current error state.
@@ -358,7 +358,7 @@ void DAC_TransferCompleteDmaInterrupt(DAC_Channel* dac_channel) {
         (state->transfers_done_in_burst)++;
         if ((state->transfers_done_in_burst) == settings->burst_num) {
             (state->transfers_done_in_burst) = 0;
-            (state->burst_complete) = 1;
+            (state->burst_complete) = true;
         } else {
             dac_enable_hw(dac_channel);
         }
