@@ -31,9 +31,6 @@ void setup() {
 
     SensEdu_DAC_Init(&dac_settings);
     SensEdu_DAC_Enable(dac_ch);
-    
-    pinMode(error_led, OUTPUT);
-    digitalWrite(error_led, HIGH);
 
     check_lib_errors();
 

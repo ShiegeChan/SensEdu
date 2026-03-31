@@ -10,7 +10,7 @@ nav_order: 1
 {: .fs-8 .fw-500 .no_toc}
 ---
 
-Timers allow precise event scheduling, such as creating delays or setting sampling rates for peripherals.
+Timers provide hardware support for generating delays, issuing periodic peripheral triggers for sampling rates, and producing PWM signals.
 {: .fw-500}
 
 - TOC
@@ -18,19 +18,23 @@ Timers allow precise event scheduling, such as creating delays or setting sampli
 
 ## Errors
 
-The main timer error code prefix is `0x10xx`. Find the way to display errors in your Arduino sketch [here]({% link library/index.md %}#error-handling).
+The main timer error code prefix is `0x10xx`. See how to display errors in your Arduino sketch [here]({% link library/index.md %}#error-handling).
 
 An overview of possible errors for timers:
 * `0x1000`: No Errors
 * `0x1001`: Unexpected delay value. Minimum possible is 1ns
 * `0x1002`: Wrong ADC selected. No timer associated with the specified ADC
-* `0x1003`: Unexpected ADC frequency. Maximum possible is 1MHz, refer to [SensEdu_ADC_Settings]({% link library/adc.md %}#sensedu_adc_settings) for more details
-* `0x1004`: Unexpected DAC frequency. Maximum possible is 15MHz, refer to [SensEdu_DAC_Settings]({% link library/dac.md %}#sensedu_dac_settings) for more details
-* `0x1005`: TIM8 initialization attempt while TIM8 is running. Configuration is possible only for disabled timer
-* `0x1006`: TIM8 Unexpected CCR channel. Possible options are: `CCR1`, `CCR2`, `CCR3` or `CCR4`
+* `0x1003`: Selected unsupported TIMx
+* `0x1004`: Unexpected generic frequency setting
+* `0x1005`: Unexpected ADC frequency setting. Recommended limit is 1MHz, refer to [SensEdu_ADC_Settings]({% link library/adc.md %}#sensedu_adc_settings) for more details
+* `0x1006`: Unexpected DAC frequency setting. Recommended limit is 15MHz, refer to [SensEdu_DAC_Settings]({% link library/dac.md %}#sensedu_dac_settings) for more details
+* `0x1007`: Unexpected PWM duty cycle. Must be in a range from 0 to 100
+* `0x1008`: TIM8 initialization attempt while TIM8 is running. Configuration is possible only for disabled timer
+* `0x1009`: TIM8 Unexpected CCR channel. Possible options are: `CCR1`, `CCR2`, `CCR3` or `CCR4`
 
 An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
 * `0x10A0`: Timer frequency calculations failed
+* `0x10A1`: Driver has been stuck in a delay indefinitely
 
 ## Functions
 
@@ -40,6 +44,9 @@ Initializes the timer used for microsecond delays. Call it once in the setup bef
 ```c
 void SensEdu_TIMER_DelayInit();
 ```
+
+{: .WARNING}
+All delay functions are blocking. The CPU cannot execute other tasks during the delay.
 
 ### SensEdu_TIMER_Delay_us
 
@@ -76,9 +83,8 @@ void SensEdu_TIMER_Delay_ns(uint32_t delay_ns);
 {: .no_toc}
 * For `delay_ns` $$\gt$$ $$1000\text{us}$$, the function internally switches to `SensEdu_TIMER_Delay_us()` to avoid potential 32-bit overflow in the `NS_TO_TICKS(ns)` macro.
 * The lowest achievable timer resolution on STM32H747 MCU is ~$$4.17\text{ns}$$, calculated as: $$\text{tick} = 1/240\text{MHz} \times 10^9 \approx4.17\text{ns}$$. Delays are therefore multiples of this tick, approximately: $$4\text{ns}$$, $$8\text{ns}$$, $$13\text{ns}$$, $$17\text{ns}$$, etc.
-* Delays shorter than $$250\text{ns}$$ are generally not practical, due to set frequencies being close to the system clock frequency of the MCU. These delays become overpowered by the software overhead. Execution of the function itself takes around $$60-120$$ CPU cycles, corresponding to ~$$125-250\text{ns}$$ on a $$480\text{MHz}$$ core.
+* In theory, delays shorter than about $$250\text{ns}$$ are not achievable because the configured frequencies are close to the MCU system clock frequency. These delays become overpowered by the software overhead. Executing the function itself takes roughly $$60-120$$ CPU cycles, which corresponds to ~$$125-250\text{ns}$$ on a $$480\text{MHz}$$ core. In practice, including software overhead, the effective minimum delay is closer to $$550\text{ns}$$.
 * To account for software overhead, a hardcoded compensation of $$550\text{ns}$$ is applied. Additionally, any requested delays below this threshold are automatically raised to $$550\text{ns}$$. The reasons for this exact number are explained in the [compensation section]({% link library/timers.md %}#software-overhead-compensation-in-nanosecond-delays).
-
 ## Examples
 
 ### Blink_Delay
@@ -128,7 +134,7 @@ Timer allocation:
 * **TIM8**: PWM
 
 {: .WARNING }
-Avoid reusing occupied timers. Refer to [STM32H747 Reference Manual] to find free available timers. Be aware, future updates will assign dedicated timers to each ADC/DAC separately, which may occupy your custom timer.
+Avoid reusing occupied timers. Refer to [STM32H747 Reference Manual] to find available timers. Be aware, future updates will assign dedicated timers to each ADC/DAC separately, which may occupy your custom timer.
 
 ### Frequency settings
 

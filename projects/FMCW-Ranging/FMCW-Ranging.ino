@@ -90,16 +90,6 @@ void setup() {
 
     // Generate the chirp signal
     generateSawtoothChirp(lut);
-
-    // Print the chirp signal LUT
-    Serial.println("start of the Chirp LUT");
-    for (int i = 0 ; i < samples_int; i++) { 
-        // Loop for the LUT size
-        Serial.print("value ");
-        Serial.print(i+1);
-        Serial.print(" of the Chirp LUT: ");
-        Serial.println(lut[i]);
-    }
     
     // Initialize DAC
     SensEdu_DAC_Init(&dac_settings);
@@ -144,7 +134,7 @@ void loop() {
 
     // Send ADC data (16-bit values, continuously)
     uint32_t adc_byte_length = buf_size * sizeof(uint16_t); // ADC data size in bytes
-    Serial.write((uint8_t*)&adc_byte_length, sizeof(adc_byte_length));  // Send size header
+    Serial.write((uint8_t*)&adc_byte_length, sizeof(uint32_t));  // Send size header
     serial_send_array(&(tx_data[0]), buf_size, 32);                   
     serial_send_array(&(rx_data[0]), buf_size, 32);                   
 

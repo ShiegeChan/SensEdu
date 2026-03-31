@@ -1,3 +1,19 @@
+/**
+ * @file timer.h
+ * @brief Public API for timer driver (delays, ADC/DAC triggering, PWM).
+ *
+ * This module provides:
+ * - Blocking delays with microsecond and nanosecond resolution
+ * - Timer configuration for ADC triggering
+ * - Timer configuration for DAC triggering
+ * - PWM generation
+ *
+ * Notes:
+ * - Delay functions are blocking (CPU busy-wait)
+ * - Nanosecond delays are limited by software overhead (~550 ns minimum)
+ * - Timer clock is assumed to be 240 MHz
+ */
+
 #ifndef __TIMER_H__
 #define __TIMER_H__
 
@@ -11,12 +27,16 @@ typedef enum {
     TIMER_ERROR_NO_ERRORS = 0x00,
     TIMER_ERROR_BAD_SET_DELAY = 0x01,
     TIMER_ERROR_PICKED_WRONG_ADC = 0x02,
-    TIMER_ERROR_ADC_TIM_BAD_SET_FREQUENCY = 0x03,
-    TIMER_ERROR_TIM4_BAD_SET_FREQUENCY = 0x04,
-    TIMER_ERROR_TIM8_INIT_WHILE_RUNNING = 0x05,
-    TIMER_ERROR_TIM8_WRONG_DUTY_CHANNEL = 0x06,
+    TIMER_ERROR_UNDEFINED_TIMER_REQUESTED = 0x03,
+    TIMER_ERROR_BAD_SET_FREQUENCY = 0x04,
+    TIMER_ERROR_ADC_BAD_SET_FREQUENCY = 0x05,
+    TIMER_ERROR_DAC_BAD_SET_FREQUENCY = 0x06,
+    TIMER_ERROR_BAD_SET_DUTY_CYCLE = 0x07,
+    TIMER_ERROR_TIM8_INIT_WHILE_RUNNING = 0x08,
+    TIMER_ERROR_TIM8_WRONG_DUTY_CHANNEL = 0x09,
 
-    TIMER_ERROR_CRITICAL_FREQ_CALCULATION_BUG = 0xA0
+    TIMER_ERROR_CRITICAL_FREQ_CALCULATION_BUG = 0xA0,
+    TIMER_ERROR_TIMEOUT = 0xA1,
 } TIMER_ERROR;
 
 void SensEdu_TIMER_DelayInit(void);

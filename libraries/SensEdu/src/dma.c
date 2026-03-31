@@ -405,7 +405,7 @@ void DMA1_Stream7_IRQHandler(void) {
 void DMA1_Stream2_IRQHandler(void) {
     if (READ_BIT(DMA1->LISR, DMA_LISR_TCIF2)) {
         SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTCIF2);
-        DAC_TransferCompleteDMAinterrupt(DAC_CH1);
+        DAC_TransferCompleteDmaInterrupt(DAC_CH1);
     }
 
     if (READ_BIT(DMA1->LISR, DMA_LISR_TEIF2)) {
@@ -417,7 +417,7 @@ void DMA1_Stream2_IRQHandler(void) {
 void DMA1_Stream3_IRQHandler(void) {
     if (READ_BIT(DMA1->LISR, DMA_LISR_TCIF3)) {
         SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTCIF3);
-        DAC_TransferCompleteDMAinterrupt(DAC_CH2);
+        DAC_TransferCompleteDmaInterrupt(DAC_CH2);
     }
 
     if (READ_BIT(DMA1->LISR, DMA_LISR_TEIF3)) {
