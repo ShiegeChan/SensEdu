@@ -1,4 +1,4 @@
-function mpt_plot_measurements(dist_matrix)
+function mpt_plot_measurements(dist_matrix, max_peaks)
 mic_name = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
 figure
 for i = 1:4
@@ -21,11 +21,14 @@ for i = 1:4
             m = ">";
     end
 
-    
-    plot(dist_matrix((i-1)*2+i, :), 'LineStyle','none','LineWidth', 0.5, 'Marker', m); hold on;
-    plot(dist_matrix((i-1)*2+i+1, :),  'LineStyle','none','LineWidth', 0.5, 'Marker', m); hold on;
-    plot(dist_matrix((i-1)*2+i+2, :),  'LineStyle','none','LineWidth', 0.5, 'Marker', m); hold on;
-
+    % adapt for more than 3 peaks
+    plot(dist_matrix((i-1)*(max_peaks-1)+i, :), 'LineStyle','none','LineWidth', 0.5, 'Marker', m); hold on;
+    if max_peaks>=2
+    plot(dist_matrix((i-1)*(max_peaks-1)+i+1, :),  'LineStyle','none','LineWidth', 0.5, 'Marker', m); hold on;
+    end
+    if max_peaks>=3
+    plot(dist_matrix((i-1)*(max_peaks-1)+i+2, :),  'LineStyle','none','LineWidth', 0.5, 'Marker', m); hold on;
+    end
 end
 grid on
 % ylim([0.001 2.5])

@@ -1,18 +1,21 @@
-%% detailed_data_acquisition.m
+%% complete_data_acquisition.m
 % triggers ultrasonic recording
 % receives the data
 % plots distances along with processing steps
+% handles multi-peak tracking and detailed/non-detailed data
 clear;
 close all;
 addpath("plot scripts\");
 
 %% Parameters
-ITERATIONS = 25; 
-MIC_NUM = 4;
+ITERATIONS = 150; 
+MIC_NUM = 4; 
+MAX_PEAKS = 3; % Match this value in Peaks.h
 MIC_NAMES = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
-DATA_LENGTH = 4096;
+DATA_LENGTH = 2048;
 PROCESSING_STEPS = 3; % raw, fitlered, xcorr
-ENABLE_LIVE_PLOTS = true;
+ENABLE_DETAILED_DATA = false; % Match this value in the main code
+ENABLE_LIVE_PLOTS = false; % Match this value in the main code
 
 %% Arduino Setup + Config
 % Serial port configuration 
@@ -21,7 +24,7 @@ ARDUINO_BAUDRATE = 115200;
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate 
 
 %% Arrays
-dist_matrix = zeros(MIC_NUM, ITERATIONS); % distance matrix
+dist_matrix = zeros(MIC_NUM*MAX_PEAKS, ITERATIONS); % distance matrix
 processing_matrix = zeros(ITERATIONS, MIC_NUM, PROCESSING_STEPS, DATA_LENGTH); % all processing steps data
 processing_matrix_size = size(processing_matrix);
 time_axis = zeros(1, ITERATIONS); %  time array
@@ -37,17 +40,21 @@ tic;
 for it = 1:ITERATIONS
     write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(it) = toc;
-
-    for i = 1:MIC_NUM
-        processing_matrix(it, i, 1, :) = read_16bit_data(arduino, DATA_LENGTH);
-        processing_matrix(it, i, 2, :) = read_float_data(arduino, DATA_LENGTH);
-        processing_matrix(it, i, 3, :) = read_float_data(arduino, DATA_LENGTH);
+    if ENABLE_DETAILED_DATA
+        for i = 1:MIC_NUM
+            processing_matrix(it, i, 1, :) = read_16bit_data(arduino, DATA_LENGTH);
+            processing_matrix(it, i, 2, :) = read_float_data(arduino, DATA_LENGTH);
+            processing_matrix(it, i, 3, :) = read_float_data(arduino, DATA_LENGTH);
+        end
     end
-    dist_matrix(:, it) = read_distance_data(arduino, MIC_NUM);
-
-    if ENABLE_LIVE_PLOTS == true
-        plot_live_data(reshape(processing_matrix(it,:,:,:), processing_matrix_size(2:end)), dist_matrix(:,:));
+    pom = mpt_read_distance_data(arduino, MIC_NUM, MAX_PEAKS);
+    % Reading the distance measurements
+    dist_matrix(:, it) = pom;
+    % dist_matrix(:, it) = read_distance_data(arduino, MIC_NUM);
+    if ENABLE_LIVE_PLOTS == true && ENABLE_DETAILED_DATA == true
+        plot_live_data(reshape(processing_matrix(it,:,:,:), processing_matrix_size(2:end)), dist_matrix(:,:),MAX_PEAKS);
     end
+    it
 end
 acquisition_time = toc;
 
@@ -66,55 +73,24 @@ fprintf("Data acquisition completed in: %fsec\n", acquisition_time);
 arduino = [];
 
 %% Plotting 1
-figure
-for i = 1:MIC_NUM
-    switch i
-        case 1
-            m = "o";
-        case 2
-            m = "^";
-        case 3
-            m = "square";
-        case 4
-            m = "diamond";
-        case 5
-            m = "v";
-        case 6
-            m = "hexagram";
-        case 7
-            m = "pentagram";
-        case 8
-            m = ">";
-    end
+mpt_plot_measurements(dist_matrix, MAX_PEAKS);
 
-    plot(time_axis, dist_matrix(i, :), 'LineWidth', 2, 'Marker', m); hold on;
-
-end
-ylim([0 1])
-xlim([0 time_axis(end)])
-grid on
-xlabel("time [s]");
-ylabel("distance [m]")
-legend(MIC_NAMES);
-title("Microphone distance measurements")
-beautify_plot(gcf, 1);
-
-%% Plotting 2
-figure
-for i = 1:MIC_NUM
-    subplot(MIC_NUM, 1, i);
-    plot(time_axis, dist_matrix(i, :), 'LineWidth', 2)
-    ylim([0 1])
-    xlim([0 time_axis(end)])
-    grid on
-    xlabel("time [s]");
-    ylabel("distance [m]")
-    title(MIC_NAMES(i));
-end
-beautify_plot(gcf, 1);
+% %% Plotting 2
+% figure
+% for i = 1:MIC_NUM
+%     subplot(MIC_NUM, 1, i);
+%     plot(time_axis, dist_matrix(i, :), 'LineWidth', 2)
+%     ylim([0 1])
+%     xlim([0 time_axis(end)])
+%     grid on
+%     xlabel("time [s]");
+%     ylabel("distance [m]")
+%     title(MIC_NAMES(i));
+% end
+% beautify_plot(gcf, 1);
 
 %% Functions
-function plot_live_data(steps_matrix, distance_array)
+function plot_live_data(steps_matrix, distance_array,max_peaks)
     [mic_num, processing_steps, data_length] = size(steps_matrix);
     x_plots_num = processing_steps + 1;
     y_plots_num = mic_num;
@@ -126,7 +102,7 @@ function plot_live_data(steps_matrix, distance_array)
             plot_idx = plot_idx + 1;
         end
         subplot(y_plots_num, x_plots_num, plot_idx);
-        plot_distance_data(j, squeeze(distance_array(j, :)))
+        plot_distance_data(j, squeeze(distance_array(max_peaks*j-(max_peaks-1), :)))
         plot_idx = plot_idx + 1;
     end
     % beautify_plot(gcf, 1);
@@ -161,13 +137,13 @@ function plot_detailed_data(mic, step, data)
     end
 end
 
-function dist_vector = read_distance_data(arduino, mic_num)
-    dist_vector = zeros(mic_num, 1);
-    for i = 1:mic_num
-        serial_rx_data = read(arduino, 4, 'uint8'); % 32bit per one distance measurement
-        dist_vector(i, 1) = double(typecast(uint8(serial_rx_data), 'uint32'))/1e6; % expected in micrometers
-    end
-end
+% function dist_vector = read_distance_data(arduino, mic_num)
+%     dist_vector = zeros(mic_num, 1);
+%     for i = 1:mic_num
+%         serial_rx_data = read(arduino, 4, 'uint8'); % 32bit per one distance measurement
+%         dist_vector(i, 1) = double(typecast(uint8(serial_rx_data), 'uint32'))/1e6; % expected in micrometers
+%     end
+% end
 
 function data = read_16bit_data(arduino, data_length)
     chunk_size = 32; % in bytes

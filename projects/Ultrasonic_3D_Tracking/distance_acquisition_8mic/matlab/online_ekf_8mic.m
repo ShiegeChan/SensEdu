@@ -2,7 +2,7 @@
 clear all
 clc
 close all
-addpath("plot scripts\");
+addpath("plot scripts\", "kf algorithm\");
 
 %% Arduino Measurements
 % Serial port configuration 

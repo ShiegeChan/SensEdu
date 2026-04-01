@@ -2,12 +2,12 @@
 #include "CMSIS_DSP.h"
 #include "SineLUT.h"
 #include "FilterTaps.h"
-#include "DACWave.h"
+#include "DACWave.h" // Contains wave and its size
 #include "Peaks.h"
 
+#include <math.h>
 #include <vector>
 #include <array>
-
 
 uint32_t lib_error = 0;
 uint8_t error_led = D86;
@@ -22,13 +22,12 @@ uint8_t error_led = D86;
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-#define BAN_DISTANCE	            20	        // Min distance [cm] - how many self reflections cancelled
-#define SAMPLING_RATE               250000      // ADC sampling rate
-#define STORE_BUF_SIZE              4096        // 2400 for 1 measurement per second 
-                            	            
+#define IS_TRANSMIT_DETAILED_DATA   false    // Activate full raw, filtered, xcorr data transmission
+#define BAN_DISTANCE	            20	    // Min distance [cm] - how many self reflections cancelled
+#define SAMPLING_RATE               250000  // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
+#define STORE_BUF_SIZE              2048    // 2400 for 1 measurement per second. 
 
 /* --------------------------------- Filter --------------------------------- */
-
 #define FILTER_BLOCK_LENGTH     32      // How many samples we want to process every time we call the fir process function AT
 #define FILTER_TAP_NUM          32      // Tap number for the bandpass filter
 
@@ -41,7 +40,6 @@ const uint16_t mic_data_size = STORE_BUF_SIZE * 2;
 SENSEDU_ADC_BUFFER(mic12_data, mic_data_size);
 SENSEDU_ADC_BUFFER(mic34_data, mic_data_size);
 
-
 // SMALL BOARD
 ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
@@ -50,14 +48,6 @@ const uint8_t adc2_mic_num = 2;
 uint8_t mic12_pins[adc1_mic_num] = {A5, A10};
 uint8_t mic34_pins[adc2_mic_num] = {A1, A6};
 
-
-// // BIG BOARD
-// ADC_TypeDef* adc1 = ADC1;
-// ADC_TypeDef* adc2 = ADC3;
-// const uint8_t adc1_mic_num = 2;
-// const uint8_t adc2_mic_num = 2;
-// uint8_t mic12_pins[adc1_mic_num] = {A1, A4};
-// uint8_t mic34_pins[adc2_mic_num] = {A8, A9};
 
 SensEdu_ADC_Settings adc1_settings = {
     .adc = adc1,
@@ -91,7 +81,7 @@ SensEdu_ADC_Settings adc2_settings = {
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
-DAC_Channel* dac_channel = DAC_CH1;
+DAC_Channel* dac_channel = DAC_CH2;
 SensEdu_DAC_Settings dac_settings = {
     .dac_channel = dac_channel, 
     .sampling_freq = DAC_SAMPLE_RATE,
@@ -110,7 +100,6 @@ const uint16_t air_speed = 343; // m/s
 // e.g. 25cm ban means 0.25*2/343 time ban, then multiply by sample rate
 const uint32_t c_banned_sample_num = ((BAN_DISTANCE*2*SAMPLING_RATE)/air_speed)/100; 
 
-
 /* -------------------------------------------------------------------------- */
 /*                              Global Structure                              */
 /* -------------------------------------------------------------------------- */
@@ -124,8 +113,6 @@ typedef struct {
 
 static SenseduBoard SenseduBoardObj;
 
-
-
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
@@ -136,9 +123,6 @@ void setup() {
 
     // Initializing the filter
     arm_fir_init_f32(&Fir_filt, FILTER_TAP_NUM, filter_taps, firStateBuffer, FILTER_BLOCK_LENGTH); 
-
-
-
 
     Serial.begin(115200);
 
@@ -165,21 +149,21 @@ void setup() {
 
 void loop() {
 	SenseduBoard* main_obj_ptr = &SenseduBoardObj;
-    // Wait for trigger character 't' from computing device
-    char c;
-    while (true) {
-        if (Serial.available() > 0) {
-            c = Serial.read();
-            if (c == 't') {
-                break;
-            }
+    // Measurement is initiated by the signal from computing device (matlab script)
+    static char serial_buf = 0;
+    
+    // Measurement is initiated by signal from computing device
+    while (1) {
+        while (Serial.available() == 0); // Wait for a signal
+        serial_buf = Serial.read();
+        if (serial_buf == 't') {
+            break; 
         }
-        delay(1);
     }
     
     // Start dac->adc sequence
     SensEdu_DAC_Enable(dac_channel);
-    while (!SensEdu_DAC_GetBurstCompleteFlag(dac_channel)); // Wait for dac to finish sending the burst
+    while (!SensEdu_DAC_GetBurstCompleteFlag(dac_channel)); // wait for dac to finish sending the burst
     SensEdu_DAC_ClearBurstCompleteFlag(dac_channel); 
     
     // Start ADCs
@@ -194,45 +178,44 @@ void loop() {
     while (!SensEdu_ADC_IsDmaTransferComplete(adc2));
     SensEdu_ADC_ClearDmaTransferComplete(adc2);
 
-    // Calculating distance for each microphone
-    static uint32_t distance[adc1_mic_num + adc2_mic_num];
-    // static uint32_t test_dist[(adc1_mic_num + adc2_mic_num) * MAX_PEAKS]; 
-    uint32_t test_3_dist[3];
-        // for peaks
-    static std::vector<uint32_t> test_dist;
-    test_dist.reserve((adc1_mic_num + adc2_mic_num)*MAX_PEAKS);
+// Calculating distances for each microphone
+    uint32_t peaks[MAX_PEAKS]; // we now keep a selected amount of peaks
+    static std::vector<uint32_t> distances;
+    distances.reserve((adc1_mic_num + adc2_mic_num)*MAX_PEAKS);
 
     for (uint8_t i = 0; i < adc1_mic_num; i++) {
         get_channel_data(mic12_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc1_mic_num, i);
-        process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
+        process_and_transmit_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag, IS_TRANSMIT_DETAILED_DATA);
         // distance[i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
-        calculate_distance_new(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, peaks);
         for (uint8_t k = 0; k < MAX_PEAKS; k++)
-            test_dist.push_back(test_3_dist[k]);
-        // Serial.println(test_dist[i+1]);
-        // Serial.println(test_3_dist[1]);
-        // Serial.println(test_3_dist[2]);
+            distances.push_back(peaks[k]);
     }
     for (uint8_t i = 0; i < adc2_mic_num; i++) {
         get_channel_data(mic34_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc2_mic_num, i);
-        process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
+        process_and_transmit_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag, IS_TRANSMIT_DETAILED_DATA);
         // distance[adc1_mic_num + i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
-        calculate_distance_new(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+         calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, peaks);
         for (uint8_t k = 0; k < MAX_PEAKS; k++)
-            test_dist.push_back(test_3_dist[k]);
+            distances.push_back(peaks[k]);
     }
 
     // Sending the distance measurements
     for (uint8_t i = 0; i < (adc1_mic_num + adc2_mic_num)*MAX_PEAKS; i++) {
-        Serial.write((const uint8_t *) &test_dist[i], 4);
+        Serial.write((const uint8_t *) &distances[i], 4);
     }
 
+    // Check errors
     check_lib_errors();
-    test_dist.clear();
+    distances.clear();
 }
 
-void process_data(float* buf, const uint16_t buf_size, uint16_t* ch_array, const uint16_t ch_array_size, uint8_t ban_flag) {
+void process_and_transmit_data(float* buf, const uint16_t buf_size, uint16_t* ch_array, const uint16_t ch_array_size, uint8_t ban_flag, uint8_t is_detailed_transmission) {
 
+    /* -------------------------------- RAW DATA -------------------------------- */
+    if (is_detailed_transmission)
+        transfer_serial_data(ch_array, ch_array_size, 32);
+    
     /* --------------------- RESCALED, FILTERED, NO COUPLED --------------------- */
     // Rescale from [0, (2^16-1)] to [-1, 1] and filter around 32 kHz
     clear_float_buf(buf, buf_size);
@@ -241,8 +224,13 @@ void process_data(float* buf, const uint16_t buf_size, uint16_t* ch_array, const
     if (ban_flag == 1) {
         remove_coupling(buf, c_banned_sample_num);
     } 
+    if (is_detailed_transmission)
+        transfer_serial_data_float(buf, buf_size, 32);
+
     /* ---------------------------------- XCORR --------------------------------- */
 	custom_xcorr(buf, dac_wave, buf_size);
+    if (is_detailed_transmission)
+	  transfer_serial_data_float(buf, buf_size, 32);
     
 }
 
