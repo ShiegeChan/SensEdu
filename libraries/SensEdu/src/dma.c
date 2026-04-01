@@ -1,3 +1,18 @@
+/**
+ * @file dma.c
+ * @brief Internal implementation of DMA driver for ADC and DAC with MPU cache management
+ *
+ * This module provides:
+ * - DMA initialization, configuration, and management for ADC and DAC peripherals
+ * - Support for circular and normal mode transfers
+ * - MPU cache disabling for DMA buffers
+ *
+ * Notes:
+ * - Hard-coded DMA streams and DMAMUX channels for specific ADC/DAC instances
+ * - Buffers must be allocated with proper alignment using the provided macros
+ * - Calling DMA_EnableDmaForX multiple times without a preceding disable is unsafe
+ */
+
 #include "dma.h"
 #include "adc.h"
 
@@ -81,7 +96,7 @@ static void init_dma_for_dac(DmaConfig* config, SENSEDU_DAC_MODE wave_mode);
 static void enable_dma(DmaConfig* config);
 static void disable_dma(DmaConfig* config);
 
-void clear_dma_status_flags(const uint8_t stream_idx);
+static void clear_dma_status_flags(const uint8_t stream_idx);
 
 static void disable_cache(uint16_t* buf, size_t buf_samples);
 
@@ -274,11 +289,6 @@ void init_dma_for_dac(DmaConfig* config, SENSEDU_DAC_MODE wave_mode) {
 static void enable_dma(DmaConfig* config) {
     if (!config) return;
 
-    // if (READ_BIT(config->stream->CR, DMA_SxCR_EN)) {
-    //     error = DMA_ERROR_ENABLED_BEFORE_ENABLE;
-    //     return;
-    // }
-
     clear_dma_status_flags(config->stream_idx);
     SET_BIT(config->stream->CR, DMA_SxCR_EN);
 }
@@ -292,7 +302,7 @@ static void disable_dma(DmaConfig* config) {
     clear_dma_status_flags(config->stream_idx);
 }
 
-void clear_dma_status_flags(const uint8_t stream_idx) {
+static void clear_dma_status_flags(const uint8_t stream_idx) {
 
     if (stream_idx > 7) {
         error = DMA_ERROR_UNEXPECTED_FLAG_MASK;

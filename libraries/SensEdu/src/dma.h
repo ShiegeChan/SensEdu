@@ -1,3 +1,18 @@
+/**
+ * @file dma.h
+ * @brief Internal API for DMA driver
+ *
+ * This module provides:
+ * - DMA initialization, configuration, and management for ADC and DAC peripherals
+ * - Support for circular and normal mode transfers
+ * - MPU cache disabling for DMA buffers
+ *
+ * Notes:
+ * - Hard-coded DMA streams and DMAMUX channels for specific ADC/DAC instances
+ * - Buffers must be allocated with proper alignment using the provided macros
+ * - Calling DMA_EnableDmaForX multiple times without a preceding disable is unsafe
+ */
+
 #ifndef __DMA_H__
 #define __DMA_H__
 
