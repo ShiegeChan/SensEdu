@@ -74,23 +74,8 @@ arduino = [];
 
 %% Plotting 1
 mpt_plot_measurements(dist_matrix, MAX_PEAKS);
-
-% %% Plotting 2
-% figure
-% for i = 1:MIC_NUM
-%     subplot(MIC_NUM, 1, i);
-%     plot(time_axis, dist_matrix(i, :), 'LineWidth', 2)
-%     ylim([0 1])
-%     xlim([0 time_axis(end)])
-%     grid on
-%     xlabel("time [s]");
-%     ylabel("distance [m]")
-%     title(MIC_NAMES(i));
-% end
-% beautify_plot(gcf, 1);
-
 %% Functions
-function plot_live_data(steps_matrix, distance_array,max_peaks)
+function plot_live_data(steps_matrix, distance_array, max_peaks)
     [mic_num, processing_steps, data_length] = size(steps_matrix);
     x_plots_num = processing_steps + 1;
     y_plots_num = mic_num;
@@ -136,14 +121,6 @@ function plot_detailed_data(mic, step, data)
             xlim([1, length(data)]);
     end
 end
-
-% function dist_vector = read_distance_data(arduino, mic_num)
-%     dist_vector = zeros(mic_num, 1);
-%     for i = 1:mic_num
-%         serial_rx_data = read(arduino, 4, 'uint8'); % 32bit per one distance measurement
-%         dist_vector(i, 1) = double(typecast(uint8(serial_rx_data), 'uint32'))/1e6; % expected in micrometers
-%     end
-% end
 
 function data = read_16bit_data(arduino, data_length)
     chunk_size = 32; % in bytes

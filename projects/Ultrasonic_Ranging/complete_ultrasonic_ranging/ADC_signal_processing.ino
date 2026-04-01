@@ -2,7 +2,7 @@
 /*                           ADC DATA REARRANGEMENT                           */
 /* -------------------------------------------------------------------------- */
 void get_channel_data(uint16_t* adc_array, uint16_t* ch_buf, const uint16_t ch_buf_size, const uint16_t total_ch_num, const uint8_t selected_ch) {
-    for(uint16_t i = 0; i < ch_buf_size; i++) {
+    for (uint16_t i = 0; i < ch_buf_size; i++) {
         // if this bottlenecks the execution, use DMA for data rearrangement or move it to MATLAB
         ch_buf[i] = adc_array[i*total_ch_num + selected_ch];
     }
@@ -35,9 +35,9 @@ void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
     // initialize this temporal buffer
     clear_float_buf(output_signal, STORE_BUF_SIZE);
     // need to take block chunks of the input signal
-    for(uint16_t i = 0; i < adc_data_length; i += FILTER_BLOCK_LENGTH) {
+    for (uint16_t i = 0; i < adc_data_length; i += FILTER_BLOCK_LENGTH) {
         // take care of the last block
-        size_t block_size = min(FILTER_BLOCK_LENGTH, adc_data_length - i);
+        int block_size = min(FILTER_BLOCK_LENGTH, adc_data_length - i);
         // perform the filter operation for the current block
         arm_fir_f32(&Fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
     }
@@ -51,7 +51,7 @@ void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
 /* -------------------------------------------------------------------------- */
 void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, size_t adc_data_length) {
     // 0:65535 -> -1:1
-    for(uint16_t i = 0; i < adc_data_length; i++) {
+    for (uint16_t i = 0; i < adc_data_length; i++) {
         rescaled_adc_wave[i] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
     }
 }
@@ -70,11 +70,11 @@ void remove_coupling(float* adc_wave, const uint16_t banned_sample_num) {
 /* -------------------------------------------------------------------------- */
 
 // Comparison function for sorting peaks in descending order
-int comparePeaks(const void* a, const void* b) {
-    Peak* peakA = (Peak*)a;
-    Peak* peakB = (Peak*)b;
-    if (peakB->value > peakA->value) return 1;
-    if (peakB->value < peakA->value) return -1;
+int compare_peaks(const void* a, const void* b) {
+    Peak* peak_a = (Peak*)a;
+    Peak* peak_b = (Peak*)b;
+    if (peak_b->value > peak_a->value) return 1;
+    if (peak_b->value < peak_a->value) return -1;
     return 0;
 }
 
@@ -83,11 +83,11 @@ int comparePeaks(const void* a, const void* b) {
 /* -------------------------------------------------------------------------- */
 void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_rate, uint32_t* dist_um) {
 
-    if (MAX_PEAKS == 1) {
-        // Old single distance measurement (fast)
+    if (MAX_PEAKS == 1) { // anyways not very recommended unless you want a slightly faster acquisition
+        // Old single distance measurement
         uint16_t peak_index = 0u;
         float max_value = 0.0f;
-        for (uint16_t i = 0u; i < echo_length; i++) {
+        for (size_t i = 0u; i < echo_length; i++) {
             if (echo[i] > max_value) {
                 max_value = echo[i];
                 peak_index = i;
@@ -95,115 +95,104 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
         }
         for (int p = 0; p < MAX_PEAKS; p++) {
             dist_um[p] = (float)peak_index * HALF_AIR_SPEED_UM_S / sampling_rate;
-            //  Serial.println(dist_um[p]);
         }
-    } else {
+        return;
+    }
 
-        // First, we need an envelope for a peak search, otherwise we'll see all the high-frequency peaks of the waveform
-        uint32_t enveloped_signal[echo_length];
-        uint8_t windowSize = 20;
-        uint8_t halfWindow = windowSize / 2;
-        uint32_t currentMax = 0;
-        int maxIndex = -1;
+    // First, we need an envelope for a peak search, otherwise we'll see all the high-frequency peaks of the waveform
+    static uint32_t enveloped_signal[STORE_BUF_SIZE  * sizeof(uint32_t)];
+    uint8_t window_size = 20;
+    uint8_t half_window = window_size / 2;
+    uint32_t current_max = 0;
+    int max_index = -1;
 
-        for (int i = 0; i < echo_length; i++) {
-            int start = max(0, i - halfWindow);
-            int end = min(echo_length - 1, i + halfWindow);
-            if (maxIndex < start) {
-                currentMax = 0;
-                for (int j = start; j <= end; j++) {
-                    uint32_t absVal = abs(echo[j]);
-                    if (absVal >= currentMax) {
-                        currentMax = absVal;
-                        maxIndex = j;
-                    }
-                }
-            } else {
-                uint32_t newVal = abs(echo[end]);
-                if (newVal >= currentMax) {
-                    currentMax = newVal;
-                    maxIndex = end;
+    for (uint16_t i = 0; i < echo_length; i++) {
+        uint32_t start = max(0, i - half_window);
+        uint32_t end = min(echo_length - 1, i + half_window);
+        if (max_index < start) {
+            current_max = 0;
+            for (int j = start; j <= end; j++) {
+                uint32_t abs_val = (uint32_t)fabsf(echo[j]);
+                if (abs_val >= current_max) {
+                    current_max = abs_val;
+                    max_index = j;
                 }
             }
-            enveloped_signal[i] = currentMax;
-            // Serial.println(enveloped_signal[i]);
+        } else {
+            uint32_t new_val = (uint32_t)fabsf(echo[end]);
+            if (new_val >= current_max) {
+                current_max = new_val;
+                max_index = end;
+            }
         }
+        enveloped_signal[i] = current_max;
+    }
 
-        // Then, we add a moving average to smooth the envelope and especially to remove flat parts:
-        uint32_t* smoothed = (uint32_t*)malloc(echo_length * sizeof(uint32_t));
-        if (smoothed != NULL) {
-            int windowSize = 50;
-            int halfWin = windowSize/2;
-            double runningSum = 0.0; 
-            int count = 0;
+    // Then, we add a moving average to smooth the envelope and especially to remove flat parts:
+    static uint32_t smoothed_buf[STORE_BUF_SIZE  * sizeof(uint32_t)];
 
-            for (int j = 0; j <= halfWin && j < echo_length; j++) {
-                runningSum += enveloped_signal[j];
+    if (smoothed_buf != NULL) {
+        window_size = 50;
+        half_window = window_size/2;
+        double runningSum = 0.0; 
+        int count = 0;
+
+        for (size_t j = 0; j <= half_window && j < echo_length; j++) {
+            runningSum += enveloped_signal[j];
+            count++;
+        }
+        for (size_t i = 0; i < echo_length; i++) {
+            smoothed_buf[i] = (uint32_t)(runningSum / count);
+
+            int nextToEnter = i + half_window + 1;
+            if (nextToEnter < echo_length) {
+                runningSum += enveloped_signal[nextToEnter];
                 count++;
             }
-            for (int i = 0; i < echo_length; i++) {
-                smoothed[i] = (uint32_t)(runningSum / count);
-
-                int nextToEnter = i + halfWin + 1;
-                if (nextToEnter < echo_length) {
-                    runningSum += enveloped_signal[nextToEnter];
-                    count++;
-                }
-                int nextToLeave = i - halfWin;
-                if (nextToLeave >= 0) {
-                    runningSum -= enveloped_signal[nextToLeave];
-                    count--;
-                }
-            }
-            memcpy(enveloped_signal, smoothed, echo_length * sizeof(uint32_t));
-            free(smoothed);
-        }
-
-
-        // For the peak search on the envelope, we also consider a threshold relative to the max peak height.
-        // We ll olny consider peaks which are X% of the maximum, e.g., 70% 
-        uint32_t max_val = 0;
-        for (uint32_t i = 0; i < echo_length; i++) {
-            if (enveloped_signal[i] > max_val) {
-                max_val = enveloped_signal[i];
+            int nextToLeave = i - half_window;
+            if (nextToLeave >= 0) {
+                runningSum -= enveloped_signal[nextToLeave];
+                count--;
             }
         }
-        uint32_t threshold = (max_val * 7) / 10;
-
-        // echo_length / 2 is the theoretical maximum number of peaks possible
-        Peak* tempPeaks = (Peak*)malloc((echo_length / 2) * sizeof(Peak));
-
-        if (tempPeaks != NULL && max_val > 0) {
-            int peakCount = 0;
-
-            for (uint32_t i = 1; i < echo_length - 1; i++) {
-                uint32_t current = enveloped_signal[i];
-
-                if (current >= threshold) {
-                    if (current > enveloped_signal[i - 1] && current >= enveloped_signal[i + 1]) {
-                        tempPeaks[peakCount].value = current;
-                        tempPeaks[peakCount].location = i;
-                        peakCount++;
-                    }
-                }
-            }
-
-            if (peakCount > 0) {
-                qsort(tempPeaks, peakCount, sizeof(Peak), comparePeaks);
-            }
-
-        }
-
-        for (int p = 0; p < MAX_PEAKS; p++) {
-            dist_um[p] = (float)tempPeaks[p].location * HALF_AIR_SPEED_UM_S / sampling_rate;
-            //  Serial.println(dist_um[p]);
-        }
-
-        free(tempPeaks);
+        memcpy(enveloped_signal, smoothed_buf, echo_length * sizeof(uint32_t));
     }
+
+
+    // For the peak search on the envelope, we also consider a threshold relative to the max peak height.
+    // We ll olny consider peaks which are X% of the maximum, e.g., 70% 
+    uint32_t max_val = 0;
+    for (size_t i = 0; i < echo_length; i++) {
+        if (enveloped_signal[i] > max_val) {
+            max_val = enveloped_signal[i];
+        }
+    }
+    uint32_t threshold = (max_val * 7) / 10;
+    static Peak tempPeaks[(STORE_BUF_SIZE / 2) * sizeof(uint32_t)];
+
+    if (tempPeaks != NULL && max_val > 0) {
+        int peakCount = 0;
+
+        for (size_t i = 1; i < echo_length - 1; i++) {
+            uint32_t current = enveloped_signal[i];
+
+            if (current >= threshold) {
+                if (current > enveloped_signal[i - 1] && current >= enveloped_signal[i + 1]) {
+                    tempPeaks[peakCount].value = current;
+                    tempPeaks[peakCount].location = i;
+                    peakCount++;
+                }
+            }
+        }
+
+        if (peakCount > 0) {
+            qsort(tempPeaks, peakCount, sizeof(Peak), compare_peaks);
+        }
+
+    }
+
+    for (int p = 0; p < MAX_PEAKS; p++) {
+        dist_um[p] = (float)tempPeaks[p].location * HALF_AIR_SPEED_UM_S / sampling_rate;
+    }
+
 }
-
-
-
-
-

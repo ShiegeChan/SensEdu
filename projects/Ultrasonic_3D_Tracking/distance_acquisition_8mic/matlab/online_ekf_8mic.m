@@ -12,8 +12,8 @@ arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
 
 ITERATIONS = 500;
 MIC_NUM = 8;
-DETECTION_NUM = 8*3;
 PEAKS_NUM = 3;
+DETECTION_NUM = MIC_NUM*PEAKS_NUM;
 mic_name = {"MIC 1", "MIC 2","MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
 DATA_LENGTH = 2048;
 distances = zeros(DETECTION_NUM,ITERATIONS); 
@@ -77,14 +77,6 @@ P_hist = zeros(6, 6, ITERATIONS);
 % % axis([-0.3 0.3 -0.3 0.3 0.2 1.2]);
 % view(3); % Ensure 3D perspective
 
-% figure;
-% hold on;
-% h = scatter(NaN, NaN, 40, 'rx'); % Create an empty scatter handle
-% h.XData = [];
-% h.YData = [];
-% xlim([0, ITERATIONS]);  % Set your fixed X-axis range (e.g., 0 to 100 steps)
-% ylim([0, 2.5]); % Set your expected Y-axis range
-
 figure;
 hold on;
 hx = scatter(NaN, NaN, 30, 'rx'); % X
@@ -141,11 +133,7 @@ for k = 1:ITERATIONS
         end
     end    
     y_vec(:, k) = y; % just to save the measurements we input to the EKF
-    %     new_y = y;
-    %     new_x = k*ones(1,8);
-    %     h.XData = [h.XData, new_x];
-    %     h.YData = [h.YData, new_y'];
-    % drawnow
+
 
     % EKF prediction
     x_hat_prior = stateTransitionFunction(x_hat, dtau);
@@ -193,13 +181,11 @@ end
 
 
 figure(100),
-for i = 1:24
+for i = 1:DETECTION_NUM
     scatter(k,distances(i,k), 'o'); 
     hold on;
 end
-
 hold on,
-for i = 1:8
+for i = 1:MIC_NUM
     plot(y_vec(i,:), '*'); 
- 
 end

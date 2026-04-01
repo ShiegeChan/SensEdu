@@ -135,8 +135,6 @@ typedef struct {
 
 static SenseduBoard SenseduBoardObj;
 
-
-
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
@@ -198,23 +196,18 @@ void loop() {
     SensEdu_ADC_Start(adc2);
     SensEdu_ADC_Start(adc3);
 
-    // Wait for the data from ADC1
     while (!SensEdu_ADC_IsDmaTransferComplete(adc1));
     SensEdu_ADC_ClearDmaTransferComplete(adc1);
 
-    // Wait for the data from ADC2
     while (!SensEdu_ADC_IsDmaTransferComplete(adc2));
     SensEdu_ADC_ClearDmaTransferComplete(adc2);
 
-    // Wait for the data from ADC2
     while (!SensEdu_ADC_IsDmaTransferComplete(adc3));
     SensEdu_ADC_ClearDmaTransferComplete(adc3);
 
     // Calculating distance for each microphone
     static uint32_t distance[adc1_mic_num + adc2_mic_num];
-    // static uint32_t test_dist[(adc1_mic_num + adc2_mic_num) * MAX_PEAKS]; 
     uint32_t test_3_dist[3];
-        // for peaks
     static std::vector<uint32_t> test_dist;
     test_dist.reserve((adc1_mic_num + adc2_mic_num + adc3_mic_num)*MAX_PEAKS);
 
@@ -222,28 +215,26 @@ void loop() {
         get_channel_data(mic123_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc1_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
         // distance[i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
-        calculate_distance_new(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
-        for (uint8_t k = 0; k < MAX_PEAKS; k++)
+        calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+        for (uint8_t k = 0; k < MAX_PEAKS; k++) {
             test_dist.push_back(test_3_dist[k]);
-        // Serial.println(test_dist[i+1]);
-        // Serial.println(test_3_dist[1]);
-        // Serial.println(test_3_dist[2]);
+        }
     }
     for (uint8_t i = 0; i < adc2_mic_num; i++) {
         get_channel_data(mic48_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc2_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
-        // distance[adc1_mic_num + i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
-        calculate_distance_new(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
-        for (uint8_t k = 0; k < MAX_PEAKS; k++)
+        calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+        for (uint8_t k = 0; k < MAX_PEAKS; k++) {
             test_dist.push_back(test_3_dist[k]);
+        }
     }
     for (uint8_t i = 0; i < adc3_mic_num; i++) {
         get_channel_data(mic567_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc3_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
-        // distance[adc1_mic_num + i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
-        calculate_distance_new(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
-        for (uint8_t k = 0; k < MAX_PEAKS; k++)
+        calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+        for (uint8_t k = 0; k < MAX_PEAKS; k++) {
             test_dist.push_back(test_3_dist[k]);
+        }
     }
 
     // Sending the distance measurements

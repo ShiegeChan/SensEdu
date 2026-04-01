@@ -48,7 +48,6 @@ const uint8_t adc2_mic_num = 2;
 uint8_t mic12_pins[adc1_mic_num] = {A5, A10};
 uint8_t mic34_pins[adc2_mic_num] = {A1, A6};
 
-
 SensEdu_ADC_Settings adc1_settings = {
     .adc = adc1,
     .pins = mic12_pins,
@@ -74,7 +73,6 @@ SensEdu_ADC_Settings adc2_settings = {
     .mem_address = (uint16_t*)mic34_data,
     .mem_size = mic_data_size
 };
-
 
 /* ----------------------------------- DAC ---------------------------------- */
 
@@ -178,7 +176,7 @@ void loop() {
     while (!SensEdu_ADC_IsDmaTransferComplete(adc2));
     SensEdu_ADC_ClearDmaTransferComplete(adc2);
 
-// Calculating distances for each microphone
+    // Calculating distances for each microphone
     uint32_t peaks[MAX_PEAKS]; // we now keep a selected amount of peaks
     static std::vector<uint32_t> distances;
     distances.reserve((adc1_mic_num + adc2_mic_num)*MAX_PEAKS);
@@ -186,7 +184,6 @@ void loop() {
     for (uint8_t i = 0; i < adc1_mic_num; i++) {
         get_channel_data(mic12_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc1_mic_num, i);
         process_and_transmit_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag, IS_TRANSMIT_DETAILED_DATA);
-        // distance[i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
         calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, peaks);
         for (uint8_t k = 0; k < MAX_PEAKS; k++)
             distances.push_back(peaks[k]);
@@ -194,7 +191,6 @@ void loop() {
     for (uint8_t i = 0; i < adc2_mic_num; i++) {
         get_channel_data(mic34_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc2_mic_num, i);
         process_and_transmit_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag, IS_TRANSMIT_DETAILED_DATA);
-        // distance[adc1_mic_num + i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
         calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, peaks);
         for (uint8_t k = 0; k < MAX_PEAKS; k++)
             distances.push_back(peaks[k]);
