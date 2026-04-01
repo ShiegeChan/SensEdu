@@ -3,8 +3,8 @@
 /* -------------------------------------------------------------------------- */
 void get_channel_data(uint16_t* adc_array, uint16_t* ch_buf, const uint16_t ch_buf_size, const uint16_t total_ch_num, const uint8_t selected_ch) {
     for (uint16_t i = 0; i < ch_buf_size; i++) {
-        // if this bottlenecks the execution, use DMA for data rearrangement or move it to MATLAB
-        ch_buf[i] = adc_array[i*total_ch_num + selected_ch];
+        // If this bottlenecks the execution, use DMA for data rearrangement or move it to MATLAB
+        ch_buf[i] = adc_array[i * total_ch_num + selected_ch];
     }
 }
 
@@ -12,18 +12,18 @@ void get_channel_data(uint16_t* adc_array, uint16_t* ch_buf, const uint16_t ch_b
 /*                         CROSS-CORRELATION FUNCTION                         */
 /* -------------------------------------------------------------------------- */
 void custom_xcorr(float* xcorr_buf, const uint16_t* dac_wave, uint32_t adc_data_length) {
-    // delay loop
+    // Delay loop
     for (int32_t m = 0; m < adc_data_length; m++) {
-        // sum loop
+        // Sum loop
         float sum = 0;
         for (uint16_t n = 0; n < dac_wave_size; n++) {
             uint32_t idx = n + m;
             if (idx < adc_data_length) {
-                sum += dac_wave[n]*xcorr_buf[idx]; 
+                sum += dac_wave[n] * xcorr_buf[idx];
             }
         }
-        // indexes never overlap with previous computation -> safe to reuse for memory management
-        xcorr_buf[m] = sum; 
+        // Indexes never overlap with previous computation -> safe to reuse for memory management
+        xcorr_buf[m] = sum;
     }
 }
 
@@ -32,17 +32,17 @@ void custom_xcorr(float* xcorr_buf, const uint16_t* dac_wave, uint32_t adc_data_
 /* -------------------------------------------------------------------------- */
 void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
     static float32_t output_signal[STORE_BUF_SIZE];
-    // initialize this temporal buffer
+    // Initialize this temporal buffer
     clear_float_buf(output_signal, STORE_BUF_SIZE);
-    // need to take block chunks of the input signal
+    // Need to take block chunks of the input signal
     for (uint16_t i = 0; i < adc_data_length; i += FILTER_BLOCK_LENGTH) {
-        // take care of the last block
-        int block_size = min(FILTER_BLOCK_LENGTH, adc_data_length - i);
-        // perform the filter operation for the current block
+        // Take care of the last block
+        uint32_t block_size = min(FILTER_BLOCK_LENGTH, adc_data_length - i);
+        // Perform the filter operation for the current block
         arm_fir_f32(&Fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
     }
 
-    // copy the filtered signal to the rescaled_adc_wave
+    // Copy the filtered signal to the rescaled_adc_wave
     memcpy(rescaled_adc_wave, output_signal, adc_data_length * sizeof(float));
 }
 
@@ -50,9 +50,9 @@ void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
 /*                             RESCALING FUNCTION                             */
 /* -------------------------------------------------------------------------- */
 void rescale_adc_wave(float* rescaled_adc_wave, uint16_t* adc_wave, size_t adc_data_length) {
-    // 0:65535 -> -1:1
+    // Data normalization 0:65535 -> -1:1
     for (uint16_t i = 0; i < adc_data_length; i++) {
-        rescaled_adc_wave[i] = (2.0f * adc_wave[i])/65535.0f - 1.0f;
+        rescaled_adc_wave[i] = (2.0f * adc_wave[i]) / 65535.0f - 1.0f;
     }
 }
 
@@ -83,24 +83,8 @@ int compare_peaks(const void* a, const void* b) {
 /* -------------------------------------------------------------------------- */
 void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_rate, uint32_t* dist_um) {
 
-    if (MAX_PEAKS == 1) { // anyways not very recommended unless you want a slightly faster acquisition
-        // Old single distance measurement
-        uint16_t peak_index = 0u;
-        float max_value = 0.0f;
-        for (size_t i = 0u; i < echo_length; i++) {
-            if (echo[i] > max_value) {
-                max_value = echo[i];
-                peak_index = i;
-            }
-        }
-        for (int p = 0; p < MAX_PEAKS; p++) {
-            dist_um[p] = (float)peak_index * HALF_AIR_SPEED_UM_S / sampling_rate;
-        }
-        return;
-    }
-
     // First, we need an envelope for a peak search, otherwise we'll see all the high-frequency peaks of the waveform
-    static uint32_t enveloped_signal[STORE_BUF_SIZE  * sizeof(uint32_t)];
+    static uint32_t enveloped_signal[STORE_BUF_SIZE];
     uint8_t window_size = 20;
     uint8_t half_window = window_size / 2;
     uint32_t current_max = 0;
@@ -129,12 +113,12 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
     }
 
     // Then, we add a moving average to smooth the envelope and especially to remove flat parts:
-    static uint32_t smoothed_buf[STORE_BUF_SIZE  * sizeof(uint32_t)];
+    static uint32_t smoothed_buf[STORE_BUF_SIZE];
 
     if (smoothed_buf != NULL) {
         window_size = 50;
-        half_window = window_size/2;
-        double runningSum = 0.0; 
+        half_window = window_size / 2;
+        double runningSum = 0.0;
         int count = 0;
 
         for (size_t j = 0; j <= half_window && j < echo_length; j++) {
@@ -158,7 +142,6 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
         memcpy(enveloped_signal, smoothed_buf, echo_length * sizeof(uint32_t));
     }
 
-
     // For the peak search on the envelope, we also consider a threshold relative to the max peak height.
     // We ll olny consider peaks which are X% of the maximum, e.g., 70% 
     uint32_t max_val = 0;
@@ -168,9 +151,9 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
         }
     }
     uint32_t threshold = (max_val * 7) / 10;
-    static Peak tempPeaks[(STORE_BUF_SIZE / 2) * sizeof(uint32_t)];
+    static Peak temp_peaks[(STORE_BUF_SIZE / 2)];
 
-    if (tempPeaks != NULL && max_val > 0) {
+    if (temp_peaks != NULL && max_val > 0) {
         int peakCount = 0;
 
         for (size_t i = 1; i < echo_length - 1; i++) {
@@ -178,21 +161,21 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
 
             if (current >= threshold) {
                 if (current > enveloped_signal[i - 1] && current >= enveloped_signal[i + 1]) {
-                    tempPeaks[peakCount].value = current;
-                    tempPeaks[peakCount].location = i;
+                    temp_peaks[peakCount].value = current;
+                    temp_peaks[peakCount].location = i;
                     peakCount++;
                 }
             }
         }
 
         if (peakCount > 0) {
-            qsort(tempPeaks, peakCount, sizeof(Peak), compare_peaks);
+            qsort(temp_peaks, peakCount, sizeof(Peak), compare_peaks);
         }
 
     }
 
     for (int p = 0; p < MAX_PEAKS; p++) {
-        dist_um[p] = (float)tempPeaks[p].location * HALF_AIR_SPEED_UM_S / sampling_rate;
+        dist_um[p] = (float)temp_peaks[p].location * HALF_AIR_SPEED_UM_S / sampling_rate;
     }
 
 }
