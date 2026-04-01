@@ -195,7 +195,7 @@ void loop() {
         get_channel_data(mic34_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc2_mic_num, i);
         process_and_transmit_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag, IS_TRANSMIT_DETAILED_DATA);
         // distance[adc1_mic_num + i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
-         calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, peaks);
+        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, peaks);
         for (uint8_t k = 0; k < MAX_PEAKS; k++)
             distances.push_back(peaks[k]);
     }
@@ -230,7 +230,7 @@ void process_and_transmit_data(float* buf, const uint16_t buf_size, uint16_t* ch
     /* ---------------------------------- XCORR --------------------------------- */
 	custom_xcorr(buf, dac_wave, buf_size);
     if (is_detailed_transmission)
-	  transfer_serial_data_float(buf, buf_size, 32);
+        transfer_serial_data_float(buf, buf_size, 32);
     
 }
 
