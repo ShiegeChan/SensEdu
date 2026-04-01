@@ -1,3 +1,22 @@
+/**
+ * @file adc.h
+ * @brief Internal API for ADC driver
+ *
+ * This module provides:
+ * - Initialization, configuration, and operation of ADC1, ADC2, and ADC3 peripherals
+ * - Software polling (one-shot or continuous)
+ * - DMA transfers (normal or circular)
+ * - Overrun interrupts and counters
+ * - Timer-triggered fixed sampling rate
+ *
+ * Notes:
+ * - Hard-coded PLL2 configuration for ADC
+ *  - Software polling (one-shot or continuous)
+ *  - DMA transfers (normal or circular)
+ *  - Overrun interrupts and counters
+ *  - Timer-triggered fixed sampling rate
+ */
+
 #ifndef __ADC_H__
 #define __ADC_H__
 
@@ -15,18 +34,19 @@ extern "C" {
 
 typedef enum {
     ADC_ERROR_NO_ERRORS = 0x00,
-    ADC_ERROR_WRONG_ADC_INSTANCE = 0x01,
-    ADC_ERROR_INIT = 0x02,
-    ADC_ERROR_INIT_PIN_NUMBER = 0x03,
-    ADC_ERROR_INIT_PIN_ARRAY = 0x04,
-    ADC_ERROR_INIT_SAMPLING_RATE = 0x05,
-    ADC_ERROR_INIT_DMA = 0x06,
-    ADC_ERROR_INIT_ONE_SHOT_SR = 0x07,
-    ADC_ERROR_PICKED_WRONG_CHANNEL = 0x08,
-    ADC_ERROR_ENABLE_FAIL = 0x09,
-    ADC_ERROR_DISABLE_FAIL = 0x0A,
-    ADC_ERROR_SOFT_POLLING_IN_DMA_MODE = 0x0B,
-    ADC_ERROR_SOFT_POLLING_ADC_NOT_STARTED= 0x0C,
+    ADC_ERROR_NULL_INPUT_SETTINGS = 0x01,
+    ADC_ERROR_WRONG_ADC_INSTANCE = 0x02,
+    ADC_ERROR_INIT = 0x03,
+    ADC_ERROR_INIT_PIN_NUMBER = 0x04,
+    ADC_ERROR_INIT_PIN_ARRAY = 0x05,
+    ADC_ERROR_INIT_SAMPLING_RATE = 0x06,
+    ADC_ERROR_INIT_DMA = 0x07,
+    ADC_ERROR_INIT_ONE_SHOT_SR = 0x08,
+    ADC_ERROR_PICKED_WRONG_CHANNEL = 0x09,
+    ADC_ERROR_ENABLE_FAIL = 0x0A,
+    ADC_ERROR_DISABLE_FAIL = 0x0B,
+    ADC_ERROR_SOFT_POLLING_IN_DMA_MODE = 0x0C,
+    ADC_ERROR_SOFT_POLLING_ADC_NOT_STARTED= 0x0D,
 
     ADC_ERROR_UNDEFINED_BEHAVIOUR = 0xA0,
     ADC_ERROR_PLL_CONFIG = 0xA1,
@@ -34,7 +54,8 @@ typedef enum {
     ADC_ERROR_SAMPLE_TIME_SETTING = 0xA3,
     ADC_ERROR_WRONG_OPERATION_MODE = 0xA4,
     ADC_ERROR_WRONG_DATA_MANAGEMENT_MODE = 0xA5,
-    ADC_ERROR_FAILED_TRIGGER_ASSIGNMENT = 0xA6
+    ADC_ERROR_FAILED_TRIGGER_ASSIGNMENT = 0xA6,
+    ADC_ERROR_TIMEOUT = 0xA7
 } ADC_ERROR;
 
 typedef enum {

@@ -69,7 +69,8 @@ typedef enum {
 
     DMA_ERROR_UNEXPECTED_FLAG_MASK = 0xA0,          // Unexpected status or clear mask for DMA flags
     DMA_ERROR_INTERRUPTS_NOT_CLEARED = 0xA1,        // Status DMA flags are not cleared
-    DMA_ERROR_MPU_BASE_NOT_ALIGNED = 0xA2           // Failed MPU address calculations
+    DMA_ERROR_MPU_BASE_NOT_ALIGNED = 0xA2,          // Failed MPU address calculations
+    DMA_ERROR_TIMEOUT = 0xA3                        // Internal while loop stalled
 } DMA_ERROR;
 
 DMA_ERROR DMA_GetError(void);

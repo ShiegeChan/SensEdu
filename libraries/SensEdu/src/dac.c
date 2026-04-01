@@ -77,9 +77,7 @@ void SensEdu_DAC_Init(SensEdu_DAC_Settings* settings) {
         return;
     }
     error = check_settings(settings);
-    if (error != DAC_ERROR_NO_ERRORS) {
-        return;
-    }
+    if (error != DAC_ERROR_NO_ERRORS) return;
 
     // Transform single wave mode into burst with 1 transfer
     if (settings->wave_mode == SENSEDU_DAC_MODE_SINGLE_WAVE) {

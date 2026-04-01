@@ -297,7 +297,14 @@ static void disable_dma(DmaConfig* config) {
     if (!config) return;
 
     CLEAR_BIT(config->stream->CR, DMA_SxCR_EN);
-    while (READ_BIT(config->stream->CR, DMA_SxCR_EN)) {}
+    uint32_t timeout = UINT32_MAX;
+    while (READ_BIT(config->stream->CR, DMA_SxCR_EN) && timeout--) {
+        __NOP();
+    }
+    if (timeout == 0) {
+        error = DMA_ERROR_TIMEOUT;
+        return;
+    }
 
     clear_dma_status_flags(config->stream_idx);
 }
