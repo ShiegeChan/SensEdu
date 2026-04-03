@@ -25,18 +25,19 @@ ADC error codes use the `0x20xx` range. See how to display errors in your Arduin
 An overview of possible errors for ADC:
 
 * `0x2000`: No error
-* `0x2001`: Invalid ADC instance; must be `ADC1`, `ADC2`, or `ADC3`
-* `0x2002`: ADC initialization failed
-* `0x2003`: Invalid pin array size; use an integer 1-16
-* `0x2004`: Invalid pin array
-* `0x2005`: Invalid sampling rate; must be at least 10Hz
-* `0x2006`: Invalid DMA buffer address or size
-* `0x2007`: Invalid mode config; you cannot set a sampling rate in one-shot mode
-* `0x2008`: Invalid ADC channel; the selected ADC instance is not available on this pin, refer to the [table] for mapping details
-* `0x2009`: Failed to enable ADC
-* `0x200A`: Failed to disable ADC
-* `0x200B`: Software polling used with DMA mode; switch to software mode
-* `0x200C`: Software polling attempted without enabling the ADC
+* `0x2001`: Input settings are `null`
+* `0x2002`: Invalid ADC instance; must be `ADC1`, `ADC2`, or `ADC3`
+* `0x2003`: ADC initialization failed
+* `0x2004`: Invalid pin array size; use an integer 1-16
+* `0x2005`: Invalid pin array
+* `0x2006`: Invalid sampling rate; must be at least 10Hz
+* `0x2007`: Invalid DMA buffer address or size
+* `0x2008`: Invalid mode config; you cannot set a sampling rate in one-shot mode
+* `0x2009`: Invalid ADC channel; the selected ADC instance is not available on this pin, refer to the [table] for mapping details
+* `0x200A`: Failed to enable ADC
+* `0x200B`: Failed to disable ADC
+* `0x200C`: Software polling used with DMA mode; switch to software mode
+* `0x200D`: Software polling attempted without enabling the ADC
 
 An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
 
@@ -46,6 +47,8 @@ An overview of critical errors. They shouldn't happen in normal user case and in
 * `0x20A3`: Internal sampling time selection logic failed
 * `0x20A4`: Operation mode selection received an unexpected value
 * `0x20A5`: Data management mode selection received an unexpected value
+* `0x20A6`: Sampling timer assignment failed
+* `0x20A7`: Driver has been stuck in a delay indefinitely
 
 ## Structs
 

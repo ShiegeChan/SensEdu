@@ -1,4 +1,4 @@
-%% ADC_1CH_DMA_Circular.m
+%% ADC_3CH_DMA_Circular.m
 clear;
 close all;
 clc;
@@ -24,11 +24,12 @@ ARDUINO_PORT = 'COM16';
 ARDUINO_BAUDRATE = 2000000;
 
 % ADC+DMA Settings
-TRANSFER_BUF_SIZE = CHUNK_SIZE * 2;
+CH_NUM = 3;
+TRANSFER_BUF_SIZE = CHUNK_SIZE * 2 * CH_NUM;
 
 % USB Settings
 USB_BUF_MAX_MS = 500;
-USB_BUF_MAX_BYTES = USB_BUF_MAX_MS / 1e3 * Fs * 2;
+USB_BUF_MAX_BYTES = USB_BUF_MAX_MS * CH_NUM / 1e3 * Fs * 2;
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
@@ -36,7 +37,7 @@ arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
 %% Init
 half_buf_size = TRANSFER_BUF_SIZE / 2;
 chunks = zeros(1, half_buf_size);
-buffers = zeros(ROLLING_BUF_SIZE, 1);
+buffers = zeros(ROLLING_BUF_SIZE, CH_NUM);
 
 if ENABLE_PLOTS
     f1 = figure('WindowState', 'maximized');
@@ -60,18 +61,20 @@ while (true)
         continue;
     end
     
-    % 2. Add chunk to the rolling buffer
-    chunks = chunks';
-    chunk_size = size(chunks, 1);
-    buffers(1:end-chunk_size) = buffers(chunk_size+1:end);
-    buffers(end-chunk_size+1:end) = chunks;
+    % 2. Rearrange chunk by channel
+    chunks_per_channel = split_by_channel(chunks, CH_NUM);
+    chunk_size = size(chunks_per_channel, 1);
+    
+    % 3. Add chunk to the rolling buffer
+    buffers(1:end-chunk_size, :) = buffers(chunk_size+1:end, :);
+    buffers(end-chunk_size+1:end, :) = chunks_per_channel;
 
-    % 3. Plot
+    % 4. Plot
     if ENABLE_PLOTS
         elapsed_time = toc;
         if elapsed_time > PLOT_FREQUENCY_SEC
             figure(f1);
-            plot_dataset(buffers(:, :), false);
+            plot_dataset(buffers(:, :), CH_NUM, false);
             tic;
         end
     end
@@ -95,11 +98,25 @@ function [is_recorded, data] = read_data(arduino, buf_size)
     data = double(typecast(uint8(serial_rx_data), 'uint16'));
 end
 
-function plot_dataset(data, enable_hold)
-    if enable_hold
-        hold on;
+function split_data = split_by_channel(data, ch_num)
+    data = reshape(data, ch_num, []);
+    split_data = data.';
+end
+
+function plot_dataset(data, ch_num, enable_hold)
+    for ch = 1:ch_num
+        if ch_num > 1
+            if (mod(ch_num, 2) == 0)
+                subplot(2, ch_num/2, ch);
+            else
+                subplot(1, ch_num, ch);
+            end
+        end
+        if enable_hold
+            hold on;
+        end
+        plot(data(:, ch));
+        ylim([0, 65535]);
+        hold off;
     end
-    plot(data);
-    ylim([0, 65535]);
-    hold off;
 end

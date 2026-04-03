@@ -15,17 +15,18 @@ static const uint16_t CHUNK_SIZE = 75;
 static ADC_TypeDef* adc = ADC1;
 static const uint16_t SAMPLING_RATE_PER_CH = 44100;
 
-static uint8_t adc_pins[1] = {A0};
+static const uint16_t CHANNEL_NUM_PER_ADC = 3;
+static uint8_t adc_pins[CHANNEL_NUM_PER_ADC] = {A0, A1, A2};
 
 // DMA Settings
-static const uint16_t DMA_BUFFER_SIZE = CHUNK_SIZE * 2;
+static const uint16_t DMA_BUFFER_SIZE = CHUNK_SIZE * 2 * CHANNEL_NUM_PER_ADC;
 volatile SENSEDU_DMA_BUFFER(dma_buffer, DMA_BUFFER_SIZE);
 
 // Config Structure
 SensEdu_ADC_Settings adc_settings = {
     .adc = adc,
     .pins = adc_pins,
-    .pin_num = 1,
+    .pin_num = CHANNEL_NUM_PER_ADC,
 
     .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
     .sampling_rate_hz = SAMPLING_RATE_PER_CH,
