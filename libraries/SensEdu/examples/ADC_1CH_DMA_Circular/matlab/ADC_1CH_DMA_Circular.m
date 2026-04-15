@@ -16,8 +16,9 @@ Fs = 44100;
 CHUNK_SIZE = 75;
 
 % Rolling buffer size for processing
-% Contains ~1 second worth of data chunks
-ROLLING_BUF_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE);
+% Contains ROLLING_BUF_DUR_MS worth of data chunks
+ROLLING_BUF_DUR_MS = 50;
+ROLLING_BUF_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE/1000*ROLLING_BUF_DUR_MS);
 
 %% Connection Settings
 ARDUINO_PORT = 'COM16';
@@ -63,8 +64,12 @@ while (true)
     % 2. Add chunk to the rolling buffer
     chunks = chunks';
     chunk_size = size(chunks, 1);
-    buffers(1:end-chunk_size) = buffers(chunk_size+1:end);
-    buffers(end-chunk_size+1:end) = chunks;
+    if chunk_size >= numel(buffers)
+        buffers = chunks(end-numel(buffers)+1:end);
+    else
+        buffers(1:end-chunk_size) = buffers(chunk_size+1:end);
+        buffers(end-chunk_size+1:end) = chunks;
+    end
 
     % 3. Plot
     if ENABLE_PLOTS

@@ -57,7 +57,23 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 
+// Stream control from MATLAB host:
+// 'S' = start/resume streaming, 'P' = pause streaming.
+static bool stream_enabled = true;
+
 void loop() {
+    process_stream_control();
+
+    if (!stream_enabled) {
+        if (SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+            SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
+        }
+        if (SensEdu_ADC_IsDmaTransferComplete(adc)) {
+            SensEdu_ADC_ClearDmaTransferComplete(adc);
+        }
+        return;
+    }
+
     if (SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
         SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
         if (Serial) {
@@ -73,10 +89,22 @@ void loop() {
     }
 }
 
-// Transfers selected buffer in one write
+// Transfers selected buffer in one write.
 static void transfer_buf(volatile uint16_t* data, uint16_t data_length) {
     uint8_t* ptr = (uint8_t*)data;
     Serial.write(ptr, data_length * sizeof(uint16_t));
+}
+
+// Handles host stream control without blocking the DMA acquisition pipeline.
+static void process_stream_control() {
+    while (Serial.available() > 0) {
+        char c = Serial.read();
+        if (c == 'S') {
+            stream_enabled = true;
+        } else if (c == 'P') {
+            stream_enabled = false;
+        }
+    }
 }
 
 // Checks library error state

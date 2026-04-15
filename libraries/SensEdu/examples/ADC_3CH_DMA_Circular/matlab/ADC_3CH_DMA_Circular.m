@@ -1,5 +1,9 @@
 %% ADC_3CH_DMA_Circular.m
-clear;
+% NOTE: This file must be a function,
+% so that onCleanup fires immediately on script interuption.
+function ADC_3CH_DMA_Circular()
+
+%% Cleanup
 close all;
 clc;
 
@@ -16,8 +20,9 @@ Fs = 44100;
 CHUNK_SIZE = 75;
 
 % Rolling buffer size for processing
-% Contains ~1 second worth of data chunks
-ROLLING_BUF_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE);
+% Contains ROLLING_BUF_DUR_MS worth of data chunks
+ROLLING_BUF_DUR_MS = 50;
+ROLLING_BUF_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE/1000*ROLLING_BUF_DUR_MS);
 
 %% Connection Settings
 ARDUINO_PORT = 'COM16';
@@ -34,6 +39,9 @@ USB_BUF_MAX_BYTES = USB_BUF_MAX_MS * CH_NUM / 1e3 * Fs * 2;
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
 
+% Clean release on script termination
+cleanup_obj = onCleanup(@() cleanup_serial(arduino));
+
 %% Init
 half_buf_size = TRANSFER_BUF_SIZE / 2;
 chunks = zeros(1, half_buf_size);
@@ -46,6 +54,7 @@ if ENABLE_PLOTS
 end
 
 flush(arduino);
+write(arduino, uint8('S'), "uint8");
 tic;
 
 %% Loop
@@ -54,20 +63,24 @@ while (true)
         disp("Too much input buffered data. USB buffer has been flushed.");
         flush(arduino);
     end
-    
+
     % 1. Record chunk of data
     [is_recorded, chunks] = read_data(arduino, half_buf_size);
     if ~is_recorded
         continue;
     end
-    
+
     % 2. Rearrange chunk by channel
     chunks_per_channel = split_by_channel(chunks, CH_NUM);
     chunk_size = size(chunks_per_channel, 1);
-    
+
     % 3. Add chunk to the rolling buffer
-    buffers(1:end-chunk_size, :) = buffers(chunk_size+1:end, :);
-    buffers(end-chunk_size+1:end, :) = chunks_per_channel;
+    if chunk_size >= size(buffers, 1)
+        buffers = chunks_per_channel(end-size(buffers,1)+1:end, :);
+    else
+        buffers(1:end-chunk_size, :) = buffers(chunk_size+1:end, :);
+        buffers(end-chunk_size+1:end, :) = chunks_per_channel;
+    end
 
     % 4. Plot
     if ENABLE_PLOTS
@@ -79,6 +92,8 @@ while (true)
         end
     end
 end
+
+end % ADC_3CH_DMA_Circular
 
 %% Functions
 function [is_recorded, data] = read_data(arduino, buf_size)
@@ -118,5 +133,17 @@ function plot_dataset(data, ch_num, enable_hold)
         plot(data(:, ch));
         ylim([0, 65535]);
         hold off;
+    end
+end
+
+function cleanup_serial(arduino)
+    try
+        if isvalid(arduino)
+            write(arduino, uint8('P'), "uint8");
+            pause(0.02);
+            delete(arduino);
+        end
+    catch
+        % Ignore cleanup errors during forced shutdown.
     end
 end
