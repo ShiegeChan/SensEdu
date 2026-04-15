@@ -328,8 +328,8 @@ uint16_t* SensEdu_ADC_ReadSequence(ADC_TypeDef* adc) {
     return NULL;
 }
 
-// Enables overrun interrupts which allows SensEdu_ADC_GetOverrunState
-// and SensEdu_ADC_GetOverrunCounter to show the amount of missing samples.
+// Enables overrun interrupts which allows SensEdu_ADC_IsOverrun
+// and SensEdu_ADC_GetOverrunCount to show the amount of missing samples.
 //
 // Useful for software poll frequency tests.
 //

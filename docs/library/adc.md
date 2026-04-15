@@ -196,7 +196,7 @@ void SensEdu_ADC_Start(ADC_TypeDef* adc);
 #### Notes
 {: .no_toc}
 * Enables the associated DMA in `SENSEDU_ADC_MODE_DMA_xxx` modes.
-* After this function call, depending on the selected ADC mode, either the DMA buffer will be filled with ADC conversions or you must poll for results manually using `SensEdu_ReadConversion`.
+* After this function call, depending on the selected ADC mode, either the DMA buffer will be filled with ADC conversions or you must poll for results manually using `SensEdu_ADC_ReadConversion`.
 
 
 ### SensEdu_ADC_IsDmaTransferComplete
@@ -1140,9 +1140,11 @@ SensEdu_ADC_Settings adc_settings = {
     .adc = ADC1,
     .pins = pins,
     .pin_num = 1,
-    .conv_mode = SENSEDU_ADC_MODE_CONT,
-    .sampling_freq = 0,
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+
+    .sr_mode = SENSEDU_ADC_SR_MODE_FREE,
+    .sampling_rate_hz = 0,
+
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)buf,
     .mem_size = buf_size
 };
@@ -1154,12 +1156,12 @@ void setup() {
 }
 
 void loop() {
-    if (SensEdu_ADC_GetTransferStatus(ADC1)) {
+    if (SensEdu_ADC_IsDmaTransferComplete(ADC1)) {
         Serial.println("------");
         for (uint16_t i = 0; i < buf_size; i++) {
             Serial.println(buf[i]);
         }
-        SensEdu_ADC_ClearTransferStatus(ADC1);
+        SensEdu_ADC_ClearDmaTransferComplete(ADC1);
         SensEdu_ADC_Start(ADC1);
     }
 }
