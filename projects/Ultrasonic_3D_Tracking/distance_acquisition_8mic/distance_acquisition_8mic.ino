@@ -215,7 +215,7 @@ void loop() {
         get_channel_data(mic123_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc1_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
         // distance[i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
-        calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
         for (uint8_t k = 0; k < MAX_PEAKS; k++) {
             test_dist.push_back(test_3_dist[k]);
         }
@@ -223,7 +223,7 @@ void loop() {
     for (uint8_t i = 0; i < adc2_mic_num; i++) {
         get_channel_data(mic48_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc2_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
-        calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
         for (uint8_t k = 0; k < MAX_PEAKS; k++) {
             test_dist.push_back(test_3_dist[k]);
         }
@@ -231,7 +231,7 @@ void loop() {
     for (uint8_t i = 0; i < adc3_mic_num; i++) {
         get_channel_data(mic567_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc3_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
-        calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
         for (uint8_t k = 0; k < MAX_PEAKS; k++) {
             test_dist.push_back(test_3_dist[k]);
         }

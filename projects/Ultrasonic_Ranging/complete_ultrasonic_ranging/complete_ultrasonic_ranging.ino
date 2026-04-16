@@ -25,7 +25,7 @@ uint8_t error_led = D86;
 #define IS_TRANSMIT_DETAILED_DATA   false    // Activate full raw, filtered, xcorr data transmission
 #define BAN_DISTANCE	            20	    // Min distance [cm] - how many self reflections cancelled
 #define SAMPLING_RATE               250000  // You need to measure this value using a wave generator with a fixed e.g. 1kHz Sine
-#define STORE_BUF_SIZE              2048    // 2400 for 1 measurement per second. 
+#define STORE_BUF_SIZE              4096    // 2400 for 1 measurement per second. 
 
 /* --------------------------------- Filter --------------------------------- */
 #define FILTER_BLOCK_LENGTH     32      // How many samples we want to process every time we call the fir process function AT
@@ -79,7 +79,7 @@ SensEdu_ADC_Settings adc2_settings = {
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
-DAC_Channel* dac_channel = DAC_CH2;
+DAC_Channel* dac_channel = DAC_CH1;
 SensEdu_DAC_Settings dac_settings = {
     .dac_channel = dac_channel, 
     .sampling_freq = DAC_SAMPLE_RATE,

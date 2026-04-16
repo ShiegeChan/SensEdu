@@ -8,11 +8,11 @@ close all;
 addpath("plot scripts\");
 
 %% Parameters
-ITERATIONS = 150; 
+ITERATIONS = 250; 
 MIC_NUM = 4; 
 MAX_PEAKS = 3; % Match this value in Peaks.h
 MIC_NAMES = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
-DATA_LENGTH = 2048;
+DATA_LENGTH = 4096; % Match this value in main code
 PROCESSING_STEPS = 3; % raw, fitlered, xcorr
 ENABLE_DETAILED_DATA = false; % Match this value in the main code
 ENABLE_LIVE_PLOTS = false; % Match this value in the main code
@@ -28,14 +28,14 @@ dist_matrix = zeros(MIC_NUM*MAX_PEAKS, ITERATIONS); % distance matrix
 processing_matrix = zeros(ITERATIONS, MIC_NUM, PROCESSING_STEPS, DATA_LENGTH); % all processing steps data
 processing_matrix_size = size(processing_matrix);
 time_axis = zeros(1, ITERATIONS); %  time array
-
+y_vec = zeros(4,ITERATIONS);
 %% Prepare Figure
 if ENABLE_LIVE_PLOTS == true
     figure("Position",[250, 250, 1500, 1000]);
 end
 
 %% Readings Loop
-pause(1);
+pause(3);
 tic;
 for it = 1:ITERATIONS
     write(arduino, 't', "char"); % trigger arduino measurement
@@ -55,6 +55,36 @@ for it = 1:ITERATIONS
         plot_live_data(reshape(processing_matrix(it,:,:,:), processing_matrix_size(2:end)), dist_matrix(:,:),MAX_PEAKS);
     end
     it
+
+    
+    % Use this code to test the best peak selection algorithm like in the
+    % EKF codes
+    if it == 1
+        y = [dist_matrix(1:3:12,it)]; % initially take the 1st peak
+        prev_best = y; % it's the best for now
+    else              
+        thr_peaks = 0.08; % we assume the target will not move more than this value between steps
+        for m = 1:MIC_NUM
+            for j = 1:MAX_PEAKS
+                % We want to check which among the peaks is the best one,
+                % i.e., the one closer to the previous estimate. This will
+                % be sent to the filter as measurement (y).>
+               if (abs(dist_matrix(MAX_PEAKS*(m-1)+j,it) - y_vec(m,it-1)) <= thr_peaks)
+                   y(m) = dist_matrix(MAX_PEAKS*(m-1)+j,it);
+                   prev_best(m) = y(m);
+                   break; % already done for the mic m
+               else
+                    y(m) = prev_best(1);
+               end
+            end
+        end
+    end    
+    y_vec(:, it) = y;
+
+
+
+
+
 end
 acquisition_time = toc;
 
@@ -72,8 +102,20 @@ fprintf("Data acquisition completed in: %fsec\n", acquisition_time);
 % close serial connection
 arduino = [];
 
-%% Plotting 1
+%% Plotting distances 1
 mpt_plot_measurements(dist_matrix, MAX_PEAKS);
+
+%% Plotting distances 2
+first_peak = dist_matrix(1,:);
+second_peak = dist_matrix(2,:);
+third_peak = dist_matrix(3,:);
+used_D = y_vec(1,:);
+figure,
+plot(first_peak, 'ro','LineStyle','none'); hold on;
+plot(second_peak, 'bo','LineStyle','none'); hold on;
+plot(third_peak, 'go','LineStyle','none'); hold on;
+plot(used_D, 'k-','LineWidth',1.5); hold on;
+
 %% Functions
 function plot_live_data(steps_matrix, distance_array, max_peaks)
     [mic_num, processing_steps, data_length] = size(steps_matrix);

@@ -10,7 +10,7 @@ ARDUINO_PORT = 'COM10';
 ARDUINO_BAUDRATE = 115200;
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate 
 
-ITERATIONS = 500;
+ITERATIONS = 250;
 MIC_NUM = 8;
 PEAKS_NUM = 3;
 DETECTION_NUM = MIC_NUM*PEAKS_NUM;
@@ -28,7 +28,7 @@ m5 = [0.09, -0.09, 0.0];
 m6 = [0.09, 0.0, 0.0];
 m7 = [0.09, 0.09, 0.0];
 m8 = [0.00, 0.09, 0.0];
-% microphones_no_off = [m1; m2; m3; m4; m8; m6; m5; m7];
+
 microphones = [m1; m2; m3; m4; m8; m6; m5; m7];
 
 % speaker 2: add offset to the microphone positions
@@ -40,7 +40,7 @@ end
 
 %% EKF configuration
 % initial position and velocity estimation [x; y; z; vx; vy; vz]
-pos_init_estimate = [0.0; 0.0; 0.65]; 
+pos_init_estimate = [0.1; 0.1; 0.4]; 
 vel_init_estimate = [1e-5; 1e-5; -0.01]; 
 x_hat = [pos_init_estimate; vel_init_estimate];
 
@@ -56,6 +56,7 @@ sigma_q = 0.02;
 sigma_r = 0.01;
 R = diag(ones(1, size(microphones,1))*sigma_r^2);
 
+% Other filter initializations
 state_history = NaN(6, ITERATIONS);
 err_vec = zeros(size(microphones,1), ITERATIONS);
 K_vec = zeros(3, ITERATIONS);
@@ -65,6 +66,7 @@ P_hist = zeros(6, 6, ITERATIONS);
 
 
 %% Figures and plots
+% % If you want the 3D plot:
 % figure; 
 % hold on;
 % estimate_plot = plot3([pos_init_estimate(1)], [pos_init_estimate(2)], [pos_init_estimate(3)], "LineWidth", 2, "DisplayName", "Kalman Estimate", "Marker", "o");
@@ -73,19 +75,20 @@ P_hist = zeros(6, 6, ITERATIONS);
 % grid on;
 % xlim([-0.5,0.5]);
 % ylim([-0.5,0.5]);
-% zlim([0,2.5]);
+% zlim([0,2]);
 % % axis([-0.3 0.3 -0.3 0.3 0.2 1.2]);
 % view(3); % Ensure 3D perspective
 
+% For a live plot of the cartesian coordinates
 figure;
 hold on;
-hx = scatter(NaN, NaN, 30, 'rx'); % X
+hx = scatter(NaN, NaN, 30, 'ro'); % X
 hx.XData = [];
 hx.YData = [];
 hy = scatter(NaN, NaN, 30, 'bo'); % Y
 hy.XData = [];
 hy.YData = [];
-hz = scatter(NaN, NaN, 30, 'k*'); % Z
+hz = scatter(NaN, NaN, 30, 'ko'); % Z
 hz.XData = [];
 hz.YData = [];
 grid on;
@@ -97,7 +100,8 @@ hold on;
 
 %% Filter Loop
 pause(3) % The object needs to be already within the range in order for the current
-% version to work -> FIX later
+% version to work. If the object is not immediately recognized, the
+% estimations will be wrong
 tic
 t_prev = 0; 
 for k = 1:ITERATIONS
@@ -106,17 +110,16 @@ for k = 1:ITERATIONS
     write(arduino, 't', "char"); % trigger arduino measurement
     time_axis(k) = toc;
     t_current = toc; 
-    dtau = t_current - t_prev
+    dtau = t_current - t_prev;
     distances(:,k) = read_distance_data(arduino, DETECTION_NUM);
     
     if k == 1
-        % dtau = 0.04;
         y = [distances(1:3:24,k)]; % initially take the 1st peak
         prev_best = y; % it's the best for now
     else       
         t_prev = t_current; 
 
-        thr_peaks = 0.07; % we assume the target will not move more than this value between steps
+        thr_peaks = 0.08; % we assume the target will not move more than this value between steps
         for m = 1:MIC_NUM
             for j = 1:PEAKS_NUM
                 % We want to check which among the peaks is the best one,
@@ -127,7 +130,7 @@ for k = 1:ITERATIONS
                    prev_best = y(m);
                    break; % already done for the mic m
                else
-                    y(m) = prev_best(1); % to be sure in case none of them work            
+                    y(m) = prev_best(1); % If none of the new peaks is good, stick to the previous one            
                end
             end
         end
@@ -139,10 +142,9 @@ for k = 1:ITERATIONS
     x_hat_prior = stateTransitionFunction(x_hat, dtau);
     F = jacobianStateTransition(x_hat, dtau);
     H = jacobianMeasurement(x_hat, microphones);
-    % Check Harald's Thesis for this model:
+    % This model assumes generic dynamics:
     Q = dtau * [sigma_q^2 * I, (sigma_q^2/2)*dtau*I; 
                (sigma_q^2/2)*dtau*I, (sigma_q^2/3)*dtau^2*I];
-    % Q = sigma_q^2*eye(6);
     P_prior = F * P * F' + Q;
 
     % EKF measurement update
@@ -153,13 +155,11 @@ for k = 1:ITERATIONS
     K_vec(:, k) = K(1:3, 1); % store kalman gain values
     x_hat = x_hat_prior + K * err;
 
-    % P = (eye(size(P)) - K * H) * P_prior;
-    P = (eye(size(P)) - K * H) * P_prior*(eye(size(P)) - K * H)' + K*R*K'; % Joseph Form
-
+    % Joseph form of the covariance matrix has more numerical stability
+    P = (eye(size(P)) - K * H) * P_prior*(eye(size(P)) - K * H)' + K*R*K'; 
 
     % storing
     state_history(:, k) = [x_hat(1:3);x_hat(4:6)];
-
 
     % Plotting
     new_y = x_hat(1:3);
@@ -172,6 +172,7 @@ for k = 1:ITERATIONS
     hz.YData = [hz.YData, new_y(3)];
     drawnow
 
+    % for the 3d plot
     % estimate_plot.XData = state_history(1, 1:k);
     % estimate_plot.YData = state_history(2, 1:k);
     % estimate_plot.ZData = state_history(3, 1:k);
@@ -179,13 +180,14 @@ for k = 1:ITERATIONS
 end
 
 
+%% Check on the first microphone peaks
 
-figure(100),
-for i = 1:DETECTION_NUM
-    scatter(k,distances(i,k), 'o'); 
-    hold on;
-end
-hold on,
-for i = 1:MIC_NUM
-    plot(y_vec(i,:), '*'); 
-end
+first_peak = distances(1,:);
+second_peak = distances(2,:);
+third_peak = distances(3,:);
+used_D = y_vec(1,:);
+figure,
+plot(first_peak, 'ro','LineStyle','none'); hold on;
+plot(second_peak, 'bo','LineStyle','none'); hold on;
+plot(third_peak, 'go','LineStyle','none'); hold on;
+plot(used_D, 'k-','LineWidth',1.5); hold on;
