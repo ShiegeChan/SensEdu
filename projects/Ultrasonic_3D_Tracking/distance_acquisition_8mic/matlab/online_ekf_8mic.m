@@ -161,16 +161,16 @@ for k = 1:ITERATIONS
     % storing
     state_history(:, k) = [x_hat(1:3);x_hat(4:6)];
 
-    % Plotting
-    new_y = x_hat(1:3);
-    new_x = k;
-    hx.XData = [hx.XData, new_x];
-    hx.YData = [hx.YData, new_y(1)];
-    hy.XData = [hy.XData, new_x];
-    hy.YData = [hy.YData, new_y(2)];
-    hz.XData = [hz.XData, new_x];
-    hz.YData = [hz.YData, new_y(3)];
-    drawnow
+    % % Plotting
+    % new_y = x_hat(1:3);
+    % new_x = k;
+    % hx.XData = [hx.XData, new_x];
+    % hx.YData = [hx.YData, new_y(1)];
+    % hy.XData = [hy.XData, new_x];
+    % hy.YData = [hy.YData, new_y(2)];
+    % hz.XData = [hz.XData, new_x];
+    % hz.YData = [hz.YData, new_y(3)];
+    % drawnow
 
     % for the 3d plot
     % estimate_plot.XData = state_history(1, 1:k);

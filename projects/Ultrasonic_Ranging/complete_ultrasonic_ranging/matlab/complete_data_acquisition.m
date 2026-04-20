@@ -10,9 +10,9 @@ addpath("plot scripts\");
 %% Parameters
 ITERATIONS = 250; 
 MIC_NUM = 4; 
-MAX_PEAKS = 3; % Match this value in Peaks.h
+MAX_PEAKS = 1; % Match this value in Peaks.h
 MIC_NAMES = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
-DATA_LENGTH = 4096; % Match this value in main code
+DATA_LENGTH = 2048; % Match this value in main code
 PROCESSING_STEPS = 3; % raw, fitlered, xcorr
 ENABLE_DETAILED_DATA = false; % Match this value in the main code
 ENABLE_LIVE_PLOTS = false; % Match this value in the main code
@@ -60,7 +60,7 @@ for it = 1:ITERATIONS
     % Use this code to test the best peak selection algorithm like in the
     % EKF codes
     if it == 1
-        y = [dist_matrix(1:3:12,it)]; % initially take the 1st peak
+        y = [dist_matrix(1:MAX_PEAKS:MIC_NUM*MAX_PEAKS,it)]; % initially take the 1st peak
         prev_best = y; % it's the best for now
     else              
         thr_peaks = 0.08; % we assume the target will not move more than this value between steps
