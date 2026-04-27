@@ -25,7 +25,7 @@ ROLLING_BUF_DUR_MS = 50;
 ROLLING_BUF_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE/1000*ROLLING_BUF_DUR_MS);
 
 %% Connection Settings
-ARDUINO_PORT = 'COM16';
+ARDUINO_PORT = 'COM4';
 ARDUINO_BAUDRATE = 2000000;
 
 % ADC+DMA Settings
@@ -87,10 +87,12 @@ while (true)
         elapsed_time = toc;
         if elapsed_time > PLOT_FREQUENCY_SEC
             figure(f1);
+            pause(0.001);
             plot_dataset(buffers(:, :), CH_NUM, false);
             tic;
         end
     end
+    
 end
 
 end % ADC_3CH_DMA_Circular
