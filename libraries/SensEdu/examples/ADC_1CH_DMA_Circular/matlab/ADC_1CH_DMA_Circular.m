@@ -76,6 +76,7 @@ while (true)
         elapsed_time = toc;
         if elapsed_time > PLOT_FREQUENCY_SEC
             figure(f1);
+            pause(0.001);
             plot_dataset(buffers(:, :), false);
             tic;
         end
