@@ -1,0 +1,4 @@
+[submodule "libraries/arduino-i2c-sht4x"]
+	path = libraries/arduino-i2c-sht4x
+	url = https://github.com/Sensirion/arduino-i2c-sht4x.git
+	branch = master
