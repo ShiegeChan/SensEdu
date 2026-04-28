@@ -10,9 +10,9 @@ ARDUINO_PORT = 'COM10';
 ARDUINO_BAUDRATE = 115200;
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate 
 
-ITERATIONS = 250;
+ITERATIONS = 350;
 MIC_NUM = 8;
-PEAKS_NUM = 3;
+PEAKS_NUM = 2;
 DETECTION_NUM = MIC_NUM*PEAKS_NUM;
 mic_name = {"MIC 1", "MIC 2","MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
 DATA_LENGTH = 2048;
@@ -29,7 +29,7 @@ m6 = [0.09, 0.0, 0.0];
 m7 = [0.09, 0.09, 0.0];
 m8 = [0.00, 0.09, 0.0];
 
-microphones = [m1; m2; m3; m4; m8; m6; m5; m7];
+microphones = [m1; m2; m3; m4; m8; m5; m6; m7];
 
 % speaker 2: add offset to the microphone positions
 if SPEAKER == 2
@@ -114,7 +114,7 @@ for k = 1:ITERATIONS
     distances(:,k) = read_distance_data(arduino, DETECTION_NUM);
     
     if k == 1
-        y = [distances(1:3:24,k)]; % initially take the 1st peak
+        y = [distances(1:PEAKS_NUM:DETECTION_NUM,k)]; % initially take the 1st peak
         prev_best = y; % it's the best for now
     else       
         t_prev = t_current; 
@@ -161,16 +161,16 @@ for k = 1:ITERATIONS
     % storing
     state_history(:, k) = [x_hat(1:3);x_hat(4:6)];
 
-    % % Plotting
-    % new_y = x_hat(1:3);
-    % new_x = k;
-    % hx.XData = [hx.XData, new_x];
-    % hx.YData = [hx.YData, new_y(1)];
-    % hy.XData = [hy.XData, new_x];
-    % hy.YData = [hy.YData, new_y(2)];
-    % hz.XData = [hz.XData, new_x];
-    % hz.YData = [hz.YData, new_y(3)];
-    % drawnow
+    % Plotting
+    new_y = x_hat(1:3);
+    new_x = k;
+    hx.XData = [hx.XData, new_x];
+    hx.YData = [hx.YData, new_y(1)];
+    hy.XData = [hy.XData, new_x];
+    hy.YData = [hy.YData, new_y(2)];
+    hz.XData = [hz.XData, new_x];
+    hz.YData = [hz.YData, new_y(3)];
+    drawnow
 
     % for the 3d plot
     % estimate_plot.XData = state_history(1, 1:k);
@@ -181,13 +181,13 @@ end
 
 
 %% Check on the first microphone peaks
-
-first_peak = distances(1,:);
-second_peak = distances(2,:);
-third_peak = distances(3,:);
-used_D = y_vec(1,:);
-figure,
-plot(first_peak, 'ro','LineStyle','none'); hold on;
-plot(second_peak, 'bo','LineStyle','none'); hold on;
-plot(third_peak, 'go','LineStyle','none'); hold on;
-plot(used_D, 'k-','LineWidth',1.5); hold on;
+% Only valid for 3 peaks:
+% first_peak = distances(1,:);
+% second_peak = distances(2,:);
+% third_peak = distances(3,:);
+% used_D = y_vec(1,:);
+% figure,
+% plot(first_peak, 'ro','LineStyle','none'); hold on;
+% plot(second_peak, 'bo','LineStyle','none'); hold on;
+% plot(third_peak, 'go','LineStyle','none'); hold on;
+% plot(used_D, 'k-','LineWidth',1.5); hold on;

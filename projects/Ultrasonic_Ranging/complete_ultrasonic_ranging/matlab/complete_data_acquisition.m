@@ -4,13 +4,13 @@
 % plots distances along with processing steps
 % handles multi-peak tracking and detailed/non-detailed data
 clear;
-close all;
+% close all;
 addpath("plot scripts\");
 
 %% Parameters
-ITERATIONS = 250; 
+ITERATIONS = 750; 
 MIC_NUM = 4; 
-MAX_PEAKS = 1; % Match this value in Peaks.h
+MAX_PEAKS = 2; % Match this value in Peaks.h
 MIC_NAMES = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
 DATA_LENGTH = 2048; % Match this value in main code
 PROCESSING_STEPS = 3; % raw, fitlered, xcorr
@@ -34,6 +34,31 @@ if ENABLE_LIVE_PLOTS == true
     figure("Position",[250, 250, 1500, 1000]);
 end
 
+%% Prepare Distance Live Plot
+num_rows = MIC_NUM * MAX_PEAKS;
+markers = {'o', 's', 'd', '^', 'v', '>', '<', 'p', 'h', '+', '*', 'x'};
+if num_rows == 4
+    dist_legend = arrayfun(@(m) sprintf('MIC %d', m), 1:MIC_NUM, 'UniformOutput', false);
+else
+    dist_legend = cell(1, num_rows);
+    for m = 1:MIC_NUM
+        for p = 1:MAX_PEAKS
+            dist_legend{(m-1)*MAX_PEAKS + p} = sprintf('MIC %d_%d', m, p);
+        end
+    end
+end
+fig_dist = figure('Name', 'Distance Measurements');
+dist_handles = gobjects(1, num_rows);
+for r = 1:num_rows
+    dist_handles(r) = plot(NaN, NaN, markers{mod(r-1, numel(markers))+1}, 'LineStyle', 'none');
+    hold on;
+end
+title('Distance Measurements');
+xlabel('Iteration');
+ylabel('Distance [m]');
+legend(dist_legend, 'Location', 'best');
+grid on;
+
 %% Readings Loop
 pause(3);
 tic;
@@ -51,6 +76,11 @@ for it = 1:ITERATIONS
     % Reading the distance measurements
     dist_matrix(:, it) = pom;
     % dist_matrix(:, it) = read_distance_data(arduino, MIC_NUM);
+    % Update live distance plot
+    for r = 1:num_rows
+        set(dist_handles(r), 'XData', 1:it, 'YData', dist_matrix(r, 1:it));
+    end
+    drawnow limitrate;
     if ENABLE_LIVE_PLOTS == true && ENABLE_DETAILED_DATA == true
         plot_live_data(reshape(processing_matrix(it,:,:,:), processing_matrix_size(2:end)), dist_matrix(:,:),MAX_PEAKS);
     end
@@ -102,19 +132,19 @@ fprintf("Data acquisition completed in: %fsec\n", acquisition_time);
 % close serial connection
 arduino = [];
 
-%% Plotting distances 1
-mpt_plot_measurements(dist_matrix, MAX_PEAKS);
-
-%% Plotting distances 2
-first_peak = dist_matrix(1,:);
-second_peak = dist_matrix(2,:);
-third_peak = dist_matrix(3,:);
-used_D = y_vec(1,:);
-figure,
-plot(first_peak, 'ro','LineStyle','none'); hold on;
-plot(second_peak, 'bo','LineStyle','none'); hold on;
-plot(third_peak, 'go','LineStyle','none'); hold on;
-plot(used_D, 'k-','LineWidth',1.5); hold on;
+% %% Plotting distances 1
+% mpt_plot_measurements(dist_matrix, MAX_PEAKS);
+% 
+% %% Plotting distances 2
+% first_peak = dist_matrix(1,:);
+% second_peak = dist_matrix(2,:);
+% third_peak = dist_matrix(3,:);
+% used_D = y_vec(1,:);
+% figure,
+% plot(first_peak, 'ro','LineStyle','none'); hold on;
+% plot(second_peak, 'bo','LineStyle','none'); hold on;
+% plot(third_peak, 'go','LineStyle','none'); hold on;
+% plot(used_D, 'k-','LineWidth',1.5); hold on;
 
 %% Functions
 function plot_live_data(steps_matrix, distance_array, max_peaks)

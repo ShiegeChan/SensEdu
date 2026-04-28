@@ -45,8 +45,8 @@ ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
 const uint8_t adc1_mic_num = 2;
 const uint8_t adc2_mic_num = 2;
-uint8_t mic12_pins[adc1_mic_num] = {A5, A10};
-uint8_t mic34_pins[adc2_mic_num] = {A1, A6};
+uint8_t mic12_pins[adc1_mic_num] = {A0, A1};
+uint8_t mic34_pins[adc2_mic_num] = {A2, A3};
 
 SensEdu_ADC_Settings adc1_settings = {
     .adc = adc1,
@@ -79,7 +79,7 @@ SensEdu_ADC_Settings adc2_settings = {
 #define DAC_SINE_FREQ     	32000                           // 32kHz
 #define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
 
-DAC_Channel* dac_channel = DAC_CH1;
+DAC_Channel* dac_channel = DAC_CH2;
 SensEdu_DAC_Settings dac_settings = {
     .dac_channel = dac_channel, 
     .sampling_freq = DAC_SAMPLE_RATE,
