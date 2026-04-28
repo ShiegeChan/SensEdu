@@ -6,3 +6,7 @@
 	path = libraries/arduino-core
 	url = https://github.com/Sensirion/arduino-core.git
 	branch = main
+[submodule "libraries/arduino-xensiv-dps3xx"]
+	path = libraries/arduino-xensiv-dps3xx
+	url = https://github.com/Infineon/arduino-xensiv-dps3xx.git
+	branch = master
