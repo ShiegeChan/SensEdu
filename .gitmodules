@@ -2,3 +2,7 @@
 	path = libraries/arduino-i2c-sht4x
 	url = https://github.com/Sensirion/arduino-i2c-sht4x.git
 	branch = master
+[submodule "libraries/arduino-core"]
+	path = libraries/arduino-core
+	url = https://github.com/Sensirion/arduino-core.git
+	branch = main
