@@ -10,14 +10,26 @@
 #include "pressure_types.h"
 
 /* -------------------------------------------------------------------------- */
+/*                                  Constants                                 */
+/* -------------------------------------------------------------------------- */
+
+#define LABEL_WIDTH    16
+#define VALUE_WIDTH    14
+
+/* -------------------------------------------------------------------------- */
 /*                                Declarations                                */
 /* -------------------------------------------------------------------------- */
 
-static const char* classify_temperature(float temp);
 static const char* classify_humidity(float humidity);
 static const char* classify_dew_spread(float spread);
 static const char* classify_pressure(float pressure_hpa);
 static const char* classify_pressure_trend(float trend_hpa_per_hour);
+
+static uint32_t utf8_visible_len(const char* s);
+static void print_padded(const char* text, uint32_t width);
+static void print_row_header(const char* label);
+static void print_row_status(const char* status);
+static void print_value_padded(float value, uint8_t decimals, const char* unit);
 
 /* -------------------------------------------------------------------------- */
 /*                              Public Functions                              */
@@ -33,6 +45,12 @@ float calculate_sea_lvl_pressure_hpa(float pressure_pa, float temp, float altitu
 }
 
 // Calculates dew point based on Magnus formula.
+//
+// Pass raw sensor readings. This calculation expects measurements that describe 
+// the same physical state of the air.
+//
+// Suggested to use SHT temperature here, not the DPS one since
+// the SHT metrics come from the same die at the same instant.
 float calculate_dew_point(float temp, float humidity) {
     const float a = 17.625f;
     const float b = 243.04f;
@@ -40,119 +58,174 @@ float calculate_dew_point(float temp, float humidity) {
     return (b * gamma) / (a - gamma);
 }
 
-void report_temp(float temp) {
-    Serial.print("Temperature: ");
-    Serial.print(temp, 2);
-    Serial.print(" °C (");
-    Serial.print(classify_temperature(temp));
-    Serial.println(")");
+// Recovers ambient RH from a measured dew point at a given ambient temperature.
+// Basically an inverse of calculate_dew_point().
+float calculate_relative_humidity(float temp, float dew_point) {
+    const float a = 17.625f;
+    const float b = 243.04f;
+    float gamma_dp = (a * dew_point) / (b + dew_point);
+    float gamma_t  = (a * temp)      / (b + temp);
+    float rh = 100.0f * exp(gamma_dp - gamma_t);
+    if (rh > 100.0f) rh = 100.0f;
+    if (rh < 0.0f)   rh = 0.0f;
+    return rh;
 }
 
-void report_humidity(float humidity) {
-    Serial.print("Humidity: ");
-    Serial.print(humidity, 2);
-    Serial.print(" % (");
-    Serial.print(classify_humidity(humidity));
-    Serial.println(")");
+void report_temp(float temp) {
+    print_row_header("Temperature");
+    print_value_padded(temp, 2, "°C");
+    print_row_status("");
+}
+
+void report_humidity(float rh) {
+    print_row_header("Humidity");
+    print_value_padded(rh, 2, "%");
+    print_row_status(classify_humidity(rh));
+}
+
+void report_dew_point(float dp) {
+    print_row_header("Dew Point");
+    print_value_padded(dp, 2, "°C");
+    print_row_status("");
 }
 
 void report_dew_spread(float spread) {
-    Serial.print("Dew Point Spread: ");
-    Serial.print(spread, 2);
-    Serial.print(" °C (");
-    Serial.print(classify_dew_spread(spread));
-    Serial.println(")");
+    print_row_header("Dew Spread");
+    print_value_padded(spread, 2, "°C");
+    print_row_status(classify_dew_spread(spread));
 }
 
 void report_altitude(float altitude) {
-    Serial.print("Altitude: ");
-    Serial.print(altitude);
-    Serial.println(" m");
+    print_row_header("Altitude");
+    print_value_padded(altitude, 2, "m");
+    print_row_status("");
 }
 
 void report_pressure(float pressure_hpa) {
-    Serial.print("Measured Pressure: ");
-    Serial.print(pressure_hpa, 2);
-    Serial.println(" hPa");
+    print_row_header("Pressure (raw)");
+    print_value_padded(pressure_hpa, 2, "hPa");
+    print_row_status("");
 }
 
 void report_sea_level_pressure(float pressure_hpa) {
-    Serial.print("Adjusted Pressure: ");
-    Serial.print(pressure_hpa, 2);
-    Serial.print(" hPa (");
-    Serial.print(classify_pressure(pressure_hpa));
-    Serial.println(")");
+    print_row_header("Pressure (sea)");
+    print_value_padded(pressure_hpa, 2, "hPa");
+    print_row_status(classify_pressure(pressure_hpa));
 }
 
 void report_pressure_trend(void) {
     PressureTrendStatus status;
     get_pressure_trend_status(&status);
 
+    char value[24];
+    char third_col[64];
+    uint32_t remaining_min = status.ms_until_next_capture / 60000UL;
+    uint32_t hh = remaining_min / 60;
+    uint32_t mm = remaining_min % 60;
+
+    print_row_header("Pressure Trend");
+
     if (!status.trend_available) {
-        Serial.print("Pressure Trend: collecting data (");
-        Serial.print(status.samples_captured);
-        Serial.print("/");
-        Serial.print(status.samples_required);
-        Serial.println(" samples)");
+        snprintf(value, sizeof(value), "%u/%u samples",
+                 status.samples_captured, status.samples_required);
+        print_padded(value, VALUE_WIDTH);
+        snprintf(third_col, sizeof(third_col), "Collecting (next in %u:%02u)",
+                 (unsigned)hh, (unsigned)mm);
     } else {
-        Serial.print("Pressure Trend: ");
-        Serial.print(status.trend_hpa_per_hour, 2);
-        Serial.print(" hPa/h (");
-        Serial.print(classify_pressure_trend(status.trend_hpa_per_hour));
-        Serial.println(")");
+        snprintf(value, sizeof(value), "%.2f hPa/h", status.trend_hpa_per_hour);
+        print_padded(value, VALUE_WIDTH);
+        snprintf(third_col, sizeof(third_col), "%s (next in %u:%02u)",
+                 classify_pressure_trend(status.trend_hpa_per_hour),
+                 (unsigned)hh, (unsigned)mm);
     }
 
-    uint32_t remaining_min = status.ms_until_next_capture / 60000UL;
-    Serial.print("Next trend pressure sample in: ");
-    Serial.print(remaining_min / 60);
-    Serial.print(":");
-    uint32_t mm = remaining_min % 60;
-    if (mm < 10) Serial.print('0');
-    Serial.println(mm);
+    print_row_status(third_col);
 }
 
 /* -------------------------------------------------------------------------- */
 /*                              Private Functions                             */
 /* -------------------------------------------------------------------------- */
 
-static const char* classify_temperature(float temp) {
-    if (temp < -10.0f)  return "very cold";
-    if (temp <  0.0f)   return "cold";
-    if (temp <  10.0f)  return "cool";
-    if (temp <  20.0f)  return "mild";
-    if (temp <  27.0f)  return "warm";
-    if (temp <  35.0f)  return "hot";
-    return "very hot";
-}
-
 static const char* classify_humidity(float humidity) {
-    if (humidity < 30.0f) return "dry";
-    if (humidity < 60.0f) return "comfortable";
-    if (humidity < 75.0f) return "humid";
-    if (humidity < 90.0f) return "very humid";
-    return "saturated";
+    if (humidity < 30.0f) return "Dry";
+    if (humidity < 60.0f) return "Comfortable";
+    if (humidity < 75.0f) return "Humid";
+    if (humidity < 90.0f) return "Very Humid";
+    return "Saturated";
 }
 
 static const char* classify_dew_spread(float spread) {
-    if (spread < 2.5f)  return "fog likely";
-    if (spread < 5.0f)  return "mist possible";
-    if (spread < 10.0f) return "comfortable";
-    return "dry air";
+    if (spread < 2.5f)  return "Fog Likely";
+    if (spread < 5.0f)  return "Mist Possible";
+    if (spread < 10.0f) return "Moist Air";
+    return "Dry Air";
 }
 
 static const char* classify_pressure(float pressure_hpa) {
-    if (pressure_hpa >= 1030.0f) return "very high";
-    if (pressure_hpa >= 1020.0f) return "high";
-    if (pressure_hpa >= 1010.0f) return "normal";
-    if (pressure_hpa >= 1000.0f) return "low";
-    if (pressure_hpa >=  990.0f) return "very low";
-    return "extremely low";
+    if (pressure_hpa >= 1030.0f) return "Very High";
+    if (pressure_hpa >= 1020.0f) return "High";
+    if (pressure_hpa >= 1010.0f) return "Normal";
+    if (pressure_hpa >= 1000.0f) return "Low";
+    if (pressure_hpa >=  990.0f) return "Very Low";
+    if (pressure_hpa >=  980.0f) return "Extremely Low";
+    return "Storm";
 }
 
 static const char* classify_pressure_trend(float trend_hpa_per_hour) {
-    if (trend_hpa_per_hour >  2.0f) return "rising fast - weather clearing soon";
-    if (trend_hpa_per_hour >  0.5f) return "rising - weather improving";
-    if (trend_hpa_per_hour > -0.5f) return "steady - weather steady";
-    if (trend_hpa_per_hour > -2.0f) return "falling - weather worsening";
-    return "falling fast - storm approaching";
+    if (trend_hpa_per_hour >  1.0f) return "Clearing";
+    if (trend_hpa_per_hour >  0.3f) return "Improving";
+    if (trend_hpa_per_hour > -0.3f) return "Steady";
+    if (trend_hpa_per_hour > -1.0f) return "Worsening";
+    return "Storm Incoming";
+}
+
+static void print_padded(const char* text, uint32_t width) {
+    Serial.print(text);
+    uint32_t len = utf8_visible_len(text);
+    if (len >= width) {
+        Serial.print(' ');
+        return;
+    }
+    for (uint32_t i = len; i < width; i++) {
+        Serial.print(' ');
+    }
+}
+
+// Counts display characters in a UTF-8 string by skipping continuation bytes.
+// Fixes misalignment issues when using Celsius sign.
+static uint32_t utf8_visible_len(const char* s) {
+    uint32_t count = 0;
+    while (*s) {
+        if ((*s & 0xC0) != 0x80) count++;
+        s++;
+    }
+    return count;
+}
+
+static void print_row_header(const char* label) {
+    print_padded(label, LABEL_WIDTH);
+}
+
+static void print_row_status(const char* status) {
+    if (status == NULL || status[0] == '\0') {
+        Serial.println();
+        return;
+    }
+    Serial.print("  ");
+    Serial.println(status);
+}
+
+static void print_value_padded(float value, uint8_t decimals, const char* unit) {
+    char buf[24];
+    int n = snprintf(buf, sizeof(buf), "%.*f", decimals, value);
+    if (n < 0) n = 0;
+
+    Serial.print(buf);
+    Serial.print(' ');
+    Serial.print(unit);
+
+    uint32_t written = (uint32_t)n + 1 + utf8_visible_len(unit);
+    for (uint32_t i = written; i < VALUE_WIDTH; i++) {
+        Serial.print(' ');
+    }
 }

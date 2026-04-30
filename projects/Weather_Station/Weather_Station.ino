@@ -37,17 +37,19 @@
 #define PRESSURE_TREND_SAMPLES      6
 
 // True to use SHT temperature measurements instead of DPS.
-#define SHT_AS_TEMP_SOURCE          0
+// SHT is more accurate for dew point calculations since
+// both humidity and temperature are coming from the same sensor.
+#define SHT_AS_TEMP_SOURCE          1
 
 // DPS oversampling exponent (0..7). The sensor performs 2^N internal
 // measurements per result; higher values are more accurate but slower.
 #define DPS_OVERSAMPLING_RATE       5
 
 // Empirical temperature offset for DPS (in degrees Celsius).
-#define DPS_TEMP_OFFSET             (-5.0f)
+#define DPS_TEMP_OFFSET             (-3.0f)
 
 // Empirical temperature offset for SHT (in degrees Celsius).
-#define SHT_TEMP_OFFSET             (-4.0f)
+#define SHT_TEMP_OFFSET             (-2.5f)
 
 /* -------------------------------------------------------------------------- */
 /*                                  Globals                                   */
@@ -93,29 +95,37 @@ void loop() {
         return;
     }
 
+    float dew_point = calculate_dew_point(sht_temperature, humidity);
+
 #if SHT_AS_TEMP_SOURCE == 1
     float temperature = sht_temperature;
+    float offset = SHT_TEMP_OFFSET;
 #else
     float temperature = dps_temperature;
+    float offset = DPS_TEMP_OFFSET;
 #endif
 
-    float dew_point = calculate_dew_point(temperature, humidity);
+    temperature += offset;
+    humidity = calculate_relative_humidity(temperature, dew_point);
     float dew_spread = temperature - dew_point;
 
     float sea_lvl_pressure_hpa = calculate_sea_lvl_pressure_hpa(pressure_pa, temperature, ALTITUDE_M);
     try_save_pressure_sample(sea_lvl_pressure_hpa);
 
+    Serial.println("====== Weather Report ======");
     report_temp(temperature);
     report_humidity(humidity);
+    report_dew_point(dew_point);
     report_dew_spread(dew_spread);
 
+    report_altitude(ALTITUDE_M);
     float pressure_hpa = pressure_pa / 100.0f;
     report_pressure(pressure_hpa);
-    report_altitude(ALTITUDE_M);
     report_sea_level_pressure(sea_lvl_pressure_hpa);
 
     report_pressure_trend();
 
-    delay(DISPLAY_PERIOD_SEC * 1000);
+    Serial.println("============================");
     Serial.println();
+    delay(DISPLAY_PERIOD_SEC * 1000);
 }

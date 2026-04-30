@@ -1,9 +1,7 @@
 /*
  * Sensor read wrappers.
  *
- * Each function performs a single measurement and applies the empirical
- * offset where applicable. Sensor objects and offset constants are defined
- * in Weather_Station.ino.
+ * Each function performs a single measurement and returns false on sensor error.
  */
 
 bool measure_dps_temp(float* temp) {
@@ -13,7 +11,6 @@ bool measure_dps_temp(float* temp) {
         Serial.println(err);
         return false;
     }
-    *temp += DPS_TEMP_OFFSET;
     return true;
 }
 
@@ -34,6 +31,5 @@ bool measure_sht_temp_humidity(float* temp, float* humidity) {
         Serial.println(err);
         return false;
     }
-    *temp += SHT_TEMP_OFFSET;
     return true;
 }
