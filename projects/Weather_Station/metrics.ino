@@ -86,7 +86,7 @@ void report_humidity(float rh) {
 void report_dew_point(float dp) {
     print_row_header("Dew Point");
     print_value_padded(dp, 2, "°C");
-    print_row_status("");
+    print_row_status(classify_dew_point(dp));
 }
 
 void report_dew_spread(float spread) {
@@ -126,17 +126,13 @@ void report_pressure_trend(void) {
     print_row_header("Pressure Trend");
 
     if (!status.trend_available) {
-        snprintf(value, sizeof(value), "%u/%u samples",
-                 status.samples_captured, status.samples_required);
+        snprintf(value, sizeof(value), "%u/%u samples", status.samples_captured, status.samples_required);
         print_padded(value, VALUE_WIDTH);
-        snprintf(third_col, sizeof(third_col), "Collecting (next in %u:%02u)",
-                 (unsigned)hh, (unsigned)mm);
+        snprintf(third_col, sizeof(third_col), "Collecting (next in %u:%02u)", (unsigned)hh, (unsigned)mm);
     } else {
         snprintf(value, sizeof(value), "%.2f hPa/h", status.trend_hpa_per_hour);
         print_padded(value, VALUE_WIDTH);
-        snprintf(third_col, sizeof(third_col), "%s (next in %u:%02u)",
-                 classify_pressure_trend(status.trend_hpa_per_hour),
-                 (unsigned)hh, (unsigned)mm);
+        snprintf(third_col, sizeof(third_col), "%s (next in %u:%02u)", classify_pressure_trend(status.trend_hpa_per_hour), (unsigned)hh, (unsigned)mm);
     }
 
     print_row_status(third_col);
@@ -154,11 +150,22 @@ static const char* classify_humidity(float humidity) {
     return "Saturated";
 }
 
+static const char* classify_dew_point(float dp) {
+    if (dp < -5.0f) return "Very Dry";
+    if (dp <  0.0f) return "Dry";
+    if (dp < 13.0f) return "Comfortable";
+    if (dp < 16.0f) return "Slightly Humid";
+    if (dp < 18.0f) return "Humid";
+    if (dp < 21.0f) return "Uncomfortable";
+    if (dp < 24.0f) return "Oppressive";
+    return "Miserable";
+}
+
 static const char* classify_dew_spread(float spread) {
     if (spread < 2.5f)  return "Fog Likely";
     if (spread < 5.0f)  return "Mist Possible";
-    if (spread < 10.0f) return "Moist Air";
-    return "Dry Air";
+    if (spread < 10.0f) return "Mist Unlikely";
+    return "Mist Very Unlikely";
 }
 
 static const char* classify_pressure(float pressure_hpa) {
