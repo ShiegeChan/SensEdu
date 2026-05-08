@@ -40,7 +40,8 @@ static void print_value_padded(float value, uint8_t decimals, const char* unit);
 // Standard pressure at sea level is ~1013.25 hPa. Pressure decreases with altitude.
 // A station-level reading must be normalised before it can be compared against typical weather thresholds.
 float calculate_sea_lvl_pressure_hpa(float pressure_pa, float temp, float altitude) {
-    float sea_lvl_pa = pressure_pa * pow((1 - (0.0065 * altitude) / (temp + 273.15)), -5.257);
+    float temp_k = temp + 273.15f;
+    float sea_lvl_pa = pressure_pa * pow((temp_k + 0.0065f * altitude) / temp_k, 5.257f);
     return sea_lvl_pa / 100.0f;
 }
 
