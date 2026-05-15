@@ -65,7 +65,7 @@ float calculate_relative_humidity(float temp, float dew_point) {
     const float a = 17.625f;
     const float b = 243.04f;
     float gamma_dp = (a * dew_point) / (b + dew_point);
-    float gamma_t  = (a * temp)      / (b + temp);
+    float gamma_t = (a * temp) / (b + temp);
     float rh = 100.0f * exp(gamma_dp - gamma_t);
     if (rh > 100.0f) rh = 100.0f;
     if (rh < 0.0f)   rh = 0.0f;
@@ -152,21 +152,16 @@ static const char* classify_humidity(float humidity) {
 }
 
 static const char* classify_dew_point(float dp) {
-    if (dp < -5.0f) return "Very Dry";
-    if (dp <  0.0f) return "Dry";
-    if (dp < 13.0f) return "Comfortable";
-    if (dp < 16.0f) return "Slightly Humid";
-    if (dp < 18.0f) return "Humid";
-    if (dp < 21.0f) return "Uncomfortable";
-    if (dp < 24.0f) return "Oppressive";
+    if (dp <  5.0f) return "Dry";
+    if (dp < 15.0f) return "Comfortable";
+    if (dp < 20.0f) return "Muggy";
+    if (dp < 22.0f) return "Oppressive";
     return "Miserable";
 }
 
 static const char* classify_dew_spread(float spread) {
-    if (spread < 2.5f)  return "Fog Likely";
-    if (spread < 5.0f)  return "Mist Possible";
-    if (spread < 10.0f) return "Mist Unlikely";
-    return "Mist Very Unlikely";
+    if (spread < 2.5f) return "Fog Likely";
+    return "Fog Unlikely";
 }
 
 static const char* classify_pressure(float pressure_hpa) {
@@ -180,10 +175,10 @@ static const char* classify_pressure(float pressure_hpa) {
 }
 
 static const char* classify_pressure_trend(float trend_hpa_per_hour) {
-    if (trend_hpa_per_hour >  1.0f) return "Clearing";
-    if (trend_hpa_per_hour >  0.3f) return "Improving";
-    if (trend_hpa_per_hour > -0.3f) return "Steady";
-    if (trend_hpa_per_hour > -1.0f) return "Worsening";
+    if (trend_hpa_per_hour >  1.2f) return "Clearing";
+    if (trend_hpa_per_hour >  0.5f) return "Improving";
+    if (trend_hpa_per_hour > -0.5f) return "Steady";
+    if (trend_hpa_per_hour > -1.2f) return "Worsening";
     return "Storm Incoming";
 }
 
