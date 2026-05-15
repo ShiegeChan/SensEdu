@@ -306,6 +306,12 @@ This project measures pressure changes in hPa/h, so the above amounts are divide
 
 ## Showcase
 
+{: .WARNING}
+Do not measure under direct sunlight or near a heat source, as it will bias the temperature readings and thus all the derived metrics. The station is designed to be used in the shade or indoors.
+
+{: .TIP}
+If you find your readings being off from weather station reports, sometimes it can be expected in your specific measuring conditions. For example, the temperatures are generally higher close to the buildings. Most comparable conditions are usually in open air, e.g. on the roof or open field.
+
 The station was tested at Villach, Austria (501m) at 19:00 CEST on 13.05.2026, during a clear sky day with a light breeze and coming heavy rain later.
 
 <img src="{{site.baseurl}}/assets/images/weather-showcase.png"/>
