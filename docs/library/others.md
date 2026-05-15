@@ -784,18 +784,18 @@ Reads temperature from the Infineon [DPS368] pressure sensor and prints it to th
 ```c
 #include <Dps3xx.h>
 
-Dps3xx dps;
+Dps3xx dps368;
 
 void setup() {
     Serial.begin(9600);
     while (!Serial);
     Wire.begin();
-    dps.begin(Wire);
+    dps368.begin(Wire);
 }
 
 void loop() {
     float temperature = 0.0f;
-    dps.measureTempOnce(temperature, 5);
+    dps368.measureTempOnce(temperature, 5);
     Serial.print("Temperature: ");
     Serial.print(temperature, 2);
     Serial.println(" °C");
@@ -810,18 +810,18 @@ Reads barometric air pressure from the Infineon [DPS368] sensor and prints it to
 ```c
 #include <Dps3xx.h>
 
-Dps3xx dps;
+Dps3xx dps368;
 
 void setup() {
     Serial.begin(9600);
     while (!Serial);
     Wire.begin();
-    dps.begin(Wire);
+    dps368.begin(Wire);
 }
 
 void loop() {
     float pressure = 0.0f;
-    dps.measurePressureOnce(pressure, 5);
+    dps368.measurePressureOnce(pressure, 5);
     Serial.print("Pressure: ");
     Serial.print(pressure, 2);
     Serial.println(" Pa");

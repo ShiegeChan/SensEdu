@@ -9,14 +9,14 @@
 
 #include <Dps3xx.h>
 
-Dps3xx dps;
+Dps3xx dps368;
 
 void setup() {
     Serial.begin(9600);
     while (!Serial);
 
     Wire.begin();
-    dps.begin(Wire);
+    dps368.begin(Wire);
 
     Serial.println("DPS368 Pressure Reader Ready.");
 }
@@ -24,7 +24,7 @@ void setup() {
 void loop() {
     float pressure = 0.0f;
 
-    int16_t error = dps.measurePressureOnce(pressure, 5);
+    int16_t error = dps368.measurePressureOnce(pressure, 5);
     if (error != 0) {
         Serial.print("Measurement error: ");
         Serial.println(error);

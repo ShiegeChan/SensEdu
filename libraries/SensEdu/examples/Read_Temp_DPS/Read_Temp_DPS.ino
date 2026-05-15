@@ -9,14 +9,14 @@
 
 #include <Dps3xx.h>
 
-Dps3xx dps;
+Dps3xx dps368;
 
 void setup() {
     Serial.begin(9600);
     while (!Serial);
 
     Wire.begin();
-    dps.begin(Wire);
+    dps368.begin(Wire);
 
     Serial.println("DPS368 Temperature Reader Ready.");
 }
@@ -24,7 +24,7 @@ void setup() {
 void loop() {
     float temperature = 0.0f;
 
-    int16_t error = dps.measureTempOnce(temperature, 5);
+    int16_t error = dps368.measureTempOnce(temperature, 5);
     if (error != 0) {
         Serial.print("Measurement error: ");
         Serial.println(error);
