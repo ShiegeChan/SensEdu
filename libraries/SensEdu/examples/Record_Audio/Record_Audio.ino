@@ -220,6 +220,10 @@ static void reset_pipeline() {
 // 's': always brings the firmware into a clean RECORDING state regardless
 // of the prior state, so the host can recover from any partial run without
 // a board reset.
+//
+// ACK is emitted BEFORE the ADC is started. If Serial.write blocks on a
+// full USB CDC TX FIFO, this avoids losing the first DMA half-buffer of
+// samples to a stalled main loop.
 static void cmd_start() {
     SensEdu_ADC_Disable(adc);
     SensEdu_ADC_ClearDmaTransferComplete(adc);
@@ -227,12 +231,12 @@ static void cmd_start() {
 
     reset_pipeline();
     session_id++;
-
-    SensEdu_ADC_Enable(adc);
-    SensEdu_ADC_Start(adc);
     fw_state = STATE_RECORDING;
 
     send_ack('s', 0);
+
+    SensEdu_ADC_Enable(adc);
+    SensEdu_ADC_Start(adc);
 }
 
 // 'p': stops capture and discards any pending or in-flight transfer so the
@@ -346,17 +350,26 @@ static void mark_slot_ready() {
 //   4. Release the slot and look for another.
 static void process_usb_transfer() {
     if (transfer.slot_idx == NO_SLOT) {
+        // Pick the oldest ready slot (lowest sequence_id), not the lowest
+        // index. With SEGMENT_NUM=2 those happen to coincide in every realistic
+        // overrun trace, but for any larger ring the index order does not
+        // generally match fill order and the host enforces sequence_id
+        // continuity.
+        int8_t best = NO_SLOT;
+        uint32_t best_seq = 0;
         for (uint8_t i = 0; i < SEGMENT_NUM; i++) {
-            if (slots[i].ready) {
-                transfer.slot_idx    = (int8_t)i;
-                transfer.bytes_sent  = 0;
-                transfer.header_sent = false;
-                break;
+            if (!slots[i].ready) continue;
+            if (best == NO_SLOT || slots[i].sequence_id < best_seq) {
+                best = (int8_t)i;
+                best_seq = slots[i].sequence_id;
             }
         }
-        if (transfer.slot_idx == NO_SLOT) {
+        if (best == NO_SLOT) {
             return;
         }
+        transfer.slot_idx    = best;
+        transfer.bytes_sent  = 0;
+        transfer.header_sent = false;
     }
 
     uint8_t idx = (uint8_t)transfer.slot_idx;

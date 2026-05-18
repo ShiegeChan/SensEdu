@@ -101,14 +101,10 @@ last_seq_id = -1;
 overrun_segments = 0;
 
 for seg = 1:SEGMENTS_TO_RECORD
-    hdr = read_segment_header(arduino, HEADER_WAIT_SEC, ...
-                              RESYNC_MAX_BYTES, SEG_MAGIC, SEG_HDR_BYTES);
+    hdr = read_segment_header(arduino, HEADER_WAIT_SEC, RESYNC_MAX_BYTES, ...
+                              SEG_MAGIC, SEG_HDR_BYTES, ...
+                              session_id, SEGMENT_SAMPLES);
 
-    if hdr.session_id ~= session_id
-        error('Record_Audio:sessionMismatch', ...
-              'Segment session_id mismatch: expected %u, got %u.', ...
-              session_id, hdr.session_id);
-    end
     if double(hdr.sequence_id) ~= (last_seq_id + 1)
         error('Record_Audio:sequenceGap', ...
               'Segment sequence_id discontinuity: expected %d, got %u.', ...
@@ -230,8 +226,13 @@ function ok = ack_is_valid(buf, expected_cmd)
 end
 
 % read_segment_header
-function hdr = read_segment_header(arduino, timeout_sec, max_resync_bytes, magic, hdr_bytes)
-    validator = @(buf) seg_is_valid(buf);
+% Validates structural fields (session_id, sample_count, flags) before
+% accepting. Checking session_id inside the validator means a coincidental
+% SEG_MAGIC match in audio data is far less likely to be accepted, and the
+% resync keeps searching instead of erroring out.
+function hdr = read_segment_header(arduino, timeout_sec, max_resync_bytes, ...
+                                   magic, hdr_bytes, expected_session_id, max_samples)
+    validator = @(buf) seg_is_valid(buf, expected_session_id, max_samples);
     raw = read_framed(arduino, hdr_bytes, timeout_sec, max_resync_bytes, ...
                       magic, validator);
 
@@ -242,11 +243,13 @@ function hdr = read_segment_header(arduino, timeout_sec, max_resync_bytes, magic
     hdr.flags        = typecast(uint8(raw(17:20)), 'uint32');
 end
 
-function ok = seg_is_valid(buf)
-    % SEGMENT_SAMPLES upper bound for sample_count + flags must be 0 or 1
+function ok = seg_is_valid(buf, expected_session_id, max_samples)
+    session_id   = typecast(uint8(buf(5:8)),   'uint32');
     sample_count = typecast(uint8(buf(13:16)), 'uint32');
     flags        = typecast(uint8(buf(17:20)), 'uint32');
-    ok = (sample_count > 0) && (sample_count <= 44100 * 60) && (flags <= 1);
+    ok = (session_id == expected_session_id) ...
+         && (sample_count > 0) && (sample_count <= max_samples) ...
+         && (flags <= 1);
 end
 
 % read_framed
