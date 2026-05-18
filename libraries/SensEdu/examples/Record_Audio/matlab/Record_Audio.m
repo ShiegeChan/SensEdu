@@ -294,18 +294,25 @@ function out = read_exact(arduino, n)
 end
 
 % read_samples
+% Reads the payload as raw uint8 and reinterprets the bytes as uint16. Doing
+% it byte-explicit avoids any datatype-aware byte accounting in serialport's
+% uint16 read path -- if it ever consumes a different number of bytes than
+% sample_count*2, the next header read lands mis-aligned and the resync
+% slides forward past a whole segment, which manifests as a sequence_id
+% jump on the host.
 function data = read_samples(arduino, sample_count, timeout_sec)
     prev_timeout = arduino.Timeout;
     arduino.Timeout = timeout_sec;
     cleanup = onCleanup(@() set_timeout(arduino, prev_timeout)); %#ok<NASGU>
 
-    raw = read(arduino, sample_count, 'uint16');
-    if numel(raw) < sample_count
+    n_bytes = sample_count * 2;
+    raw_bytes = read(arduino, n_bytes, 'uint8');
+    if numel(raw_bytes) < n_bytes
         error('Record_Audio:payloadTimeout', ...
-              'Timed out reading segment payload (got %d / %d samples) after %.1f s.', ...
-              numel(raw), sample_count, timeout_sec);
+              'Timed out reading segment payload (got %d / %d bytes) after %.1f s.', ...
+              numel(raw_bytes), n_bytes, timeout_sec);
     end
-    data = double(raw);
+    data = double(typecast(uint8(raw_bytes), 'uint16'));
 end
 
 % safe_close
