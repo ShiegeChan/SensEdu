@@ -1,38 +1,7 @@
-%% Record_Audio.m
-% Reference host script for the Record_Audio firmware example.
-%
-% The firmware fills SDRAM "segments" of a fixed size (SEGMENT_SECONDS in
-% Record_Audio.ino) and streams each filled segment over USB CDC. This
-% script only needs to know the desired total recording duration; it
-% computes how many segments to consume and trims to the requested length.
-%
-% Pipeline:
-%   1. Open the serial port. onCleanup guarantees we send 'p' and close
-%      the port on any failure path.
-%   2. Send 'p' (idempotent stop). Read the framed ACK. Any in-flight
-%      transfer from a prior run is implicitly drained by the resync.
-%   3. Send 's'. Read the framed ACK and capture session_id.
-%   4. For each segment: read the framed header, validate magic +
-%      session_id + sequence continuity, then read sample_count uint16s.
-%   5. Send 'p', read the framed ACK.
-%   6. Trim to RECORDING_DURATION_SEC, save WAV, plot waveform + FFT.
-%
-% Protocol (must match Record_Audio.ino):
-%
-%   ACK frame (16 bytes):
-%     uint32 magic      = 0x41434B21
-%     uint8  cmd        's' | 'p' | '?'
-%     uint8  state      0=IDLE, 1=RECORDING
-%     uint16 pad
-%     uint32 session_id
-%     uint32 info       command-specific
-%
-%   Segment header (20 bytes), precedes each segment payload:
-%     uint32 magic        = 0x5345474D
-%     uint32 session_id
-%     uint32 sequence_id  0-based within the session
-%     uint32 sample_count uint16 samples that follow
-%     uint32 flags        bit 0: OVERRUN_DROPPED
+%% Audio_Recording.m
+% Host script: drive the start/stop handshake, read framed segments over
+% USB CDC from Audio_Recording.ino, save WAV, plot waveform + FFT.
+% Wire protocol and architectural details: docs/projects/audio-recording.md
 
 clear;
 close all;
@@ -41,7 +10,7 @@ clc;
 %% User settings
 ARDUINO_PORT           = 'COM16';
 ARDUINO_BAUDRATE       = 2000000;   % cosmetic for USB CDC
-RECORDING_DURATION_SEC = 40;        % desired total audio length
+RECORDING_DURATION_SEC = 40;
 ENABLE_PLAYBACK        = false;
 
 %% Firmware-coupled constants
@@ -57,35 +26,29 @@ FLAG_OVERRUN_DROPPED = uint32(1);
 SEGMENT_SAMPLES    = SEGMENT_SECONDS * Fs;
 SEGMENTS_TO_RECORD = ceil(RECORDING_DURATION_SEC / SEGMENT_SECONDS);
 
-% Generous timeouts:
-%   * a slot fills in SEGMENT_SECONDS, so headers arrive at that cadence
-%   * USB-FS at ~1 MB/s transfers a 2.6 MB slot in ~3 s
+% Slack timeouts: header at slot cadence, payload at USB-FS rate.
 HEADER_WAIT_SEC  = SEGMENT_SECONDS + 10;
 PAYLOAD_WAIT_SEC = SEGMENT_SECONDS + 10;
 
-% First 'p' may have to consume a full prior-session slot of stale data
-% before the ACK arrives; subsequent ACKs come back promptly.
+% First 'p' may drain a prior-session slot; later ACKs come back promptly.
 FIRST_ACK_WAIT_SEC = 15;
 ACK_WAIT_SEC       = 5;
 
-% Worst-case resync window: up to one full slot of stale payload + a header.
-% A factor of 2 absorbs any USB FIFO tail.
+% Up to one stale slot + header; x2 absorbs USB FIFO tail.
 RESYNC_MAX_BYTES = 2 * SEGMENT_SAMPLES * 2 + SEG_HDR_BYTES;
 
-%% Open port (with safe teardown on any error path)
+%% Open port (cleanup handler ensures safe close on any error path)
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
 arduino.Timeout = 5;
 cleanup_obj = onCleanup(@() safe_close(arduino)); %#ok<NASGU>
 flush(arduino);
 
-%% Reset firmware to a known IDLE state
-% 'p' is idempotent in firmware. It cancels any in-flight transfer and
-% aborts capture so the next 's' starts from a known baseline.
+%% Reset firmware to a known IDLE state ('p' is idempotent)
 write(arduino, uint8('p'), 'uint8');
 read_ack(arduino, 'p', FIRST_ACK_WAIT_SEC, RESYNC_MAX_BYTES, ...
          ACK_MAGIC, ACK_BYTES);
 
-%% Start a fresh session
+%% Start a fresh session and capture session_id from the ACK
 write(arduino, uint8('s'), 'uint8');
 start_ack = read_ack(arduino, 's', ACK_WAIT_SEC, ACK_BYTES * 2, ...
                      ACK_MAGIC, ACK_BYTES);
@@ -198,11 +161,7 @@ end
 
 %% Functions
 
-% read_ack
-% Resync onto ACK_MAGIC and validate structural fields (cmd, state, pad)
-% before accepting. If the magic matches but the frame fails validation,
-% keep searching: a 4-byte slice of stale audio data has a non-zero chance
-% of coincidentally matching the magic and must not be mistaken for an ACK.
+% Resync onto ACK_MAGIC, validate cmd/state/pad, return the parsed ACK frame.
 function ack = read_ack(arduino, expected_cmd, timeout_sec, max_resync_bytes, magic, ack_bytes)
     validator = @(buf) ack_is_valid(buf, expected_cmd);
     raw = read_framed(arduino, ack_bytes, timeout_sec, max_resync_bytes, ...
@@ -225,11 +184,7 @@ function ok = ack_is_valid(buf, expected_cmd)
          && (pad_w == 0);
 end
 
-% read_segment_header
-% Validates structural fields (session_id, sample_count, flags) before
-% accepting. Checking session_id inside the validator means a coincidental
-% SEG_MAGIC match in audio data is far less likely to be accepted, and the
-% resync keeps searching instead of erroring out.
+% Resync onto SEG_MAGIC, validate session_id/sample_count/flags, return parsed header.
 function hdr = read_segment_header(arduino, timeout_sec, max_resync_bytes, ...
                                    magic, hdr_bytes, expected_session_id, max_samples)
     validator = @(buf) seg_is_valid(buf, expected_session_id, max_samples);
@@ -252,11 +207,7 @@ function ok = seg_is_valid(buf, expected_session_id, max_samples)
          && (flags <= 1);
 end
 
-% read_framed
-% Reads frame_bytes starting with the 4-byte little-endian magic. If the
-% initial read does not begin with the magic, OR the optional validator
-% rejects the frame, slides one byte at a time (fast: from serialport's
-% internal buffer, no per-byte USB round trip). Resync budget is bounded.
+% Read a magic-prefixed frame, byte-sliding to resync. Bounded by max_resync_bytes.
 function raw = read_framed(arduino, frame_bytes, timeout_sec, max_resync_bytes, magic, validator)
     if nargin < 6
         validator = @(buf) true;
@@ -284,7 +235,6 @@ function raw = read_framed(arduino, frame_bytes, timeout_sec, max_resync_bytes, 
     end
 end
 
-% read_exact
 function out = read_exact(arduino, n)
     out = read(arduino, n, 'uint8');
     if numel(out) < n
@@ -293,13 +243,9 @@ function out = read_exact(arduino, n)
     end
 end
 
-% read_samples
-% Reads the payload as raw uint8 and reinterprets the bytes as uint16. Doing
-% it byte-explicit avoids any datatype-aware byte accounting in serialport's
-% uint16 read path -- if it ever consumes a different number of bytes than
-% sample_count*2, the next header read lands mis-aligned and the resync
-% slides forward past a whole segment, which manifests as a sequence_id
-% jump on the host.
+% Read sample_count*2 bytes and reinterpret as uint16.
+% Raw uint8 keeps the segment boundary byte-exact regardless of the
+% serialport read path's datatype-aware behaviour.
 function data = read_samples(arduino, sample_count, timeout_sec)
     prev_timeout = arduino.Timeout;
     arduino.Timeout = timeout_sec;
@@ -315,10 +261,7 @@ function data = read_samples(arduino, sample_count, timeout_sec)
     data = double(typecast(uint8(raw_bytes), 'uint16'));
 end
 
-% safe_close
-% Called by onCleanup on script exit (normal or error). Best-effort stops
-% the firmware and releases the port; failures are swallowed because the
-% port may already be in a bad state.
+% Best-effort 'p' + delete on script exit (any path).
 function safe_close(arduino)
     if ~isvalid(arduino)
         return;
@@ -330,9 +273,7 @@ function safe_close(arduino)
     delete(arduino);
 end
 
-% set_timeout
-% Helper for onCleanup; must be a function because property assignment is
-% not a valid anonymous-function expression.
+% Helper for onCleanup (property assignment can't be a lambda).
 function set_timeout(arduino, value)
     if isvalid(arduino)
         arduino.Timeout = value;

@@ -1,3 +1,11 @@
+/*
+ * Audio Recording
+ *
+ * Continuous PCM audio capture from an analog microphone on pin A3, buffered
+ * in external SDRAM in segments of SEGMENT_SECONDS each, streamed over USB CDC
+ * to a MATLAB host as framed segments with session_id + sequence_id tagging.
+ */
+
 #include "SensEdu.h"
 #include "SDRAM.h"
 
@@ -14,29 +22,15 @@ static const uint32_t SAMPLING_RATE = 44100;
 // Half-transfer chunk size of the ADC's DMA ping-pong buffer (samples)
 static const uint16_t CHUNK_SIZE = 256;
 
-// Length of each SDRAM slot, in seconds. Each slot consumes
-// SAMPLING_RATE * SEGMENT_SECONDS * sizeof(uint16_t) bytes.
-// Total SDRAM footprint = SEGMENT_NUM * (that). GIGA has 8 MB external SDRAM.
+// Length of each SDRAM slot, in seconds.
+// Per-slot footprint: SAMPLING_RATE * SEGMENT_SECONDS * 2 bytes.
 static const uint32_t SEGMENT_SECONDS = 30;
 
 // Number of SDRAM slots used as a ping-pong buffer
 static const uint8_t SEGMENT_NUM = 2;
 
 // USB payload chunk size per loop iteration (bytes).
-//
-// MUST NOT be a multiple of the USB Full-Speed bulk max packet size (64 B).
-// Windows host driver buffers bulk packets in URBs and only delivers them to
-// the application when one of these happens:
-//   * the URB fills (typically 4096 B), or
-//   * a short packet (< 64 B) arrives, or
-//   * a driver-level read timeout expires.
-// If every firmware write is an exact multiple of 64 B, no short packet is
-// ever produced, and trailing data sits in the URB until the driver times
-// out -- which manifests as MATLAB read stalls of 64*N bytes.
-//
-// Serial.flush() on mbed USB CDC drains the local TX FIFO but does NOT emit
-// a short/zero-length packet, so it does not solve this. Choosing a chunk
-// that ends with a short packet (4080 = 63*64 + 48) actually flushes the URB.
+// MUST NOT be a multiple of 64 (USB-FS bulk packet size); see docs for why.
 static const uint32_t USB_CHUNK_BYTES = 4080;
 
 // Frame magic values. Chosen distinct so the host can resync to either type.
@@ -89,7 +83,7 @@ typedef struct {
 typedef struct __attribute__((packed)) {
     uint32_t magic;        // SEG_MAGIC
     uint32_t session_id;
-    uint32_t sequence_id;  // 0-based within the current session
+    uint32_t sequence_id;
     uint32_t sample_count; // number of uint16 samples that follow
     uint32_t flags;        // FLAG_* bits
 } SegmentHeader;
@@ -105,7 +99,7 @@ typedef struct __attribute__((packed)) {
 } AckFrame;
 
 /* -------------------------------------------------------------------------- */
-/*                                  Variables                                 */
+/*                                  Globals                                   */
 /* -------------------------------------------------------------------------- */
 
 static FwState  fw_state = STATE_IDLE;
@@ -185,7 +179,7 @@ void loop() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                                  Helpers                                   */
+/*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
 
 // Allocates one SDRAM buffer per slot. Call once after SDRAM.begin().
@@ -199,8 +193,8 @@ static bool allocate_sdram() {
     return true;
 }
 
-// Resets the capture/transfer pipeline to a clean baseline.
-// Does NOT touch session_id (start_recording bumps it) or SDRAM pointers.
+// Clears every ring index, slot flag and pending overrun bit.
+// Preserves session_id and the SDRAM buffer pointers.
 static void reset_pipeline() {
     for (uint8_t i = 0; i < SEGMENT_NUM; i++) {
         slots[i].ready = false;
@@ -217,13 +211,9 @@ static void reset_pipeline() {
     pending_overrun_flag = 0;
 }
 
-// 's': always brings the firmware into a clean RECORDING state regardless
-// of the prior state, so the host can recover from any partial run without
-// a board reset.
-//
-// ACK is emitted BEFORE the ADC is started. If Serial.write blocks on a
-// full USB CDC TX FIFO, this avoids losing the first DMA half-buffer of
-// samples to a stalled main loop.
+// 's': clean restart from any prior state.
+// ACK is sent BEFORE ADC start so a slow Serial.write cannot eat the first
+// DMA half. See docs.
 static void cmd_start() {
     SensEdu_ADC_Disable(adc);
     SensEdu_ADC_ClearDmaTransferComplete(adc);
@@ -239,8 +229,7 @@ static void cmd_start() {
     SensEdu_ADC_Start(adc);
 }
 
-// 'p': stops capture and discards any pending or in-flight transfer so the
-// host can resync deterministically. Idempotent when already idle.
+// 'p': stop capture and discard any pending/in-flight transfer. Idempotent.
 static void cmd_stop() {
     if (fw_state == STATE_RECORDING) {
         SensEdu_ADC_Disable(adc);
@@ -281,9 +270,7 @@ static void process_command() {
 }
 
 // Polls DMA flags and writes captured samples into the current SDRAM slot.
-// Overrun policy: if the next slot is still ready (not yet transferred),
-// dropped samples in this half are recorded as FLAG_OVERRUN_DROPPED on the
-// next emitted header. Capture stays alive so the host can recover.
+// Overrun handling is in save_dma_half.
 static void process_capture() {
     if (fw_state != STATE_RECORDING) return;
 
@@ -298,11 +285,8 @@ static void process_capture() {
     }
 }
 
-// Copies one DMA half-buffer into SDRAM, spilling across slot boundaries if
-// the remainder of the current slot is smaller than the DMA half-buffer.
-// On overrun (would-be destination slot is still pending transmission), the
-// remaining samples are dropped and FLAG_OVERRUN_DROPPED is queued for the
-// next header.
+// Copies one DMA half-buffer into SDRAM, spilling across slot boundaries
+// when needed. Drops samples + flags OVERRUN if the next slot isn't free.
 static void save_dma_half(volatile uint16_t* src, uint16_t src_length) {
     uint16_t copied = 0;
     while (copied < src_length) {
@@ -344,17 +328,11 @@ static void mark_slot_ready() {
 }
 
 // Drives the SDRAM -> USB transfer in non-blocking, per-loop steps:
-//   1. Pick a ready slot if none is currently selected.
-//   2. Emit the 20-byte segment header once per slot.
-//   3. Emit one USB_CHUNK_BYTES payload chunk per loop iteration.
-//   4. Release the slot and look for another.
+// pick slot -> emit 20-byte header -> emit USB_CHUNK_BYTES payload pieces -> release.
 static void process_usb_transfer() {
     if (transfer.slot_idx == NO_SLOT) {
-        // Pick the oldest ready slot (lowest sequence_id), not the lowest
-        // index. With SEGMENT_NUM=2 those happen to coincide in every realistic
-        // overrun trace, but for any larger ring the index order does not
-        // generally match fill order and the host enforces sequence_id
-        // continuity.
+        // Pick the oldest ready slot (lowest sequence_id), not lowest index.
+        // The host enforces strict sequence order.
         int8_t best = NO_SLOT;
         uint32_t best_seq = 0;
         for (uint8_t i = 0; i < SEGMENT_NUM; i++) {
@@ -397,10 +375,10 @@ static void process_usb_transfer() {
         return;
     }
 
-    // No Serial.flush() here on purpose: the trailing 48-byte short packet
-    // produced by the 4080-byte USB_CHUNK_BYTES write flushes the host URB.
-    slots[idx].ready    = false;
-    transfer.slot_idx   = NO_SLOT;
+    // No Serial.flush() — the 4080-byte chunk's trailing short packet
+    // already flushes the host URB.
+    slots[idx].ready  = false;
+    transfer.slot_idx = NO_SLOT;
 }
 
 // Halts on any reported SensEdu library error during init.
@@ -410,9 +388,8 @@ static void check_lib_errors() {
     }
 }
 
-// Hard halt: blinks the error LED at ~2.5 Hz forever. Only used for unrecoverable
-// init failures (SDRAM allocation, library init). Runtime overruns DO NOT
-// trigger this -- they are surfaced via FLAG_OVERRUN_DROPPED in the next header.
+// Hard halt: blinks the error LED at ~2.5 Hz forever.
+// Only used for unrecoverable init failures, NOT runtime overruns.
 static void fatal_error() {
     while (true) {
         digitalWrite(ERROR_LED_PIN, !digitalRead(ERROR_LED_PIN));
