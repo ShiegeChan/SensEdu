@@ -3,7 +3,7 @@ title: EMG BioInputs
 layout: default
 parent: Projects
 math: mathjax
-nav_order: 6
+nav_order: 7
 ---
 
 # EMG BioInputs
