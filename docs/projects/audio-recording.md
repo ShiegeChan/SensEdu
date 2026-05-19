@@ -32,9 +32,16 @@ A 30-second mono recording at this rate is therefore $$44100 \times 30 \times 2 
 
 ### Why USB Noise Matters
 
-At 44.1 kHz the ADC produces a new sample every ~22 µs. The signal coming into it is small (millivolt-range from a microphone) and routed across the same PCB as a USB 2.0 Full-Speed transceiver doing ~12 Mbit/s of switching. Currents in the USB lines couple capacitively and inductively into the analog front-end and show up as a wideband noise floor in the recording.
+At 44.1 kHz the ADC produces a new sample every ~22 µs. The signal coming into it is small (millivolt-range from a microphone) and routed across the same PCB as a USB 2.0 Full-Speed transceiver switching at ~12 Mbit/s. Every USB bit is a nanosecond-scale voltage edge, and on a small board there are two ways those edges leak into the analog front-end:
 
-The classical "stream every sample as it arrives" architecture spreads this noise uniformly through the recording. The architecture used here instead **batches transfers**: the firmware records silently into SDRAM for tens of seconds, then dumps a whole segment over USB at once. The audible result is that the noise is confined to short bursts between segments, leaving the segment interior clean. Trimming or fading the seams is a host-side problem and out of scope for the firmware.
+* **Capacitive coupling** — any pair of nearby copper traces forms a tiny (pF-scale) parasitic capacitor. A fast `dV/dt` on the USB side pushes a corresponding current through that stray capacitance into the analog trace, where it appears as a voltage glitch.
+* **Ground-return coupling** — the current driven into the USB line has to return through the ground plane. That return current produces a small voltage drop across the finite resistance and inductance of the plane, and the analog input — which references the same ground — sees that drop as common-mode noise.
+
+The microphone front-end is high-impedance and millivolt-scale, so even sub-microvolt disturbances are clearly audible. The result is a wideband noise floor that tracks USB activity.
+
+This is fundamentally a PCB-layout problem on the **Arduino GIGA R1** itself, not something the SensEdu shield can fix. Both the ADC and the USB transceiver sit on the GIGA, they share one ground plane, and the USB traces run close enough to the analog pin headers for both coupling paths above to be active. The GIGA is a general-purpose development board, optimised for mechanical compatibility and broad usability rather than for low-noise analog acquisition — sacrificing some analog cleanliness is the standard trade-off for that form factor. A board built specifically for audio capture would use split AGND/DGND planes joined at a single point near the ADC, a separate analog supply rail, and physical separation between USB and analog routing.
+
+Since we can't change the hardware, the firmware works *around* it. The classical "stream every sample as it arrives" architecture spreads this noise uniformly through the recording. The architecture used here instead **batches transfers**: the firmware records silently into SDRAM for tens of seconds, then dumps a whole segment over USB at once. The audible result is that the noise is confined to short bursts between segments, leaving the segment interior clean. Trimming or fading the seams is a host-side problem and out of scope for the firmware.
 
 ### DMA Double-Buffering
 
