@@ -1,9 +1,9 @@
 /*
  * Audio Recording
  *
- * Continuous PCM audio capture from an analog microphone on pin A3, buffered
+ * Continuous PCM audio capture from an analog MEMS microphone, buffered
  * in external SDRAM in segments of SEGMENT_SECONDS each, streamed over USB CDC
- * to a MATLAB host as framed segments with session_id + sequence_id tagging.
+ * to a MATLAB host with identification tagging.
  */
 
 #include "SensEdu.h"
@@ -13,102 +13,112 @@
 /*                                  Settings                                  */
 /* -------------------------------------------------------------------------- */
 
-// Error indicator LED
-static const uint8_t ERROR_LED_PIN = D86;
-
-// ADC sampling rate in Hz
 static const uint32_t SAMPLING_RATE = 44100;
 
-// Half-transfer chunk size of the ADC's DMA ping-pong buffer (samples)
+// Half-transfer chunk size of the ADC's DMA ping-pong buffer (samples).
 static const uint16_t CHUNK_SIZE = 256;
 
-// Length of each SDRAM slot, in seconds.
-// Per-slot footprint: SAMPLING_RATE * SEGMENT_SECONDS * 2 bytes.
+// Length of each SDRAM slot (seconds).
+// Total byte size: SAMPLING_RATE * SEGMENT_SECONDS * 2 bytes.
 static const uint32_t SEGMENT_SECONDS = 30;
 
-// Number of SDRAM slots used as a ping-pong buffer
-static const uint8_t SEGMENT_NUM = 2;
-
 // USB payload chunk size per loop iteration (bytes).
-// MUST NOT be a multiple of 64 (USB-FS bulk packet size); see docs for why.
+// Must not be a multiple of 64 (USB-FS bulk packet size) to force data flush.
+// Developer notes in docs cover this in more detail.
 static const uint32_t USB_CHUNK_BYTES = 4080;
-
-// Frame magic values. Chosen distinct so the host can resync to either type.
-static const uint32_t SEG_MAGIC = 0x5345474DUL;  // wire bytes: 'M','G','E','S'
-static const uint32_t ACK_MAGIC = 0x41434B21UL;  // wire bytes: '!','K','C','A'
-
-// Sentinel meaning "no slot currently selected for transfer"
-static const int8_t NO_SLOT = -1;
-
-// Segment header flag bits
-static const uint32_t FLAG_OVERRUN_DROPPED = 0x1UL;
-
-// Derived per-slot sample and byte counts
-static const uint32_t SEGMENT_SAMPLES = SAMPLING_RATE * SEGMENT_SECONDS;
-static const uint32_t SEGMENT_BYTES   = SEGMENT_SAMPLES * sizeof(uint16_t);
 
 /* -------------------------------------------------------------------------- */
 /*                                   Structs                                  */
 /* -------------------------------------------------------------------------- */
 
+// Current firmware state.
 typedef enum {
     STATE_IDLE      = 0,
     STATE_RECORDING = 1
 } FwState;
 
-// One SDRAM segment slot
+// One SDRAM segment slot.
 typedef struct {
-    uint16_t* buffer;        // SDRAM buffer pointer
-    uint32_t  sequence_id;   // 0-based monotonic id within the current session
-    uint32_t  sample_count;  // valid sample count in this slot
-    uint32_t  flags;         // FLAG_* bits to be carried in the segment header
-    bool      ready;         // filled and ready to transmit
+    uint16_t* buffer;        // SDRAM buffer pointer (allocated once at boot, never freed)
+    uint32_t  sequence_id;   // 0-based id within the current firmware session
+    uint32_t  sample_count;  // Valid sample count in this slot
+    uint32_t  flags;
+    bool      ready;
 } Slot;
 
-// ADC -> SDRAM capture state
+// ADC -> SDRAM capture state.
 typedef struct {
-    uint8_t  write_idx;         // currently filling slot
-    uint32_t captured_samples;  // samples written into the current slot so far
-    uint32_t next_sequence_id;  // next id to assign on slot completion
+    uint8_t  write_idx;         // Currently filling slot
+    uint32_t captured_samples;  // Samples written into the current slot so far
+    uint32_t next_sequence_id;  // Next id to assign on slot completion
 } CaptureState;
 
-// SDRAM -> USB transfer state
+// SDRAM -> USB transfer state.
 typedef struct {
-    int8_t   slot_idx;     // slot being transmitted, or NO_SLOT
-    uint32_t bytes_sent;   // payload bytes already sent for the current slot
-    bool     header_sent;  // header already emitted for the current slot
+    int8_t   slot_idx;     // Slot being transmitted (NO_SLOT if none)
+    uint32_t bytes_sent;   // Payload bytes already sent for the current slot
+    bool     header_sent;  // Header already sent for the current slot
 } TransferState;
 
-// 20-byte header that precedes every transmitted segment payload
-typedef struct __attribute__((packed)) {
-    uint32_t magic;        // SEG_MAGIC
+// Header that precedes every transmitted segment payload.
+// Layout must stay byte-exact.
+typedef struct {
+    uint32_t magic;
     uint32_t session_id;
     uint32_t sequence_id;
-    uint32_t sample_count; // number of uint16 samples that follow
-    uint32_t flags;        // FLAG_* bits
+    uint32_t sample_count;
+    uint32_t flags;
 } SegmentHeader;
 
-// 16-byte command-ACK frame
-typedef struct __attribute__((packed)) {
-    uint32_t magic;        // ACK_MAGIC
+// ACK MATLAB host command response.
+// Layout must stay byte-exact.
+typedef struct {
+    uint32_t magic;
     uint8_t  cmd;          // 's', 'p', or '?'
     uint8_t  state;        // FwState
-    uint16_t pad;          // 0
+    uint16_t pad;
     uint32_t session_id;
-    uint32_t info;         // command-specific (segments_completed, captured_samples, ...)
+    uint32_t info;         // Selectable data to send back with ACK
 } AckFrame;
+
+static_assert(sizeof(SegmentHeader) == 20, "Unexpected SegmentHeader layout.");
+static_assert(sizeof(AckFrame)      == 16, "Unexpected AckFrame layout.");
 
 /* -------------------------------------------------------------------------- */
 /*                                  Globals                                   */
 /* -------------------------------------------------------------------------- */
 
-static FwState  fw_state = STATE_IDLE;
-static uint32_t session_id = 0;
-static uint32_t pending_overrun_flag = 0;
+// On-board Arduino LED (active LOW).
+static const uint8_t ERROR_LED_PIN = D86;
 
-static Slot          slots[SEGMENT_NUM];
-static CaptureState  capture;
+// Sync preambles.
+static const uint32_t SEG_MAGIC = 0x5345474DUL;
+static const uint32_t ACK_MAGIC = 0x41434B21UL;
+
+// Number of SDRAM slots used (two is selected for a ping-pong buffer).
+static const uint8_t SEGMENT_NUM = 2;
+
+// Derived per-slot sample and byte counts.
+static const uint32_t SEGMENT_SAMPLES = SAMPLING_RATE * SEGMENT_SECONDS;
+static const uint32_t SEGMENT_BYTES   = SEGMENT_SAMPLES * sizeof(uint16_t);
+
+// SDRAM slot overrun flag. 
+// Attached to the next slot, so that host knows if the segment lost any samples.
+// `FLAG_OVERRUN_DROPPED` is written to this variable in such case.
+static uint32_t pending_overrun_flag = 0;
+static const uint32_t FLAG_OVERRUN_DROPPED = 0x1UL;
+
+// No slot currently selected for transfer.
+static const int8_t NO_SLOT = -1;
+
+static FwState fw_state = STATE_IDLE;
+static uint32_t session_id = 0;
+
+static Slot slots[SEGMENT_NUM];
+static CaptureState capture;
 static TransferState transfer;
+
+
 
 static const uint16_t DMA_BUF_SIZE = CHUNK_SIZE * 2;
 volatile SENSEDU_DMA_BUFFER(dma_buf, DMA_BUF_SIZE);
@@ -135,11 +145,11 @@ SensEdu_ADC_Settings adc_settings = {
 
 static bool allocate_sdram();
 static void reset_pipeline();
+static void process_command();
 static void cmd_start();
 static void cmd_stop();
 static void cmd_status();
 static void send_ack(uint8_t cmd, uint32_t info);
-static void process_command();
 static void process_capture();
 static void save_dma_half(volatile uint16_t* src, uint16_t src_length);
 static void mark_slot_ready();
@@ -152,7 +162,7 @@ static void fatal_error();
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-    Serial.begin(2000000);  // baud is cosmetic for USB CDC
+    Serial.begin(2000000);  // Baud is cosmetic for USB CDC
 
     pinMode(ERROR_LED_PIN, OUTPUT);
     digitalWrite(ERROR_LED_PIN, HIGH);
@@ -179,10 +189,11 @@ void loop() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                              Public Functions                              */
+/*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Allocates one SDRAM buffer per slot. Call once after SDRAM.begin().
+// Allocates dynamically one SDRAM buffer per slot.
+// Should be called once after SDRAM.begin(); allocations live forever and are never freed.
 static bool allocate_sdram() {
     for (uint8_t i = 0; i < SEGMENT_NUM; i++) {
         slots[i].buffer = (uint16_t*)SDRAM.malloc(SEGMENT_BYTES);
@@ -193,7 +204,7 @@ static bool allocate_sdram() {
     return true;
 }
 
-// Clears every ring index, slot flag and pending overrun bit.
+// Clears every index, slot flag and pending overrun bit.
 // Preserves session_id and the SDRAM buffer pointers.
 static void reset_pipeline() {
     for (uint8_t i = 0; i < SEGMENT_NUM; i++) {
@@ -211,9 +222,20 @@ static void reset_pipeline() {
     pending_overrun_flag = 0;
 }
 
+static void process_command() {
+    while (Serial.available() > 0) {
+        char cmd = (char)Serial.read();
+        switch (cmd) {
+            case 's': cmd_start();  break;
+            case 'p': cmd_stop();   break;
+            case '?': cmd_status(); break;
+            default: break;
+        }
+    }
+}
+
 // 's': clean restart from any prior state.
-// ACK is sent BEFORE ADC start so a slow Serial.write cannot eat the first
-// DMA half. See docs.
+// ACK is sent BEFORE ADC start so slow Serial.write cannot break the capture sync.
 static void cmd_start() {
     SensEdu_ADC_Disable(adc);
     SensEdu_ADC_ClearDmaTransferComplete(adc);
@@ -229,18 +251,20 @@ static void cmd_start() {
     SensEdu_ADC_Start(adc);
 }
 
-// 'p': stop capture and discard any pending/in-flight transfer. Idempotent.
+// 'p': stop capture and discard any pending/in-flight transfer.
+// Reports the number of captured segments before stop command.
 static void cmd_stop() {
     if (fw_state == STATE_RECORDING) {
         SensEdu_ADC_Disable(adc);
         fw_state = STATE_IDLE;
     }
+
     uint32_t segments_completed = capture.next_sequence_id;
     reset_pipeline();
     send_ack('p', segments_completed);
 }
 
-// '?': non-intrusive status query.
+// '?': Status query. Reports the number of captured samples so far.
 static void cmd_status() {
     send_ack('?', capture.captured_samples);
 }
@@ -257,20 +281,7 @@ static void send_ack(uint8_t cmd, uint32_t info) {
     Serial.write((const uint8_t*)&ack, sizeof(ack));
 }
 
-static void process_command() {
-    while (Serial.available() > 0) {
-        char cmd = (char)Serial.read();
-        switch (cmd) {
-            case 's': cmd_start();  break;
-            case 'p': cmd_stop();   break;
-            case '?': cmd_status(); break;
-            default: break;
-        }
-    }
-}
-
-// Polls DMA flags and writes captured samples into the current SDRAM slot.
-// Overrun handling is in save_dma_half.
+// Captures DMA transfered audio samples and saves to SDRAM.
 static void process_capture() {
     if (fw_state != STATE_RECORDING) return;
 
@@ -285,8 +296,8 @@ static void process_capture() {
     }
 }
 
-// Copies one DMA half-buffer into SDRAM, spilling across slot boundaries
-// when needed. Drops samples + flags OVERRUN if the next slot isn't free.
+// Copies DMA half-buffer into SDRAM, splitting across slots if needed.
+// Drops samples + flags overrun if the next slot isn't free.
 static void save_dma_half(volatile uint16_t* src, uint16_t src_length) {
     uint16_t copied = 0;
     while (copied < src_length) {
@@ -314,7 +325,7 @@ static void save_dma_half(volatile uint16_t* src, uint16_t src_length) {
     }
 }
 
-// Promotes the just-filled slot to ready and advances to the next slot.
+// Updates just-filled slot to ready state and advances to the next slot.
 static void mark_slot_ready() {
     uint8_t idx = capture.write_idx;
     slots[idx].sequence_id  = capture.next_sequence_id++;
@@ -324,15 +335,14 @@ static void mark_slot_ready() {
     pending_overrun_flag    = 0;
 
     capture.captured_samples = 0;
-    capture.write_idx        = (uint8_t)((idx + 1) % SEGMENT_NUM);
+    capture.write_idx = (uint8_t)((idx + 1) % SEGMENT_NUM);
 }
 
 // Drives the SDRAM -> USB transfer in non-blocking, per-loop steps:
-// pick slot -> emit 20-byte header -> emit USB_CHUNK_BYTES payload pieces -> release.
+// pick slot -> send 20-byte header -> USB_CHUNK_BYTES payload piece -> release slot.
 static void process_usb_transfer() {
     if (transfer.slot_idx == NO_SLOT) {
-        // Pick the oldest ready slot (lowest sequence_id), not lowest index.
-        // The host enforces strict sequence order.
+        // Pick the oldest ready slot (lowest sequence_id).
         int8_t best = NO_SLOT;
         uint32_t best_seq = 0;
         for (uint8_t i = 0; i < SEGMENT_NUM; i++) {
@@ -375,21 +385,19 @@ static void process_usb_transfer() {
         return;
     }
 
-    // No Serial.flush() — the 4080-byte chunk's trailing short packet
-    // already flushes the host URB.
     slots[idx].ready  = false;
     transfer.slot_idx = NO_SLOT;
 }
 
-// Halts on any reported SensEdu library error during init.
+// Halts on any reported SensEdu library error.
 static void check_lib_errors() {
     if (SensEdu_GetError() != 0) {
         fatal_error();
     }
 }
 
-// Hard halt: blinks the error LED at ~2.5 Hz forever.
-// Only used for unrecoverable init failures, NOT runtime overruns.
+// Hard halt: blinks the error LED at 2.5 Hz forever.
+// Only used for unrecoverable failures, not runtime overruns.
 static void fatal_error() {
     while (true) {
         digitalWrite(ERROR_LED_PIN, !digitalRead(ERROR_LED_PIN));
