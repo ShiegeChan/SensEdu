@@ -58,10 +58,10 @@ typedef struct {
     int8_t   slot_idx;     // Slot being transmitted (NO_SLOT if none)
     uint32_t bytes_sent;   // Payload bytes already sent for the current slot
     bool     header_sent;  // Header already sent for the current slot
+    bool     tail_sent;    // Tail magic already sent for the current slot
 } TransferState;
 
 // Header that precedes every transmitted segment payload.
-// Layout must stay byte-exact.
 typedef struct {
     uint32_t magic;
     uint32_t session_id;
@@ -70,8 +70,13 @@ typedef struct {
     uint32_t flags;
 } SegmentHeader;
 
+// Trailer that follows every transmitted segment payload.
+typedef struct {
+    uint32_t magic;
+    uint32_t sequence_id;
+} SegmentTail;
+
 // ACK MATLAB host command response.
-// Layout must stay byte-exact.
 typedef struct {
     uint32_t magic;
     uint8_t  cmd;          // 's', 'p', or '?'
@@ -82,6 +87,7 @@ typedef struct {
 } AckFrame;
 
 static_assert(sizeof(SegmentHeader) == 20, "Unexpected SegmentHeader layout.");
+static_assert(sizeof(SegmentTail)   == 8,  "Unexpected SegmentTail layout.");
 static_assert(sizeof(AckFrame)      == 16, "Unexpected AckFrame layout.");
 
 /* -------------------------------------------------------------------------- */
@@ -92,8 +98,9 @@ static_assert(sizeof(AckFrame)      == 16, "Unexpected AckFrame layout.");
 static const uint8_t ERROR_LED_PIN = D86;
 
 // Sync preambles.
-static const uint32_t SEG_MAGIC = 0x5345474DUL;
-static const uint32_t ACK_MAGIC = 0x41434B21UL;
+static const uint32_t SEG_MAGIC      = 0x5345474DUL;
+static const uint32_t SEG_TAIL_MAGIC = 0x53454754UL;
+static const uint32_t ACK_MAGIC      = 0x41434B21UL;
 
 // Number of SDRAM slots used (two is selected for a ping-pong buffer).
 static const uint8_t SEGMENT_NUM = 2;
@@ -219,6 +226,7 @@ static void reset_pipeline() {
     transfer.slot_idx = NO_SLOT;
     transfer.bytes_sent = 0;
     transfer.header_sent = false;
+    transfer.tail_sent = false;
     pending_overrun_flag = 0;
 }
 
@@ -339,7 +347,8 @@ static void mark_slot_ready() {
 }
 
 // Drives the SDRAM -> USB transfer in non-blocking, per-loop steps:
-// pick slot -> send 20-byte header -> USB_CHUNK_BYTES payload piece -> release slot.
+// pick slot -> send 20-byte header -> USB_CHUNK_BYTES payload piece ->
+// 8-byte tail -> release slot.
 static void process_usb_transfer() {
     if (transfer.slot_idx == NO_SLOT) {
         // Pick the oldest ready slot (lowest sequence_id).
@@ -358,6 +367,7 @@ static void process_usb_transfer() {
         transfer.slot_idx    = best;
         transfer.bytes_sent  = 0;
         transfer.header_sent = false;
+        transfer.tail_sent   = false;
     }
 
     uint8_t idx = (uint8_t)transfer.slot_idx;
@@ -382,6 +392,16 @@ static void process_usb_transfer() {
         const uint8_t* ptr = ((const uint8_t*)slots[idx].buffer) + transfer.bytes_sent;
         Serial.write(ptr, to_send);
         transfer.bytes_sent += to_send;
+        return;
+    }
+
+    if (!transfer.tail_sent) {
+        SegmentTail tail = {
+            .magic       = SEG_TAIL_MAGIC,
+            .sequence_id = slots[idx].sequence_id
+        };
+        Serial.write((const uint8_t*)&tail, sizeof(tail));
+        transfer.tail_sent = true;
         return;
     }
 

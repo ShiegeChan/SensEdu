@@ -1,77 +1,77 @@
 %% Audio_Recording.m
-% Host script: drive the start/stop handshake, read framed segments over
+% Host function: drive the start/stop handshake, read framed segments over
 % USB CDC from Audio_Recording.ino, save WAV, plot waveform + FFT.
-% Wire protocol and architectural details: docs/projects/audio-recording.md
 
 clear;
 close all;
-clc;
 
 %% User settings
 ARDUINO_PORT           = 'COM16';
-ARDUINO_BAUDRATE       = 2000000;   % cosmetic for USB CDC
+ARDUINO_BAUDRATE       = 2000000;   % Cosmetic for USB CDC
 RECORDING_DURATION_SEC = 40;
-ENABLE_PLAYBACK        = false;
+ENABLE_PLAYBACK        = true;
 
-%% Firmware-coupled constants
+%% Firmware constants
 Fs                   = 44100;
 SEGMENT_SECONDS      = 30;
-SEG_MAGIC            = uint32(hex2dec('5345474D'));
-ACK_MAGIC            = uint32(hex2dec('41434B21'));
+SEG_MAGIC            = uint32(hex2dec('5345474D'));  % "SEGM" - segment header
+SEG_TAIL_MAGIC       = uint32(hex2dec('53454754'));  % "SEGT" - segment tail
+ACK_MAGIC            = uint32(hex2dec('41434B21'));  % "ACK!" - command ACK
 SEG_HDR_BYTES        = 20;
+SEG_TAIL_BYTES       = 8;
 ACK_BYTES            = 16;
 FLAG_OVERRUN_DROPPED = uint32(1);
 
+%% Timeouts
+HEADER_WAIT_SEC = SEGMENT_SECONDS + 10;
+PAYLOAD_WAIT_SEC = SEGMENT_SECONDS + 10;
+ACK_WAIT_SEC = 5;
+
+% First pause 'p' may need to drain the entire prior sesson.
+FIRST_ACK_WAIT_SEC = 15;
+
 %% Derived
-SEGMENT_SAMPLES    = SEGMENT_SECONDS * Fs;
+SEGMENT_SAMPLES = SEGMENT_SECONDS * Fs;
 SEGMENTS_TO_RECORD = ceil(RECORDING_DURATION_SEC / SEGMENT_SECONDS);
 
-% Slack timeouts: header at slot cadence, payload at USB-FS rate.
-HEADER_WAIT_SEC  = SEGMENT_SECONDS + 10;
-PAYLOAD_WAIT_SEC = SEGMENT_SECONDS + 10;
-
-% First 'p' may drain a prior-session slot; later ACKs come back promptly.
-FIRST_ACK_WAIT_SEC = 15;
-ACK_WAIT_SEC       = 5;
-
-% Up to one stale slot + header; x2 absorbs USB FIFO tail.
+% Worst case: one full stale segment payload.
 RESYNC_MAX_BYTES = 2 * SEGMENT_SAMPLES * 2 + SEG_HDR_BYTES;
 
-%% Open port (cleanup handler ensures safe close on any error path)
+%% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
 arduino.Timeout = 5;
-cleanup_obj = onCleanup(@() safe_close(arduino)); %#ok<NASGU>
+cleanup = onCleanup(@() safe_close(arduino));
 flush(arduino);
 
-%% Reset firmware to a known IDLE state ('p' is idempotent)
+%% Reset firmware to IDLE state
 write(arduino, uint8('p'), 'uint8');
-read_ack(arduino, 'p', FIRST_ACK_WAIT_SEC, RESYNC_MAX_BYTES, ...
-         ACK_MAGIC, ACK_BYTES);
+read_ack(arduino, 'p', FIRST_ACK_WAIT_SEC, RESYNC_MAX_BYTES, ACK_MAGIC, ACK_BYTES);
 
-%% Start a fresh session and capture session_id from the ACK
+%% Start new session
 write(arduino, uint8('s'), 'uint8');
-start_ack = read_ack(arduino, 's', ACK_WAIT_SEC, ACK_BYTES * 2, ...
-                     ACK_MAGIC, ACK_BYTES);
+start_ack = read_ack(arduino, 's', ACK_WAIT_SEC, ACK_BYTES * 2, ACK_MAGIC, ACK_BYTES);
 session_id = start_ack.session_id;
 
 fprintf('Session %u: recording %d s in %d segment(s) of %d s...\n', ...
         session_id, RECORDING_DURATION_SEC, SEGMENTS_TO_RECORD, SEGMENT_SECONDS);
 
-%% Receive segments
-data_full   = zeros(1, SEGMENTS_TO_RECORD * SEGMENT_SAMPLES);
-write_pos   = 0;
+%% Read segments
+data_full = zeros(1, SEGMENTS_TO_RECORD * SEGMENT_SAMPLES);
+write_pos = 0;
 last_seq_id = -1;
 overrun_segments = 0;
+partial_recording = false;
 
 for seg = 1:SEGMENTS_TO_RECORD
+    fprintf('Bytes available before header read: %d\n', arduino.NumBytesAvailable);
     hdr = read_segment_header(arduino, HEADER_WAIT_SEC, RESYNC_MAX_BYTES, ...
-                              SEG_MAGIC, SEG_HDR_BYTES, ...
-                              session_id, SEGMENT_SAMPLES);
+                              SEG_MAGIC, SEG_HDR_BYTES, session_id, SEGMENT_SAMPLES);
 
     if double(hdr.sequence_id) ~= (last_seq_id + 1)
-        error('Record_Audio:sequenceGap', ...
-              'Segment sequence_id discontinuity: expected %d, got %u.', ...
-              last_seq_id + 1, hdr.sequence_id);
+        warning('Segment sequence_id discontinuity: expected %d, got %u. Stopping early and keeping data captured so far.', ...
+                last_seq_id + 1, hdr.sequence_id);
+        partial_recording = true;
+        break;
     end
     last_seq_id = double(hdr.sequence_id);
 
@@ -81,6 +81,11 @@ for seg = 1:SEGMENTS_TO_RECORD
     end
 
     samples = read_samples(arduino, double(hdr.sample_count), PAYLOAD_WAIT_SEC);
+
+    % Trailer confirms the firmware sent exactly sample_count*2 payload bytes.
+    tail_ok = read_segment_tail(arduino, PAYLOAD_WAIT_SEC, SEG_TAIL_MAGIC, ...
+                                SEG_TAIL_BYTES, hdr.sequence_id);
+
     data_full(write_pos + 1 : write_pos + numel(samples)) = samples;
     write_pos = write_pos + numel(samples);
 
@@ -89,6 +94,13 @@ for seg = 1:SEGMENTS_TO_RECORD
                 hdr.sequence_id, hdr.sample_count);
     else
         fprintf('  segment %u: %u samples\n', hdr.sequence_id, hdr.sample_count);
+    end
+
+    if ~tail_ok
+        warning('Segment tail mismatch after seq %u; stream misaligned. Stopping early and keeping data captured so far.', ...
+                hdr.sequence_id);
+        partial_recording = true;
+        break;
     end
 end
 
@@ -109,13 +121,20 @@ if numel(data_full) > target_samples
     data_full = data_full(1:target_samples);
 end
 
-if overrun_segments > 0
-    warning('Record_Audio:overrun', ...
-            'Recording completed with %d overrun segment(s); audio has gaps.', ...
-            overrun_segments);
+if partial_recording
+    actual_duration_sec = numel(data_full) / Fs;
+    fprintf('Requested duration: %.3f s | Actual duration: %.3f s (%.1f%%)\n', ...
+            RECORDING_DURATION_SEC, actual_duration_sec, ...
+            100 * actual_duration_sec / RECORDING_DURATION_SEC);
+    warning('Recording is shorter than requested by %.3f s due to early stop.', ...
+            RECORDING_DURATION_SEC - actual_duration_sec);
 end
 
-%% Save WAV (ADC is 16-bit; normalize and center)
+if overrun_segments > 0
+    warning('Recording completed with %d overrun segment(s); audio has gaps.', overrun_segments);
+end
+
+%% Save WAV
 if ~exist('Recordings', 'dir')
     mkdir('Recordings');
 end
@@ -149,23 +168,105 @@ plot(t, y);
 title('Recorded Audio Signal');
 xlabel('time [s]');
 ylabel('Normalized ADC Output');
-ylim([-1 1]);
-xlim([0 t(end)]);
+ylim([-1, 1]);
+xlim([0, t(end)]);
 grid on;
 
 %% Optional playback
 if ENABLE_PLAYBACK
-    player = audioplayer(y, Fs); %#ok<NASGU>
+    player = audioplayer(y, Fs);
     play(player);
 end
 
 %% Functions
 
-% Resync onto ACK_MAGIC, validate cmd/state/pad, return the parsed ACK frame.
+% Reads a magic-prefixed frame.
+% On mismatch, reads a chunk and scans it for magic, then validates the candidate frame.
+% Bounded by max_resync_bytes total bytes consumed.
+function raw = read_framed(arduino, frame_bytes, timeout_sec, max_resync_bytes, magic, validator)
+    if nargin < 6
+        validator = @(buf) true;
+    end
+
+    arduino.Timeout = timeout_sec;
+
+    % Bulk scan chunk size (bytes). Larger -> faster resync, more memory.
+    SCAN_CHUNK = 65536;
+
+    % Magic as 4 bytes (little-endian) for byte-pattern search.
+    magic_bytes = typecast(uint32(magic), 'uint8');
+
+    buf = read_exact(arduino, frame_bytes);
+    consumed = 0;
+    while true
+        % Fast-path: candidate frame at buf(1:frame_bytes).
+        w = typecast(uint8(buf(1:4)), 'uint32');
+        if w == magic && validator(buf)
+            raw = buf;
+            return;
+        end
+
+        if consumed >= max_resync_bytes
+            error('Failed to resynchronize on frame magic within %d bytes.', max_resync_bytes);
+        end
+
+        % Bulk-read a chunk and search for magic within (buf tail + chunk).
+        to_read = min(SCAN_CHUNK, max_resync_bytes - consumed);
+        chunk = read_exact(arduino, to_read);
+        search_space = uint8([buf(2:end), chunk]);  % drop buf(1), append chunk
+
+        % Find first occurrence of magic_bytes in search_space.
+        idx = find_pattern(search_space, magic_bytes);
+
+        if isempty(idx)
+            % No magic found; keep last (frame_bytes-1) bytes for boundary overlap.
+            buf = search_space(end - frame_bytes + 2 : end);
+            consumed = consumed + to_read;
+        else
+            % Need frame_bytes starting at idx; top up if not enough bytes follow.
+            available = numel(search_space) - idx + 1;
+            if available < frame_bytes
+                extra = read_exact(arduino, frame_bytes - available);
+                search_space = [search_space, extra]; %#ok<AGROW>
+            end
+            buf = search_space(idx : idx + frame_bytes - 1);
+            consumed = consumed + (idx - 1);  % bytes effectively skipped
+        end
+    end
+end
+
+% Locates the first occurrence of a short byte pattern in a uint8 array.
+% Returns [] if not found.
+function idx = find_pattern(data, pattern)
+    n = numel(pattern);
+    if numel(data) < n
+        idx = [];
+        return;
+    end
+    candidates = find(data(1:end - n + 1) == pattern(1));
+    for k = 1:numel(candidates)
+        c = candidates(k);
+        if isequal(data(c : c + n - 1), pattern)
+            idx = c;
+            return;
+        end
+    end
+    idx = [];
+end
+
+% Reads specified number of bytes.
+function out = read_exact(arduino, n)
+    out = read(arduino, n, 'uint8');
+    if numel(out) < n
+        error('Timed out reading %d bytes (got %d).', n, numel(out));
+    end
+end
+
+
+% Reads and validates an ACK frame.
 function ack = read_ack(arduino, expected_cmd, timeout_sec, max_resync_bytes, magic, ack_bytes)
     validator = @(buf) ack_is_valid(buf, expected_cmd);
-    raw = read_framed(arduino, ack_bytes, timeout_sec, max_resync_bytes, ...
-                      magic, validator);
+    raw = read_framed(arduino, ack_bytes, timeout_sec, max_resync_bytes, magic, validator);
 
     ack.magic      = typecast(uint8(raw(1:4)),   'uint32');
     ack.cmd        = char(raw(5));
@@ -175,21 +276,19 @@ function ack = read_ack(arduino, expected_cmd, timeout_sec, max_resync_bytes, ma
     ack.info       = typecast(uint8(raw(13:16)), 'uint32');
 end
 
+% Validates ACK frame fields.
 function ok = ack_is_valid(buf, expected_cmd)
     cmd_char = char(buf(5));
-    state_b  = buf(6);
-    pad_w    = typecast(uint8(buf(7:8)), 'uint16');
-    ok = (cmd_char == expected_cmd) ...
-         && (state_b == 0 || state_b == 1) ...
-         && (pad_w == 0);
+    state = buf(6);
+    pad = typecast(uint8(buf(7:8)), 'uint16');
+    ok = (cmd_char == expected_cmd) && (state == 0 || state == 1) && (pad == 0);
 end
 
-% Resync onto SEG_MAGIC, validate session_id/sample_count/flags, return parsed header.
+% Reads and validates a segment header.
 function hdr = read_segment_header(arduino, timeout_sec, max_resync_bytes, ...
                                    magic, hdr_bytes, expected_session_id, max_samples)
     validator = @(buf) seg_is_valid(buf, expected_session_id, max_samples);
-    raw = read_framed(arduino, hdr_bytes, timeout_sec, max_resync_bytes, ...
-                      magic, validator);
+    raw = read_framed(arduino, hdr_bytes, timeout_sec, max_resync_bytes, magic, validator);
 
     hdr.magic        = typecast(uint8(raw(1:4)),   'uint32');
     hdr.session_id   = typecast(uint8(raw(5:8)),   'uint32');
@@ -198,70 +297,42 @@ function hdr = read_segment_header(arduino, timeout_sec, max_resync_bytes, ...
     hdr.flags        = typecast(uint8(raw(17:20)), 'uint32');
 end
 
+% Validates segment header fields.
 function ok = seg_is_valid(buf, expected_session_id, max_samples)
     session_id   = typecast(uint8(buf(5:8)),   'uint32');
     sample_count = typecast(uint8(buf(13:16)), 'uint32');
     flags        = typecast(uint8(buf(17:20)), 'uint32');
-    ok = (session_id == expected_session_id) ...
-         && (sample_count > 0) && (sample_count <= max_samples) ...
-         && (flags <= 1);
+    ok = (session_id == expected_session_id) && (sample_count > 0) ...
+         && (sample_count <= max_samples) && (flags <= 1);
 end
 
-% Read a magic-prefixed frame, byte-sliding to resync. Bounded by max_resync_bytes.
-function raw = read_framed(arduino, frame_bytes, timeout_sec, max_resync_bytes, magic, validator)
-    if nargin < 6
-        validator = @(buf) true;
-    end
-    prev_timeout = arduino.Timeout;
+% Reads and validates a segment tail. Returns true on match, false on mismatch.
+function ok = read_segment_tail(arduino, timeout_sec, magic, tail_bytes, expected_sequence_id)
     arduino.Timeout = timeout_sec;
-    cleanup = onCleanup(@() set_timeout(arduino, prev_timeout)); %#ok<NASGU>
-
-    buf = read_exact(arduino, frame_bytes);
-    consumed = 0;
-    while true
-        w = typecast(uint8(buf(1:4)), 'uint32');
-        if w == magic && validator(buf)
-            raw = buf;
-            return;
-        end
-        if consumed >= max_resync_bytes
-            error('Record_Audio:resyncFailed', ...
-                  'Failed to resynchronize on frame magic within %d bytes.', ...
-                  max_resync_bytes);
-        end
-        next_byte = read_exact(arduino, 1);
-        buf = [buf(2:end), next_byte]; %#ok<AGROW>
-        consumed = consumed + 1;
+    raw = read(arduino, tail_bytes, 'uint8');
+    if numel(raw) < tail_bytes
+        error('Timed out reading segment tail (got %d / %d bytes).', ...
+              numel(raw), tail_bytes);
     end
-end
-
-function out = read_exact(arduino, n)
-    out = read(arduino, n, 'uint8');
-    if numel(out) < n
-        error('Record_Audio:readTimeout', ...
-              'Timed out reading %d bytes (got %d).', n, numel(out));
-    end
+    got_magic = typecast(uint8(raw(1:4)), 'uint32');
+    got_seq   = typecast(uint8(raw(5:8)), 'uint32');
+    ok = (got_magic == magic) && (got_seq == expected_sequence_id);
 end
 
 % Read sample_count*2 bytes and reinterpret as uint16.
-% Raw uint8 keeps the segment boundary byte-exact regardless of the
-% serialport read path's datatype-aware behaviour.
 function data = read_samples(arduino, sample_count, timeout_sec)
-    prev_timeout = arduino.Timeout;
     arduino.Timeout = timeout_sec;
-    cleanup = onCleanup(@() set_timeout(arduino, prev_timeout)); %#ok<NASGU>
 
     n_bytes = sample_count * 2;
     raw_bytes = read(arduino, n_bytes, 'uint8');
     if numel(raw_bytes) < n_bytes
-        error('Record_Audio:payloadTimeout', ...
-              'Timed out reading segment payload (got %d / %d bytes) after %.1f s.', ...
+        error('Timed out reading segment payload (got %d / %d bytes) after %.1f s.', ...
               numel(raw_bytes), n_bytes, timeout_sec);
     end
     data = double(typecast(uint8(raw_bytes), 'uint16'));
 end
 
-% Best-effort 'p' + delete on script exit (any path).
+% Stop + port release (called by onCleanup or script exit).
 function safe_close(arduino)
     if ~isvalid(arduino)
         return;
@@ -271,11 +342,4 @@ function safe_close(arduino)
     catch
     end
     delete(arduino);
-end
-
-% Helper for onCleanup (property assignment can't be a lambda).
-function set_timeout(arduino, value)
-    if isvalid(arduino)
-        arduino.Timeout = value;
-    end
 end

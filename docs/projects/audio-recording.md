@@ -225,7 +225,7 @@ Once `ready` flips to `true`, the consumer is free to pick the slot up on its ne
 
 ### Transfer Pipeline
 
-`process_usb_transfer` is the consumer. Once a slot is `ready`, it sends a 20-byte header followed by the raw sample bytes, in `USB_CHUNK_BYTES` pieces. One chunk per loop iteration keeps the main loop responsive to incoming commands and capture flags.
+`process_usb_transfer` is the consumer. Once a slot is `ready`, it sends a 20-byte header, then the raw sample bytes in `USB_CHUNK_BYTES` pieces, then an 8-byte trailer. One chunk per loop iteration keeps the main loop responsive to incoming commands and capture flags. The trailer is there as a framing integrity check — see [Why a Segment Tail](#why-a-segment-tail) for the reasoning.
 
 The picker chooses the slot with the lowest `sequence_id`, not the lowest index — the host enforces strict ordering, so we have to emit them in fill order even after a transient overrun:
 
@@ -345,7 +345,16 @@ Immediately precedes the audio payload for one slot.
 | 12 | `sample_count` | 4 | number of `uint16` samples that follow |
 | 16 | `flags` | 4 | bit 0: `OVERRUN_DROPPED` — samples were lost before this segment |
 
-After the header, the firmware writes exactly `sample_count * 2` bytes of raw audio.
+After the header, the firmware writes exactly `sample_count * 2` bytes of raw audio, followed by an 8-byte trailer.
+
+### Segment Tail (8 bytes)
+
+Immediately follows the audio payload for one slot. Acts as a framing integrity check — see [Why a Segment Tail](#why-a-segment-tail).
+
+| Offset | Field | Bytes | Notes |
+|---|---|---|---|
+| 0 | `magic` | 4 | `0x53454754` (wire bytes `'T','G','E','S'`) |
+| 4 | `sequence_id` | 4 | must match the preceding `SegmentHeader.sequence_id` |
 
 ### Commands
 
@@ -458,3 +467,33 @@ The trailing 48-byte chunk is the short packet that flushes the URB. `Serial.flu
 If the host stalls for long enough that the next SDRAM slot isn't free when capture needs it, a strict implementation would halt the firmware to guarantee data integrity. But every minor host-side hiccup — Ctrl-C in MATLAB, the OS scheduling away the read thread, a debugger pause — would then leave the board wedged until someone presses the reset button.
 
 This firmware instead drops the affected DMA half-buffer and marks `FLAG_OVERRUN_DROPPED` on the next outgoing header. The host knows exactly which segment was affected and can warn the user, while the firmware stays responsive and can be restarted in place. Data integrity is preserved (no silent corruption) without sacrificing recoverability — the firmware is designed so any transient failure leaves it in a state the host can recover from with a fresh `'s'`.
+
+### Why a Segment Tail
+
+The segment header alone is enough to *frame* the payload (the host knows how many bytes to read from `sample_count`), but it cannot *verify* that the firmware and host agree on the byte count. If the firmware ever sends fewer or more bytes than the header advertised — due to a USB stack hiccup, a bug in the transfer accounting, or any other source of drift — the host's blocking read would silently consume the wrong bytes and the misalignment would only surface much later as a corrupted next header or a sequence-id discontinuity.
+
+The 8-byte trailer pins down the *end* of the payload exactly. As soon as the host's payload read finishes, the next 8 bytes on the wire must be `SEG_TAIL_MAGIC` followed by the matching `sequence_id`. Any deviation means the stream is misaligned, and the host aborts immediately with a specific error pointing at the affected segment rather than letting the corruption propagate. This turns silent stream drift into a loud, localized failure.
+
+On mismatch the host does not throw — it emits a warning, stops the loop, trims `data_full` to whatever was successfully captured, and saves the partial WAV. The current segment's samples are kept (they passed the payload read cleanly); only subsequent segments are skipped. The same graceful-degradation path is taken on `sequence_id` discontinuity. A short run is far more useful than no run at all, and the user gets a clear warning explaining which segment failed.
+
+### Host PC Load Affects Reliability
+
+The byte-loss events that the tail check catches are **timing-sensitive and dominated by host-side conditions, not firmware behavior**. Empirically:
+
+- With the PC idle (no browser activity, no builds, no other USB traffic), the project has been observed to run dozens of full 30 s captures back-to-back with zero failures.
+- With the PC actively used during recording (browser playing video, IDE indexing, file copy, Teams call, antivirus scan), the failure rate can rise to roughly one in two runs.
+
+Root causes are all on the Windows / USB-host side:
+
+- USB CDC is best-effort bulk traffic; any other device on the same controller competes for bandwidth and IRQ time.
+- MATLAB drains the port from user-space; CPU preemption or paging can stall the read long enough for the firmware-side CDC buffer to lose alignment.
+- USB selective suspend / power-management renegotiation occasionally injects latency spikes — a classic source of "one bad run per ~50" when the system is otherwise quiet.
+- The segment boundary is the highest-pressure moment for the host buffer (firmware briefly pauses while swapping slots, then bursts), so failures cluster there.
+
+If you need maximum reliability for long stress runs:
+
+1. Plug the Giga into a USB port on its own controller (rear desktop ports are usually best) and avoid shared hubs.
+2. Disable USB selective suspend for the Giga in Windows Power Options.
+3. Close heavy background applications during the run.
+
+None of this is required for correctness — the tail-magic protocol guarantees that any failure is caught immediately and the partial recording is preserved — but it explains why the same firmware and host script can show very different failure rates on the same machine depending on what else is happening at the time.
