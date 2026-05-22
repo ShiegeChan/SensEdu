@@ -15,62 +15,37 @@ nav_order: 6
 
 ## Introduction
 
-Audio Recording is a project that turns the SensEdu shield into a continuous PCM audio recorder. An analog microphone with its own preamp/ADC stage is sampled by Arduino GIGA R1 at 44.1 kHz, buffered locally on the board, and streamed over USB CDC to a MATLAB host that saves it as a WAV file and plots its time-domain waveform and spectrum.
+Audio Recording project turns SensEdu into a continuous PCM audio recorder. An analog microphone data is sampled at 44.1 kHz, buffered locally on the board, and streamed over USB CDC to a MATLAB host that saves it as a WAV file and plots its time-domain waveform and spectrum.
 
-The project is built around a real embedded-systems problem: **the same USB transfer that is supposed to deliver the recording also injects noise into the analog input**. The architecture is shaped around isolating those two activities in time so the noise only lands between audio segments, not during them. Along the way it touches DMA double-buffering, external SDRAM, framed serial protocols, and recoverable error handling — all common building blocks of more advanced acquisition systems.
+The project is built around the problem: **USB transfer that is supposed to deliver the recording also injects noise into the analog input**. The architecture is shaped around isolating those two activities in time, so the noise only lands between audio segments, not during them. Along the way it touches DMA double-buffering, external SDRAM, framed serial protocols, and recoverable error handling – all common building blocks of more advanced acquisition systems.
 
 ## Background
 
 ### PCM Audio
 
-Pulse Code Modulation (PCM) represents an analog audio signal as a stream of equally-spaced numeric samples. Two parameters define it:
+Pulse Code Modulation (PCM) represents an analog audio signal as a stream of equally-spaced samples. Two parameters define it:
 
-* **Sampling rate** ($$F_s$$, in Hz) — how often the ADC samples the input. By the [Nyquist-Shannon sampling theorem](https://en.wikipedia.org/wiki/Nyquist%E2%80%93Shannon_sampling_theorem), the maximum representable frequency is $$F_s / 2$$. CD-quality audio uses $$F_s = 44100$$ Hz, covering the audible 20 Hz–20 kHz range with margin.
-* **Bit depth** — the resolution of each sample. The STM32H7 ADC in this project produces 16-bit values, giving a theoretical dynamic range of $$20 \log_{10}(2^{16}) \approx 96$$ dB.
+* **Sampling rate** ($$F_s$$): how often the ADC samples the input. Typical CD audio frequency is $$F_S = 44.1\text{kHz}$$, covering the whole audible range.
+* **Bit depth**: the resolution of each sample. The STM32H7 ADC in this project produces 16-bit values.
 
-A 30-second mono recording at this rate is therefore $$44100 \times 30 \times 2 = 2.646$$ MB — too large for on-chip SRAM but well within the GIGA's 8 MB of external SDRAM.
+A 30-second mono recording at this rate is therefore $$44100 \times 30 \times \frac{16}{8} = 2.646\text{MB}$$.
 
-### Why USB Noise Matters
+### USB-Injected Noise
 
-At 44.1 kHz the ADC produces a new sample every ~22 µs. The signal coming into it is small (millivolt-range from a microphone) and routed across the same PCB as a USB 2.0 Full-Speed transceiver switching at ~12 Mbit/s. Every USB bit is a nanosecond-scale voltage edge, and on a small board there are two ways those edges leak into the analog front-end:
+As mentioned before, USB transfers inject noise into the analog input. When high-frequency digital switching from USB FS at 12 Mbps and sensitive audio analog circuit is located at the same PCB, then the layout becomes a critical factor in noise performance. It could easily lead to audible interference like a high-pitched whine or buzzing. This is fundamentally a problem on the Arduino GIGA R1 itself, not something the SensEdu shield can fix. 
 
-* **Capacitive coupling** — any pair of nearby copper traces forms a tiny (pF-scale) parasitic capacitor. A fast `dV/dt` on the USB side pushes a corresponding current through that stray capacitance into the analog trace, where it appears as a voltage glitch.
-* **Ground-return coupling** — the current driven into the USB line has to return through the ground plane. That return current produces a small voltage drop across the finite resistance and inductance of the plane, and the analog input — which references the same ground — sees that drop as common-mode noise.
+Potentially, the typical causes for these issues are:
 
-The microphone front-end is high-impedance and millivolt-scale, so even sub-microvolt disturbances are clearly audible. The result is a wideband noise floor that tracks USB activity.
+- **Ground return coupling**: return currents from the USB lines flow through the ground plane shared with the ADC, producing a small voltage drop across the finite resistance and non-zero inductance of the plane.
+- **Capacitive coupling**: parasitic capacitance between the USB traces and the analog input traces lets high-frequency noise from the USB signals couple directly into the analog input.
 
-This is fundamentally a PCB-layout problem on the **Arduino GIGA R1** itself, not something the SensEdu shield can fix. Both the ADC and the USB transceiver sit on the GIGA, they share one ground plane, and the USB traces run close enough to the analog pin headers for both coupling paths above to be active. The GIGA is a general-purpose development board, optimised for mechanical compatibility and broad usability rather than for low-noise analog acquisition — sacrificing some analog cleanliness is the standard trade-off for that form factor. A board built specifically for audio capture would use split AGND/DGND planes joined at a single point near the ADC, a separate analog supply rail, and physical separation between USB and analog routing.
+From a quick look at the [schematics](https://docs.arduino.cc/resources/schematics/ABX00063-schematics.pdf), analog and digital grounds are not separated, which is typically required for audio applications. For better analysis the [CAD Files](https://docs.arduino.cc/static/5927a4ebbe3f363ebd68e7c50de5e0af/ABX00063-cad-files.zip) should be investigated.
 
-Since we can't change the hardware, the firmware works *around* it. The classical "stream every sample as it arrives" architecture spreads this noise uniformly through the recording. The architecture used here instead **batches transfers**: the firmware records silently into SDRAM for tens of seconds, then dumps a whole segment over USB at once. The audible result is that the noise is confined to short bursts between segments, leaving the segment interior clean. Trimming or fading the seams is a host-side problem and out of scope for the firmware.
-
-### DMA Double-Buffering
-
-Servicing the ADC by interrupt at 44.1 kHz would burn most of the CPU just on context switches. Instead, the ADC is paired with a DMA controller that copies each conversion directly into a circular SRAM buffer. The buffer is split into two halves: when the first half is full, the DMA peripheral raises a **half-transfer (HT)** flag and starts writing into the second half; when the second half is full it raises a **transfer-complete (TC)** flag and wraps back to the first.
-
-The CPU's job becomes "drain the half that just finished while the DMA fills the other one." As long as the drain finishes before the next half completes, no samples are lost. With a 256-sample half-buffer at 44.1 kHz, the deadline is $$256 / 44100 \approx 5.8$$ ms — comfortable for a non-blocking main loop.
-
-<img src="{{site.baseurl}}/assets/images/audio_recording_pipeline.png" />
-{: .text-center}
-
-_Three-stage data path: ADC → SRAM (DMA, real-time) → SDRAM (CPU copy, every 5.8 ms) → USB (CPU bulk write, only between segments)_
-{: .text-center}
-
-## Hardware Setup
-
-The project uses one analog audio input. By default the firmware reads pin **A3** with **ADC1**, though any analog-capable pin works after editing the `adc_pins` array. The input must be biased to mid-supply (1.65 V on a 3.3 V rail) so the AC audio signal swings around the middle of the ADC's range — a microphone module with built-in preamp does this for you.
-
-| Signal | Arduino GIGA pin |
-|---|---|
-| Microphone OUT (audio) | A3 |
-| Microphone VCC | 3.3 V |
-| Microphone GND | GND |
-| Error indicator | D86 (onboard LED) |
-
-The GIGA's 8 MB SDRAM is enabled via the bundled `SDRAM` library and provides the long-term storage for the recording slots. No external memory hardware is needed.
+Since we can't change the hardware, the firmware works around it. The classical "stream every sample as it arrives" architecture used in other projects spreads this noise uniformly through the recording. The architecture used here instead **batches transfers**: the firmware records into SDRAM without any concurrent USB activity, then dumps a whole segment over USB at once. The audible result is that the noise is limited to short bursts between segments, leaving the rest of audio clean.
 
 ## Code Layout
 
-The firmware is a single `.ino` file and the host is a single `.m` file. Everything lives under `projects/Audio_Recording/`.
+The firmware is a single `.ino` file and the host is a single `.m` file. Everything is located under `projects/Audio_Recording/`.
 
 | File | Purpose |
 |---|---|
@@ -79,61 +54,88 @@ The firmware is a single `.ino` file and the host is a single `.m` file. Everyth
 
 ## Configuration
 
-All knobs live as `static const` at the top of `Audio_Recording.ino`.
+All knobs live at the top of `Audio_Recording.ino`.
 
 | Constant | Default | Meaning |
 |---|---|---|
 | `SAMPLING_RATE` | 44100 | ADC sampling rate in Hz. |
-| `CHUNK_SIZE` | 256 | DMA half-buffer size in samples. Larger gives more headroom against transient stalls at the cost of a longer drain deadline. |
+| `CHUNK_SIZE` | 256 | DMA half-buffer size in samples. |
 | `SEGMENT_SECONDS` | 30 | Length of each SDRAM slot. Each slot consumes `SAMPLING_RATE * SEGMENT_SECONDS * 2` bytes. |
 | `SEGMENT_NUM` | 2 | Number of SDRAM slots in the ping-pong. Total SDRAM footprint = `SEGMENT_NUM` × per-slot bytes; must stay under 8 MB. |
-| `USB_CHUNK_BYTES` | 4080 | Payload bytes per `Serial.write` call. Deliberately not a multiple of 64 — see [USB short-packet note](#usb-short-packet-on-windows). |
+| `USB_CHUNK_BYTES` | 4080 | Payload bytes per `Serial.write` call. Deliberately not a multiple of 64, see [USB short-packet note](#usb-short-packet). |
 
-On the MATLAB side, only the user settings normally need editing:
+On the MATLAB side:
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `ARDUINO_PORT` | `'COM16'` | Serial port the GIGA enumerates as. |
-| `RECORDING_DURATION_SEC` | 40 | Desired recording length. The host requests `ceil(duration / SEGMENT_SECONDS)` segments and trims the surplus. |
+| `ARDUINO_PORT` | `'COM16'` | Serial port of GIGA. |
+| `RECORDING_DURATION_SEC` | 40 | Desired recording length. The host requests `ceil(duration / SEGMENT_SECONDS)` segments and trims the excess. |
 | `ENABLE_PLAYBACK` | `false` | Auto-play the recording when the script finishes. |
 
 ## Firmware Implementation
 
-The full source is in `projects/Audio_Recording/Audio_Recording.ino`. This section focuses on the structural decisions; the file itself is heavily commented for the line-level details. ADC and DMA setup (the `SensEdu_ADC_Settings` struct, the `SENSEDU_DMA_BUFFER` macro, and the available modes) is covered in the [ADC library reference]({% link library/adc.md %}) and is not duplicated here.
+This section will describe the general idea behind the firmware implementation. Refer to the full source code under `/projects/Audio_Recording/` for the complete picture.
 
 ### State Machine
 
 The firmware lives in one of two states:
 
-* `STATE_IDLE` — ADC is off, no slots are filling, no data is being transmitted. Default after boot.
-* `STATE_RECORDING` — ADC is on, DMA is filling the SRAM buffer, the main loop is copying samples to SDRAM and (when full) transmitting them.
+* `STATE_IDLE`: ADC is off, no slots are filling, no data is being transmitted. Default after boot.
+* `STATE_RECORDING`: ADC is on, DMA is filling the SRAM buffer, the main loop is copying samples to SDRAM and (when full) transmitting them.
 
 Transitions are driven by the **host commands** described in [Host Protocol](#host-protocol). The main loop itself is non-blocking and stateless beyond these two states:
 
 ```c
 void loop() {
-    process_command();        // read 's' / 'p' / '?' from USB, change state, emit ACK
-    process_capture();        // drain the DMA flags into SDRAM (no-op if idle)
-    process_usb_transfer();   // emit one chunk of one ready slot per call (no-op if nothing ready)
+    process_command();
+    process_capture();
+    process_usb_transfer();
 }
 ```
 
-Each helper does at most one bounded unit of work per iteration. The loop runs thousands of times per second and never blocks on long operations.
+{: .NOTE}
+Each function does one unit of work per iteration. The loop never blocks on long operations.
 
 ### SDRAM Slot Ring
 
-The Arduino GIGA's on-chip SRAM is shared with the heap, stack, and peripheral buffers — far too tight for the multi-megabyte recordings this project targets. The slots therefore live in the GIGA's external 8 MB SDRAM, allocated once at boot via the bundled `SDRAM` library:
+The Arduino GIGA's on-chip SRAM is too small for the multi-megabyte recordings this project targets. The slots therefore live in the GIGA's external 8 MB SDRAM, allocated once at boot via the bundled `SDRAM` library:
 
 ```c
 typedef struct {
-    uint16_t* buffer;        // SDRAM buffer pointer
-    uint32_t  sequence_id;   // 0-based monotonic id within the current session
-    uint32_t  sample_count;  // valid sample count in this slot
-    uint32_t  flags;         // FLAG_* bits to be carried in the segment header
-    bool      ready;         // filled and ready to transmit
+    uint16_t* buffer;        // SDRAM buffer pointer (allocated once at boot, never freed)
+    uint32_t  sequence_id;   // 0-based id within the current firmware session
+    uint32_t  sample_count;  // Valid sample count in this slot
+    uint32_t  flags;
+    bool      ready;
 } Slot;
 
 static Slot slots[SEGMENT_NUM];
+
+```
+
+The `slots[]` array is treated as a **ring** managed by two independent indices living in CaptureState and TransferState:
+
+```c
+typedef struct {
+    uint8_t  write_idx;         // Currently filling slot
+    uint32_t captured_samples;  // Samples written into the current slot so far
+    uint32_t next_sequence_id;  // Next id to assign on slot completion
+} CaptureState;
+
+typedef struct {
+    int8_t   slot_idx;     // Slot being transmitted (NO_SLOT if none)
+    uint32_t bytes_sent;   // Payload bytes already sent for the current slot
+    bool     header_sent;  // Header already sent for the current slot
+    bool     tail_sent;    // Tail magic already sent for the current slot
+} TransferState;
+```
+
+* **CaptureState.write_idx**: ADC+DMA capture loop index. When it fills the slot it sets `ready = true` and advances to the next index.
+* **TransferState.slot_idx**: peaks whenever a slot has `ready == true` and the lowest `sequence_id`, transmits it, then sets `ready = false`.
+
+Dynamic allocation happens only once in the whole firmware. After `setup()`, the slots are reused for the lifetime of the program.
+
+```c
 
 static bool allocate_sdram() {
     for (uint8_t i = 0; i < SEGMENT_NUM; i++) {
@@ -146,14 +148,6 @@ static bool allocate_sdram() {
 }
 ```
 
-This is the only dynamic allocation in the whole firmware. After `setup()` the heap is never touched again — the slots are reused for the lifetime of the program, and there is no fragmentation risk during operation.
-
-The `slots[]` array is treated as a **ring** managed by two independent indices:
-
-* **Producer** (capture) writes into `capture.write_idx`. When it fills the slot it sets `ready = true` and advances to the next index.
-* **Consumer** (transfer) picks whichever slot has `ready == true` and the lowest `sequence_id`, transmits it, then sets `ready = false`.
-
-The four metadata fields per slot make the ring self-describing: the consumer needs nothing beyond the slot itself to emit a correct header. The boolean `ready` flag is the only synchronization between the two sides.
 
 ### Capture Pipeline
 
@@ -182,30 +176,30 @@ static void save_dma_half(volatile uint16_t* src, uint16_t src_length) {
     while (copied < src_length) {
         if (slots[capture.write_idx].ready) {
             pending_overrun_flag |= FLAG_OVERRUN_DROPPED;
-            return;                  // see Recoverable Overruns below
+            return;
         }
 
         uint16_t* dst = slots[capture.write_idx].buffer;
         uint32_t remaining_in_slot = SEGMENT_SAMPLES - capture.captured_samples;
-        uint32_t to_copy = (src_length - copied) > remaining_in_slot
-                         ? remaining_in_slot : (src_length - copied);
+        uint32_t to_copy = (uint32_t)(src_length - copied);
+        if (to_copy > remaining_in_slot) {
+            to_copy = remaining_in_slot;
+        }
 
         for (uint32_t i = 0; i < to_copy; i++) {
             dst[capture.captured_samples + i] = src[copied + i];
         }
         capture.captured_samples += to_copy;
-        copied                   += (uint16_t)to_copy;
+        copied += (uint16_t)to_copy;
 
         if (capture.captured_samples >= SEGMENT_SAMPLES) {
-            mark_slot_ready();       // flips .ready, advances write_idx
+            mark_slot_ready();
         }
     }
 }
 ```
 
-The while loop iterates at most twice per call: once to fill the tail of the current slot, once to start the head of the next one.
-
-`mark_slot_ready` is the hand-off from producer to consumer:
+`mark_slot_ready` is the point where slot transfers from capture to USB transfer domain. Once `ready` flips to `true`, the slot is free to be picked up on its next loop iteration.
 
 ```c
 static void mark_slot_ready() {
@@ -217,17 +211,26 @@ static void mark_slot_ready() {
     pending_overrun_flag    = 0;
 
     capture.captured_samples = 0;
-    capture.write_idx        = (idx + 1) % SEGMENT_NUM;
+    capture.write_idx = (uint8_t)((idx + 1) % SEGMENT_NUM);
 }
 ```
 
-Once `ready` flips to `true`, the consumer is free to pick the slot up on its next loop iteration — no explicit notification needed, the boolean *is* the signal.
+#### Slot Overrun
+
+If the host stalls for long enough that the next SDRAM slot isn't free when capture needs it, the `FLAG_OVERRUN_DROPPED` is set on the next emitted header. This way the host could handle it gracefully.
+
+```c
+if (slots[capture.write_idx].ready) {
+    pending_overrun_flag |= FLAG_OVERRUN_DROPPED;
+    return;
+}
+```
 
 ### Transfer Pipeline
 
-`process_usb_transfer` is the consumer. Once a slot is `ready`, it sends a 20-byte header, then the raw sample bytes in `USB_CHUNK_BYTES` pieces, then an 8-byte trailer. One chunk per loop iteration keeps the main loop responsive to incoming commands and capture flags. The trailer is there as a framing integrity check — see [Why a Segment Tail](#why-a-segment-tail) for the reasoning.
+Once a slot is `ready`, `process_usb_transfer` sends a 20-byte header, then the raw sample bytes in `USB_CHUNK_BYTES` pieces, then an 8-byte trailer. The trailer is there as a framing integrity check, see [Why a Segment Tail](#why-a-segment-tail).
 
-The picker chooses the slot with the lowest `sequence_id`, not the lowest index — the host enforces strict ordering, so we have to emit them in fill order even after a transient overrun:
+The picker chooses the slot with the lowest `sequence_id`, not the lowest index – the host enforces strict ordering:
 
 ```c
 int8_t best = NO_SLOT;
@@ -241,22 +244,26 @@ for (uint8_t i = 0; i < SEGMENT_NUM; i++) {
 }
 ```
 
-### Recoverable Overruns
-
-If the host stalls — e.g. the operating system delays USB IN tokens, or the user pauses MATLAB — a slot may finish filling before the previous one has finished transferring. The classical reaction is to halt with a fatal error. This firmware instead **drops the affected DMA half-buffer and sets `FLAG_OVERRUN_DROPPED` on the next emitted header**:
+Both header and trailer have their own structures and magic words to let the host verify framing and integrity immediately on arrival:
 
 ```c
-if (slots[capture.write_idx].ready) {
-    pending_overrun_flag |= FLAG_OVERRUN_DROPPED;
-    return;   // current slot is still pending transmission, abandon these samples
-}
-```
+typedef struct {
+    uint32_t magic;
+    uint32_t session_id;
+    uint32_t sequence_id;
+    uint32_t sample_count;
+    uint32_t flags;
+} SegmentHeader;
 
-The host sees the flag, prints a warning, and continues. No board reset is required to recover from a transient stall.
+typedef struct {
+    uint32_t magic;
+    uint32_t sequence_id;
+} SegmentTail;
+```
 
 ### Session Lifecycle
 
-The state transitions promised by the State Machine section happen inside two short helpers that `process_command` dispatches to. They share a single state-clearing routine, `reset_pipeline`, which zeroes every ring index and every slot flag without touching the SDRAM buffer pointers (those are allocated once at boot and never reallocated):
+For proper restarts from host, firmware requires a clean slate on every new session. It is achieved via `reset_pipeline`:
 
 ```c
 static void reset_pipeline() {
@@ -272,11 +279,12 @@ static void reset_pipeline() {
     transfer.slot_idx = NO_SLOT;
     transfer.bytes_sent = 0;
     transfer.header_sent = false;
+    transfer.tail_sent = false;
     pending_overrun_flag = 0;
 }
 ```
 
-`cmd_start` is the more careful of the two — its job is to bring the firmware into a clean recording state regardless of what it was doing before, so the host can recover from any prior failure mode with a single `'s'`:
+Host commands drive the state transitions. First is the start command `cmd_start`, which initiates a new session. It brings the firmware into a clean state regardless of what it was doing before and starts a new recording. It is initiated by the host sending the `'s'` command.
 
 ```c
 static void cmd_start() {
@@ -295,12 +303,13 @@ static void cmd_start() {
 }
 ```
 
-Two ordering decisions are deliberate:
+{: .NOTE}
+The `session_id` is advances at each start command, which makes protocol easier by ensuring that any incoming data is validated against the session_id the host captured from the start ACK.
 
-* **The ADC is disabled first**, even if the previous state was already `STATE_IDLE`. The cost is microseconds; the benefit is a defensive guarantee that no stale DMA flag fires into the freshly-reset state during the next few instructions.
-* **The ACK is emitted before the ADC is re-enabled.** `Serial.write` on USB CDC can block if the host hasn't drained the TX FIFO yet. If the ADC were already running during that block, the very first DMA half-buffer would be overwritten by the circular DMA before the main loop got a chance to drain it. Sending the ACK first means the only thing affected by a slow write is the moment recording begins — not the recording itself.
+{: .WARNING}
+The ACK is emitted before the ADC is re-enabled. If the ADC were already running during ACK, the very first DMA half-buffer would be most likely missed and overwritten before the main loop got a chance to handle the data.
 
-`cmd_stop` is symmetric and idempotent:
+Stop command `cmd_stop` brings the firmware back to idle. It is initiated by the host sending the `'p'` command. It also reports the number of completed segments in the ACK's `info` field for the host's own logging.
 
 ```c
 static void cmd_stop() {
@@ -308,63 +317,19 @@ static void cmd_stop() {
         SensEdu_ADC_Disable(adc);
         fw_state = STATE_IDLE;
     }
+
     uint32_t segments_completed = capture.next_sequence_id;
     reset_pipeline();
     send_ack('p', segments_completed);
 }
 ```
 
-The ADC is stopped only if it was running. The pipeline reset then wipes every `slots[].ready` flag and the `transfer.slot_idx` cursor, which cancels any in-flight USB transfer cleanly — once `process_usb_transfer` runs again it sees no ready slots and does nothing. The number of completed segments is reported back in the ACK's `info` field for the host's own logging.
-
-## Host Protocol
-
-The wire format is two framed message types, both little-endian, both starting with a distinctive 4-byte magic so the host can resynchronize after any sequence of unexpected bytes.
-
-### ACK Frame (16 bytes)
-
-Sent by the firmware in response to every command. The framing means the host can never confuse an ACK with a stale segment header or with audio data.
-
-| Offset | Field | Bytes | Notes |
-|---|---|---|---|
-| 0 | `magic` | 4 | `0x41434B21` (wire bytes `'!','K','C','A'`) |
-| 4 | `cmd` | 1 | `'s'`, `'p'`, or `'?'` — which command this acks |
-| 5 | `state` | 1 | `0 = IDLE`, `1 = RECORDING` |
-| 6 | `pad` | 2 | always 0 — used as structural validation |
-| 8 | `session_id` | 4 | bumped on every `'s'`; tags every subsequent header |
-| 12 | `info` | 4 | command-specific (segments completed, samples captured, …) |
-
-### Segment Header (20 bytes)
-
-Immediately precedes the audio payload for one slot.
-
-| Offset | Field | Bytes | Notes |
-|---|---|---|---|
-| 0 | `magic` | 4 | `0x5345474D` (wire bytes `'M','G','E','S'`) |
-| 4 | `session_id` | 4 | must match the session_id received in the start ACK |
-| 8 | `sequence_id` | 4 | 0-based, monotonic within the session |
-| 12 | `sample_count` | 4 | number of `uint16` samples that follow |
-| 16 | `flags` | 4 | bit 0: `OVERRUN_DROPPED` — samples were lost before this segment |
-
-After the header, the firmware writes exactly `sample_count * 2` bytes of raw audio, followed by an 8-byte trailer.
-
-### Segment Tail (8 bytes)
-
-Immediately follows the audio payload for one slot. Acts as a framing integrity check — see [Why a Segment Tail](#why-a-segment-tail).
-
-| Offset | Field | Bytes | Notes |
-|---|---|---|---|
-| 0 | `magic` | 4 | `0x53454754` (wire bytes `'T','G','E','S'`) |
-| 4 | `sequence_id` | 4 | must match the preceding `SegmentHeader.sequence_id` |
-
-### Commands
-
-A command is a single ASCII byte sent from host to firmware. Each is acknowledged by an ACK frame.
-
-* `'s'` — Start a fresh session. Resets the pipeline, increments `session_id`, enables the ADC. Always brings the firmware to a clean recording state regardless of what it was doing before.
-* `'p'` — Stop the session. Cancels any in-flight transfer, drops any partially-filled slot, returns to idle. Idempotent.
-* `'?'` — Non-intrusive status query. The ACK carries the current state and number of samples captured into the active slot.
-
-The `session_id` discriminator is what makes restarts work without a board reset. Every header that arrives is validated against the session_id the host captured from the start ACK — anything from a prior session is silently dropped by the host's resync logic.
+Additional logging is available by `'?'` command, which reports the current number of captured samples in the active slot.
+```c
+static void cmd_status() {
+    send_ack('?', capture.captured_samples);
+}
+```
 
 ## MATLAB Host
 
@@ -450,7 +415,7 @@ The narrow tone visible at the segment boundaries in the spectrogram is the resi
 
 ## Developer Notes
 
-### USB Short Packet on Windows
+### USB Short Packet
 
 The Windows USB CDC driver delivers bulk data to user-space only when one of three things happens: the URB fills (typically 4096 B), a **short packet** (< 64 B) arrives, or a driver-level read timeout expires. If every firmware `Serial.write` is an exact multiple of 64 B, no short packet is ever produced and trailing bytes sit in the driver's URB until the read times out — which manifests on the host as long stalls of 64×N bytes.
 
