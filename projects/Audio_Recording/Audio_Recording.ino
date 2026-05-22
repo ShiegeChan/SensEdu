@@ -109,11 +109,14 @@ static const uint8_t SEGMENT_NUM = 2;
 static const uint32_t SEGMENT_SAMPLES = SAMPLING_RATE * SEGMENT_SECONDS;
 static const uint32_t SEGMENT_BYTES   = SEGMENT_SAMPLES * sizeof(uint16_t);
 
-// SDRAM slot overrun flag. 
-// Attached to the next slot, so that host knows if the segment lost any samples.
-// `FLAG_OVERRUN_DROPPED` is written to this variable in such case.
-static uint32_t pending_overrun_flag = 0;
+// Set in a segment header's `flags` when capture had to drop samples because
+// the slot it tried to write into was still marked `ready` (not yet transferred).
 static const uint32_t FLAG_OVERRUN_DROPPED = 0x1UL;
+
+// Pending flag bits for the slot currently being filled.
+// save_dma_half() sets bits here whenever it drops samples; mark_slot_ready()
+// copies them into the slot's `flags` and resets this to 0.
+static uint32_t pending_overrun_flag = 0;
 
 // No slot currently selected for transfer.
 static const int8_t NO_SLOT = -1;
@@ -124,8 +127,6 @@ static uint32_t session_id = 0;
 static Slot slots[SEGMENT_NUM];
 static CaptureState capture;
 static TransferState transfer;
-
-
 
 static const uint16_t DMA_BUF_SIZE = CHUNK_SIZE * 2;
 volatile SENSEDU_DMA_BUFFER(dma_buf, DMA_BUF_SIZE);
@@ -230,6 +231,7 @@ static void reset_pipeline() {
     pending_overrun_flag = 0;
 }
 
+// Reads and dispatches single-byte host commands from USB CDC.
 static void process_command() {
     while (Serial.available() > 0) {
         char cmd = (char)Serial.read();
@@ -289,7 +291,7 @@ static void send_ack(uint8_t cmd, uint32_t info) {
     Serial.write((const uint8_t*)&ack, sizeof(ack));
 }
 
-// Captures DMA transfered audio samples and saves to SDRAM.
+// Captures DMA-transferred audio samples into SDRAM.
 static void process_capture() {
     if (fw_state != STATE_RECORDING) return;
 
