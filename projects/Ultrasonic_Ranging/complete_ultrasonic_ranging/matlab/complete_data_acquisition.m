@@ -8,18 +8,18 @@ clear;
 addpath("plot scripts\");
 
 %% Parameters
-ITERATIONS = 750; 
+ITERATIONS = 300; 
 MIC_NUM = 4; 
-MAX_PEAKS = 2; % Match this value in Peaks.h
+MAX_PEAKS = 1; % Match this value in Peaks.h
 MIC_NAMES = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
-DATA_LENGTH = 2048; % Match this value in main code
+DATA_LENGTH = 2048; % Match this value in main code8
 PROCESSING_STEPS = 3; % raw, fitlered, xcorr
 ENABLE_DETAILED_DATA = false; % Match this value in the main code
 ENABLE_LIVE_PLOTS = false; % Match this value in the main code
 
 %% Arduino Setup + Config
 % Serial port configuration 
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM15';
 ARDUINO_BAUDRATE = 115200;
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate 
 
@@ -60,7 +60,7 @@ legend(dist_legend, 'Location', 'best');
 grid on;
 
 %% Readings Loop
-pause(3);
+pause(5);
 tic;
 for it = 1:ITERATIONS
     write(arduino, 't', "char"); % trigger arduino measurement
@@ -118,14 +118,18 @@ for it = 1:ITERATIONS
 end
 acquisition_time = toc;
 
-% save measurements
-if ~exist("Measurements", 'dir')
-    mkdir("Measurements");
+%% Save workspace
+save_dir = 'Measurements';
+if ~exist(save_dir, 'dir')
+    mkdir(save_dir);
 end
-file_name = sprintf('%s_%s.mat', "Measurements/dataset", datetime("now"));
-file_name = strrep(file_name, ' ', '_');
-file_name = strrep(file_name, ':', '-');
-save(file_name, "dist_matrix", "time_axis");
+t_save = datetime('now');
+filename = fullfile(save_dir, sprintf('tracking_%dpeaks_%dsize_%02d%02d_%02d%02d%02d.mat', ...
+    MAX_PEAKS, DATA_LENGTH, t_save.Month, t_save.Day, t_save.Hour, t_save.Minute, floor(t_save.Second)));
+save(filename);
+fprintf('Workspace saved to %s\n', filename);
+
+%%
 
 fprintf("Data acquisition completed in: %fsec\n", acquisition_time);
 

@@ -24,7 +24,7 @@ uint8_t error_led = D86;
 
 #define BAN_DISTANCE	            25	        // Min distance [cm] - how many self reflections cancelled
 #define SAMPLING_RATE               250000      // ADC sampling rate
-#define STORE_BUF_SIZE              2048        // 2400 for 1 measurement per second 
+#define STORE_BUF_SIZE              4096        // 2400 for 1 measurement per second 
                             	            
 
 /* --------------------------------- Filter --------------------------------- */
