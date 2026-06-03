@@ -449,11 +449,26 @@ All the handshakes exist to ensure that dropped bytes are detected and handled c
 
 Segment length is set to 30 seconds for these recordings. You should hear a brief USB-injected noise at segment boundaries.
 
-### Silence
+### Ambient
+
+Balcony ambient during the summer day.
+
+<audio controls src="{{site.baseurl}}/assets/audio/recording-ambient.wav">
+</audio>
 
 ### Music
 
+Kether 3 from Library of Ruina playing through the smartphone speakers at around $$25 \text{cm}$$ distance. Quality is also affected by poor phone speakers.
+
+<audio controls src="{{site.baseurl}}/assets/audio/recording-music.wav">
+</audio>
+
 ### Voice
+
+Voiced out lines of Andre of Astrora from Dark Souls at around $$15 \text{cm}$$ from the mouth holding at 90 degrees without pop filter. Not affected by the smartphone quality unlike music example, only by poor voice acting skills.
+
+<audio controls src="{{site.baseurl}}/assets/audio/recording-voice.wav">
+</audio>
 
 ## Developer Notes
 
