@@ -15,33 +15,43 @@ nav_order: 6
 
 ## Introduction
 
-The Audio Recording project turns SensEdu into a continuous PCM audio recorder. Analog microphone data is sampled at 44.1 kHz, buffered locally on the board, and streamed over USB CDC to a MATLAB host that saves it as a WAV file and plots its time-domain waveform and spectrum.
+The Audio Recording project turns SensEdu into a continuous PCM audio recorder. Microphone data is sampled at 44.1 kHz, buffered locally on the board, and streamed over USB CDC to a MATLAB host that saves it as a WAV file and plots its time-domain waveform and spectrum.
 
-The project is built around a problem: **the USB transfer that is supposed to deliver the recording also injects noise into the analog input**. The architecture is shaped around isolating those two activities in time, so the noise only lands between audio segments, not during them. Along the way it touches DMA double-buffering, external SDRAM, framed serial protocols, and recoverable error handling – all common building blocks of more advanced acquisition systems.
+The project is built around a problem: **the USB transfer that is supposed to deliver the recording also injects noise into the analog input**. The architecture is shaped around isolating those two tasks in time, so the noise only appears between audio segments, not during them. This project covers DMA double-buffering, external SDRAM, framed serial protocols, and recoverable error handling – all common building blocks of more advanced acquisition systems.
 
 ## Background
 
 ### PCM Audio
 
-Pulse Code Modulation (PCM) represents an analog audio signal as a stream of equally-spaced samples. Two parameters define it:
+Pulse Code Modulation (PCM) represents an analog audio signal digitally using two main parameters:
 
 * **Sampling rate** ($$F_s$$): how often the ADC samples the input. CD audio uses $$F_s = 44.1\text{ kHz}$$, which covers the full audible range.
 * **Bit depth**: the resolution of each sample. The STM32H7 ADC in this project produces 16-bit values.
 
-A 30-second mono recording at these settings is therefore $$44100 \times 30 \times 2 = 2.646\text{ MB}$$ — too large for on-chip SRAM but well within the GIGA's 8 MB of external SDRAM.
+A 30-second recording at these settings is therefore $$44100 \times 30 \times 2 = 2.646\text{ MB}$$. This is too large for on-chip SRAM but well within the GIGA's 8 MB of external SDRAM.
 
 ### USB-Injected Noise
 
-Whenever a high-speed digital interface like USB Full-Speed (12 Mbps) shares PCB with a sensitive analog circuit, layout becomes the dominant factor in noise performance. The audible symptom is usually a high-pitched whine or buzz that tracks USB activity. This is fundamentally a property of the Arduino GIGA R1 itself, not something the SensEdu shield can fix.
+Whenever a high-speed digital interface like USB Full-Speed (12 Mbps) shares a PCB with a sensitive analog circuit, layout becomes the dominant factor in noise performance. The audible artifact is usually a high-pitched whine or buzz that tracks USB activity. This is fundamentally a property of the Arduino GIGA R1 itself, not something the SensEdu shield can fix.
 
-Two coupling mechanisms are at play:
+Two coupling mechanisms are typically at play:
 
 - **Ground-return coupling**: return currents from the USB lines flow through the ground plane shared with the ADC, producing a small voltage drop across the finite resistance and inductance of the plane. The analog input, which references the same ground, sees that drop as common-mode noise.
 - **Capacitive coupling**: parasitic capacitance between adjacent USB and analog traces lets some USB signal couple directly into the analog trace, where it appears as a voltage glitch.
 
 A look at the official [GIGA R1 schematics](https://docs.arduino.cc/resources/schematics/ABX00063-schematics.pdf) confirms that analog and digital grounds are not separated, which is what an audio-focused board would do differently. A full investigation of the problem would require an analysis of PCB files [here](https://docs.arduino.cc/static/5927a4ebbe3f363ebd68e7c50de5e0af/ABX00063-cad-files.zip).
 
-Since we can't change the hardware, the firmware works around it. The classical "stream every sample as it arrives" architecture spreads this noise uniformly through the recording. The architecture used here instead **batches transfers**: the firmware records into SDRAM with no concurrent USB activity, then dumps a whole segment over USB at once. The audible result is that the noise is confined to short bursts between segments, leaving the rest of the audio clean.
+Since we can't change the hardware, the firmware works around it. The classical "stream every sample as it arrives" architecture spreads this noise uniformly through the recording. An example of such a recording:
+
+<audio controls src="{{site.baseurl}}/assets/audio/continuous-usb-stream.wav">
+</audio>
+
+For better visualization, I connected a sinusoid from a signal generator to the input. The signal is sampled with parallel USB requests at the beginning of each DMA half-buffer. Orange circles on the plot separate these "segments". USB transfers are visible as high-frequency bursts of noise at the beginning of each half-buffer.
+
+<img src="{{site.baseurl}}/assets/images/audio-continuous-usb.png" alt="drawing" width="800"/>
+{: .text-center}
+
+This issue is the reason why a **batched transfers** architecture is used instead. The firmware records audio into SDRAM with no concurrent USB activity, then dumps a whole SDRAM segment over USB at once. The audible result is that the noise is confined to short bursts between much larger segments, leaving the rest of the audio clean. See [SDRAM Slot Ring](#sdram-slot-ring) and [Transfer Pipeline](#transfer-pipeline) for how this is implemented.
 
 ## Code Layout
 
@@ -60,7 +70,7 @@ All tunable constants live at the top of `Audio_Recording.ino`:
 |---|---|---|
 | `SAMPLING_RATE` | 44100 | ADC sampling rate in Hz. |
 | `CHUNK_SIZE` | 256 | DMA half-buffer size in samples. |
-| `SEGMENT_SECONDS` | 30 | Length of each SDRAM slot. Each slot consumes `SAMPLING_RATE * SEGMENT_SECONDS * 2` bytes. |
+| `SEGMENT_SECONDS` | 30 | Length of each SDRAM slot. Each slot consumes `SAMPLING_RATE × SEGMENT_SECONDS × 2` bytes. |
 | `SEGMENT_NUM` | 2 | Number of SDRAM slots in the ping-pong. Total SDRAM footprint = `SEGMENT_NUM` × per-slot bytes; must stay under 8 MB. |
 | `USB_CHUNK_BYTES` | 4080 | Payload bytes per `Serial.write` call. Deliberately not a multiple of 64; see [USB Short Packet](#usb-short-packet). |
 
@@ -68,7 +78,7 @@ On the MATLAB side:
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `ARDUINO_PORT` | `'COM16'` | Serial port the GIGA enumerates as. |
+| `ARDUINO_PORT` | `'COM16'` | GIGA serial port. |
 | `RECORDING_DURATION_SEC` | 40 | Desired recording length. The host requests `ceil(duration / SEGMENT_SECONDS)` segments and trims the excess. |
 | `ENABLE_PLAYBACK` | `false` | Auto-play the recording when the script finishes. |
 
@@ -80,8 +90,8 @@ This section describes the general idea behind the firmware implementation. Refe
 
 The firmware lives in one of two states:
 
-* `STATE_IDLE` — ADC is off, no slots are filling, no data is being transmitted. Default after boot.
-* `STATE_RECORDING` — ADC is on, DMA is filling the SRAM ping-pong, and the main loop is copying samples to SDRAM and (when a slot fills) transmitting them.
+* `STATE_IDLE` – ADC is OFF, no slots are filling, no data is being transmitted. Default after boot.
+* `STATE_RECORDING` – ADC is ON, DMA is filling the SRAM ping-pong, and the main loop is copying samples to SDRAM and (when a slot fills) transmitting them.
 
 Transitions are driven by host commands, covered in [Session Lifecycle](#session-lifecycle). The main loop itself is non-blocking and stateless beyond these two states:
 
@@ -98,7 +108,7 @@ Each function does at most one unit of work per iteration. The loop never blocks
 
 ### SDRAM Slot Ring
 
-The Arduino GIGA's on-chip SRAM is too small for the multi-megabyte recordings this project targets, so the slots live in the GIGA's external 8 MB SDRAM. Each slot has its own buffer plus the metadata the transfer side needs to emit a correct header without consulting any global state:
+The Arduino GIGA's on-chip SRAM is too small for the multi-megabyte recordings we are targeting, so the slots live in the GIGA's external 8 MB SDRAM. Each slot has its own buffer plus metadata.
 
 ```c
 typedef struct {
@@ -112,7 +122,7 @@ typedef struct {
 static Slot slots[SEGMENT_NUM];
 ```
 
-Buffers are allocated once at boot via the bundled `SDRAM` library and never freed for the rest of the program's life — the only dynamic allocation in the whole firmware:
+Buffers are allocated once at boot via the bundled `SDRAM` library and never freed for the rest of the program's life. This is the only dynamic allocation in the whole firmware:
 
 ```c
 static bool allocate_sdram() {
@@ -126,7 +136,7 @@ static bool allocate_sdram() {
 }
 ```
 
-The `slots[]` array is then treated as a **ring**, with two state structs tracking the producer and consumer sides independently:
+The `slots[]` array is then treated as a **ring**, with two state structs tracking the producer (capture) and consumer (transfer) sides independently:
 
 ```c
 typedef struct {
@@ -146,7 +156,7 @@ typedef struct {
 * **Capture side** (`CaptureState`) writes into `slots[capture.write_idx]`. When the slot fills it sets `ready = true` and advances to the next index.
 * **Transfer side** (`TransferState`) picks whichever slot has `ready == true` and the lowest `sequence_id`, transmits it, then sets `ready = false`.
 
-The `ready` flag is the only synchronization between the two sides — a single boolean is enough since they share a thread.
+The `ready` flag is the only synchronization between the two sides.
 
 
 ### Capture Pipeline
@@ -217,7 +227,7 @@ static void mark_slot_ready() {
 
 #### Slot Overrun
 
-If the host stalls for long enough that the next SDRAM slot isn't yet free when capture needs it, the firmware drops the incoming DMA samples and sets `FLAG_OVERRUN_DROPPED` so that the next emitted header carries a "samples were lost before this segment" notice. The host warns the user and keeps going — capture is never halted on a transient stall.
+If the host stalls for long enough that the next SDRAM slot isn't yet free when capture needs it, the firmware drops the incoming DMA samples and sets `FLAG_OVERRUN_DROPPED` so that the next emitted header carries a "samples were lost before this segment" notice. The host warns the user and keeps going. Dropping rather than halting keeps the firmware recoverable.
 
 ```c
 if (slots[capture.write_idx].ready) {
@@ -228,7 +238,7 @@ if (slots[capture.write_idx].ready) {
 
 ### Transfer Pipeline
 
-Once a slot is `ready`, `process_usb_transfer` sends a 20-byte header, then the raw sample bytes in `USB_CHUNK_BYTES` pieces, and finally an 8-byte trailer. The trailer acts as a framing integrity check — see [Why a Segment Tail](#why-a-segment-tail).
+Once a slot is `ready`, `process_usb_transfer` sends a 20-byte header, then the raw sample bytes in `USB_CHUNK_BYTES` pieces, and finally an 8-byte trailer. The trailer acts as a framing integrity check; see [Why a Segment Tail](#why-a-segment-tail) for the details.
 
 The slot to transmit is chosen by lowest `sequence_id`, not by lowest index, because the host validates strict sequence ordering on every header:
 
@@ -263,7 +273,7 @@ typedef struct {
 
 ### Session Lifecycle
 
-For clean restarts from the host, every new session needs a clean firmware slate. That is the job of `reset_pipeline`, which zeroes every ring index, slot flag, and transfer cursor — without touching the SDRAM buffer pointers or the `session_id`:
+For clean restarts from the host, every new session needs a clean firmware state. `reset_pipeline` zeroes every ring index, slot flag, and transfer cursor. It does not touch the SDRAM buffer pointers or the `session_id`:
 
 ```c
 static void reset_pipeline() {
@@ -307,7 +317,7 @@ static void cmd_start() {
 `session_id` is incremented on every start. The host captures the new value from the start ACK and validates it on every subsequent frame, so any leftover data from a prior session is rejected automatically.
 
 {: .WARNING}
-The ACK is emitted **before** the ADC is re-enabled. If the ADC were running while the ACK was being written, a slow `Serial.write` could let the first DMA half-buffer fill — and be overwritten — before the main loop got a chance to drain it.
+The ACK is emitted **before** the ADC is re-enabled. If the ADC were running while the ACK was being written, a slow `Serial.write` could let the first DMA half-buffer fill and be overwritten, even before the main loop got a chance to drain it.
 
 The `'p'` command invokes `cmd_stop`, which brings the firmware back to idle. It also reports the number of completed segments in the ACK's `info` field for the host's own logging:
 
@@ -324,7 +334,7 @@ static void cmd_stop() {
 }
 ```
 
-The `'?'` command is a non-intrusive status query. The ACK carries the current state and the number of samples already captured into the active slot:
+The `'?'` command is a status query. The ACK carries the current state and the number of samples already captured into the active slot:
 
 ```c
 static void cmd_status() {
@@ -334,11 +344,11 @@ static void cmd_status() {
 
 ## MATLAB Host
 
-The host script lives in `projects/Audio_Recording/matlab/Audio_Recording.m`. It opens the serial port, drives the start/stop handshake, reads framed segments into a preallocated buffer, saves the result as a WAV file, and plots the waveform and magnitude spectrum.
+The host script is located at `projects/Audio_Recording/matlab/Audio_Recording.m`. It opens the serial port, drives the start/stop handshake, reads framed segments into a buffer, saves the result as a WAV file, and plots the waveform and magnitude spectrum.
 
 ### Restart-Safe Handshake
 
-After opening the serial port, the script sends `'p'` and consumes the framed ACK. Because `'p'` is idempotent in the firmware and the ACK is uniquely framed, this works regardless of what the firmware was doing — finishing a transfer from a previous run, mid-recording, or idle. Then `'s'` starts a fresh session and the start ACK carries the new `session_id`, which the host pins for every subsequent frame:
+After opening the serial port, the script sends `'p'` to bring the firmware to a known idle state. This works regardless of what the firmware was doing: finishing a transfer from a previous run, mid-recording, or idle. Then `'s'` starts a fresh session and the start ACK carries the new `session_id`, which the host pins for every subsequent frame:
 
 ```matlab
 write(arduino, uint8('p'), 'uint8');
@@ -349,23 +359,40 @@ start_ack  = read_ack(arduino, 's', ACK_WAIT_SEC, ACK_BYTES * 2, ACK_MAGIC, ACK_
 session_id = start_ack.session_id;
 ```
 
-A MATLAB `onCleanup` handler guarantees that the port is closed and a final `'p'` is sent even if the script errors out mid-recording. Without it, an interrupted run would leave the firmware capturing into a port nobody is reading from, which eventually overruns.
-
 ### Framed Reading
 
-Every frame from the firmware is read through a single helper, `read_framed`, that locates the magic word and applies a per-frame validator. Conceptually it does this:
+Every frame from the firmware is read through a single helper, `read_framed`, that locates the magic word and applies a per-frame validator:
 
 1. Read `frame_bytes` from the port.
 2. If the first 4 bytes match the magic *and* the validator accepts the frame, return it.
 3. Otherwise, slide forward looking for the magic; repeat. Abort once `max_resync_bytes` have been scanned.
 
-The validator does the structural sanity check that the magic alone cannot — for segment headers it requires `session_id` to match the active session and `sample_count` to be within bounds; for ACKs it requires `cmd` to be the one we just sent. Without this, a random 4-byte slice of audio data that happens to match the magic (probability ~1 in 800 over a 5 MB resync window) would be misinterpreted as a real frame and corrupt the rest of the stream.
+The validator performs the structural sanity check:
+- For segment headers: requires `session_id` to match the active session and `sample_count` to be within bounds
+- For ACKs: requires `cmd` to be the one we just sent
 
-The actual implementation reads the stream in 64 KB chunks and locates the magic with a `find_pattern` byte-search helper, rather than sliding one byte at a time — same algorithm, far fewer round trips through `serialport`.
+```matlab
+function ok = seg_is_valid(buf, expected_session_id, max_samples)
+    session_id   = typecast(uint8(buf(5:8)),   'uint32');
+    sample_count = typecast(uint8(buf(13:16)), 'uint32');
+    flags        = typecast(uint8(buf(17:20)), 'uint32');
+    ok = (session_id == expected_session_id) && (sample_count > 0) ...
+         && (sample_count <= max_samples) && (flags <= 1);
+end
+
+function ok = ack_is_valid(buf, expected_cmd)
+    cmd_char = char(buf(5));
+    state = buf(6);
+    pad = typecast(uint8(buf(7:8)), 'uint16');
+    ok = (cmd_char == expected_cmd) && (state == 0 || state == 1) && (pad == 0);
+end
+```
+
+The `read_framed` implementation reads the stream in 64 KB chunks (defined by `SCAN_CHUNK`) and locates the magic with a `find_pattern` byte-search helper.
 
 ### Segment Receive Loop
 
-With the session live, the host runs a fixed-length loop that reads `SEGMENTS_TO_RECORD` segments. Each iteration reads the three framed pieces in order — header, payload, tail — and copies the samples into a preallocated `data_full` buffer at the next write position:
+With the session live, the host requests `SEGMENTS_TO_RECORD` audio segments. Each iteration reads the three pieces in order: header, payload, and tail; verifies the header and tail, and saves the payload by copying it into the `data_full` buffer:
 
 ```matlab
 for seg = 1:SEGMENTS_TO_RECORD
@@ -390,21 +417,13 @@ for seg = 1:SEGMENTS_TO_RECORD
 end
 ```
 
-The audio payload itself is read as raw `uint8` and reinterpreted as `uint16` rather than read directly with `'uint16'`. This keeps the byte count explicit and pins the boundary between segments exactly where the firmware put it, regardless of any datatype-aware behaviour in the `serialport` read path:
-
-```matlab
-n_bytes = sample_count * 2;
-raw_bytes = read(arduino, n_bytes, 'uint8');
-data = double(typecast(uint8(raw_bytes), 'uint16'));
-```
-
-When the sequence_id jumps or the tail magic doesn't match, the loop breaks and the script saves whatever it captured so far rather than throwing. See [Why a Segment Tail](#why-a-segment-tail) for the rationale behind this graceful-degradation behaviour.
+When the `sequence_id` jumps or the tail magic doesn't match, the loop breaks and the script saves whatever it captured so far. See [Why a Segment Tail](#why-a-segment-tail) for why the tail check matters.
 
 ### Saving and Plotting
 
 After the loop, the host sends `'p'` to stop the session and trims `data_full` to either `write_pos` (what was actually captured) or `RECORDING_DURATION_SEC * Fs` (the requested length), whichever is smaller. If any segments carried `FLAG_OVERRUN_DROPPED` or the recording ended early, a warning is printed before saving.
 
-The 16-bit unsigned ADC samples are then normalised to the `[-1, +1]` range that `audiowrite` expects, and the residual DC bias from the microphone preamp is subtracted:
+The 16-bit unsigned ADC samples are then normalized to the `[-1, +1]` range that `audiowrite` expects, and the residual DC bias from the microphone preamp is subtracted:
 
 ```matlab
 y = data_full / 65535;
@@ -415,70 +434,53 @@ audiowrite(file_name, y, Fs);
 
 The file is written to `Recordings/recorded_audio_<timestamp>.wav`, and the script finally plots the time-domain waveform and the magnitude spectrum (and optionally plays the result if `ENABLE_PLAYBACK` is set).
 
+## Stability
+Before the showcase, we should address the elephant in the room – the sheer number of handshakes, checks, and guards in the firmware and host.
+
+The USB data transfer between the Arduino GIGA R1 and MATLAB is not something we designed, and it is not really suited for this application. It uses general-purpose USB CDC, which by design is allowed to drop bytes when the host is busy or stalls, thus very awkward to deal with for a real-time application like audio recording. In other projects we never minded the occasional dropped bytes since only the last small chunk of data really mattered. But here, the audio is a long, continuous stream that is expected to be perfectly uninterrupted.
+
+This is easy to see for yourself – try running the host script with MATLAB being the only running software and as the current active window. Just sit and wait; it should complete reliably almost every single time, without any warnings.
+
+Afterwards, try starting the script while browsing the web, watching a video, or copying some files. You'll see the script throw warnings far more often.
+
+All the handshakes exist to ensure that dropped bytes are detected and handled cleanly, so the data that was successfully acquired is still saved, and the application can be restarted smoothly.
+
 ## Showcase
 
-A clean voice recording produces the following waveform and magnitude spectrum:
+Segment length is set to 30 seconds for these recordings. You should hear a brief USB-injected noise at segment boundaries.
 
-<img src="{{site.baseurl}}/assets/images/audio_recording_waveform.png" />
-{: .text-center}
+### Silence
 
-_Time-domain waveform of the recorded signal_
-{: .text-center}
+### Music
 
-<img src="{{site.baseurl}}/assets/images/audio_recording_spectrum.png" />
-{: .text-center}
-
-_Magnitude spectrum of the recorded signal_
-{: .text-center}
-
-The brief glitches visible on the waveform every `SEGMENT_SECONDS` are the residual USB switching noise. Crucially, they are **confined to the segment boundaries**, not smeared across the whole recording — exactly the property the batched-transfer architecture is designed to enforce. The interior of each segment is dominated by the voice content.
+### Voice
 
 ## Developer Notes
 
 ### USB Short Packet
 
-The Windows USB CDC driver delivers bulk data to user-space only when one of three things happens: the URB fills (typically 4096 B), a **short packet** (< 64 B) arrives, or a driver-level read timeout expires. If every firmware `Serial.write` is an exact multiple of 64 B, no short packet is ever produced and trailing bytes sit in the driver's URB until the read times out — which manifests on the host as long stalls of 64×N bytes.
+The Windows USB CDC driver delivers bulk data only when one of three things happens: 
+- Driver's read buffer fills (typically 4096 B)
+- **Short packet** (< 64 B) arrives
+- Read timeout expires
 
-The fix is to size USB writes so they end with a short packet:
+If every `Serial.write` is an exact multiple of 64 B, no short packet is ever produced and trailing bytes sit in the driver's buffer until the read times out.
+
+**Firmware must use sizes that are not a multiple of 64 B to end with a short packet**
 
 ```c
 static const uint32_t USB_CHUNK_BYTES = 4080;   // 63 * 64 + 48
 ```
 
-The trailing 48-byte chunk is the short packet that flushes the URB. `Serial.flush()` does not help — it drains the local TX FIFO but does not emit a zero-length packet.
+The trailing 48-byte chunk is the short packet that flushes the buffer. 
 
-### Why Drop, Not Halt, on Overrun
-
-If the host stalls for long enough that the next SDRAM slot isn't free when capture needs it, a strict implementation would halt the firmware to guarantee data integrity. But every minor host-side hiccup — Ctrl-C in MATLAB, the OS scheduling away the read thread, a debugger pause — would then leave the board wedged until someone presses the reset button.
-
-This firmware instead drops the affected DMA half-buffer and marks `FLAG_OVERRUN_DROPPED` on the next outgoing header. The host knows exactly which segment was affected and can warn the user, while the firmware stays responsive and can be restarted in place. Data integrity is preserved (no silent corruption) without sacrificing recoverability — the firmware is designed so any transient failure leaves it in a state the host can recover from with a fresh `'s'`.
+{: .WARNING}
+`Serial.flush()` does not help.
 
 ### Why a Segment Tail
 
-The segment header alone is enough to *frame* the payload (the host knows how many bytes to read from `sample_count`), but it cannot *verify* that the firmware and host agree on the byte count. If the firmware ever sends fewer or more bytes than the header advertised — due to a USB stack hiccup, a bug in the transfer accounting, or any other source of drift — the host's blocking read would silently consume the wrong bytes and the misalignment would only surface much later as a corrupted next header or a sequence-id discontinuity.
+The segment header alone is enough to *frame* the payload (the host knows how many bytes to read from `sample_count`), but it cannot *verify* that the firmware and host agree on the byte count. 
 
-The 8-byte trailer pins down the *end* of the payload exactly. As soon as the host's payload read finishes, the next 8 bytes on the wire must be `SEG_TAIL_MAGIC` followed by the matching `sequence_id`. Any deviation means the stream is misaligned, and the host aborts immediately with a specific error pointing at the affected segment rather than letting the corruption propagate. This turns silent stream drift into a loud, localized failure.
+If the firmware ever sends fewer or more bytes than the header announced, the host's blocking read would silently consume the wrong bytes and the misalignment would only surface later as a corrupted next header or a sequence-id discontinuity. The trailer turns this silent drift into an immediate, localized failure.
 
-On mismatch the host does not throw — it emits a warning, stops the loop, trims `data_full` to whatever was successfully captured, and saves the partial WAV. The current segment's samples are kept (they passed the payload read cleanly); only subsequent segments are skipped. The same graceful-degradation path is taken on `sequence_id` discontinuity. A short run is far more useful than no run at all, and the user gets a clear warning explaining which segment failed.
-
-### Host PC Load Affects Reliability
-
-The byte-loss events that the tail check catches are **timing-sensitive and dominated by host-side conditions, not firmware behaviour**. Empirically:
-
-- With the PC idle (no browser activity, no builds, no other USB traffic), the project has been observed to run dozens of full 30 s captures back-to-back with zero failures.
-- With the PC actively used during recording (browser playing video, IDE indexing, file copy, Teams call, antivirus scan), the failure rate can rise to roughly one in two runs.
-
-The root causes all live on the Windows / USB-host side:
-
-- USB CDC is best-effort bulk traffic; any other device on the same controller competes for bandwidth and IRQ time.
-- MATLAB drains the port from user-space, so CPU preemption or paging can stall the read long enough for the firmware-side CDC buffer to lose alignment.
-- USB selective suspend / power-management renegotiation occasionally injects latency spikes — a classic source of "one bad run per ~50" when the system is otherwise quiet.
-- Segment boundaries are the highest-pressure moment for the host buffer (firmware briefly pauses while swapping slots, then bursts), so failures cluster there.
-
-If you need maximum reliability for long stress runs:
-
-1. Plug the GIGA into a USB port on its own controller (rear desktop ports are usually best) and avoid shared hubs.
-2. Disable USB selective suspend for the GIGA in Windows Power Options.
-3. Close heavy background applications during the run.
-
-None of this is required for correctness — the tail-magic protocol guarantees that any failure is caught immediately and the partial recording is preserved — but it explains why the same firmware and host script can show very different failure rates on the same machine depending on what else is happening at the time.
+On mismatch the host emits a warning, stops the loop, trims `data_full` to whatever was successfully captured, and saves the partial WAV.
