@@ -16,7 +16,7 @@ LATENCY_METER_ITERATIONS = 1000;
 
 % Plot Processing Steps (slows down the script)
 ENABLE_PLOTS = true;
-PLOT_FREQUENCY_SEC = 1;
+PLOT_FREQUENCY_SEC = 10;
 
 % Sampling Rates
 Fs = 5000;
@@ -29,7 +29,7 @@ CHUNK_SIZE = 75;
 EMG_BUFFER_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE);
 
 % Envelop LP Frequency
-ENVELOP_LP_FREQ = 10;
+ENVELOP_LP_FREQ = 20;
 
 %% Filter Settings
 
@@ -40,7 +40,6 @@ F0 = 30;
 F1 = 450;
 
 % FIR taps (must be even)
-%TAPS = 150;
 TAPS = 150;
 FIR_DELAY = TAPS/2;
 FIR_COEFFS = fir1(TAPS, [F0 F1]/(Fs/2), 'bandpass');
@@ -104,8 +103,6 @@ while (true)
     emg_buffers(end-chunk_size+1:end, :) = emg_chunks_per_channel;
 
     % 4. Filter the buffer around EMG frequencies
-    load("2hold3press.mat", "emg_buffers");
-    %emg_buffers = extractfield(emg_buffers, "emg_buffers");
     filtered_data = filter(FIR_COEFFS, 1, emg_buffers);
     filt_emg_buffers = filtered_data((TAPS + 1):end, :); %FIR_DELAY
 

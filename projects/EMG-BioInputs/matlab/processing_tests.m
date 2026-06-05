@@ -11,13 +11,13 @@ addpath(genpath('./plotting/'));
 %% Settings
 % Loading
 FOLDERNAME = "measurements";
-SETNAME = "DarkSouls_VadymRolls";
+SETNAME = "DarkSouls_1rolls";
 MEASUREMENT_SIZE = 1016; % take cut sample number from keyboard_driver
 fs = 25600;
 channel_n = 4;
 
 % Processing
-FILTER_TAPS_FILENAME = 'EMG_Filter_old.mat';
+FILTER_TAPS_FILENAME = 'EMG_Filter.mat';
 
 PRESS_RANGE_PERCENTAGE = 0.25;
 RELEASE_RANGE_PERCENTAGE = 0.2;
@@ -70,12 +70,8 @@ keys_plotting_y = zeros(channel_n, numel(keys_plotting_x));
 
 %% Main Loop
 while(true)
-    if file_index == 7
-        pause(1e-6);
-    end
-
-    if file_index == 11
-        pause(1e-6);
+    if file_index == 13
+        %pause(1e-6);
     end
 
     % Update Buffer
@@ -122,13 +118,6 @@ while(true)
     plot_thresholds(size(buffer, 2), current_max, press_thresholds, release_thresholds);
     keys_plotting_y = [keys_plotting_y(:, 3:end), keys_state', keys_state'];
     plot_keys(keys_plotting_x, keys_plotting_y);
-    %{
-    figure(2);
-    plot_fft(buffer(3,:) - mean(buffer(3,:)), fs);
-    hold on;
-    plot_fft(filtered_buffer(3,:) - mean(filtered_buffer(3,:)), fs);
-    hold off;
-    %}
 end
 
 %% Functions
@@ -136,18 +125,4 @@ function file_path = get_file_path(foldername, setname, index)
     search_pattern = sprintf("%s\\%s\\%d_*", foldername, setname, index);
     file = dir(search_pattern);
     file_path = sprintf("%s\\%s\\%s", foldername, setname, file.name);
-end
-
-function plot_fft(data, fs)
-    L = length(data);
-    NFFT = 2^nextpow2(L);
-    fft_result = fft(data, NFFT) / L;
-    fft_magnitude = abs(fft_result(1:NFFT/2 + 1));
-    f = fs * (0:(NFFT/2)) / NFFT;
-    plot(f(1:end), fft_magnitude(1:end));
-    xlim([0 400]);
-    grid on;
-    xlabel("Frequency (Hz)");
-    ylabel("Magnitude");
-    legend(["Original Signal","Filtered Signal"]);
 end

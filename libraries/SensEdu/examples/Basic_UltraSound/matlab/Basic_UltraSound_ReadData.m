@@ -5,9 +5,9 @@ close all;
 clc;
 
 %% Settings
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM22';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 10000;
+ITERATIONS = 100;
 
 ACTIVATE_PLOTS = true;
 CHUNK_SIZE = 32; % number of bytes that are read at once from serial -> 32 is optimal
