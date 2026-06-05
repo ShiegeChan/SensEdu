@@ -43,7 +43,9 @@ A look at the official [GIGA R1 schematics](https://docs.arduino.cc/resources/sc
 
 Since we can't change the hardware, the firmware works around it. The classical "stream every sample as it arrives" architecture spreads this noise uniformly through the recording. An example of such a recording:
 
-<audio controls src="{{site.baseurl}}/assets/audio/continuous-usb-stream.wav">
+<audio controls preload="metadata">
+  <source src="{{site.baseurl}}/assets/audio/continuous-usb-stream.opus" type="audio/ogg; codecs=opus">
+  Audio rendering failed.
 </audio>
 
 For better visualization, I connected a sinusoid from a signal generator to the input. The signal is sampled with parallel USB requests at the beginning of each DMA half-buffer. Orange circles on the plot separate these "segments". USB transfers are visible as high-frequency bursts of noise at the beginning of each half-buffer.
@@ -447,27 +449,33 @@ All the handshakes exist to ensure that dropped bytes are detected and handled c
 
 ## Showcase
 
-Segment length is set to 30 seconds for these recordings. You should hear a brief USB-injected noise at segment boundaries.
+Segment length is set to 30 seconds for these recordings. You should hear a brief USB-injected noise at each segment boundary.
 
 ### Ambient
 
-Balcony ambient during the summer day.
+Recorded on the balcony on a summer day.
 
-<audio controls src="{{site.baseurl}}/assets/audio/recording-ambient.wav">
+<audio controls preload="metadata">
+  <source src="{{site.baseurl}}/assets/audio/recording-ambient.opus" type="audio/ogg; codecs=opus">
+  Audio rendering failed.
 </audio>
 
 ### Music
 
-Kether 3 from Library of Ruina playing through the smartphone speakers at around $$25 \text{cm}$$ distance. Quality is also affected by poor phone speakers.
+[Hod Battle](https://youtu.be/83vTbIzGZ4Y?si=8hvAV47SZglAqdIQ) from [Library of Ruina](https://store.steampowered.com/app/1256670/Library_Of_Ruina/) playing about 40 cm from the board at a 90° angle, through a Bluetooth speaker.
 
-<audio controls src="{{site.baseurl}}/assets/audio/recording-music.wav">
+<audio controls preload="metadata">
+  <source src="{{site.baseurl}}/assets/audio/recording-music.opus" type="audio/ogg; codecs=opus">
+  Audio rendering failed.
 </audio>
 
 ### Voice
 
-Voiced out lines of Andre of Astrora from Dark Souls at around $$15 \text{cm}$$ from the mouth holding at 90 degrees without pop filter. Not affected by the smartphone quality unlike music example, only by poor voice acting skills.
+[Voice lines of Andre the Blacksmith](https://youtu.be/kWtMg9w9rhc?si=zD7kksJOjzZmQwnT) from [Dark Souls III](https://store.steampowered.com/app/374320/DARK_SOULS_III/) playing about 40 cm from the board at a 90° angle, through a Bluetooth speaker.
 
-<audio controls src="{{site.baseurl}}/assets/audio/recording-voice.wav">
+<audio controls preload="metadata">
+  <source src="{{site.baseurl}}/assets/audio/recording-voice.opus" type="audio/ogg; codecs=opus">
+  Audio rendering failed.
 </audio>
 
 ## Developer Notes
