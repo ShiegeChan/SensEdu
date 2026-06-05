@@ -82,7 +82,7 @@ On the MATLAB side:
 |---|---|---|
 | `ARDUINO_PORT` | `'COM16'` | GIGA serial port. |
 | `RECORDING_DURATION_SEC` | 40 | Desired recording length. The host requests `ceil(duration / SEGMENT_SECONDS)` segments and trims the excess. |
-| `ENABLE_PLAYBACK` | `false` | Auto-play the recording when the script finishes. |
+| `ENABLE_PLAYBACK` | `true` | Auto-play the recording when the script finishes. |
 
 ## Firmware Implementation
 
@@ -350,7 +350,7 @@ The host script is located at `projects/Audio_Recording/matlab/Audio_Recording.m
 
 ### Restart-Safe Handshake
 
-After opening the serial port, the script sends `'p'` to bring the firmware to a known idle state. This works regardless of what the firmware was doing: finishing a transfer from a previous run, mid-recording, or idle. Then `'s'` starts a fresh session and the start ACK carries the new `session_id`, which the host pins for every subsequent frame:
+After opening the serial port, the script sends `'p'` to bring the firmware to a known idle state. This works regardless of what the firmware was doing: finishing a transfer from a previous run, mid-recording, or idle. Then `'s'` starts a fresh session and the start ACK carries the new `session_id`:
 
 ```matlab
 write(arduino, uint8('p'), 'uint8');

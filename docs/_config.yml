@@ -46,7 +46,7 @@ liquid:
 back_to_top: false
 back_to_top_text: "Back to top"
 
-footer_content: 'Distributed under the GPL-3 License © 2024-2025 SensEdu Development Team'
+footer_content: 'Distributed under the GPL-3 License © 2024-2026 SensEdu Development Team'
 
 # Footer "Edit this page on GitHub" link text
 gh_edit_link: true # show or hide edit this page link
