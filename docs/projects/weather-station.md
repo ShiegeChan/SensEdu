@@ -17,7 +17,7 @@ nav_order: 7
 
 Weather Station is a project intended to demonstrate the usage of barometric air pressure [DPS368] and humidity [SHT40-AD1F] sensors on the SensEdu shield. 
 
-This turns the board into a small environmental measurement station that reports temperature, humidity, dew point, and sea-level pressure every few seconds, along with classifications of each quantity. The station also tracks how the sea-level pressure changes over time and reports a simple forecast of whether conditions are improving or worsening.
+This turns the board into a small environmental measurement station that reports temperature, humidity, dew point, and sea-level pressure every few seconds, along with classifications of each quantity. The station also tracks how the sea-level pressure changes over time and reports a simple forecast of the improving or worsening of the conditions.
 
 <img src="{{site.baseurl}}/assets/images/weather_forecasting.jpg"/>
 
@@ -27,18 +27,34 @@ This section presents what some of the measured quantities mean and why they are
 
 ### Humidity
 
-Humidity is the amount of water vapor in the air. It is usually represented in two different ways:
+Humidity is the amount of water vapor in the air. It could be represented in three different ways.
 
-* **Absolute Humidity**: the mass of water vapor per unit volume of air.
-* **Relative Humidity (RH)**: the ratio of the current water-vapor content to the maximum the air could hold at the same temperature, expressed as a percentage.
+#### Absolute Humidity (AH)
+{: .no_toc}
 
-RH depends on **both** moisture content and temperature: warmer air can hold more water, meaning heating the air with certain absolute humidity will actually *lower* its RH even though no water has been removed. Conversely, cooling the air will *raise* its RH.
+The mass of water vapor **per volume of air**.
+
+#### Specific Humidity (SH)
+{: .no_toc}
+
+Intuitively, AH feels like the right metric to describe the absolute water vapor in the air, but it is actually true **only if the volume is constant as well** (imagine sealed rigid container).
+
+But in the case of open air which is more typical for meteorological measurements, volume is not constant. For example, heating up the air at typical atmospheric pressure makes it expand, which leads to the same mass of vapor spreading through a larger air volume, so absolute humidity actually *decreases*.
+
+Therefore, there exists another vapor metric which is independent of volume changes called **specific humidity** (SH), defined as the mass of water vapor per unit **mass of moist air**.
+
+#### Relative Humidity (RH)
+{: .no_toc}
+
+Defined as the ratio of the current water-vapor content to the maximum the air could hold at the same temperature, expressed as a percentage.
+
+RH depends on **both** water vapor content and temperature: warmer air can hold more water, meaning heating the air with certain specific humidity will actually *lower* its RH even though no water has been removed. Conversely, cooling the air will *raise* its RH.
 
 This brings us to the main caveat of RH — it is not a great way to determine how the humidity feels to a person. Much of our perception of humidity comes from how easily sweat can evaporate from the skin. For this reason, the **dew point** is a more intuitive measure of perceived humidity than RH.
 
 ### Dew Point
 
-Dew point is the temperature to which the air would have to be cooled (at constant moisture content) for it to start condensing into dew or fog. Unlike RH, the dew point is an absolute property of the air's water content, expressed in °C. Two different air samples with the same dew point hold the same amount of water vapor regardless of their current temperatures or RH. It helps avoid misleading humidity decisions just based on the RH, which can change with temperature even if the moisture content is constant.
+Dew point is the temperature to which the air would have to be cooled (at constant [specific humidity](#specific-humidity)) for it to start condensing into dew or fog. Unlike RH, the dew point is an absolute property of the air's water content, expressed in °C. Two different air samples with the same dew point hold the same amount of water vapor regardless of their current temperatures or RH. It helps avoid misleading humidity decisions just based on the RH, which can change with temperature even if the specific humidity is constant.
 
 This metric makes for a useful comfort indicator, tracking the actual moisture content of the air, which is what makes it feel sticky or dry. You can read more about the relation to human comfort [here](https://en.wikipedia.org/wiki/Dew_point#Relationship_to_human_comfort).
 
@@ -114,7 +130,7 @@ For I2C communication each sensor has assigned address. The DPS368 uses `0x77` a
 
 <img src="{{site.baseurl}}/assets/images/weather-i2c-scanner.png"/>
 
-Communication is actually established by the third-party sensor library, which are included as dependencies in the sketch. The libraries handle all low-level I2C transactions, so the weather station just calls their high-level APIs to get the measurements.
+Communication is actually established by the third-party sensor libraries, which are included as dependencies in the sketch. The libraries handle all low-level I2C transactions, so the weather station just calls their high-level APIs to get the measurements.
 
 * Infineon DPS368: [`arduino-xensiv-dps3xx`](https://github.com/Infineon/arduino-xensiv-dps3xx).
 * Sensirion SHT40-AD1: [`arduino-i2c-sht4x`](https://github.com/Sensirion/arduino-i2c-sht4x) 
@@ -367,11 +383,11 @@ The `SHT_AS_TEMP_SOURCE` macro in `Weather_Station.ino` controls only which sens
 Ambient temperature is acquired by subtracting the empirical offset from the raw sensor reading. Relative humidity cannot be corrected the same way — it depends on temperature, so simply subtracting an offset from the raw RH value would give a wrong result. The correct approach is:
 
 1. Read raw SHT temperature and humidity
-2. Compute dew point from the raw `(T, RH)` pair. This locks in the air's moisture content.
+2. Compute dew point from the raw `(T, RH)` pair. This locks in the air's specific humidity.
 3. Apply the temperature offset to obtain the corrected ambient temperature.
 4. Recompute relative humidity from the corrected temperature and the dew point (invert the Magnus formula). This gives the RH the air actually has at the ambient temperature, not the RH the hot sensor surface saw.
 
-The main principle behind is that **dew point is a property of the air's moisture content**. It does not depend on the sensor's temperature, the displayed temperature, or any offset. Once it has been derived from a self-consistent raw measurement, it becomes the anchor for everything moisture-related.
+The main principle behind is that **dew point is a property of the air's specific humidity**. It does not depend on the sensor's temperature, the displayed temperature, or any offset. Once it has been derived from a self-consistent raw measurement, it becomes the anchor for everything moisture-related.
 
 [Zambretti Forecaster]: https://web.archive.org/web/20110610213848/http://www.meteormetrics.com/zambretti.htm
 [DPS368]: https://www.infineon.com/part/DPS368
