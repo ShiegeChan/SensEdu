@@ -1,3 +1,18 @@
+/**
+ * @file dma.c
+ * @brief Internal implementation of DMA driver for ADC and DAC with MPU cache management
+ *
+ * This module provides:
+ * - DMA initialization, configuration, and management for ADC and DAC peripherals
+ * - Support for circular and normal mode transfers
+ * - MPU cache disabling for DMA buffers
+ *
+ * Notes:
+ * - Hard-coded DMA streams and DMAMUX channels for specific ADC/DAC instances
+ * - Buffers must be allocated with proper alignment using the provided macros
+ * - Calling DMA_EnableDmaForX multiple times without a preceding disable is unsafe
+ */
+
 #include "dma.h"
 #include "adc.h"
 
@@ -81,7 +96,7 @@ static void init_dma_for_dac(DmaConfig* config, SENSEDU_DAC_MODE wave_mode);
 static void enable_dma(DmaConfig* config);
 static void disable_dma(DmaConfig* config);
 
-void clear_dma_status_flags(const uint8_t stream_idx);
+static void clear_dma_status_flags(const uint8_t stream_idx);
 
 static void disable_cache(uint16_t* buf, size_t buf_samples);
 
@@ -274,11 +289,6 @@ void init_dma_for_dac(DmaConfig* config, SENSEDU_DAC_MODE wave_mode) {
 static void enable_dma(DmaConfig* config) {
     if (!config) return;
 
-    // if (READ_BIT(config->stream->CR, DMA_SxCR_EN)) {
-    //     error = DMA_ERROR_ENABLED_BEFORE_ENABLE;
-    //     return;
-    // }
-
     clear_dma_status_flags(config->stream_idx);
     SET_BIT(config->stream->CR, DMA_SxCR_EN);
 }
@@ -287,12 +297,19 @@ static void disable_dma(DmaConfig* config) {
     if (!config) return;
 
     CLEAR_BIT(config->stream->CR, DMA_SxCR_EN);
-    while (READ_BIT(config->stream->CR, DMA_SxCR_EN)) {}
+    uint32_t timeout = UINT32_MAX;
+    while (READ_BIT(config->stream->CR, DMA_SxCR_EN) && timeout--) {
+        __NOP();
+    }
+    if (timeout == 0) {
+        error = DMA_ERROR_TIMEOUT;
+        return;
+    }
 
     clear_dma_status_flags(config->stream_idx);
 }
 
-void clear_dma_status_flags(const uint8_t stream_idx) {
+static void clear_dma_status_flags(const uint8_t stream_idx) {
 
     if (stream_idx > 7) {
         error = DMA_ERROR_UNEXPECTED_FLAG_MASK;
@@ -405,7 +422,7 @@ void DMA1_Stream7_IRQHandler(void) {
 void DMA1_Stream2_IRQHandler(void) {
     if (READ_BIT(DMA1->LISR, DMA_LISR_TCIF2)) {
         SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTCIF2);
-        DAC_TransferCompleteDMAinterrupt(DAC_CH1);
+        DAC_TransferCompleteDmaInterrupt(DAC_CH1);
     }
 
     if (READ_BIT(DMA1->LISR, DMA_LISR_TEIF2)) {
@@ -417,7 +434,7 @@ void DMA1_Stream2_IRQHandler(void) {
 void DMA1_Stream3_IRQHandler(void) {
     if (READ_BIT(DMA1->LISR, DMA_LISR_TCIF3)) {
         SET_BIT(DMA1->LIFCR, DMA_LIFCR_CTCIF3);
-        DAC_TransferCompleteDMAinterrupt(DAC_CH2);
+        DAC_TransferCompleteDmaInterrupt(DAC_CH2);
     }
 
     if (READ_BIT(DMA1->LISR, DMA_LISR_TEIF3)) {

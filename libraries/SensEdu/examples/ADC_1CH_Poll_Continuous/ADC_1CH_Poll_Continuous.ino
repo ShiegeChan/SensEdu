@@ -62,7 +62,7 @@ void loop() {
     uint16_t data = SensEdu_ADC_ReadConversion(adc);
     Serial.println(data);
     Serial.print("Samples missed: ");
-    Serial.println(SensEdu_ADC_GetOverrunCounter(adc));
+    Serial.println(SensEdu_ADC_GetOverrunCount(adc));
 
     check_lib_errors();
 }

@@ -1,3 +1,18 @@
+/**
+ * @file dma.h
+ * @brief Internal API for DMA driver
+ *
+ * This module provides:
+ * - DMA initialization, configuration, and management for ADC and DAC peripherals
+ * - Support for circular and normal mode transfers
+ * - MPU cache disabling for DMA buffers
+ *
+ * Notes:
+ * - Hard-coded DMA streams and DMAMUX channels for specific ADC/DAC instances
+ * - Buffers must be allocated with proper alignment using the provided macros
+ * - Calling DMA_EnableDmaForX multiple times without a preceding disable is unsafe
+ */
+
 #ifndef __DMA_H__
 #define __DMA_H__
 
@@ -54,7 +69,8 @@ typedef enum {
 
     DMA_ERROR_UNEXPECTED_FLAG_MASK = 0xA0,          // Unexpected status or clear mask for DMA flags
     DMA_ERROR_INTERRUPTS_NOT_CLEARED = 0xA1,        // Status DMA flags are not cleared
-    DMA_ERROR_MPU_BASE_NOT_ALIGNED = 0xA2           // Failed MPU address calculations
+    DMA_ERROR_MPU_BASE_NOT_ALIGNED = 0xA2,          // Failed MPU address calculations
+    DMA_ERROR_TIMEOUT = 0xA3                        // Internal while loop stalled
 } DMA_ERROR;
 
 DMA_ERROR DMA_GetError(void);

@@ -1,180 +1,131 @@
-#include <Dps3xx.h>
-#include "SHTSensor.h"
-
-/**
- * @details This example reads temperature and pressure values and estimates
- *          weather conditions based on equivalent sea level pressure
- *          Make sure to have the Serial Monitor open before uploading 
- *          the code to your Arduino board. 
+/*
+ * Weather Station
+ *
+ * Reads temperature, humidity and barometric pressure from an Infineon DPS368
+ * and a Sensirion SHT40-AD1, both wired to the Arduino's primary I2C bus (Wire),
+ * and prints the measurements, derived metrics (dew-point spread, sea-level
+ * pressure) and the recent pressure trend over the serial port.
+ *
+ * I2C bus addresses: DPS368 @ 0x77, SHT40-AD1 @ 0x44.
  */
+
+#include <Dps3xx.h>
+#include <SensirionI2cSht4x.h>
+#include "pressure_types.h"
+
+// Set to 1 to block setup() until a serial monitor connects.
+#define DEBUG_WAIT_FOR_SERIAL   0
 
 /* -------------------------------------------------------------------------- */
 /*                                User Settings                               */
 /* -------------------------------------------------------------------------- */
 
-#define NORMAL_PRESSURE             1009            // in hPa
-#define HIGH_PRESSURE               1022            // in hPa
-#define T_OFFSET                    0               // Temperature offset for accurate temperature display (empirical)
-#define g                           9.81            // m/s^2
-#define P_0                         101325          // Pa
-#define M                           0.02896         // kg/mol
-#define R                           8.314           // J/molK
+// Location altitude in meters (501 m = Villach, Austria).
+#define ALTITUDE_M                  501.0f
+
+// Period between weather station state display cycles (seconds).
+#define DISPLAY_PERIOD_SEC          5
+
+// Period between pressure capture cycles (mins).
+#define PRESSURE_PERIOD_MIN         30
+
+// Pressure history buffer size.
+#define PRESSURE_HISTORY_SIZE       48
+
+// Sample window over which the pressure trend is calculated.
+// Corresponds to (PRESSURE_TREND_SAMPLES * PRESSURE_PERIOD_MIN) time window in minutes.
+#define PRESSURE_TREND_SAMPLES      6
+
+// True to use SHT temperature measurements instead of DPS.
+// SHT is more accurate for dew point calculations since
+// both humidity and temperature are coming from the same sensor.
+#define SHT_AS_TEMP_SOURCE          1
+
+// DPS oversampling exponent (0..7). The sensor performs 2^N internal
+// measurements per result; higher values are more accurate but slower.
+#define DPS_OVERSAMPLING_RATE       5
+
+// Empirical temperature offset for DPS (in degrees Celsius).
+#define DPS_TEMP_OFFSET             (-3.0f)
+
+// Empirical temperature offset for SHT (in degrees Celsius).
+#define SHT_TEMP_OFFSET             (-2.5f)
 
 /* -------------------------------------------------------------------------- */
-/*                                 Parameters                                 */
+/*                                  Globals                                   */
 /* -------------------------------------------------------------------------- */
 
-float altitude = 0;             // Altitude in meters (user-defined)
-float temperature;
-float pressure;
-float seaLevelPressure;
-float humidity;
-int16_t ret;
-
-// Dps3xx Object
+SensirionI2cSht4x sht_sensor;
 Dps3xx dps_sensor = Dps3xx();
-uint8_t oversampling = 5;       /* Value from 0 to 7, the Dps 3xx will perform 2^oversampling internal
-    temperature measurements and combine them to one result with higher precision
-    measurements with higher precision take more time, consult datasheet for more information */
-
-SHTSensor sht_sensor(SHTSensor::SHT3X);
-
-/* -------------------------------------------------------------------------- */
-/*                                 Functions                                  */
-/* -------------------------------------------------------------------------- */
-
-// Function to calculate sea-level pressure
-/* Standard atmospheric pressure at sea level is approximately 1013.25 hectopascals (hPa),
-29.92 inches of mercury (inHg), or 14.7 pounds per square inch (psi) */
-
-// Air pressure decreases with increasing altitude. 
-// As you move higher into the atmosphere, there is less air above you pressing down, 
-// resulting in lower pressure. This is why mountain climbers often experience difficulty 
-// breathing due to the thinner air and lower oxygen levels.
-
-float calculateSeaLevelPressure(float p, float t) {
-    return p * pow((1 - (0.0065 * altitude) / (t + 273.15)), -5.257);
-}
-
-// Simple Weather Prediction Rule-Based Model 
-
-/* This function is not implemented correctly yet as it only predicts weather based on
-instant measurement. It should measure the rate of change in pressure over time
-(e.g. in hPa/hour) to predict weather. The rate should be measured by comparing an
-initial pressure measurement with the current measurement.
-This function should also include a humidity parameter from the humidity sensor to
-help predict weather more accurately */
-
-void WeatherPredict(float temp, float pressure, float humidity) {
-    // Temp -> in degreees 
-    // Pressure -> in hPa (hectopascal is 100 pascals)
-    // Humidity -> in % 
-
-    if (humidity > 70 && pressure < 1000 && (15 < temp < 25)) {
-        Serial.println("Weather Status: Rain"); 
-    }
-    else if ((50 <= humidity <= 70) && pressure < 1000) {
-        Serial.println("Weather Status: Cloudy");
-    } 
-    else if (pressure > 1020 && humidity < 50 && temp > 20) {
-        Serial.println("Weather Status: Clear");
-    } 
-    else {
-        Serial.println("Weather Status: Uncertain");
-    }
-}
-
 
 /* -------------------------------------------------------------------------- */
 /*                                   Setup                                    */
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-    Wire1.begin();
+    Wire.begin();
     Serial.begin(9600);
-    while (!Serial); // Wait for Serial Monitor to connect
 
-    dps_sensor.begin(Wire1); 
-    sht_sensor.init(Wire1); 
+#if DEBUG_WAIT_FOR_SERIAL
+    while (!Serial);
+#endif
+
+    dps_sensor.begin(Wire);
+    sht_sensor.begin(Wire, SHT40_I2C_ADDR_44);
+    sht_sensor.softReset();
+    delay(10);
 
     Serial.println("Init complete!");
-
-    // Ask the user to input the altitude
-    Serial.println("Please input the current altitude (in meters):");
-
-    // Wait for user input via Serial Monitor
-    while (Serial.available() == 0) {
-        // Do nothing, wait for the user to input data
-    }
-
-    // Read the user input and convert it to a float
-    String input = Serial.readStringUntil('\n');
-    altitude = input.toFloat();
-
-    // Confirm the altitude
-    Serial.print("Altitude set to: ");
-    Serial.print(altitude);
-    Serial.println(" meters");
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
-void loop()
-{
+
+void loop() {
+    float sht_temperature = 0.0f;
+    float dps_temperature = 0.0f;
+    float pressure_pa = 0.0f;
+    float humidity = 0.0f;
+
+    if (!measure_sht_temp_humidity(&sht_temperature, &humidity) ||
+        !measure_dps_temp(&dps_temperature) ||
+        !measure_dps_pressure_pa(&pressure_pa)) {
+        delay(1000);
+        return;
+    }
+
+    float dew_point = calculate_dew_point(sht_temperature, humidity);
+
+#if SHT_AS_TEMP_SOURCE == 1
+    float temperature = sht_temperature;
+    float offset = SHT_TEMP_OFFSET;
+#else
+    float temperature = dps_temperature;
+    float offset = DPS_TEMP_OFFSET;
+#endif
+
+    temperature += offset;
+    humidity = calculate_relative_humidity(temperature, dew_point);
+    float dew_spread = temperature - dew_point;
+
+    float sea_lvl_pressure_hpa = calculate_sea_lvl_pressure_hpa(pressure_pa, temperature, ALTITUDE_M);
+    try_save_pressure_sample(sea_lvl_pressure_hpa);
+
+    Serial.println("====== Weather Report ======");
+    report_temp(temperature);
+    report_humidity(humidity);
+    report_dew_point(dew_point);
+    report_dew_spread(dew_spread);
+
+    report_altitude(ALTITUDE_M);
+    float pressure_hpa = pressure_pa / 100.0f;
+    report_pressure(pressure_hpa);
+    report_sea_level_pressure(sea_lvl_pressure_hpa);
+
+    report_pressure_trend();
+
+    Serial.println("============================");
     Serial.println();
-
-    // ----------------------------- DPS temperature measurement -------------------------
-
-    ret = dps_sensor.measureTempOnce(temperature, oversampling);
-    if (ret != 0) {
-        Serial.print("FAIL! ret = ");
-        Serial.println(ret);
-    }
-    else {
-        Serial.print("Temperature (dps): ");
-        Serial.print(temperature + T_OFFSET);
-        Serial.println("°C");
-    }
-
-    // ----------------------------- DPS pressure measurement -------------------------
-
-    ret = dps_sensor.measurePressureOnce(pressure, oversampling);
-    if (ret != 0) {
-        // Something went wrong.
-        // Look at the library code for more information about return codes
-        Serial.print("FAIL! ret = ");
-        Serial.println(ret);
-    }
-    else {
-        Serial.print("Pressure: ");
-        Serial.print(pressure/100);
-        Serial.println(" hPa");
-    }
-
-
-    // ----------------------------- SHT humidity & temperature measurement -------------------------
-    if (sht_sensor.readSample()) {
-        humidity = sht_sensor.getHumidity();
-        temperature = sht_sensor.getTemperature();
-
-        Serial.print("Humidity level: ");
-        Serial.println(humidity, 2);
-        Serial.print("Temperature (sht): ");
-        Serial.println(temperature, 2);
-    } 
-    else {
-        Serial.println("SHT sensor Error\n");
-    }
-
-    // ----------------------------- Sea pressure level -------------------------
-    seaLevelPressure = calculateSeaLevelPressure(pressure, temperature); 
-    Serial.print("Equivalent Sea Level Pressure: ");
-    Serial.print(seaLevelPressure / 100);
-    Serial.println(" hPa");
-
-    // ----------------------------- Weather prediction call -------------------------
-    WeatherPredict(temperature, seaLevelPressure, humidity);
-
-    delay(10000);
+    delay(DISPLAY_PERIOD_SEC * 1000);
 }

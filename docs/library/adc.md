@@ -25,18 +25,19 @@ ADC error codes use the `0x20xx` range. See how to display errors in your Arduin
 An overview of possible errors for ADC:
 
 * `0x2000`: No error
-* `0x2001`: Invalid ADC instance; must be `ADC1`, `ADC2`, or `ADC3`
-* `0x2002`: ADC initialization failed
-* `0x2003`: Invalid pin array size; use an integer 1-16
-* `0x2004`: Invalid pin array
-* `0x2005`: Invalid sampling rate; must be at least 10Hz
-* `0x2006`: Invalid DMA buffer address or size
-* `0x2007`: Invalid mode config; you cannot set a sampling rate in one-shot mode
-* `0x2008`: Invalid ADC channel; the selected ADC instance is not available on this pin, refer to the [table] for mapping details
-* `0x2009`: Failed to enable ADC
-* `0x200A`: Failed to disable ADC
-* `0x200B`: Software polling used with DMA mode; switch to software mode
-* `0x200C`: Software polling attempted without enabling the ADC
+* `0x2001`: Input settings are `null`
+* `0x2002`: Invalid ADC instance; must be `ADC1`, `ADC2`, or `ADC3`
+* `0x2003`: ADC initialization failed
+* `0x2004`: Invalid pin array size; use an integer 1-16
+* `0x2005`: Invalid pin array
+* `0x2006`: Invalid sampling rate; must be at least 10Hz
+* `0x2007`: Invalid DMA buffer address or size
+* `0x2008`: Invalid mode config; you cannot set a sampling rate in one-shot mode
+* `0x2009`: Invalid ADC channel; the selected ADC instance is not available on this pin, refer to the [table] for mapping details
+* `0x200A`: Failed to enable ADC
+* `0x200B`: Failed to disable ADC
+* `0x200C`: Software polling used with DMA mode; switch to software mode
+* `0x200D`: Software polling attempted without enabling the ADC
 
 An overview of critical errors. They shouldn't happen in normal user case and indicate some problems in library code:
 
@@ -46,6 +47,8 @@ An overview of critical errors. They shouldn't happen in normal user case and in
 * `0x20A3`: Internal sampling time selection logic failed
 * `0x20A4`: Operation mode selection received an unexpected value
 * `0x20A5`: Data management mode selection received an unexpected value
+* `0x20A6`: Sampling timer assignment failed
+* `0x20A7`: Driver has been stuck in a delay indefinitely
 
 ## Structs
 
@@ -193,7 +196,7 @@ void SensEdu_ADC_Start(ADC_TypeDef* adc);
 #### Notes
 {: .no_toc}
 * Enables the associated DMA in `SENSEDU_ADC_MODE_DMA_xxx` modes.
-* After this function call, depending on the selected ADC mode, either the DMA buffer will be filled with ADC conversions or you must poll for results manually using `SensEdu_ReadConversion`.
+* After this function call, depending on the selected ADC mode, either the DMA buffer will be filled with ADC conversions or you must poll for results manually using `SensEdu_ADC_ReadConversion`.
 
 
 ### SensEdu_ADC_IsDmaTransferComplete
@@ -620,7 +623,7 @@ void loop() {
 
 ### ADC_1CH_DMA_Normal
 
-Continuously reads ADC conversions using DMA for one selected analog pin.
+Continuously requests ADC conversions using DMA for one selected analog pin.
 
 1. Include the SensEdu library
 2. Declare DMA buffer using `SENSEDU_ADC_BUFFER` macro. It takes two parameters: a user-defined ***name*** to reference in code and the buffer ***size*** (number of elements)
@@ -696,7 +699,7 @@ Always use the `SENSEDU_ADC_BUFFER` macro to define arrays for ADC in DMA mode. 
 
 ### ADC_3CH_DMA_Normal
 
-Continuously reads ADC conversions using DMA for multiple selected analog pins.
+Continuously requests ADC conversions using DMA for multiple selected analog pins.
 
 1. Follow the base DMA configuration from the [`ADC_1CH_DMA_Normal`]({% link library/adc.md %}#adc_1ch_dma_normal) example
 2. Extend the pin array to include more channels. Update array size to match the channel count
@@ -799,11 +802,139 @@ void loop() {
 
 ### ADC_1CH_DMA_Circular
 
-COMING SOON IN SENSEDU 0.8 (END OF JANUARY 2026)
+Continuously reads ADC conversions using circular DMA for one selected analog pin.
+
+1. Include the SensEdu library
+2. Declare the half-transfer size for ping-pong DMA (`CHUNK_SIZE`) based on how many samples you want to process at a time
+3. Declare DMA buffer using `SENSEDU_DMA_BUFFER` macro with size equal to `2 * CHUNK_SIZE`
+4. Declare the ADC instance, pin array, and array size corresponding to your channel count for the selected ADC
+5. Configure ADC Parameters by declaring [`SensEdu_ADC_Settings`]({% link library/adc.md %}#sensedu_adc_settings) struct
+6. Enable the sampling timer by setting the SR mode to `SENSEDU_ADC_SR_MODE_FIXED`
+7. Enable circular DMA by setting the ADC mode to `SENSEDU_ADC_MODE_DMA_CIRCULAR`
+8. Initialize with `SensEdu_ADC_Init()` and power up the ADC using `SensEdu_ADC_Enable()`
+9. Start the ADC with `SensEdu_ADC_Start()`
+10. Check for half-transfer completion with `SensEdu_ADC_IsDmaHalfTransferComplete()` to process the first half of the buffer
+11. Clear the half-transfer flag with `SensEdu_ADC_ClearDmaHalfTransferComplete()`
+12. Check for transfer completion with `SensEdu_ADC_IsDmaTransferComplete()` to process the second half of the buffer
+13. Clear the completion flag with `SensEdu_ADC_ClearDmaTransferComplete()`
+14. The DMA buffer automatically wraps around without requiring manual restart
+
+```c
+#include "SensEdu.h"
+
+static const uint16_t CHUNK_SIZE = 75;
+static const uint16_t DMA_BUFFER_SIZE = CHUNK_SIZE * 2;
+
+SENSEDU_DMA_BUFFER(dma_buffer, DMA_BUFFER_SIZE);
+
+ADC_TypeDef* adc = ADC1;
+const uint8_t adc_pin_num = 1;
+uint8_t adc_pins[adc_pin_num] = {A0};
+
+SensEdu_ADC_Settings adc_settings = {
+    .adc = adc,
+    .pins = adc_pins,
+    .pin_num = adc_pin_num,
+
+    .sr_mode = SENSEDU_ADC_SR_MODE_FIXED,
+    .sampling_rate_hz = 10000,
+    
+    .adc_mode = SENSEDU_ADC_MODE_DMA_CIRCULAR,
+    .mem_address = (uint16_t*)dma_buffer,
+    .mem_size = DMA_BUFFER_SIZE
+};
+
+void setup() {
+    Serial.begin(2000000);
+    SensEdu_ADC_Init(&adc_settings);
+    SensEdu_ADC_Enable(adc);
+    SensEdu_ADC_Start(adc);
+}
+
+void loop() {
+    // Process first half (0 to CHUNK_SIZE - 1)
+    if (SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
+        
+        // Process or transmit first half of buffer
+        if (Serial) {
+            process_data(&dma_buffer[0], CHUNK_SIZE);
+        }
+    }
+
+    // Process second half (CHUNK_SIZE to DMA_BUFFER_SIZE - 1)
+    if (SensEdu_ADC_IsDmaTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
+        
+        // Process or transmit second half of buffer
+        if (Serial) {
+            process_data(&dma_buffer[CHUNK_SIZE], CHUNK_SIZE);
+        }
+    }
+}
+
+static void process_data(volatile uint16_t* data, uint16_t length) {
+    uint8_t* ptr = (uint8_t*)data;
+    Serial.write(ptr, length * sizeof(uint16_t));
+}
+```
+
+#### Notes
+{: .no_toc}
+* Circular DMA mode automatically refills the buffer without requiring manual restart. This mode eliminates the gap between data batches, making it suitable for real-time data streaming like audio recording.
+* The buffer is divided into two halves for ping-pong DMA. While the DMA fills one half, the other one is processed by the CPU using half-transfer and transfer completion interrupts.
+* Always clear the half-transfer and complete-transfer flags after handling them to prevent repeated processing of the same data.
+
+{: .WARNING }
+When streaming each half-transfer over USB CDC (GIGA Serial class), choose the half-transfer size so each transmitted half ends with a short USB packet. For 1-channel `uint16_t` data, half-transfer size in bytes is `2 * CHUNK_SIZE`. Avoid values where this byte count is an exact multiple of 64 bytes (USB FS), because this can increase host-side buffering latency. Prefer values that naturally produce a short final packet and flush data earlier.
+
+{: .NOTE}
+EMG project uses circular DMA and has a separate entry about data transmission with measured examples, see [Data Transfer]({% link projects/emg.md %}#data_transfer).
 
 ### ADC_3CH_DMA_Circular
 
-COMING SOON IN SENSEDU 0.8 (END OF JANUARY 2026)
+Continuously reads ADC conversions using circular DMA for multiple selected analog pins.
+
+1. Follow the base circular DMA configuration from the [`ADC_1CH_DMA_Circular`]({% link library/adc.md %}#adc_1ch_dma_circular) example
+2. Extend the pin array to include more channels. Update array size to match the channel count
+3. Multiply the DMA buffer size by the channel count: \
+`DMA_BUFFER_SIZE = CHUNK_SIZE * 2 * CHANNEL_NUM_PER_ADC`, where `CHUNK_SIZE` is the number of samples per channel in one half-transfer
+4. Update the transfer function to include all channels
+
+```c
+...
+static const uint16_t CHUNK_SIZE = 75;
+static const uint16_t CHANNEL_NUM_PER_ADC = 3;
+static const uint16_t DMA_BUFFER_SIZE = CHUNK_SIZE * 2 * CHANNEL_NUM_PER_ADC;
+...
+static uint8_t adc_pins[CHANNEL_NUM_PER_ADC] = {A0, A1, A2};
+...
+void loop() {
+    if (SensEdu_ADC_IsDmaHalfTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaHalfTransferComplete(adc);
+        if (Serial) {
+            transfer_buf(&dma_buffer[0], (DMA_BUFFER_SIZE / 2));
+        }
+    }
+
+    if (SensEdu_ADC_IsDmaTransferComplete(adc)) {
+        SensEdu_ADC_ClearDmaTransferComplete(adc);
+        if (Serial) {
+            transfer_buf(&dma_buffer[DMA_BUFFER_SIZE / 2], (DMA_BUFFER_SIZE / 2));
+        }
+    }
+}
+...
+```
+
+#### Notes
+{: .no_toc}
+* Data is organized into sequences. Conversions follow exactly the same order defined in `adc_pins` (A0 → A1 → A2 in this example).
+* In this example, `CHUNK_SIZE` is per-channel. Therefore, each half-transfer contains `CHUNK_SIZE * CHANNEL_NUM_PER_ADC` samples.
+
+{: .WARNING}
+The provided MATLAB script for 3CH circular DMA is implemented as a function instead of a plain script. This is required so MATLAB's `onCleanup` callback fires immediately when the user stops the function, allowing the host to send a pause command to the firmware before closing the serial port. In normal MATLAB stop and restart workflows, this prevents the firmware from remaining busy in USB CDC transmission after the host script is stopped. \
+Abrupt host-side failures such as forced MATLAB termination or cable disconnection can still leave the firmware blocked in USB CDC transmission, in which case a firmware reset may still be required.
 
 ### ADCx3_Different_SR
 
@@ -1009,9 +1140,11 @@ SensEdu_ADC_Settings adc_settings = {
     .adc = ADC1,
     .pins = pins,
     .pin_num = 1,
-    .conv_mode = SENSEDU_ADC_MODE_CONT,
-    .sampling_freq = 0,
-    .dma_mode = SENSEDU_ADC_DMA_CONNECT,
+
+    .sr_mode = SENSEDU_ADC_SR_MODE_FREE,
+    .sampling_rate_hz = 0,
+
+    .adc_mode = SENSEDU_ADC_MODE_DMA_NORMAL,
     .mem_address = (uint16_t*)buf,
     .mem_size = buf_size
 };
@@ -1023,12 +1156,12 @@ void setup() {
 }
 
 void loop() {
-    if (SensEdu_ADC_GetTransferStatus(ADC1)) {
+    if (SensEdu_ADC_IsDmaTransferComplete(ADC1)) {
         Serial.println("------");
         for (uint16_t i = 0; i < buf_size; i++) {
             Serial.println(buf[i]);
         }
-        SensEdu_ADC_ClearTransferStatus(ADC1);
+        SensEdu_ADC_ClearDmaTransferComplete(ADC1);
         SensEdu_ADC_Start(ADC1);
     }
 }

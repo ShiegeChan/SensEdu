@@ -1,0 +1,99 @@
+(footprint "TestPoint_THTPad_D2.0mm_Drill1.0mm"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(descr "THT pad as test Point, diameter 2.0mm, hole diameter 1.0mm")
+	(tags "test point THT pad")
+	(property "Reference" "REF**"
+		(at -0.02 -2 0)
+		(layer "F.SilkS")
+		(uuid "e7073cc4-3b35-45dc-b974-703410ffe34a")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Value" "+2.5V"
+		(at -0.12 2.32 0)
+		(layer "F.SilkS")
+		(uuid "3792ecef-add0-430f-886b-bee3184baa98")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" "~"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "bcbab1a6-d278-4067-9484-8b0cfba64dbf")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" "test point"
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "33ac6c6c-8007-43fd-bad5-53e9650888a2")
+		(effects
+			(font
+				(size 1.27 1.27)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr exclude_from_pos_files)
+	(fp_circle
+		(center 0 0)
+		(end 0 1.2)
+		(stroke
+			(width 0.12)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "863dcbdd-4d5a-44fb-82aa-68e110216816")
+	)
+	(fp_circle
+		(center 0 0)
+		(end 1.5 0)
+		(stroke
+			(width 0.05)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.CrtYd")
+		(uuid "9511ab69-3842-41cf-a7ab-668ddc91f0e8")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 0.49 -2 0)
+		(layer "F.Fab")
+		(uuid "e83c958b-6151-48e2-beca-9744cb2c5673")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "1" thru_hole circle
+		(at 0 0)
+		(size 2 2)
+		(drill 1)
+		(layers "*.Cu" "*.Mask")
+		(remove_unused_layers no)
+		(uuid "a94e2a32-85ad-438b-b5b0-5de5c1cc3d2d")
+	)
+	(embedded_fonts no)
+)

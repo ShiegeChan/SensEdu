@@ -2,14 +2,15 @@
 	(version 20241229)
 	(generator "pcbnew")
 	(generator_version "9.0")
+	(locked yes)
 	(layer "F.Cu")
 	(descr "328ST16M_Speaker")
 	(tags "328ST16M_Speaker")
 	(property "Reference" "REF**"
-		(at 0 -2.92 0)
+		(at 0 -2.92 180)
 		(layer "F.SilkS")
 		(hide yes)
-		(uuid "798e4303-12f8-46e6-97b4-bf520238a5b5")
+		(uuid "4395a43b-5f7b-4ce9-ad12-26c9959f7060")
 		(effects
 			(font
 				(size 1 1)
@@ -17,10 +18,10 @@
 			)
 		)
 	)
-	(property "Value" "328ST16M_Speaker"
-		(at 0 9.5 0)
+	(property "Value" "328ST16M"
+		(at 0 9.5 180)
 		(layer "F.Fab")
-		(uuid "7d125ff3-549b-4d87-b3e7-c774fb3ce9f1")
+		(uuid "e684fe3c-3c89-4ba0-9ddc-a0c850b2dec6")
 		(effects
 			(font
 				(size 1 1)
@@ -28,11 +29,11 @@
 			)
 		)
 	)
-	(property "Datasheet" ""
-		(at 0 0 0)
+	(property "Datasheet" "https://www.farnell.com/datasheets/4413630.pdf"
+		(at 0 0 180)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "0cb09d7e-7fc1-418b-88dd-fa888e7379ff")
+		(uuid "3ea15923-1b1a-4a5a-8d18-827953d00b52")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -41,10 +42,10 @@
 		)
 	)
 	(property "Description" ""
-		(at 0 0 0)
+		(at 0 0 180)
 		(layer "F.Fab")
 		(hide yes)
-		(uuid "ad49dbd3-02d7-467e-b606-1dc7cd9a3e13")
+		(uuid "2206c2f0-a773-4ab1-a05a-0af2266ccddf")
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -62,7 +63,7 @@
 		)
 		(fill yes)
 		(layer "F.SilkS")
-		(uuid "95d973d6-3117-4c96-9f21-f921b54143b5")
+		(uuid "6272358f-e6a7-434e-af6b-55e7445c6646")
 	)
 	(fp_circle
 		(center 0 0)
@@ -73,7 +74,7 @@
 		)
 		(fill no)
 		(layer "F.SilkS")
-		(uuid "91528f97-3b2d-4665-920d-ab77b324b6d3")
+		(uuid "c95b8b7a-bff8-4535-97b7-33843253af53")
 	)
 	(fp_circle
 		(center 0 0)
@@ -84,7 +85,7 @@
 		)
 		(fill no)
 		(layer "F.SilkS")
-		(uuid "37fa6a70-a725-484e-ad40-88a7dd958589")
+		(uuid "c63e4d15-a46d-4139-afd4-cef83666d08d")
 	)
 	(fp_line
 		(start -6.35 0)
@@ -94,7 +95,7 @@
 			(type solid)
 		)
 		(layer "F.Fab")
-		(uuid "7ed2a8ac-f69b-426e-af65-a1389dd6df30")
+		(uuid "12a1dbde-3252-4031-9075-868b95ff4075")
 	)
 	(fp_line
 		(start 6.35 0)
@@ -104,17 +105,17 @@
 			(type solid)
 		)
 		(layer "F.Fab")
-		(uuid "ec09ffcc-f33f-4388-98f6-2fbfff7c7838")
+		(uuid "1c791494-9dcf-4b1b-8dc5-588d8ce928e1")
 	)
-	(fp_text user "TX**"
-		(at 0 -9 0)
+	(fp_text user "TX1"
+		(at 0 8.1 180)
 		(unlocked yes)
 		(layer "F.SilkS")
-		(uuid "6aa5306b-3c16-4088-9f4d-538bcad1d123")
+		(uuid "978a8b29-7bef-49ea-8487-13a4ae756871")
 		(effects
 			(font
-				(size 0.7 0.7)
-				(thickness 0.1)
+				(size 1 1)
+				(thickness 0.125)
 			)
 			(justify bottom)
 		)
@@ -125,7 +126,7 @@
 		(drill 1.4)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
-		(uuid "4b497491-969b-4bd4-8ec6-c37451c30948")
+		(uuid "65c297e0-2974-4f1c-a924-b54fa1a55213")
 	)
 	(pad "2" thru_hole circle
 		(at 5 0)
@@ -133,7 +134,7 @@
 		(drill 1.4)
 		(layers "*.Cu" "*.Mask")
 		(remove_unused_layers no)
-		(uuid "d55f23ef-5e86-46f9-8157-c3894c33b3ef")
+		(uuid "a7d3dbce-a618-4286-a9fb-bcd98fb955dd")
 	)
 	(embedded_fonts no)
 	(model "${KIPRJMOD}/libraries/3D/328ST16M.stp"

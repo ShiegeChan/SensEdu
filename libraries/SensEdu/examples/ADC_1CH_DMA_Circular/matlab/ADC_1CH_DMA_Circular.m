@@ -3,65 +3,109 @@ clear;
 close all;
 clc;
 
-%% Settings
-ARDUINO_PORT = 'COM9';
+%% EMG Settings
+
+% Plot Processing Steps (slows down the script)
+ENABLE_PLOTS = true;
+PLOT_FREQUENCY_SEC = 1;
+
+% Sampling Rates
+Fs = 44100;
+
+% Per channel chunk size in 16-bit samples
+CHUNK_SIZE = 75;
+
+% Rolling buffer size for processing
+% Contains ROLLING_BUF_DUR_MS worth of data chunks
+ROLLING_BUF_DUR_MS = 50;
+ROLLING_BUF_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE/1000*ROLLING_BUF_DUR_MS);
+
+%% Connection Settings
+ARDUINO_PORT = 'COM16';
 ARDUINO_BAUDRATE = 2000000;
-ITERATIONS = 200;
 
-BUF_SIZE = 64;
-HALF_BUF_SIZE = BUF_SIZE/2;
+% ADC+DMA Settings
+TRANSFER_BUF_SIZE = CHUNK_SIZE * 2;
 
-CHUNK_SIZE = 64; % Bytes per USB request
+% USB Settings
+USB_BUF_MAX_MS = 500;
+USB_BUF_MAX_BYTES = USB_BUF_MAX_MS / 1e3 * Fs * 2;
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
-flush(arduino);
 
-%% Readings Loop
-data = zeros(HALF_BUF_SIZE, ITERATIONS);
-time_axis = zeros(1, ITERATIONS);
+%% Init
+half_buf_size = TRANSFER_BUF_SIZE / 2;
+chunks = zeros(1, half_buf_size);
+buffers = zeros(ROLLING_BUF_SIZE, 1);
 
-% Trigger the measurement
-write(arduino, 't', "char");
-
-for it = 1:ITERATIONS
-    data(:,it) = read_data(arduino, HALF_BUF_SIZE, CHUNK_SIZE);
+if ENABLE_PLOTS
+    f1 = figure('WindowState', 'maximized');
+    pause(1);
+    tic;
 end
 
-plot_dataset(data);
-plot_boundaries(data, HALF_BUF_SIZE, ITERATIONS);
+flush(arduino);
+tic;
 
-% set COM port back free
-arduino = [];
+%% Loop
+while (true)
+    if (arduino.NumBytesAvailable > USB_BUF_MAX_BYTES)
+        disp("Too much input buffered data. USB buffer has been flushed.");
+        flush(arduino);
+    end
+    
+    % 1. Record chunk of data
+    [is_recorded, chunks] = read_data(arduino, half_buf_size);
+    if ~is_recorded
+        continue;
+    end
+    
+    % 2. Add chunk to the rolling buffer
+    chunks = chunks';
+    chunk_size = size(chunks, 1);
+    if chunk_size >= numel(buffers)
+        buffers = chunks(end-numel(buffers)+1:end);
+    else
+        buffers(1:end-chunk_size) = buffers(chunk_size+1:end);
+        buffers(end-chunk_size+1:end) = chunks;
+    end
+
+    % 3. Plot
+    if ENABLE_PLOTS
+        elapsed_time = toc;
+        if elapsed_time > PLOT_FREQUENCY_SEC
+            figure(f1);
+            pause(0.001);
+            plot_dataset(buffers(:, :), false);
+            tic;
+        end
+    end
+end
 
 %% Functions
-function data = read_data(arduino, buf_size, chunk_size)
-    % 2 bytes per sample
+function [is_recorded, data] = read_data(arduino, buf_size)
     total_byte_length = buf_size * 2;
-    serial_rx_data = zeros(1, total_byte_length, 'uint8');
-    bytes_read = 0;
-    while bytes_read < total_byte_length 
-        transfer_size = min(chunk_size, total_byte_length - bytes_read);
-        serial_rx_data(bytes_read + 1 : bytes_read + transfer_size) = read(arduino, transfer_size, 'uint8');
-        bytes_read = bytes_read + transfer_size;
+    is_recorded = true;
+    if arduino.NumBytesAvailable < total_byte_length
+        is_recorded = false;
+        data = 0;
+        N = 0;
+        return;
     end
+
+    available = arduino.NumBytesAvailable;
+    N = floor(available / total_byte_length);
+    serial_rx_data = read(arduino, total_byte_length * N, "uint8");
+
     data = double(typecast(uint8(serial_rx_data), 'uint16'));
 end
 
-function plot_dataset(data)
-    OneDArray = reshape(data, 1, []);
-    plot(OneDArray)
-    ylabel("ADC 16bit value");
-    grid on;
-    ylim([0, 65535]);
-end
-
-function plot_boundaries(buf, buf_size, buf_num)
-    hold on;
-    package_idxs = [buf_size, buf_size+1];
-    for it = 2:buf_num
-        package_idxs = [package_idxs, buf_size*it, ((buf_size*it)+1)];
+function plot_dataset(data, enable_hold)
+    if enable_hold
+        hold on;
     end
-    package_idxs = package_idxs(1:(end-1));
-    scatter(package_idxs, buf(package_idxs));
+    plot(data);
+    ylim([0, 65535]);
+    hold off;
 end
