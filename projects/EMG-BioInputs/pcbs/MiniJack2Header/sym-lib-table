@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "MiniJack2Header")(type "KiCad")(uri "${KIPRJMOD}/libraries/MiniJack2Header.kicad_sym")(options "")(descr ""))
+)
