@@ -72,7 +72,7 @@ In SensEdu we use surface EMG. From now on, whenever we mention EMG or electrode
 
 ## Hardware Setup
 
-This section describes the necessary connections and hardware details required for the proper setup of the EMG BioInputs system and writing the script for MCU. Below is an illustration of the overall system architecture.
+This section describes the necessary connections and hardware details required for the proper setup of the EMG BioInputs system and writing the script for the MCU. Below is an illustration of the overall system architecture.
 
 <img src="{{site.baseurl}}/assets/images/emg-block.png"/>
 {: .text-center .mb-1}
@@ -99,7 +99,7 @@ A typical electrode consists of 3 connectors: **Reference**, **Positive Input**,
 | Reference           |   GND  | 4th Pin    |
 
 {: .WARNING}
-Most of the commercially available electrodes use connectors that are not directly compatible with typical 2.54 headers. For the specific chosen electrode you will need a solution how to make this connection possible via soldering, custom adapters, or ready-made solutions.
+Most commercially available electrodes use connectors that are not directly compatible with typical 2.54 headers. For your specific electrode, you will need a way to make this connection work via soldering, custom adapters, or ready-made solutions.
 
 In our example, we used the following electrodes:
 
@@ -108,7 +108,7 @@ In our example, we used the following electrodes:
 | SparkFun Electronics | Electrode Pads | 12970 | [link](https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/2277/CAB-12970_Web.pdf) | [link](https://www.digikey.at/de/products/detail/sparkfun-electronics/12970/6833933?gclsrc=aw.ds&gad_source=1&gad_campaignid=20265439570&gclid=CjwKCAjwqKzEBhANEiwAeQaPVawVKSgXTIiVYtlIXGx7Bx94wvNKO64lkmGlu8jQ0lByNxnXmPGLFhoCgNcQAvD_BwE) |
 | MTG Imiella Medizintechnik | Liquid Gel Disposable Electrodes for ECG (Ø40mm) | S40LG | [link](https://static.mercateo.com/ec/2c36d66dd9904e92ad9e3075734affb2/pdf/106366.pdf?v=2297) | [link](https://www.mercateo.at/p/2768-028002/Einmal_Klebeelektroden_40_mm_Liquid_Gel_30_Stueck.html) |
 
-These electrodes use a mini-jack connector. To simplify the connection, we designed a simple PCB adapter **MiniJack2Header**. This adapter is inserted vertically into the SensEdu header, providing a mini-jack socket and eliminating the need for soldering. All PCB source files, including Gerbers and BOM, are available in the directory: `/projects/EMG-BioInputs/pcbs/MiniJack2Header`. To replicate our setup, you can use archive `MiniJack2Jumper/manufacturing/MiniJack2Header-Gerber.zip` to order the PCB. For this simple adapter you can use any cheap manufacturer with the final cost typically ranging from $15–$30 depending on the shipping.
+These electrodes use a mini-jack connector. To simplify the connection, we designed a simple PCB adapter **MiniJack2Header**. This adapter is inserted vertically into the SensEdu header, providing a mini-jack socket and eliminating the need for soldering. All PCB source files, including Gerbers and BOM, are available in the directory: `/projects/EMG-BioInputs/pcbs/MiniJack2Header`. To replicate our setup, you can use the archive `MiniJack2Jumper/manufacturing/MiniJack2Header-Gerber.zip` to order the PCB. For this simple adapter you can use any cheap manufacturer, with the final cost typically ranging from $15–$30 depending on shipping.
 
 <img src="{{site.baseurl}}/assets/images/emg-minijack2header.png"/>
 {: .text-center .mb-1}
@@ -182,13 +182,13 @@ All these details are available in the [SensEdu schematics]({{site.baseurl}}/ass
 | J11   | U7 CH2  | A11   | PA0_C | ADC1 & ADC2 |
 
 {: .NOTE}
-`PC2_C (A8)` and `PC3_C (A9)` can be shorted to their non-C pins: `PC2 (A5)` and `PC3 (A4)` respectively. This allows to use all possible ADCs through one of these pins. To do that, SensEdu Library introduces `SensEdu_ADC_ShortA4A9()` and `SensEdu_ADC_ShortA5A8()` calls.
+`PC2_C (A8)` and `PC3_C (A9)` can be shorted to their non-C pins, `PC2 (A5)` and `PC3 (A4)` respectively. This lets a signal entering the C-pin connector be read through the ADCs available on the corresponding non-C pin. To do that, the SensEdu Library provides the `SensEdu_ADC_ShortA4A9()` and `SensEdu_ADC_ShortA5A8()` calls.
 
 ### Data Acquisition
 
 The next step is to develop the Arduino sketch responsible for data acquisition. This involves configuring ADC parameters, such as sampling rate, buffer size, memory mode, etc.
 
-For EMG, a sampling rate of $$1\mathrm{kHz}$$ is the minimum requirement. To improve the quality of signal acquisition, this project uses a higher one of $$f_s = 5\mathrm{kHz}$$. Each channel uses a buffer of $$N_s = 75 \ \mathrm{samples}$$. ADC is configured with circular DMA to minimize CPU load and maximize performance. The ideal theoretical duration of one measurement chunk is given as:
+For EMG, a sampling rate of $$1\mathrm{kHz}$$ is the minimum requirement. To improve the quality of signal acquisition, this project uses a higher value of $$f_s = 5\mathrm{kHz}$$. Each channel uses a buffer of $$N_s = 75 \ \mathrm{samples}$$. ADC is configured with circular DMA to minimize CPU load and maximize performance. The ideal theoretical duration of one measurement chunk is given as:
 
 $$d_{chunk, \ ideal} = \frac{N_s}{f_s} = \frac{75 \ \mathrm{samples}}{5\mathrm{kHz}} = 15\mathrm{ms} $$
 
@@ -197,9 +197,9 @@ The measurement duration is calculated for one channel. If you use multiple chan
 
 In practice, the actual $$d_{chunk}$$ is approximately $$50\mathrm{ms}$$ due to delays from data transmission, ADC conversion rate fluctuations, signal processing delay, and other factors. In the end, it results in a practical measurement rate of around $$20$$ measurements per second. If this performance is not satisfactory, revisit the adjustment of ADC parameters.
 
-Keeping selected parameters in mind, the ADC can be configured using [SensEdu Library]({% link library/index.md %}). The configuration follows similar structure to the [ADC_1CH_DMA_Circular]({% link library/adc.md %}#adc_1ch_dma_circular) example. Below is a minimal code example, focusing on the essential lines. Code snippets show the EMG config for all x4 channels.
+Keeping the selected parameters in mind, the ADC can be configured using the [SensEdu Library]({% link library/index.md %}). The configuration follows a similar structure to the [ADC_3CH_DMA_Circular]({% link library/adc.md %}#adc_3ch_dma_circular) example. Below is a minimal code example, focusing on the essential lines. Code snippets show the EMG config for all x4 channels.
 
-Since DMA is set to the circular mode, the optimal DMA buffer size should be small. Since EMG chunk is planned as $$N_s = 75 \ \mathrm{samples}$$, the size could be just picked as double for half-transfer being exactly $$75$$ samples. Considering 4 channels, the final total DMA buffer size is: $$75 \times 2 \times 4 = 600$$ samples.
+Since DMA is set to the circular mode, the optimal DMA buffer size should be small. Since the EMG chunk is planned as $$N_s = 75 \ \mathrm{samples}$$, the size can simply be doubled so that a half-transfer holds exactly $$75$$ samples. Considering 4 channels, the final total DMA buffer size is: $$75 \times 2 \times 4 = 600$$ samples.
 
 ```c
 // EMG Chunk Configuration
@@ -231,7 +231,7 @@ SensEdu_ADC_Settings adc_settings = {
 };
 ```
 
-For simplicity, `ADC1` is used for all 4 channels. Since `A8` and `A9` have access only to `ADC3`, shorting `A4→A9` and `A5→A8` is required to route these pins through `ADC1`. Then, initialize, enable, and start the ADC.
+For simplicity, `ADC1` is used for all 4 channels. Since `A8` and `A9` have access only to `ADC3`, they are shorted to `A5` and `A4` respectively, making their signals readable through `ADC1`. Then, initialize, enable, and start the ADC.
 
 ```c
 void setup() {
@@ -246,7 +246,7 @@ void setup() {
 }
 ```
 
-In the main loop, data is continuously recorded, and transferred to PC.
+In the main loop, data is continuously recorded and transferred to the PC.
 
 ```c
 void loop() {
@@ -266,7 +266,7 @@ The final expanded sketch is available at `/projects/EMG-BioInputs/EMG-BioInputs
 
 ### Data Transfer
 
-The GIGA R1 USB-C "Serial" port is a USB CDC-ACM (virtual COM port), not a hardware UART. As a result, the baud rate passed to `Serial.begin()` does not actually affect the USB link speed; it is retained for API compatibility. The board uses USB Full-Speed (FS) with maximum packet size of 64 bytes. For hardware details, refer to the Figure 793 (Page 2747) of [STM32H747 Reference Manual] (OTG_FS) and the USB0 in the [Arduino GIGA R1 Schematics].
+The GIGA R1 USB-C "Serial" port is a USB CDC (virtual COM port), not a hardware UART. As a result, the baud rate passed to `Serial.begin()` does not actually affect the USB link speed; it is retained for API compatibility. The board uses USB Full-Speed (FS) with a maximum packet size of 64 bytes. For hardware details, refer to Figure 793 (Page 2747) of the [STM32H747 Reference Manual] (OTG_FS) and the USB0 section in the [Arduino GIGA R1 Schematics].
 
 On the host (PC), the OS driver reads from the CDC using URBs (USB Request Blocks). The URB read size is driver/OS dependent (on our Windows 11 test system it is 4096 bytes). A host read typically completes when either:
 
@@ -276,7 +276,7 @@ On the host (PC), the OS driver reads from the CDC using URBs (USB Request Block
 
 If the device continuously writes data in exact multiples of the USB max packet size (FS: 64 bytes), the driver may wait until an entire URB fills, increasing latency. To reduce latency, ensure each application-level chunk ends with a short packet.
 
-In our EMG case, the short packet needs to be created manually; `Serial` doesn't offer a proper API to flush the URB. Prefer chunk sizes whose total byte count is not a multiple of the max 64 bytes packet size, which naturally creates the short packet in the end of the URB. Alternatively, you could add a small padding, so the final packet is short, and make the receiver ignore the pad. 
+In our EMG case, the short packet needs to be created manually; `Serial` doesn't offer a proper API to flush the URB. Prefer chunk sizes whose total byte count is not a multiple of the 64-byte max packet size, which naturally creates a short packet at the end of the URB. Alternatively, you could add small padding so the final packet is short, and make the receiver ignore the pad. 
 
 ```c
 static void transfer_buf(volatile uint16_t* data, uint16_t data_length) {
