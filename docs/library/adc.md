@@ -446,6 +446,56 @@ uint32_t SensEdu_ADC_GetOverrunCount(ADC_TypeDef* adc);
 * Total number of detected overrun events since initialization.
 
 
+### SensEdu_ADC_ShortA4A9
+Internally connects A4 and A9 pins, making ADC1, ADC2, and ADC3 all accessible through either pin.
+
+```c
+void SensEdu_ADC_ShortA4A9(void);
+```
+
+#### Notes
+{: .no_toc}
+* By default, A4 (`PC3`) has access to ADC1 and ADC2, while A9 (`PC3_C`) has access only to ADC3. Shorting them makes all three ADCs available on either pin.
+* Useful when ADC1 or ADC2 is needed on A9.
+* Revert with `SensEdu_ADC_OpenA4A9()`.
+
+{: .WARNING}
+In `adc_pins`, always specify the pin where your target ADC natively has its channel, regardless of which connector the signal physically enters. Use `A4` for ADC1/ADC2 and `A9` for ADC3.
+
+
+### SensEdu_ADC_ShortA5A8
+Internally connects A5 and A8 pins, making ADC1, ADC2, and ADC3 all accessible through either pin.
+
+```c
+void SensEdu_ADC_ShortA5A8(void);
+```
+
+#### Notes
+{: .no_toc}
+* By default, A5 (`PC2`) has access to ADC1, ADC2, and ADC3, while A8 (`PC2_C`) has access only to ADC3. Shorting them makes all three ADCs available on either pin.
+* Useful when ADC1 or ADC2 is needed on A8.
+* Revert with `SensEdu_ADC_OpenA5A8()`.
+
+{: .WARNING}
+In `adc_pins`, always specify the pin where your target ADC natively has its channel, regardless of which connector the signal physically enters. A5 natively has ADC1/ADC2/ADC3, while A8 has only ADC3. So shorting is meaningful to read ADC1/ADC2 from a signal on the A8 connector: specify `A5` (not `A8`).
+
+
+### SensEdu_ADC_OpenA4A9
+Disconnects A4 and A9 pins, restoring their independent ADC access. Reverts `SensEdu_ADC_ShortA4A9()`.
+
+```c
+void SensEdu_ADC_OpenA4A9(void);
+```
+
+
+### SensEdu_ADC_OpenA5A8
+Disconnects A5 and A8 pins, restoring their independent ADC access. Reverts `SensEdu_ADC_ShortA5A8()`.
+
+```c
+void SensEdu_ADC_OpenA5A8(void);
+```
+
+
 ## Examples
 
 Examples are organized incrementally. Each builds on the previous one by introducing only new features or modifications. Refer to earlier examples for core functionality details.

@@ -392,6 +392,30 @@ void SensEdu_ADC_ClearDmaHalfTransferComplete(ADC_TypeDef* adc) {
     state->dma_half_transfer = false;
 }
 
+// Shorts A4 and A9 pins internally, so ADC1, ADC2, and ADC3 are all accessible through either of these pins.
+// Useful in the case when ADC1 or ADC2 is needed on A9 which originally has access only to ADC3.
+void SensEdu_ADC_ShortA4A9(void) {
+    CLEAR_BIT(SYSCFG->PMCR, SYSCFG_PMCR_PC3SO);
+}
+
+// Shorts A5 and A8 pins internally, so ADC1, ADC2, and ADC3 are all accessible through either of these pins.
+// Useful in the case when ADC1 or ADC2 is needed on A8 which originally has access only to ADC3.
+void SensEdu_ADC_ShortA5A8(void) {
+    CLEAR_BIT(SYSCFG->PMCR, SYSCFG_PMCR_PC2SO);
+}
+
+// Opens A4 and A9 pins internally, so these channels are separated again.
+// Revert of the SensEdu_ADC_ShortA4A9 function.
+void SensEdu_ADC_OpenA4A9(void) {
+    SET_BIT(SYSCFG->PMCR, SYSCFG_PMCR_PC3SO);
+}
+
+// Opens A5 and A8 pins internally, so these channels are separated again.
+// Revert of the SensEdu_ADC_ShortA5A8 function.
+void SensEdu_ADC_OpenA5A8(void) {
+    SET_BIT(SYSCFG->PMCR, SYSCFG_PMCR_PC2SO);
+}
+
 // Returns ADC driver's current error state.
 ADC_ERROR ADC_GetError(void) {
     return error;

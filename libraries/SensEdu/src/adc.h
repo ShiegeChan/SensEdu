@@ -102,6 +102,11 @@ void SensEdu_ADC_ClearDmaTransferComplete(ADC_TypeDef* adc);
 bool SensEdu_ADC_IsDmaHalfTransferComplete(ADC_TypeDef* adc);
 void SensEdu_ADC_ClearDmaHalfTransferComplete(ADC_TypeDef* adc);
 
+void SensEdu_ADC_ShortA4A9(void);
+void SensEdu_ADC_ShortA5A8(void);
+void SensEdu_ADC_OpenA4A9(void);
+void SensEdu_ADC_OpenA5A8(void);
+
 ADC_ERROR ADC_GetError(void);
 void ADC_SetDmaTransferComplete(ADC_TypeDef* adc);
 void ADC_SetDmaHalfTransferComplete(ADC_TypeDef* adc);

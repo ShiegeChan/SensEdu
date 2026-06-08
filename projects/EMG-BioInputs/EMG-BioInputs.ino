@@ -16,7 +16,7 @@ static ADC_TypeDef* adc = ADC1;
 static const uint16_t SAMPLING_RATE_PER_CH = 5000;
 
 static const uint16_t CHANNEL_NUM_PER_ADC = 4;
-static uint8_t adc_pins[CHANNEL_NUM_PER_ADC] = {A0, A2, A11, A7};
+static uint8_t adc_pins[CHANNEL_NUM_PER_ADC] = {A5, A4, A10, A11};
 
 // DMA Settings
 static const uint16_t DMA_BUFFER_SIZE = EMG_CHUNK_SIZE * 2 * CHANNEL_NUM_PER_ADC;
@@ -45,6 +45,9 @@ void setup() {
 
     pinMode(ERROR_LED_PIN, OUTPUT);
     digitalWrite(ERROR_LED_PIN, HIGH);
+
+    SensEdu_ADC_ShortA4A9();
+    SensEdu_ADC_ShortA5A8();
 
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
