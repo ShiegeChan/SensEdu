@@ -15,7 +15,7 @@ clc;
 
 %% Include (shared processing + decision functions)
 addpath(genpath('./processing/'));
-addpath(genpath('./keys/'));
+addpath(genpath('./decision/'));
 
 %% Input File
 

@@ -5,8 +5,7 @@ clc;
 
 %% Include
 addpath(genpath('./processing/'));
-addpath(genpath('./keys/'));
-addpath(genpath('./plotting/'));
+addpath(genpath('./decision/'));
 
 %% Debug Settings
 LATENCY_METER_ENABLED = false;
