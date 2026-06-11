@@ -4,8 +4,10 @@ close all;
 clc;
 
 %% Include
+addpath(genpath('./acquisition/'));
 addpath(genpath('./processing/'));
 addpath(genpath('./decision/'));
+addpath(genpath('./plotting/'));
 
 %% Debug Settings
 LATENCY_METER_ENABLED = false;
@@ -48,25 +50,12 @@ FIR_DELAY = TAPS/2;
 FIR_COEFFS = fir1(TAPS, [F0 F1]/(Fs/2), 'bandpass');
 
 %% Decision Settings (per-channel adaptive gate -> one game button each)
-% Each channel drives ONE key: a contraction presses the key DOWN, relaxing
-% releases it UP. The game decides tap vs hold (e.g. Dark Souls: tap B = roll,
-% hold B = sprint; repeated R1 = attack combo), so the controller is a plain
-% gate, not a classifier.
-%
-% Thresholds work in a NORMALISED range, not absolute counts, so they stay
-% valid through a long session as the raw amplitude drifts (electrode position,
-% and fatigue which raises amplitude for a given force):
-%   floor   = low  percentile of the recent envelope  (the rest level)
-%   ceiling = high percentile of the recent envelope  (a typical press)
-%   n = (env - floor) / (ceiling - floor)              (~0 at rest, ~1 on press)
-% The gate fires at n >= DEC_FRAC_HIGH and releases at n <= DEC_FRAC_LOW
-% (computed here as plain counts floor + frac*(ceiling-floor), which is the
-% same thing without dividing). Floor and ceiling are tracked continuously
-% over a LONG rolling window - so a single hard contraction cannot dominate the
-% ceiling and a quiet spell cannot collapse it - and are eased with a time
-% constant so they never jump. (ceiling - floor) is clamped to at least
-% DEC_MIN_GAP: the minimum effort a press must clear above rest, which both
-% stops rest noise from triggering and keeps a dead/disconnected channel silent.
+% Each channel drives ONE button as a plain gate (not a classifier): a
+% contraction presses it DOWN, relaxing releases it UP, and the game decides
+% tap vs hold. The onset/release thresholds adapt to a rolling floor/ceiling of
+% the envelope so they stay valid as the amplitude drifts (fatigue, electrode
+% position). See the "Decision Block" section of the EMG-BioInputs docs for the
+% full rationale (normalisation, long window, easing, min-gap clamp).
 ENABLE_KEYS      = true;  % false = detect only (safe); true = inject real keystrokes
 CH_BUTTON        = {'LMB', 'Space', 'R1', 'B'};  % per-channel game button (ch1..ch4)
 
@@ -237,13 +226,9 @@ while (true)
         cal_count = min(cal_count + 1, DEC_CAL_WINDOW);
     end
 
-    % Re-measure the floor/ceiling periodically and ease the thresholds toward
-    % them. The long window keeps the ceiling at a TYPICAL press (not a one-off
-    % max), and easing (DEC_ADAPT_S) stops the thresholds jumping. The gap is
-    % clamped to DEC_MIN_GAP so rest noise never reaches the press level and
-    % dead channels stay silent. Adapting starts after a short bootstrap, using
-    % only the samples gathered so far, so play is possible within seconds
-    % instead of after a full window.
+    % Periodically re-measure the floor/ceiling and ease the thresholds toward
+    % them. Adapting starts after a short bootstrap (DEC_CAL_BOOT) so play is
+    % possible within seconds rather than after a full window.
     if cal_count >= DEC_CAL_BOOT && (~calibrated || toc(cal_timer) > DEC_CAL_UPDATE_S)
         % Percentiles over only the filled part of the ring buffer.
         win = cal_hist(end - cal_count + 1:end, :);
@@ -330,88 +315,5 @@ while (true)
 end
 
 %% Functions
-function [is_recorded, data] = read_data(arduino, buf_size)
-    total_byte_length = buf_size * 2;
-    is_recorded = true;
-    if arduino.NumBytesAvailable < total_byte_length
-        is_recorded = false;
-        data = 0;
-        N = 0;
-        return;
-    end
-
-    available = arduino.NumBytesAvailable;
-    N = floor(available / total_byte_length);
-    serial_rx_data = read(arduino, total_byte_length * N, "uint8");
-
-    data = double(typecast(uint8(serial_rx_data), 'uint16'));
-end
-
-function split_data = split_by_channel(data, ch_num)
-    data = reshape(data, ch_num, []);
-    split_data = data.';
-end
-
-function plot_debug_window(t, env, env_dec, th_high, th_low, keys, ch_num, ch_button, win_s, floor_est, gap_est)
-    % Retrospective view of the last win_s seconds: the processed envelope (raw
-    % plus the smoothed value the gate actually uses), the adaptive onset /
-    % release thresholds that were in effect over time, and the resulting
-    % key-down decisions (shaded spans). Lets the gate be checked vs the signal.
-    for ch = 1:ch_num
-        if ch_num > 1
-            subplot(2, ch_num/2, ch);
-        end
-        cla;
-        hold on;
-
-        % Thresholds: Inf (before calibration / inactive channel) -> NaN so they
-        % leave gaps and do not distort the y-axis autoscale.
-        th_h = th_high(:, ch); th_h(~isfinite(th_h)) = NaN;
-        th_l = th_low(:, ch);  th_l(~isfinite(th_l)) = NaN;
-
-        % Stable y-range anchored to the (slow-moving) floor/ceiling so the
-        % axis does not rescale every redraw -> the same press looks the same
-        % size from one window to the next, which makes comparison possible.
-        if isfinite(floor_est(ch)) && isfinite(gap_est(ch)) && gap_est(ch) > 0
-            yl = [floor_est(ch) - 0.3 * gap_est(ch), ...
-                  floor_est(ch) + 2.2 * gap_est(ch)];
-        else
-            % Not calibrated yet: fall back to the data range.
-            vals = [env(:, ch); env_dec(:, ch)];
-            lo = min(vals); hi = max(vals);
-            if ~(isfinite(lo) && isfinite(hi)) || hi <= lo
-                lo = 0; hi = 1;
-            end
-            pad = 0.05 * (hi - lo);
-            yl = [lo - pad, hi + pad];
-        end
-
-        % Shade the spans where the key was held down (drawn first = behind).
-        kd = keys(:, ch);
-        edges  = diff([false; kd(:); false]);
-        starts = find(edges == 1);
-        stops  = find(edges == -1) - 1;
-        for j = 1:numel(starts)
-            xs = t(starts(j)); xe = t(stops(j));
-            patch([xs xe xe xs], [yl(1) yl(1) yl(2) yl(2)], [0.2 0.7 0.2], ...
-                'FaceAlpha', 0.15, 'EdgeColor', 'none', 'HandleVisibility', 'off');
-        end
-
-        h_env = plot(t, env(:, ch), 'Color', [0.7 0.7 0.7]);
-        h_dec = plot(t, env_dec(:, ch), 'b');
-        h_hi  = plot(t, th_h, '--', 'Color', [0.85 0.33 0.10]);
-        h_lo  = plot(t, th_l, ':',  'Color', [0.85 0.33 0.10]);
-        hold off;
-
-        ylim(yl);
-        xlim([t(1) t(end)]);
-        title(sprintf('Channel %d [%s]', ch, ch_button{ch}));
-        xlabel('Time (s)'); ylabel('Envelope');
-        if ch == 1
-            legend([h_env h_dec h_hi h_lo], ...
-                {'envelope', 'gate input', 'onset', 'release'}, ...
-                'Location', 'northwest');
-        end
-    end
-    sgtitle(sprintf('Last %g s   (shaded = key DOWN)', win_s));
-end
+% Acquisition helpers (read_data, split_by_channel) live in ./acquisition/ and
+% the debug view (plot_debug_window) in ./plotting/, both shared on the path.

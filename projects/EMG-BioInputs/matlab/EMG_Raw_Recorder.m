@@ -11,6 +11,9 @@ clear;
 close all;
 clc;
 
+%% Include (shared acquisition functions)
+addpath(genpath('./acquisition/'));
+
 %% User settings
 ARDUINO_PORT = 'COM4';
 ARDUINO_BAUDRATE = 2000000; % Cosmetic for USB CDC
@@ -105,23 +108,5 @@ for ch = 1:CH_NUM
 end
 
 %% Functions
-function [is_recorded, data] = read_data(arduino, buf_size)
-    total_byte_length = buf_size * 2;
-    is_recorded = true;
-    if arduino.NumBytesAvailable < total_byte_length
-        is_recorded = false;
-        data = 0;
-        return;
-    end
-
-    available = arduino.NumBytesAvailable;
-    N = floor(available / total_byte_length);
-    serial_rx_data = read(arduino, total_byte_length * N, "uint8");
-
-    data = double(typecast(uint8(serial_rx_data), 'uint16'));
-end
-
-function split_data = split_by_channel(data, ch_num)
-    data = reshape(data, ch_num, []);
-    split_data = data.';
-end
+% Acquisition helpers (read_data, split_by_channel) are shared from
+% ./acquisition/ on the path.

@@ -331,11 +331,55 @@ There is a logic that doesn't start the plotting or decision making before the w
 
 ### FIR Filter
 
+Before filtering, the large DC offset is removed from the buffer (the signal sits around the ADC mid-scale, ~25000 counts). A linear-phase band-pass FIR (150 taps, 30–450 Hz) is then applied with `fir1`.
+
+{: .NOTE}
+DC removal must happen **before** the FIR, not rely on it. With 150 taps at $$f_s = 5\mathrm{kHz}$$ the filter transition is roughly $$f_s / \mathrm{TAPS} \approx 33\mathrm{Hz}$$ wide, so the 30 Hz lower edge cannot actually reject DC (the coefficients sum to ~0.2). If the offset is left in, the ~25000-count offset leaks ~5000 counts into the output and buries the EMG.
+
+After filtering, the first `TAPS` (150) samples are discarded. This does two things at once: it removes the FIR start-up transient and compensates the constant $$\mathrm{TAPS}/2$$ group delay of the linear-phase filter, so the output stays time-aligned with the raw signal.
+
 ### Rectification
+
+The band-passed signal is full-wave rectified (absolute value). Raw EMG is zero-mean, so rectification is what makes amplitude measures (mean, peak, area) meaningful and is the prerequisite for envelope extraction — all negative excursions are folded up about the baseline.
 
 ### Envelope
 
+The rectified signal is low-pass filtered with a 2nd-order Butterworth at $$f_c = 10\mathrm{Hz}$$ to produce the **linear envelope**, a smooth estimate of muscle activation that the decision stage works on.
+
+Because the system runs in real time, the envelope filter is applied **causally** (`filter`, not the zero-phase `filtfilt`, which needs the whole signal). A causal filter introduces a group delay, so its average delay below the cutoff is computed with `grpdelay` and trimmed from the front of the output, keeping the envelope aligned in time.
+
 ### Decision Block
+
+Each channel drives **one game button** and is treated as a plain **gate, not a classifier**: a contraction presses the button DOWN, relaxing releases it UP. The game itself decides what a press means (e.g. in Dark Souls a short tap of B rolls, a held B sprints), so the controller never has to distinguish tap from hold — it just mirrors the muscle, pressing at the contraction onset (the latency-critical moment) and releasing after a short debounce.
+
+#### Adaptive thresholds
+
+A fixed threshold only ever fits one recording: muscle fatigue and electrode position make the envelope amplitude drift several-fold within and between sessions. Instead the thresholds are derived from a rolling **floor** and **ceiling** of each channel's own envelope:
+
+* floor = a low percentile of the recent envelope (the rest level),
+* ceiling = a high percentile (a typical press).
+
+The activation is normalised into
+
+$$n = \frac{\mathrm{env} - \mathrm{floor}}{\mathrm{ceiling} - \mathrm{floor}}$$
+
+which is ~0 at rest and ~1 on a typical press, regardless of the absolute amplitude. The gate fires when $$n \ge \mathrm{FRAC\_HIGH}$$ and releases when $$n \le \mathrm{FRAC\_LOW}$$. (The code evaluates the equivalent counts $$\mathrm{floor} + \mathrm{frac} \cdot (\mathrm{ceiling} - \mathrm{floor})$$ directly, which avoids the division.)
+
+#### Stability over a long session
+
+The floor and ceiling are kept robust so the gate stays usable for a whole play session:
+
+* **Long rolling window** (tens of seconds): one very hard contraction is only a small fraction of the window, so it cannot inflate the ceiling and lock out later presses, and a quiet spell cannot collapse the span.
+* **Time-constant easing**: new floor/ceiling estimates are blended in gradually, so the thresholds glide instead of jumping.
+* **Minimum-gap clamp**: $$(\mathrm{ceiling} - \mathrm{floor})$$ is held to a minimum, which both stops rest noise from ever reaching the press level and keeps a dead or disconnected channel silent (its tiny span never clears the gap).
+* **Fast bootstrap**: calibration starts from the first few seconds of data, so the system is playable within seconds rather than after a full window.
+
+#### Hysteresis and hangover
+
+The high-onset / low-release hysteresis stops the gate chattering around a single threshold, and a short **hangover** bridges brief dips in the envelope inside one sustained contraction, so a single press is not fragmented into several. The offline processor (`EMG_Offline_Processor.m`) labels finished activations as *tap* or *hold* by duration purely for inspection; the live gate simply holds the key for as long as the contraction lasts.
+
+
+
 
 ![alt text]({{site.baseurl}}/projects/image-2.png)
 

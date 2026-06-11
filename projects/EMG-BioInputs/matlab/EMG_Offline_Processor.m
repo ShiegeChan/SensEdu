@@ -31,17 +31,12 @@ FIR_DELAY = TAPS / 2;
 ENVELOP_LP_FREQ = 10;
 
 %% Decision Settings
-% Each channel drives ONE game button. The decision is a GATE, not a
-% classifier: a contraction turns the button ON, relaxing turns it OFF.
-%   CH4 -> "B"  (Dark Souls: tap = roll/dodge, hold = sprint)
-%   CH3 -> "R1" (light attack; repeated taps = combo)
-% Dark Souls itself decides roll-vs-sprint from how long B is held, so the
-% controller only mirrors the muscle: key DOWN at contraction onset, key UP at
-% release. The live port must press the key at the ONSET (state -> active) -
-% that is the latency-critical moment - and this offline script records that
-% same onset time (onset_s) so the timing here matches the live behaviour.
-% DEC_HOLD_S below is only an offline LABEL (tap vs hold) for inspection; the
-% live gate simply holds the key for as long as the contraction lasts.
+% Offline replica of the live gate (see the "Decision Block" section of the
+% docs). The decision is a GATE, not a classifier: a contraction turns the
+% button ON at the onset, relaxing turns it OFF after the hangover. DEC_HOLD_S
+% here is only an offline LABEL (tap vs hold). NOTE: this script still uses the
+% original fixed-window calibration (base + frac*span); the live script has
+% since moved to a continuously-eased floor/ceiling, so thresholds may differ.
 CH_BUTTON = {'-', '-', 'R1', 'B'};   % per-channel game button (ch1..ch4)
 
 DEC_BASE_PCTL   = 20;     % percentile of the envelope used as rest baseline B
