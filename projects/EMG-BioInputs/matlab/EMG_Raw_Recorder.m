@@ -13,7 +13,7 @@ clc;
 
 %% User settings
 ARDUINO_PORT = 'COM4';
-ARDUINO_BAUDRATE = 2000000;   % Cosmetic for USB CDC
+ARDUINO_BAUDRATE = 2000000; % Cosmetic for USB CDC
 
 % How many seconds of data to record.
 RECORD_SECONDS = 30;

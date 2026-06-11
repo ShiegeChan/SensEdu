@@ -13,6 +13,10 @@ clear;
 close all;
 clc;
 
+%% Include (shared processing + decision functions)
+addpath(genpath('./processing/'));
+addpath(genpath('./keys/'));
+
 %% Input File
 
 INPUT_FILE = './tests/emg_recording_20260610_195843.mat';
@@ -112,16 +116,9 @@ for k = 1:num_chunks
     emg_buffers(1:end - chunk_size, :) = emg_buffers(chunk_size + 1:end, :);
     emg_buffers(end - chunk_size + 1:end, :) = emg_chunk;
 
-    % 3. Filter: remove DC offset, band-pass, then drop the first TAPS samples.
-    emg_buffers_dc = emg_buffers - mean(emg_buffers, 1);
-    filtered_data = filter(FIR_COEFFS, 1, emg_buffers_dc);
-    filt_emg_buffers = filtered_data((TAPS + 1):end, :);
-
-    % 4. Rectification.
-    filt_emg_buffers_abs = abs(filt_emg_buffers);
-
-    % 5. Envelope (newest sample is the per-chunk decision input).
-    filt_emg_buffers_env = envelop(filt_emg_buffers_abs, Fs, ENVELOP_LP_FREQ);
+    % 3-5. Filter -> rectify -> envelope (shared with the live script).
+    [filt_emg_buffers_env, filt_emg_buffers, filt_emg_buffers_abs, emg_buffers_dc] = ...
+        process_emg_buffer(emg_buffers, FIR_COEFFS, TAPS, Fs, ENVELOP_LP_FREQ);
     env_per_chunk(k, :) = filt_emg_buffers_env(end, :);
 
     % 6. Collect the newest chunk of every step to rebuild full timelines.
@@ -138,22 +135,12 @@ end
 % Robustness to muscle fatigue / electrode position: each channel's thresholds
 % are placed between its own rest baseline and activation level, so they scale
 % automatically when the envelope is several times larger or smaller.
-dec_base    = zeros(1, CH_NUM);
-dec_span    = zeros(1, CH_NUM);
-DEC_TH_HIGH = inf(1, CH_NUM);   % default for an inactive channel: never triggers
-DEC_TH_LOW  = inf(1, CH_NUM);
 cal_range = (DEC_CAL_SKIP_CH + 1):num_chunks;   % skip the startup transient
-for ch = 1:CH_NUM
-    seg = env_per_chunk(cal_range, ch);
-    B = pctl(seg, DEC_BASE_PCTL);
-    S = pctl(seg, DEC_SPAN_PCTL) - B;
-    dec_base(ch) = B;
-    dec_span(ch) = S;
-    if S >= DEC_MIN_SPAN
-        DEC_TH_HIGH(ch) = B + DEC_FRAC_HIGH * S;
-        DEC_TH_LOW(ch)  = B + DEC_FRAC_LOW  * S;
-    end
-end
+cal_p = struct('base_pctl', DEC_BASE_PCTL, 'span_pctl', DEC_SPAN_PCTL, ...
+               'frac_high', DEC_FRAC_HIGH, 'frac_low', DEC_FRAC_LOW, ...
+               'min_span',  DEC_MIN_SPAN);
+[DEC_TH_HIGH, DEC_TH_LOW, dec_base, dec_span] = ...
+    calibrate_thresholds(env_per_chunk(cal_range, :), cal_p);
 
 % Decision input: optionally smooth the per-chunk envelope with a short causal
 % moving average to suppress sub-movement ripple without shifting onsets much.
@@ -163,77 +150,39 @@ else
     env_dec = env_per_chunk;
 end
 
-%% Pass 2 - per-channel online decision state machine over the envelope.
-% Same causal state machine (idle / active / pending-release with hysteresis +
-% hangover) as the live design; only the thresholds are now per-channel.
-dec_state = zeros(1, CH_NUM);   % 0 idle, 1 active, 2 pending-release
-dec_onset = zeros(1, CH_NUM);   % chunk index where the activation started
-dec_off   = zeros(1, CH_NUM);   % chunk index where it dropped below TH_LOW
-dec_gap   = zeros(1, CH_NUM);   % consecutive below-TH_LOW chunks (hangover)
-dec_hold  = false(1, CH_NUM);   % current activation already promoted to hold
-dec_state_timeline = zeros(num_chunks, CH_NUM);   % 0 idle / 1 press / 2 hold
+%% Pass 2 - per-channel online decision gate over the envelope.
+% Uses the SAME emg_gate_step() the live script uses, so the offline result
+% mirrors the live behaviour exactly; this script only adds event bookkeeping
+% (tap / hold labelling) for inspection. The warm-up period is skipped so the
+% rolling-buffer transient at the very start cannot trigger a press.
+gate = struct('mode', zeros(1, CH_NUM), 'onset', zeros(1, CH_NUM), ...
+              'off',  zeros(1, CH_NUM), 'gap',   zeros(1, CH_NUM));
 
 % Detected events (filled as activations finish).
 events = struct('ch', {}, 'type', {}, 'onset_s', {}, 'offset_s', {}, ...
     'dur_s', {}, 'peak', {});
 
 for k = 1:num_chunks
-    for ch = 1:CH_NUM
-        v = env_dec(k, ch);
-        switch dec_state(ch)
-            case 0   % idle: wait for a clear onset (skip the warm-up period)
-                if k > DEC_WARMUP_CH && v > DEC_TH_HIGH(ch)
-                    dec_state(ch) = 1;
-                    dec_onset(ch) = k;
-                    dec_gap(ch) = 0;
-                    dec_hold(ch) = false;
-                end
-            case 1   % active: contraction in progress
-                if v <= DEC_TH_LOW(ch)
-                    dec_state(ch) = 2;        % maybe finished -> start hangover
-                    dec_off(ch) = k;
-                    dec_gap(ch) = 1;
-                end
-            case 2   % pending release: bridge brief dips (hangover)
-                if v > DEC_TH_LOW(ch)
-                    dec_state(ch) = 1;        % dip bridged, same contraction
-                else
-                    dec_gap(ch) = dec_gap(ch) + 1;
-                    if dec_gap(ch) >= DEC_HANGOVER
-                        events = finalize_event(events, ch, dec_onset(ch), ...
-                            dec_off(ch), env_per_chunk, CHUNK_SIZE / Fs, ...
-                            DEC_MIN_PRESS, DEC_HOLD_CH);
-                        dec_state(ch) = 0;
-                    end
-                end
-        end
-
-        % Promote to "hold" once the contraction has lasted long enough.
-        if dec_state(ch) >= 1 && ~dec_hold(ch) && ...
-                (k - dec_onset(ch) + 1) >= DEC_HOLD_CH
-            dec_hold(ch) = true;
-        end
-
-        % Log the per-chunk state for plotting (0 idle, 1 press, 2 hold).
-        if dec_state(ch) == 0
-            dec_state_timeline(k, ch) = 0;
-        elseif dec_hold(ch)
-            dec_state_timeline(k, ch) = 2;
-        else
-            dec_state_timeline(k, ch) = 1;
-        end
+    if k <= DEC_WARMUP_CH
+        continue;   % ignore the rolling-buffer warm-up at the very start
+    end
+    [gate, ~, done, onset, off] = emg_gate_step(env_dec(k, :), k, gate, ...
+        DEC_TH_HIGH, DEC_TH_LOW, DEC_HANGOVER);
+    for ch = find(done)
+        events = finalize_event(events, ch, onset(ch), off(ch), ...
+            env_per_chunk, CHUNK_SIZE / Fs, DEC_MIN_PRESS, DEC_HOLD_CH);
     end
 end
 
 % Close out any activation still open at the end of the recording.
 for ch = 1:CH_NUM
-    if dec_state(ch) ~= 0
-        if dec_state(ch) == 2
-            last_off = dec_off(ch);
+    if gate.mode(ch) ~= 0
+        if gate.mode(ch) == 2
+            last_off = gate.off(ch);
         else
             last_off = num_chunks;
         end
-        events = finalize_event(events, ch, dec_onset(ch), last_off, ...
+        events = finalize_event(events, ch, gate.onset(ch), last_off, ...
             env_per_chunk, CHUNK_SIZE / Fs, DEC_MIN_PRESS, DEC_HOLD_CH);
     end
 end
@@ -335,18 +284,7 @@ for ch = 1:CH_NUM
     xlabel('Time (s)'); ylabel('Envelope');
 end
 
-%% Functions (identical to EMG_BioInputs.m)
-function enveloped_data = envelop(data, fs, cutoff)
-    [b, a] = butter(2, cutoff / (fs / 2), 'low');
-    enveloped_data = filter(b, a, data);
-
-    [gd, w] = grpdelay(b, a, 512, fs);
-    avg_gd = mean(gd(w <= cutoff));
-    d = max(0, round(avg_gd));
-
-    enveloped_data = enveloped_data(d+1:end, :);
-end
-
+%% Functions
 function events = finalize_event(events, ch, onset, off, env_ref, dt, min_press, hold_ch)
     % Append a finished activation to the event list, classified by duration.
     dur_ch = off - onset;
@@ -368,27 +306,4 @@ function events = finalize_event(events, ch, onset, off, env_ref, dt, min_press,
     % Keep field order consistent with the events struct definition.
     e = orderfields(e, {'ch', 'type', 'onset_s', 'offset_s', 'dur_s', 'peak'});
     events(end + 1) = e;
-end
-
-function y = pctl(x, p)
-    % Linear-interpolated percentile (matches numpy.percentile default) so the
-    % calibration does not depend on the Statistics Toolbox prctile.
-    x = sort(x(:));
-    n = numel(x);
-    if n == 0
-        y = NaN;
-        return;
-    end
-    if n == 1
-        y = x(1);
-        return;
-    end
-    r = p / 100 * (n - 1) + 1;     % 1-based fractional rank
-    lo = floor(r);
-    hi = ceil(r);
-    if lo == hi
-        y = x(lo);
-    else
-        y = x(lo) + (r - lo) * (x(hi) - x(lo));
-    end
 end
