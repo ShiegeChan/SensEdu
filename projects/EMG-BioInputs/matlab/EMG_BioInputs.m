@@ -16,7 +16,7 @@ LATENCY_METER_ITERATIONS = 1000;
 
 % Plot Processing Steps (slows down the script)
 ENABLE_PLOTS = true;
-PLOT_FREQUENCY_SEC = 10;
+PLOT_FREQUENCY_SEC = 1;
 
 % Sampling Rates
 Fs = 5000;
@@ -29,7 +29,7 @@ CHUNK_SIZE = 75;
 EMG_BUFFER_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE);
 
 % Envelop LP Frequency
-ENVELOP_LP_FREQ = 20;
+ENVELOP_LP_FREQ = 10;
 
 %% Filter Settings
 
@@ -40,6 +40,7 @@ F0 = 30;
 F1 = 450;
 
 % FIR taps (must be even)
+%TAPS = 150;
 TAPS = 150;
 FIR_DELAY = TAPS/2;
 FIR_COEFFS = fir1(TAPS, [F0 F1]/(Fs/2), 'bandpass');
@@ -63,7 +64,7 @@ arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
 half_buf_size = BUF_SIZE / 2;
 emg_chunks = zeros(1, half_buf_size);
 emg_buffers = zeros(EMG_BUFFER_SIZE, CH_NUM);
-filt_emg_buffers = zeros(EMG_BUFFER_SIZE - FIR_DELAY, CH_NUM);
+filt_emg_buffers = zeros(EMG_BUFFER_SIZE - TAPS, CH_NUM);
 
 if LATENCY_METER_ENABLED
     latency_meter = zeros(1, LATENCY_METER_ITERATIONS);
@@ -71,7 +72,7 @@ if LATENCY_METER_ENABLED
 end
 
 if ENABLE_PLOTS
-    [f1, f2] = init_figures();
+    [f1, f2, f3] = init_figures();
     pause(3);
 end
 
@@ -103,41 +104,71 @@ while (true)
     emg_buffers(end-chunk_size+1:end, :) = emg_chunks_per_channel;
 
     % 4. Filter the buffer around EMG frequencies
-    filtered_data = filter(FIR_COEFFS, 1, emg_buffers);
-    filt_emg_buffers = filtered_data((TAPS + 1):end, :); %FIR_DELAY
+    %load("2hold3press.mat", "emg_buffers");
+    %emg_buffers = extractfield(emg_buffers, "emg_buffers");
+    % Remove the large ADC DC offset BEFORE band-passing. With 150 taps at
+    % Fs = 5 kHz the FIR transition is ~Fs/TAPS wide, so a 30 Hz lower edge
+    % cannot reject DC (sum(FIR_COEFFS) ~ 0.2). Left in, the ~25k offset leaks
+    % ~5k counts into the output and buries the EMG, so subtract it first.
+    emg_buffers_dc = emg_buffers - mean(emg_buffers, 1);
+    filtered_data = filter(FIR_COEFFS, 1, emg_buffers_dc);
+    % Drop the first TAPS samples: removes the FIR start-up transient and
+    % compensates the TAPS/2 linear-phase group delay in one step.
+    filt_emg_buffers = filtered_data((TAPS + 1):end, :);
 
-    % 5. DC removal
-    filt_emg_buffers_dc = filt_emg_buffers - mean(filt_emg_buffers, 1);
+    % 5. Rectification
+    % Band-pass already removes DC, so rectify the filtered buffer directly.
+    filt_emg_buffers_abs = abs(filt_emg_buffers);
 
-    % 6. Rectification
-    filt_emg_buffers_abs = abs(filt_emg_buffers_dc);
-
-    % 7. Envelope
+    % 6. Envelope
     filt_emg_buffers_env = envelop(filt_emg_buffers_abs, Fs, ENVELOP_LP_FREQ);
 
-    % 8. Decision Block
+    % 7. Decision Block
     
-    % 9. Key Trigger
+    % 8. Key Trigger
 
-    % 10. Plot
+    % 9. Plot
     if ENABLE_PLOTS
         elapsed_time = toc;
+        % Throttle the (relatively slow) redraw so the acquisition loop can
+        % stay ahead of the USB stream. Replotting every iteration lets the
+        % input buffer overflow and get flushed, which breaks the rolling
+        % buffer so a clean, continuous second is never displayed.
         if elapsed_time > PLOT_FREQUENCY_SEC
+            % Acquisition sanity check: a channel pinned at the ADC rail
+            % (~0 or ~65535) carries no EMG -> check electrode/bias/wiring.
+            railed = find(max(emg_buffers, [], 1) >= 65500 | ...
+                          min(emg_buffers, [], 1) <= 35);
+            if ~isempty(railed)
+                fprintf('WARNING: channel(s) [%s] railed/saturated.\n', ...
+                    num2str(railed));
+            end
+
+            % Figure 1: complete raw measurements (full ADC range).
             figure(f1);
-            plot_dataset(emg_buffers(FIR_DELAY+1:end, :) , CH_NUM, false);
+            plot_dataset_raw(emg_buffers, CH_NUM, false);
+
+            % Figure 2: all processing steps overlaid per channel. The raw
+            % trace is shown with its DC offset removed so it sits on the
+            % same scale as the band-pass / rectified / envelope traces.
+            figure(f2);
+            raw_aligned = emg_buffers((FIR_DELAY+1):(end-FIR_DELAY), :);
+            plot_dataset(raw_aligned - mean(raw_aligned, 1), CH_NUM, false);
             plot_dataset(filt_emg_buffers, CH_NUM, true);
-            %plot_dataset(filt_emg_buffers_dc, CH_NUM, true);
             plot_dataset(filt_emg_buffers_abs, CH_NUM, true);
             plot_dataset(filt_emg_buffers_env, CH_NUM, true);
+            add_step_legend(CH_NUM);
 
-            figure(f2);
+            % Figure 3: decisions.
+            figure(f3);
             plot_decision(filt_emg_buffers_env, CH_NUM, false);
-            
+
+            drawnow limitrate;
             tic;
         end
     end
     
-    % 11. Latency measurements
+    % 10. Latency measurements
     if LATENCY_METER_ENABLED && latency_idx <= LATENCY_METER_ITERATIONS
         if ENABLE_PLOTS
             fprintf("You cannot use latency meter and plots at the same time.\n" + ...
@@ -186,7 +217,7 @@ function enveloped_data = envelop(data, fs, cutoff)
     enveloped_data = enveloped_data(d+1:end, :);
 end
 
-function plot_dataset(data, ch_num, enable_hold)
+function plot_dataset_raw(data, ch_num, enable_hold)
     for ch = 1:ch_num
         if ch_num > 1
             subplot(2, ch_num/2, ch);
@@ -194,8 +225,23 @@ function plot_dataset(data, ch_num, enable_hold)
         if enable_hold
             hold on;
         end
-        plot(data(:, ch)  - mean(data(:, ch)));
-        ylim([-1e3, 1e3]);
+        plot(data(:, ch));
+        ylim([0, 65535]);
+        hold off;
+    end
+end
+
+function plot_dataset(data, ch_num, enable_hold)
+    % Plots each channel as-is (no DC removal here); callers that need a
+    % DC-corrected trace subtract the mean before calling.
+    for ch = 1:ch_num
+        if ch_num > 1
+            subplot(2, ch_num/2, ch);
+        end
+        if enable_hold
+            hold on;
+        end
+        plot(data(:, ch));
         hold off;
     end
 end
@@ -214,7 +260,22 @@ function plot_decision(data, ch_num, enable_hold)
     end
 end
 
-function [f1, f2] = init_figures()
-    f1 = figure('WindowState', 'maximized');
-    f2 = figure('WindowState', 'maximized');
+function [f1, f2, f3] = init_figures()
+    f1 = figure('WindowState', 'maximized', 'Name', 'Raw Measurements', ...
+                'NumberTitle', 'off');
+    f2 = figure('WindowState', 'maximized', 'Name', 'Processing Steps', ...
+                'NumberTitle', 'off');
+    f3 = figure('WindowState', 'maximized', 'Name', 'Decisions', ...
+                'NumberTitle', 'off');
+end
+
+function add_step_legend(ch_num)
+    labels = {'raw (DC removed)', 'band-pass', 'rectified', 'envelope'};
+    for ch = 1:ch_num
+        if ch_num > 1
+            subplot(2, ch_num/2, ch);
+        end
+        legend(labels, 'Location', 'northeast');
+        title(sprintf('Channel %d', ch));
+    end
 end
