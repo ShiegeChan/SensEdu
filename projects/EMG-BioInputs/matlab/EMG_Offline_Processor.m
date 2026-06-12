@@ -30,30 +30,40 @@ FIR_DELAY = TAPS / 2;
 
 ENVELOP_LP_FREQ = 10;
 
-%% Decision Settings
-% Offline replica of the live gate (see the "Decision Block" section of the
-% docs). The decision is a GATE, not a classifier: a contraction turns the
-% button ON at the onset, relaxing turns it OFF after the hangover. DEC_HOLD_S
-% here is only an offline LABEL (tap vs hold). NOTE: this script still uses the
-% original fixed-window calibration (base + frac*span); the live script has
-% since moved to a continuously-eased floor/ceiling, so thresholds may differ.
-CH_BUTTON = {'-', '-', 'R1', 'B'};   % per-channel game button (ch1..ch4)
+%% Decision Settings (mirrors the live EMG_BioInputs.m adaptive gate)
+% Offline replica of the live decision so recordings validate live behaviour.
+% Each channel drives ONE button as a plain GATE (not a classifier): a
+% contraction turns it ON at the onset, relaxing turns it OFF after the
+% hangover. Thresholds adapt from a decoupled rest floor and learned press
+% height (see the "Decision Block" section of the docs). DEC_HOLD_S and
+% DEC_MIN_PRESS_S are offline-only bookkeeping for the tap/hold summary.
+CH_BUTTON = {'LMB (R1 attack)', 'Space (roll/sprint)', 'CH3 (unbound)', 'CH4 (unbound)'};
 
-DEC_BASE_PCTL   = 20;     % percentile of the envelope used as rest baseline B
-DEC_SPAN_PCTL   = 95;     % percentile used as activation level (S = P_high - B)
-DEC_FRAC_HIGH   = 0.45;   % onset   threshold = B + DEC_FRAC_HIGH * S
-DEC_FRAC_LOW    = 0.18;   % release threshold = B + DEC_FRAC_LOW  * S
-DEC_MIN_SPAN    = 25;     % channels with span < this are treated as inactive
-DEC_SMOOTH_S    = 0.05;   % causal smoothing of the decision input (s); small
-                          % to keep key-down latency low (hysteresis stops
-                          % chatter, so heavy smoothing is not needed)
-DEC_HANGOVER_S  = 0.12;   % bridge dips shorter than this; small enough that
-                          % moderate R1 mashing stays as separate presses
-DEC_MIN_PRESS_S = 0.050;  % ignore activations shorter than this (debounce)
-DEC_HOLD_S      = 0.40;   % offline label only: gate >= this = "hold" (sprint /
-                          % held attack), shorter = "tap" (roll / single attack)
-DEC_WARMUP_S    = 1.05;   % ignore the rolling-buffer warm-up at the very start
-DEC_CAL_SKIP_S  = 1.5;    % ignore the startup transient when calibrating
+DEC_FLOOR_PCTL   = 20;    % rest-level percentile of the idle-only history
+DEC_FRAC_HIGH    = 0.40;  % onset   at floor + this fraction of g
+DEC_FRAC_LOW     = 0.20;  % release at floor + this fraction of g
+DEC_MIN_GAP      = 100;   % min onset height above floor (noise/dead-ch guard)
+DEC_ATTACK_S     = 0.015; % decision smoothing attack tau (fast key-down)
+DEC_RELEASE_S    = 0.080; % decision smoothing release tau (stable holds)
+DEC_HANGOVER_S   = 0.12;  % bridge envelope dips shorter than this (debounce)
+DEC_CAL_WINDOW_S = 30;    % rest-time window the floor percentile sees
+DEC_CAL_UPDATE_S = 1.0;   % how often to re-measure the floor / run recovery
+DEC_CAL_BOOT_S   = 3.0;   % rest data needed before a channel goes live
+DEC_CAL_SKIP_S   = 1.5;   % ignore the buffer warm-up before collecting data
+DEC_ADAPT_S      = 8.0;   % floor easing time constant (anti-jitter)
+DEC_ADAPT_FAST_S = 1.5;   % faster easing when the floor clearly jumped
+DEC_FAST_DEV     = 0.35;  % "clearly jumped" = moved by > this fraction of g
+DEC_PEAK_ALPHA   = 0.25;  % per-press EMA step for press_est
+DEC_PEAK_CLAMP   = [0.5 2.0];  % one press counts as at most this x press_est
+DEC_LEARN_MIN_S  = 0.15;  % don't learn from activations shorter than this
+DEC_RECOVER_AFTER_S = 15; % no press this long -> allow press_est to sag ...
+DEC_RECOVER_WIN_S   = 5;  % ... toward the max effort of the last few seconds
+DEC_RECOVER_TAU_S   = 10; % sag easing time constant
+DEC_RECOVER_FRAC    = 0.30;  % effort counts only above this fraction of g
+DEC_STUCK_S      = 20;    % gate active longer -> adopt level as new baseline
+
+DEC_MIN_PRESS_S  = 0.050; % offline: ignore activations shorter than this
+DEC_HOLD_S       = 0.40;  % offline label: gate >= this = "hold", else "tap"
 
 %% Load Recording
 if isempty(INPUT_FILE)
@@ -85,13 +95,22 @@ emg_buffers = zeros(EMG_BUFFER_SIZE, CH_NUM);
 env_per_chunk = zeros(num_chunks, CH_NUM);
 
 % Decision timing converted from seconds to chunks (chunk rate = Fs/CHUNK_SIZE).
-chunks_per_sec  = Fs / CHUNK_SIZE;
-DEC_HANGOVER    = max(1, round(DEC_HANGOVER_S  * chunks_per_sec));
-DEC_MIN_PRESS   = max(1, round(DEC_MIN_PRESS_S * chunks_per_sec));
-DEC_HOLD_CH     = round(DEC_HOLD_S   * chunks_per_sec);
-DEC_WARMUP_CH   = round(DEC_WARMUP_S * chunks_per_sec);
-DEC_SMOOTH_CH   = max(1, round(DEC_SMOOTH_S   * chunks_per_sec));
-DEC_CAL_SKIP_CH = max(1, round(DEC_CAL_SKIP_S * chunks_per_sec));
+chunks_per_sec    = Fs / CHUNK_SIZE;
+DEC_HANGOVER      = max(1, round(DEC_HANGOVER_S      * chunks_per_sec));
+DEC_CAL_WINDOW    = max(1, round(DEC_CAL_WINDOW_S    * chunks_per_sec));
+DEC_CAL_BOOT      = max(1, round(DEC_CAL_BOOT_S      * chunks_per_sec));
+DEC_CAL_SKIP_CH   = max(1, round(DEC_CAL_SKIP_S      * chunks_per_sec));
+DEC_CAL_UPDATE_CH = max(1, round(DEC_CAL_UPDATE_S    * chunks_per_sec));
+DEC_LEARN_MIN_CH  = max(1, round(DEC_LEARN_MIN_S     * chunks_per_sec));
+DEC_RECOVER_AFTER = max(1, round(DEC_RECOVER_AFTER_S * chunks_per_sec));
+DEC_STUCK_CH      = max(1, round(DEC_STUCK_S         * chunks_per_sec));
+DEC_RECOVER_WIN   = max(1, round(DEC_RECOVER_WIN_S / DEC_CAL_UPDATE_S));
+DEC_MIN_PRESS     = max(1, round(DEC_MIN_PRESS_S     * chunks_per_sec));  % offline event debounce
+DEC_HOLD_CH       = round(DEC_HOLD_S * chunks_per_sec);                   % offline tap/hold label
+
+% Asymmetric decision smoothing coefficients (one step = one chunk).
+A_ATT = 1 - exp(-(CHUNK_SIZE / Fs) / DEC_ATTACK_S);
+A_REL = 1 - exp(-(CHUNK_SIZE / Fs) / DEC_RELEASE_S);
 
 % Full-recording timelines for every processing step, rebuilt from the newest
 % chunk produced at each iteration (so the offline plot can show all stages).
@@ -126,46 +145,152 @@ for k = 1:num_chunks
     env_timeline(dst, :) = filt_emg_buffers_env(end - chunk_size + 1:end, :);
 end
 
-%% Auto-calibrate per-channel onset / release thresholds from the envelope.
-% Robustness to muscle fatigue / electrode position: each channel's thresholds
-% are placed between its own rest baseline and activation level, so they scale
-% automatically when the envelope is several times larger or smaller.
-cal_range = (DEC_CAL_SKIP_CH + 1):num_chunks;   % skip the startup transient
-cal_p = struct('base_pctl', DEC_BASE_PCTL, 'span_pctl', DEC_SPAN_PCTL, ...
-               'frac_high', DEC_FRAC_HIGH, 'frac_low', DEC_FRAC_LOW, ...
-               'min_span',  DEC_MIN_SPAN);
-[DEC_TH_HIGH, DEC_TH_LOW, dec_base, dec_span] = ...
-    calibrate_thresholds(env_per_chunk(cal_range, :), cal_p);
+%% Decision state (mirrors the live EMG_BioInputs.m online algorithm)
+% Per-channel decoupled estimates: a rest floor (percentile of idle-only
+% samples) and a press height learned from finalized contractions. Thresholds
+% sit a fraction of that height above the floor. See the "Decision Block"
+% section of the docs for the full rationale.
+floor_est   = nan(1, CH_NUM);   % eased rest floor (NaN = not yet measured)
+press_est   = nan(1, CH_NUM);   % press height above floor (NaN = not learned)
+floor_ready = false(1, CH_NUM);
+[g_est, DEC_TH_HIGH, DEC_TH_LOW] = dec_thresholds(floor_est, press_est, ...
+    DEC_MIN_GAP, DEC_FRAC_HIGH, DEC_FRAC_LOW);
 
-% Decision input: optionally smooth the per-chunk envelope with a short causal
-% moving average to suppress sub-movement ripple without shifting onsets much.
-if DEC_SMOOTH_CH > 1
-    env_dec = filter(ones(DEC_SMOOTH_CH, 1) / DEC_SMOOTH_CH, 1, env_per_chunk);
-else
-    env_dec = env_per_chunk;
-end
+env_dec      = zeros(1, CH_NUM);             % asymmetric-smoothed decision signal
+rest_hist    = nan(DEC_CAL_WINDOW, CH_NUM);  % idle-only envelope history (ring)
+rest_idx     = zeros(1, CH_NUM);
+press_peak   = -inf(1, CH_NUM);
+hold_chunks  = zeros(1, CH_NUM);
+since_press  = zeros(1, CH_NUM);
+interval_max = -inf(1, CH_NUM);
+secmax_hist  = -inf(DEC_RECOVER_WIN, CH_NUM);
+gate         = struct('mode', zeros(1, CH_NUM), 'onset', zeros(1, CH_NUM), ...
+                      'off',  zeros(1, CH_NUM), 'gap',   zeros(1, CH_NUM));
+keys_down    = false(1, CH_NUM);
 
-%% Pass 2 - per-channel online decision gate over the envelope.
-% Uses the SAME emg_gate_step() the live script uses, so the offline result
-% mirrors the live behaviour exactly; this script only adds event bookkeeping
-% (tap / hold labelling) for inspection. The warm-up period is skipped so the
-% rolling-buffer transient at the very start cannot trigger a press.
-gate = struct('mode', zeros(1, CH_NUM), 'onset', zeros(1, CH_NUM), ...
-              'off',  zeros(1, CH_NUM), 'gap',   zeros(1, CH_NUM));
+% Per-chunk timelines for the plots (the thresholds vary over time now).
+env_dec_tl  = zeros(num_chunks, CH_NUM);
+th_high_tl  = nan(num_chunks, CH_NUM);
+th_low_tl   = nan(num_chunks, CH_NUM);
 
-% Detected events (filled as activations finish).
+% Detected events (filled as activations finish; offline tap/hold bookkeeping).
 events = struct('ch', {}, 'type', {}, 'onset_s', {}, 'offset_s', {}, ...
     'dur_s', {}, 'peak', {});
 
+%% Decision pass - online adaptive gate over the per-chunk envelope.
+% Single causal pass identical to the live loop: asymmetric smoothing -> rest
+% floor / press-height estimation -> hysteresis gate -> threshold update, with
+% a calibration tick every DEC_CAL_UPDATE_CH chunks. emg_gate_step() is the
+% same function the live script uses, so the offline decisions mirror live.
 for k = 1:num_chunks
-    if k <= DEC_WARMUP_CH
-        continue;   % ignore the rolling-buffer warm-up at the very start
+    env_now = env_per_chunk(k, :);
+    loop_k = k;
+
+    % Asymmetric causal smoothing (fast attack, slow release).
+    rise = env_now > env_dec;
+    env_dec(rise)  = env_dec(rise)  + A_ATT * (env_now(rise)  - env_dec(rise));
+    env_dec(~rise) = env_dec(~rise) + A_REL * (env_now(~rise) - env_dec(~rise));
+
+    % Rest history for the floor: ONLY idle, sub-release samples.
+    if loop_k > DEC_CAL_SKIP_CH
+        resting = gate.mode == 0 & ~(env_dec > DEC_TH_LOW);
+        for ch = find(resting)
+            rest_idx(ch) = mod(rest_idx(ch), DEC_CAL_WINDOW) + 1;
+            rest_hist(rest_idx(ch), ch) = env_dec(ch);
+        end
+        interval_max = max(interval_max, env_dec);
     end
-    [gate, ~, done, onset, off] = emg_gate_step(env_dec(k, :), k, gate, ...
-        DEC_TH_HIGH, DEC_TH_LOW, DEC_HANGOVER);
+
+    % Step the gate (hysteresis + hangover).
+    prev_down = keys_down;
+    [gate, keys_down, done, onset_k, off_k] = emg_gate_step(env_dec, ...
+        loop_k, gate, DEC_TH_HIGH, DEC_TH_LOW, DEC_HANGOVER);
+
+    % Track the peak of the activation in progress.
+    press_peak(keys_down & ~prev_down) = -inf;
+    press_peak(keys_down) = max(press_peak(keys_down), env_dec(keys_down));
+
+    % Finalize events and learn press_est from real contractions.
+    since_press = since_press + 1;
     for ch = find(done)
-        events = finalize_event(events, ch, onset(ch), off(ch), ...
+        since_press(ch) = 0;
+        events = finalize_event(events, ch, onset_k(ch), off_k(ch), ...
             env_per_chunk, CHUNK_SIZE / Fs, DEC_MIN_PRESS, DEC_HOLD_CH);
+        if (off_k(ch) - onset_k(ch)) < DEC_LEARN_MIN_CH || ...
+                hold_chunks(ch) > DEC_STUCK_CH
+            continue;
+        end
+        h = press_peak(ch) - floor_est(ch);
+        if isnan(press_est(ch))
+            if h >= DEC_MIN_GAP
+                press_est(ch) = h;
+            end
+        else
+            h = min(max(h, DEC_PEAK_CLAMP(1) * press_est(ch)), ...
+                    DEC_PEAK_CLAMP(2) * press_est(ch));
+            press_est(ch) = press_est(ch) + DEC_PEAK_ALPHA * (h - press_est(ch));
+        end
+    end
+
+    hold_chunks(keys_down)  = hold_chunks(keys_down) + 1;
+    hold_chunks(~keys_down) = 0;
+    for ch = find(hold_chunks == DEC_STUCK_CH + 1)
+        rest_hist(:, ch) = NaN;
+        rest_idx(ch) = 0;
+    end
+
+    [g_est, DEC_TH_HIGH, DEC_TH_LOW] = dec_thresholds(floor_est, ...
+        press_est, DEC_MIN_GAP, DEC_FRAC_HIGH, DEC_FRAC_LOW);
+
+    env_dec_tl(k, :) = env_dec;
+    th_high_tl(k, :) = DEC_TH_HIGH;
+    th_low_tl(k, :)  = DEC_TH_LOW;
+
+    % Calibration tick (every DEC_CAL_UPDATE_CH chunks).
+    if mod(loop_k, DEC_CAL_UPDATE_CH) == 0
+        dt = DEC_CAL_UPDATE_S;
+
+        for ch = 1:CH_NUM
+            r = rest_hist(~isnan(rest_hist(:, ch)), ch);
+            if numel(r) < DEC_CAL_BOOT
+                continue;
+            end
+            floor_now = pctl(r, DEC_FLOOR_PCTL);
+            if ~floor_ready(ch)
+                floor_est(ch) = floor_now;
+                floor_ready(ch) = true;
+            else
+                tau = DEC_ADAPT_S;
+                if abs(floor_now - floor_est(ch)) > DEC_FAST_DEV * g_est(ch)
+                    tau = DEC_ADAPT_FAST_S;
+                end
+                a = 1 - exp(-dt / tau);
+                floor_est(ch) = floor_est(ch) + a * (floor_now - floor_est(ch));
+            end
+        end
+
+        % Stuck-gate rescue: pull the floor up to the held level so it releases.
+        for ch = find(hold_chunks > DEC_STUCK_CH)
+            a = 1 - exp(-dt / DEC_ADAPT_FAST_S);
+            floor_est(ch) = floor_est(ch) + a * (env_dec(ch) - floor_est(ch));
+        end
+
+        % press_est recovery toward clear sub-threshold efforts.
+        secmax_hist = [secmax_hist(2:end, :); interval_max];
+        interval_max = -inf(1, CH_NUM);
+        for ch = 1:CH_NUM
+            if isnan(press_est(ch)) || since_press(ch) < DEC_RECOVER_AFTER
+                continue;
+            end
+            mh = max(secmax_hist(:, ch)) - floor_est(ch);
+            if mh > max(DEC_RECOVER_FRAC * g_est(ch), DEC_MIN_GAP) && mh < press_est(ch)
+                a = 1 - exp(-dt / DEC_RECOVER_TAU_S);
+                press_est(ch) = press_est(ch) + a * (mh - press_est(ch));
+            end
+        end
+
+        [g_est, DEC_TH_HIGH, DEC_TH_LOW] = dec_thresholds(floor_est, ...
+            press_est, DEC_MIN_GAP, DEC_FRAC_HIGH, DEC_FRAC_LOW);
     end
 end
 
@@ -183,22 +308,27 @@ for ch = 1:CH_NUM
 end
 
 %% Summary
-fprintf('\nPer-channel auto-calibration (baseline / span -> onset / release):\n');
+fprintf('\nPer-channel final calibration (rest floor / learned press height):\n');
 for ch = 1:CH_NUM
-    if isfinite(DEC_TH_HIGH(ch))
-        fprintf('  Channel %d: base=%5.0f span=%5.0f -> onset=%5.0f release=%5.0f\n', ...
-            ch, dec_base(ch), dec_span(ch), DEC_TH_HIGH(ch), DEC_TH_LOW(ch));
+    if ~floor_ready(ch)
+        fprintf('  Channel %d [%s]: floor not calibrated (insufficient rest data)\n', ...
+            ch, CH_BUTTON{ch});
+    elseif isnan(press_est(ch))
+        fprintf(['  Channel %d [%s]: floor=%5.0f  press=  n/a  -> onset=%5.0f ' ...
+            'release=%5.0f (no press learned; using min-gap)\n'], ...
+            ch, CH_BUTTON{ch}, floor_est(ch), DEC_TH_HIGH(ch), DEC_TH_LOW(ch));
     else
-        fprintf('  Channel %d: span=%5.0f < DEC_MIN_SPAN(%d) -> inactive (no electrode)\n', ...
-            ch, dec_span(ch), DEC_MIN_SPAN);
+        fprintf(['  Channel %d [%s]: floor=%5.0f  press=%5.0f  -> onset=%5.0f ' ...
+            'release=%5.0f\n'], ...
+            ch, CH_BUTTON{ch}, floor_est(ch), press_est(ch), DEC_TH_HIGH(ch), DEC_TH_LOW(ch));
     end
 end
 
 fprintf('\nButton activity (live port: key DOWN at onset, key UP at release):\n');
 fprintf('  tap = quick press (roll / single attack); HOLD = sustained (sprint / held)\n');
 for ch = 1:CH_NUM
-    if ~isfinite(DEC_TH_HIGH(ch))
-        continue;   % inactive channel (no electrode) -> no button
+    if ~floor_ready(ch)
+        continue;   % never calibrated -> no button
     end
     sel = find([events.ch] == ch);
     fprintf('  Channel %d [%s]: %d press(es)\n', ch, CH_BUTTON{ch}, numel(sel));
@@ -228,8 +358,8 @@ for ch = 1:CH_NUM
     xlabel('Time (s)'); ylabel('ADC counts'); ylim([0, 65535]);
 end
 
-% Figure 2: all processing steps overlaid per channel, with the decision
-% thresholds marked (matches the live "Processing Steps" view).
+% Figure 2: all processing steps overlaid per channel (raw -> band-pass ->
+% rectified -> envelope).
 figure('Name', 'Offline - Processing Steps', 'NumberTitle', 'off', 'WindowState', 'maximized');
 for ch = 1:CH_NUM
     subplot(2, n_cols, ch);
@@ -238,10 +368,6 @@ for ch = 1:CH_NUM
     h_bp   = plot(t_steps, bandpass_timeline(:, ch));
     h_rect = plot(t_steps, rect_timeline(:, ch));
     h_env  = plot(t_steps, env_timeline(:, ch));
-    if isfinite(DEC_TH_HIGH(ch))
-        yline(DEC_TH_HIGH(ch), '--', 'onset');
-        yline(DEC_TH_LOW(ch), ':', 'release');
-    end
     hold off;
     title(sprintf('Channel %d', ch));
     xlabel('Time (s)'); ylabel('Amplitude');
@@ -256,11 +382,9 @@ for ch = 1:CH_NUM
     subplot(2, n_cols, ch);
     hold on;
     plot(t_chunk, env_per_chunk(:, ch), 'Color', [0.8 0.8 0.8]);
-    plot(t_chunk, env_dec(:, ch), 'Color', [0.4 0.4 0.4]);
-    if isfinite(DEC_TH_HIGH(ch))
-        yline(DEC_TH_HIGH(ch), '--k', 'onset');
-        yline(DEC_TH_LOW(ch), ':k', 'release');
-    end
+    plot(t_chunk, env_dec_tl(:, ch), 'Color', [0.4 0.4 0.4]);
+    plot(t_chunk, th_high_tl(:, ch), '--', 'Color', [0.85 0.33 0.10]);
+    plot(t_chunk, th_low_tl(:, ch), ':', 'Color', [0.85 0.33 0.10]);
     sel = find([events.ch] == ch);
     for i = sel
         if strcmp(events(i).type, 'hold')

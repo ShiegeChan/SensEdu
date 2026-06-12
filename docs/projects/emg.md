@@ -352,31 +352,44 @@ Because the system runs in real time, the envelope filter is applied **causally*
 
 Each channel drives **one game button** and is treated as a plain **gate, not a classifier**: a contraction presses the button DOWN, relaxing releases it UP. The game itself decides what a press means (e.g. in Dark Souls a short tap of B rolls, a held B sprints), so the controller never has to distinguish tap from hold — it just mirrors the muscle, pressing at the contraction onset (the latency-critical moment) and releasing after a short debounce.
 
+{: .NOTE}
+**Startup / calibration period.** A channel cannot fire until it has measured its rest floor, which needs the rolling buffer to fill plus a few seconds of resting data — so the controller is deliberately **unresponsive for roughly the first few seconds**. Allow about **15 seconds** to settle in: keep the muscles relaxed at first so each channel can fix its floor, then **contract each channel once** to teach it its press height. Until a channel has registered one clear press it uses a conservative default bar (`MIN_GAP` above the floor); a channel whose presses never reach that bar is pulled down to it by the self-recovery net over ~15 s.
+
 #### Adaptive thresholds
 
-A fixed threshold only ever fits one recording: muscle fatigue and electrode position make the envelope amplitude drift several-fold within and between sessions. Instead the thresholds are derived from a rolling **floor** and **ceiling** of each channel's own envelope:
+A fixed threshold only ever fits one recording: muscle fatigue and electrode position make the envelope amplitude drift several-fold within and between sessions. The thresholds are therefore derived from two **decoupled** per-channel estimates, each measured only when it is valid. Decoupling them is what makes the gate independent of *how often* the muscle happened to be used recently — a plain "high percentile of the last N seconds" ceiling is **not**, because it silently tracks the duty cycle of contractions (a long quiet stretch collapses it and makes the gate hair-trigger; sparse presses under-estimate it).
 
-* floor = a low percentile of the recent envelope (the rest level),
-* ceiling = a high percentile (a typical press).
+* **floor** — the rest level. A low percentile (20th) of a rolling history that collects **only idle, sub-release samples**. Because contractions are excluded, a long sprint can never drag the floor up, while it still follows slow baseline drift (fatigue, sweat, electrode contact).
+* **press height** ($$P$$) — the typical activation height *above* the floor. Learned from the **peaks of the contractions the gate actually finalizes**: each finished press nudges $$P$$ by a small EMA step after being clamped to $$0.5\text{–}2\times$$ the current $$P$$, so one unusually hard or weak press can never permanently re-scale the thresholds, and sparse presses keep the bar where the user's real presses are.
 
-The activation is normalised into
+The working gap is $$g = \max\!\left(P,\ \mathrm{MIN\_GAP} / \mathrm{FRAC\_HIGH}\right)$$ — the second term is the cold-start / noise floor used before a press is learned. The thresholds are then
 
-$$n = \frac{\mathrm{env} - \mathrm{floor}}{\mathrm{ceiling} - \mathrm{floor}}$$
+$$\mathrm{onset} = \mathrm{floor} + \mathrm{FRAC\_HIGH} \cdot g, \qquad \mathrm{release} = \mathrm{floor} + \mathrm{FRAC\_LOW} \cdot g$$
 
-which is ~0 at rest and ~1 on a typical press, regardless of the absolute amplitude. The gate fires when $$n \ge \mathrm{FRAC\_HIGH}$$ and releases when $$n \le \mathrm{FRAC\_LOW}$$. (The code evaluates the equivalent counts $$\mathrm{floor} + \mathrm{frac} \cdot (\mathrm{ceiling} - \mathrm{floor})$$ directly, which avoids the division.)
+with FRAC_HIGH = 0.40 and FRAC_LOW = 0.20. Equivalently, normalising the envelope as $$n = (\mathrm{env} - \mathrm{floor}) / g$$ (≈0 at rest, ≈1 on a typical press), the gate fires at $$n \ge \mathrm{FRAC\_HIGH}$$ and releases at $$n \le \mathrm{FRAC\_LOW}$$.
 
 #### Stability over a long session
 
-The floor and ceiling are kept robust so the gate stays usable for a whole play session:
+Several mechanisms keep the two estimates valid for a whole play session:
 
-* **Long rolling window** (tens of seconds): one very hard contraction is only a small fraction of the window, so it cannot inflate the ceiling and lock out later presses, and a quiet spell cannot collapse the span.
-* **Time-constant easing**: new floor/ceiling estimates are blended in gradually, so the thresholds glide instead of jumping.
-* **Minimum-gap clamp**: $$(\mathrm{ceiling} - \mathrm{floor})$$ is held to a minimum, which both stops rest noise from ever reaching the press level and keeps a dead or disconnected channel silent (its tiny span never clears the gap).
-* **Fast bootstrap**: calibration starts from the first few seconds of data, so the system is playable within seconds rather than after a full window.
+* **Idle-gated floor**: only rest samples enter the floor history, so holds and rapid mashing cannot corrupt the baseline.
+* **Event-driven ceiling**: the press height comes from real detected presses (clamped EMA), not from a window percentile, so it is immune to contraction duty cycle and to single outliers.
+* **Time-constant easing with fast re-acquire**: the floor glides toward new measurements with an ~8 s time constant, but switches to ~1.5 s when it jumps by more than a third of the gap — an electrode shift is followed quickly instead of over half a minute.
+* **Minimum-gap clamp**: the onset is always at least MIN_GAP counts above the floor, which stops rest noise from reaching the press level and keeps a dead / disconnected channel silent.
+* **Two-stage bootstrap**: rest floors are seeded from the first few seconds of idle data, then a single deliberate contraction per channel sets its press height — the controller is playable within seconds and self-tunes from there.
+* **Self-recovery safety nets**: if presses stop registering (gain dropped, electrode moved) but clear efforts keep appearing below the onset, the press height slowly sags toward those efforts until presses fire again; and a gate stuck *active* for too long adopts the held level as the new baseline and releases, rebuilding its floor history afresh.
 
-#### Hysteresis and hangover
+#### Smoothing, hysteresis and hangover
 
-The high-onset / low-release hysteresis stops the gate chattering around a single threshold, and a short **hangover** bridges brief dips in the envelope inside one sustained contraction, so a single press is not fragmented into several. The offline processor (`EMG_Offline_Processor.m`) labels finished activations as *tap* or *hold* by duration purely for inspection; the live gate simply holds the key for as long as the contraction lasts.
+The decision signal is the envelope passed through an **asymmetric one-pole smoother** — a fast attack (~15 ms) so the key goes down promptly, and a slower release (~80 ms) so a held contraction does not flicker. On top of that the gate adds high-onset / low-release **hysteresis** (stops chattering around a single threshold) and a short **hangover** that bridges brief envelope dips inside one sustained contraction, so a single press is not fragmented into several. The offline processor (`EMG_Offline_Processor.m`) labels finished activations as *tap* or *hold* by duration purely for inspection; the live gate simply holds the key for as long as the contraction lasts.
+
+#### Keeping up with the data
+
+The acquisition read returns **every** EMG chunk queued on the USB port, and the decision gate is stepped once for **each** of them (oldest first), not just the newest. This matters because the once-per-`DEBUG_PLOT_SEC` debug redraw briefly stalls the loop; processing all queued chunks means no decision sample — and no brief contraction — is dropped during that stall, and the rolling calibration window and the debug time axis stay continuous.
+
+#### Debug view
+
+A retrospective figure redraws the last `DEBUG_PLOT_SEC` seconds once per window: per channel it overlays the raw envelope, the smoothed **gate input**, the live **onset / release** thresholds, and the resulting **key-down** decisions. A press is shown three ways so it is unmistakable — a shaded green span, an onset (▲) and release (▼) marker placed on the gate-input curve at the exact decision samples, and a solid green strip along the bottom of the axis. The vertical scale is anchored to the slow floor and gap rather than the per-frame data range, so a given press looks the same size from one window to the next.
 
 
 
