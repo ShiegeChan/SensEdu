@@ -1,54 +1,67 @@
-function [gate, keys_down, done, onset, off] = emg_gate_step(v, k, gate, th_high, th_low, hangover)
-%EMG_GATE_STEP  One causal step of the per-channel press/release gate.
-%   Online state machine shared by the live and offline scripts. Each channel
-%   drives one button: a contraction crossing th_high turns the gate ON;
-%   dropping below th_low for "hangover" chunks turns it OFF. The hysteresis
-%   (high onset / low release) stops chatter and the hangover bridges brief
-%   envelope dips inside one sustained contraction. The button is pressed at
-%   the contraction ONSET (low latency) and released after the hangover.
+function [gate, keys_down, done, onset, off] = emg_gate_step(emg_level, k, gate, th_high, th_low, hangover)
+%EMG_GATE_STEP  One step of the per-channel press/release gate.
+%   Each channel drives one button: a contraction crossing th_high turns the
+%   gate ON (key pressed). To turn it OFF, the envelope must drop
+%   below th_low AND stay there for a full "hangover" window - only then is
+%   the key released.
 %
 %   Inputs:
-%     v        : 1 x ch envelope sample for this chunk (already smoothed).
-%     k        : current chunk index (used only for onset/off bookkeeping).
-%     gate     : persistent struct with 1 x ch fields .mode/.onset/.off/.gap
-%                (.mode: 0 idle / 1 active / 2 pending-release).
-%     th_high  : 1 x ch onset thresholds  (inf -> channel disabled).
-%     th_low   : 1 x ch release thresholds.
-%     hangover : release debounce, in chunks.
+%     emg_level : smoothed envelope sample for this chunk.
+%     k         : current chunk index (used only for bookkeeping).
+%     gate      : state struct, passed in and returned updated:
+%                  .mode  - 0 = idle (waiting for a contraction)
+%                           1 = active (key held, contraction in progress)
+%                           2 = pending release (below th_low, counting hangover)
+%                  .onset - chunk index when the current activation started
+%                  .off   - chunk index when the envelope first dropped below th_low
+%                  .gap   - number of consecutive sub-threshold chunks counted so far
+%     th_high   : onset thresholds.
+%     th_low    : release thresholds.
+%     hangover  : release debounce, in chunks.
 %
 %   Outputs:
-%     gate      : updated state struct.
-%     keys_down : 1 x ch logical, true while the button is held (live use).
-%     done      : 1 x ch logical, true on the chunk an activation finalizes.
-%     onset/off : 1 x ch, the finalized activation's onset/off chunk
-%                 (valid only where done is true; offline event use).
-    ch_num = numel(v);
+%     gate      : updated state struct (pass back in on the next call).
+%     keys_down : true while the key is pressed right now.
+%     done      : true on the one chunk an activation ends.
+%     onset/off : chunk indices of that activation's start and end.
+%                 Used only by the offline processor; ignored by the live script.
+    ch_num = numel(emg_level);
     done  = false(1, ch_num);
     onset = zeros(1, ch_num);
     off   = zeros(1, ch_num);
     for ch = 1:ch_num
         switch gate.mode(ch)
-            case 0   % idle: wait for a clear onset
-                if v(ch) > th_high(ch)
+
+            % idle: wait for a clear onset
+            case 0
+                if emg_level(ch) > th_high(ch)
                     gate.mode(ch) = 1;
                     gate.onset(ch) = k;
                 end
-            case 1   % active: contraction in progress
-                if v(ch) <= th_low(ch)
-                    gate.mode(ch) = 2;          % maybe finished -> start hangover
+            
+            % active: contraction in progress
+            case 1
+                if emg_level(ch) <= th_low(ch)
+                    % maybe finished -> start hangover
+                    gate.mode(ch) = 2;
                     gate.off(ch) = k;
                     gate.gap(ch) = 1;
                 end
-            case 2   % pending release: bridge brief dips (hangover)
-                if v(ch) > th_low(ch)
-                    gate.mode(ch) = 1;          % dip bridged, same contraction
+
+            % pending release: bridge brief dips (hangover)
+            case 2
+                if emg_level(ch) > th_low(ch)
+                    % dip bridged, same contraction
+                    gate.mode(ch) = 1;
                 else
                     gate.gap(ch) = gate.gap(ch) + 1;
                     if gate.gap(ch) >= hangover
                         done(ch)  = true;
                         onset(ch) = gate.onset(ch);
                         off(ch)   = gate.off(ch);
-                        gate.mode(ch) = 0;      % released
+
+                        % released
+                        gate.mode(ch) = 0;
                     end
                 end
         end

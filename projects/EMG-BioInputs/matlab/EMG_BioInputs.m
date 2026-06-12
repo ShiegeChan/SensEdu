@@ -441,7 +441,7 @@ while (true)
 end
 
 %% Functions
-% All decision helpers are shared on the path: acquisition (read_data,
-% split_by_channel) in ./acquisition/, the percentile (pctl) and threshold
-% (dec_thresholds) helpers in ./decision/, and the debug view
-% (plot_debug_window) in ./plotting/.
+% All helpers are shared on the path: 
+% - ./acquisition/  (read_data, split_by_channel)
+% - ./decision/     (pctl, dec_thresholds)
+% - ./plotting/     (plot_debug_window)

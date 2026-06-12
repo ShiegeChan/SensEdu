@@ -1,7 +1,5 @@
 function enveloped_data = envelop(data, fs, cutoff)
-%ENVELOP  Causal linear envelope (rectified-signal low-pass) of EMG data.
-%   Shared by the live (EMG_BioInputs) and offline (EMG_Offline_Processor)
-%   scripts so the envelope is computed identically in both.
+%ENVELOP  Envelope (rectified-signal low-pass) of EMG data.
 %
 %   A 2nd-order Butterworth low-pass is applied causally (filter, not
 %   filtfilt) and the average group delay below the cutoff is trimmed from
