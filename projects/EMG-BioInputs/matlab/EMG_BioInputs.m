@@ -22,6 +22,12 @@ LATENCY_METER_ITERATIONS = 1000;
 DEBUG_PLOT_ENABLED = true;
 DEBUG_PLOT_SEC = 10;
 
+% Processing-steps snapshot: if enabled, also redraw the DSP pipeline stages
+% (raw -> DC removed -> band-pass -> rectified -> envelope) over the current
+% rolling buffer, on the same cadence. For documentation / understanding the
+% pipeline; leave off during normal play.
+PROC_PLOT_ENABLED = false;
+
 % Sampling Rates
 Fs = 5000;
 
@@ -217,6 +223,12 @@ if DEBUG_PLOT_ENABLED
     pause(3);
 end
 
+if PROC_PLOT_ENABLED
+    f5 = figure('WindowState', 'maximized', 'NumberTitle', 'off', ...
+        'Name', 'Debug - Processing steps over the rolling buffer');
+    proc_timer = tic;
+end
+
 if LATENCY_METER_ENABLED
     tic;
 end
@@ -250,7 +262,10 @@ while (true)
     emg_buffers(end-new_rows+1:end, :) = emg_chunks_per_channel;
 
     % 4-6. Filter -> rectify -> envelope (shared with the offline processor).
-    filt_emg_buffers_env = ...
+    % The intermediate stages (dc/bp/rect) are only used by the optional
+    % processing-steps plot; they are computed regardless, so capturing them
+    % here is free.
+    [filt_emg_buffers_env, filt_bp, filt_rect, filt_dc] = ...
         process_emg_buffer(emg_buffers, FIR_COEFFS, TAPS, Fs, ENVELOP_LP_FREQ);
 
     % 7. Decision block: step the gate once per chunk for EVERY chunk in this
@@ -425,11 +440,21 @@ while (true)
         dbg_timer = tic;
     end
 
-    % 11. Latency measurements
+    % 11. Processing-steps snapshot (optional, for documentation): redraw the
+    % DSP pipeline over the current rolling buffer on the same cadence.
+    if PROC_PLOT_ENABLED && toc(proc_timer) > DEBUG_PLOT_SEC
+        figure(f5);
+        plot_processing_steps(emg_buffers, filt_dc, filt_bp, filt_rect, ...
+            filt_emg_buffers_env, Fs, CH_NUM);
+        drawnow limitrate;
+        proc_timer = tic;
+    end
+
+    % 12. Latency measurements
     if LATENCY_METER_ENABLED && latency_idx <= LATENCY_METER_ITERATIONS
-        if DEBUG_PLOT_ENABLED
+        if DEBUG_PLOT_ENABLED || PROC_PLOT_ENABLED
             fprintf("You cannot use latency meter and plots at the same time.\n" + ...
-                "Disable one of them.\n");
+                "Disable them.\n");
             continue;
         end
         latency_meter(latency_idx) = toc;
@@ -444,4 +469,4 @@ end
 % All helpers are shared on the path: 
 % - ./acquisition/  (read_data, split_by_channel)
 % - ./decision/     (pctl, dec_thresholds)
-% - ./plotting/     (plot_debug_window)
+% - ./plotting/     (plot_debug_window, plot_processing_steps)
