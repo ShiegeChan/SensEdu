@@ -1,4 +1,17 @@
 %% EMG-BioInputs.m
+% Real-time EMG → game-input controller.
+%
+% Streams 4-channel EMG from the Arduino, runs the DSP chain over a rolling buffer, 
+% and drives one game button per channel through an adaptive per-channel gate: 
+% a contraction presses a key / mouse button DOWN, relaxing releases it UP. 
+%
+% Main loop:
+%   1-3.   read queued EMG chunk(s) -> split by channel -> push to rolling buffer
+%   4-6.   DSP: DC-remove -> band-pass FIR -> rectify -> envelope
+%   7.     decision gate with adaptive thresholds, stepped once per chunk
+%   8.     inject key / mouse press / release on the gate edges
+%   9.     periodic calibration of the rest floor and press height
+%   10-12. optional debug plots and latency meter
 clear;
 close all;
 clc;
@@ -10,111 +23,105 @@ addpath(genpath('./decision/'));
 addpath(genpath('./plotting/'));
 
 %% Debug Settings
-LATENCY_METER_ENABLED = false;
+
+% false = detect only; true = inject real inputs.
+ENABLE_KEYS = false;
+
+% Measure EMG latency.
+LATENCY_METER_ENABLED = true;
 LATENCY_METER_ITERATIONS = 1000;
 
-%% EMG Settings
-
-% Retrospective debug view: once per DEBUG_PLOT_SEC seconds, redraw the last
-% DEBUG_PLOT_SEC seconds of the processed envelope on a real time axis, with
-% the adaptive thresholds and the gate's key-down decisions overlaid, so the
-% decision making can be reviewed after the fact.
+% Debug decision chain.
 DEBUG_PLOT_ENABLED = false;
 DEBUG_PLOT_SEC = 10;
 
-% Processing-steps snapshot: if enabled, also redraw the DSP pipeline stages
-% (raw -> DC removed -> band-pass -> rectified -> envelope) over the current
-% rolling buffer, on the same cadence. For documentation / understanding the
-% pipeline; leave off during normal play.
-PROC_PLOT_ENABLED = true;
+% Debug EMG DSP chain.
+PROC_PLOT_ENABLED = false;
 
-% Sampling Rates
+% Key names for plots.
+CH_BUTTON = {'LMB (R1 attack)', 'Space (roll/sprint)', 'CH3 (unbound)', 'CH4 (unbound)'};
+
+%% Firmware Settings (must match the Arduino sketch)
+
+% Sampling rate.
 Fs = 5000;
 
-% EMG chunk size in 16-bit samples
+% EMG chunk size in 16-bit samples.
 CHUNK_SIZE = 75;
 
-% EMG rolling buffer size for processing
-% Contains ~1 second worth of data chunks
+% ADC+DMA Settings.
+CH_NUM = 4;
+BUF_SIZE = CHUNK_SIZE * 2 * CH_NUM;
+
+%% Connection Settings
+ARDUINO_PORT = 'COM4';
+ARDUINO_BAUDRATE = 2000000; % cosmetic for USB CDC
+
+USB_BUF_MAX_MS = 500;
+USB_BUF_MAX_BYTES = USB_BUF_MAX_MS * CH_NUM / 1e3 * Fs * 2;
+
+%% EMG Settings
+
+% EMG rolling buffer size (~1 second of data chunks).
 EMG_BUFFER_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE);
 
-% Envelop LP Frequency
-ENVELOP_LP_FREQ = 10;
-
-%% Filter Settings
-
-% Bandpass frequency #1
+% FIR bandpass frequencies.
 F0 = 30;
-
-% Bandpass frequency #2
 F1 = 450;
 
-% FIR taps (must be even)
+% FIR taps (must be even).
 TAPS = 150;
 FIR_DELAY = TAPS/2;
 FIR_COEFFS = fir1(TAPS, [F0 F1]/(Fs/2), 'bandpass');
 
+% Envelope low-pass cutoff (Hz).
+ENVELOP_LP_FREQ = 10;
+
 %% Decision Settings (per-channel adaptive gate -> one game button each)
-% Each channel drives ONE button as a plain gate (not a classifier): a
-% contraction presses it DOWN, relaxing releases it UP, and the game decides
-% tap vs hold.
-%
-% The thresholds derive from two DECOUPLED per-channel estimates, so they do
-% not depend on how often the muscle happened to be used recently (no
-% duty-cycle dependence, unlike a plain rolling-window percentile):
-%
-%   floor_est : rest level. A percentile of ONLY the samples where the gate is
-%               idle and below the release threshold, eased slowly (fast when
-%               it clearly jumps, e.g. an electrode shift), so long holds
-%               cannot drag the floor up and quiet stretches cannot shrink
-%               the activation range.
-%   press_est : typical press height ABOVE the floor. Learned from the peaks
-%               of contractions the gate actually finalizes (outlier-clamped
-%               per-event EMA), so one very hard or very weak press cannot
-%               permanently re-scale the thresholds, and sparse presses keep
-%               the bar where the user's real presses are.
-%
-%   g       = max(press_est, DEC_MIN_GAP / DEC_FRAC_HIGH)  % cold-start/noise
-%   TH_HIGH = floor + DEC_FRAC_HIGH * g                    % press (onset)
-%   TH_LOW  = floor + DEC_FRAC_LOW  * g                    % release
-%
-% Safety nets: if presses stop reaching TH_HIGH (electrode moved, gain
-% dropped), clear sub-threshold efforts slowly pull press_est down until
-% presses register again; a gate stuck active longer than DEC_STUCK_S adopts
-% the held level as the new baseline and releases.
-ENABLE_KEYS = true;   % false = detect only (safe); true = inject real inputs
 
-% Per-channel game button label (ch1..ch4), shown in the debug plot. Keep in
-% sync with the key_press / key_release bindings in the Init section. Unbound
-% channels are still detected and plotted (for debugging) but inject no input.
-CH_BUTTON = {'LMB (R1 attack)', 'Space (roll/sprint)', 'CH3 (unbound)', 'CH4 (unbound)'};
-
+% Onset / release thresholds.
+% g = max(press_est, DEC_MIN_GAP / DEC_FRAC_HIGH) → effective press height above the floor
+% onset   threshold = floor + DEC_FRAC_HIGH * g
+% release threshold = floor + DEC_FRAC_LOW  * g
 DEC_FLOOR_PCTL   = 20;    % rest-level percentile of the idle-only history
 DEC_FRAC_HIGH    = 0.40;  % onset   at floor + this fraction of g
 DEC_FRAC_LOW     = 0.20;  % release at floor + this fraction of g
-DEC_MIN_GAP      = 100;   % minimum onset height above the floor (counts):
-                          % noise / disconnected-channel guard, and the bar a
-                          % first press must clear before press_est is learned
-DEC_ATTACK_S     = 0.015; % decision smoothing attack tau (fast key-down)
-DEC_RELEASE_S    = 0.080; % decision smoothing release tau (stable holds)
-DEC_HANGOVER_S   = 0.12;  % bridge envelope dips shorter than this (debounce)
-DEC_CAL_WINDOW_S = 30;    % rest-time window the floor percentile sees
-DEC_CAL_UPDATE_S = 1.0;   % how often to re-measure the floor
+DEC_MIN_GAP      = 100;   % minimum allowed g (noise / disconnected-channel guard)
+
+% Smoothing & debouncing.
+DEC_ATTACK_S     = 0.015; % smoothing attack tau (fast key-down)
+DEC_RELEASE_S    = 0.080; % smoothing release tau (stable holds)
+DEC_HANGOVER_S   = 0.12;  % bridge envelope dips shorter than this
+
+% Cold start.
+DEC_CAL_SKIP_S   = 1.5;   % ignored data at the start of the script (buffer warm-up)
 DEC_CAL_BOOT_S   = 3.0;   % rest data needed before a channel goes live
-DEC_CAL_SKIP_S   = 1.5;   % ignore the buffer warm-up before collecting data
+
+% Floor recalibration.
+DEC_CAL_WINDOW_S = 30;    % rest-time window the floor is calculated over
+DEC_CAL_UPDATE_S = 1.0;   % how often the floor is updated
 DEC_ADAPT_S      = 8.0;   % floor easing time constant (anti-jitter)
 DEC_ADAPT_FAST_S = 1.5;   % faster easing when the floor clearly jumped
 DEC_FAST_DEV     = 0.35;  % "clearly jumped" = moved by > this fraction of g
-DEC_PEAK_ALPHA   = 0.25;  % per-press EMA step for press_est
-DEC_PEAK_CLAMP   = [0.5 2.0];  % one press counts as at most this x press_est
-DEC_LEARN_MIN_S  = 0.15;  % don't learn from activations shorter than this
-DEC_RECOVER_AFTER_S = 15; % no press this long -> allow press_est to sag ...
-DEC_RECOVER_WIN_S   = 5;  % ... toward the max effort of the last few seconds
-DEC_RECOVER_TAU_S   = 10; % sag easing time constant
-DEC_RECOVER_FRAC    = 0.30;  % effort counts only above this fraction of g
-DEC_STUCK_S      = 20;    % gate active longer -> adopt level as new baseline
 
-% Convert the time-based settings to chunk counts (chunk rate = Fs/CHUNK_SIZE).
+% Press recalibration.
+DEC_PEAK_ALPHA   = 0.25;       % per-press EMA step for press_est
+                               % with 0.25, it takes roughly 4 presses to fully adapt 
+                               % to a new effort level
+DEC_PEAK_CLAMP   = [0.5 2.0];  % one press counts as at most this x press_est
+                               % prevents outliers like accidental slams or cable artifacts
+DEC_LEARN_MIN_S  = 0.15;       % don't learn from activations shorter than this
+
+% Recovery from drifting press level.
+DEC_RECOVER_AFTER_S = 15;   % no press this long → allow press_est to sag
+DEC_RECOVER_WIN_S   = 5;    % sag toward the max effort of the last few seconds
+DEC_RECOVER_TAU_S   = 10;   % sag easing time constant
+DEC_RECOVER_FRAC    = 0.30; % in this look-back window effort counts only above this fraction of g
+
+% Recovery from very long hold (probably stuck).
+DEC_STUCK_S         = 20;   % gate active longer that this → adopt it as new baseline
+
+% Convert the time-based settings to chunk counts.
 chunks_per_sec    = Fs / CHUNK_SIZE;
 DEC_HANGOVER      = max(1, round(DEC_HANGOVER_S      * chunks_per_sec));
 DEC_CAL_WINDOW    = max(1, round(DEC_CAL_WINDOW_S    * chunks_per_sec));
@@ -126,20 +133,8 @@ DEC_STUCK_CH      = max(1, round(DEC_STUCK_S         * chunks_per_sec));
 DEC_RECOVER_WIN   = max(1, round(DEC_RECOVER_WIN_S / DEC_CAL_UPDATE_S));
 
 % Asymmetric decision smoothing coefficients (one step = one chunk).
-A_ATT = 1 - exp(-(CHUNK_SIZE / Fs) / DEC_ATTACK_S);
+A_ATK = 1 - exp(-(CHUNK_SIZE / Fs) / DEC_ATTACK_S);
 A_REL = 1 - exp(-(CHUNK_SIZE / Fs) / DEC_RELEASE_S);
-
-%% Connection Settings
-ARDUINO_PORT = 'COM4';
-ARDUINO_BAUDRATE = 2000000;
-
-% ADC+DMA Settings
-CH_NUM = 4;
-BUF_SIZE = CHUNK_SIZE * 2 * CH_NUM;
-
-% USB Settings
-USB_BUF_MAX_MS = 500;
-USB_BUF_MAX_BYTES = USB_BUF_MAX_MS * CH_NUM / 1e3 * Fs * 2;
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
@@ -215,6 +210,18 @@ end
 if LATENCY_METER_ENABLED
     latency_meter = zeros(1, LATENCY_METER_ITERATIONS);
     latency_idx = 1;
+
+    % Estimated onset latency from the settings (only the parts we can compute
+    % here). The USB CDC transfer, the OS input injection and the game's own
+    % input poll / render are ON TOP of this and are not knowable from MATLAB.
+    % This is the press-onset estimate; release adds the hangover on top.
+    [eb, ea]   = butter(2, ENVELOP_LP_FREQ / (Fs / 2), 'low');
+    [egd, ew]  = grpdelay(eb, ea, 512, Fs);
+    lat_chunk  = 0.5 * CHUNK_SIZE / Fs;                  % onset lands mid-chunk on average
+    lat_fir    = FIR_DELAY / Fs;                         % band-pass FIR group delay
+    lat_env    = mean(egd(ew <= ENVELOP_LP_FREQ)) / Fs;  % envelope low-pass group delay
+    lat_smooth = DEC_ATTACK_S;                           % decision smoothing attack (1 tau)
+    lat_est_ms = (lat_chunk + lat_fir + lat_env + lat_smooth) * 1000;
 end
 
 if DEBUG_PLOT_ENABLED
@@ -239,8 +246,8 @@ flush(arduino);
 
 %% Loop
 while (true)
+    % Drop stale buffered data so decisions stay near real time.
     if (arduino.NumBytesAvailable > USB_BUF_MAX_BYTES)
-        %disp("Too much input buffered data. USB buffer has been flushed.");
         flush(arduino);
     end
 
@@ -284,7 +291,7 @@ while (true)
         % Asymmetric causal smoothing: fast attack keeps the key-down latency
         % low, slower release steadies holds (pairs with the gate hangover).
         rise = env_now > env_dec;
-        env_dec(rise)  = env_dec(rise)  + A_ATT * (env_now(rise)  - env_dec(rise));
+        env_dec(rise)  = env_dec(rise)  + A_ATK * (env_now(rise)  - env_dec(rise));
         env_dec(~rise) = env_dec(~rise) + A_REL * (env_now(~rise) - env_dec(~rise));
 
         % Rest history for the floor estimate: ONLY idle, sub-release samples,
@@ -465,7 +472,17 @@ while (true)
         latency_meter(latency_idx) = toc;
         latency_idx = latency_idx + 1;
         if latency_idx > LATENCY_METER_ITERATIONS
-            fprintf("avg latency: %ims\n", round(mean(diff(latency_meter)) * 1000));
+            loop_ms = mean(diff(latency_meter)) * 1000;
+            fprintf('------------\n');
+            fprintf(['loop period:                    ~%.1f ms (%.0f Hz) ' ...
+                '- how often the algorithm reads and processes\n'], ...
+                loop_ms, 1000 / loop_ms);
+            fprintf('estimated button press latency: ~%.1f ms (%.0f Hz)\n', ...
+                lat_est_ms, 1000 / lat_est_ms);
+            fprintf(['(half-chunk %.1f + FIR %.1f + envelope %.1f + smoothing %.1f)\n' ...
+                'USB / OS / game render are not taken into account\n'], ...
+                lat_chunk * 1000, lat_fir * 1000, lat_env * 1000, lat_smooth * 1000);
+            fprintf('------------\n');
         end
     end
 end
