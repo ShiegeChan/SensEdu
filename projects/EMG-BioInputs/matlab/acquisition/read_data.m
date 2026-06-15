@@ -1,5 +1,5 @@
 function [is_recorded, data] = read_data(arduino, buf_size)
-%READ_DATA  Read whole EMG half-buffers from the Arduino serial port.
+%READ_DATA  Reads whole EMG half-buffers from the Arduino serial port.
 %   Returns is_recorded = false (and data = 0) when less than one full
 %   half-buffer is queued, so the caller can simply skip the iteration. 
 %   When data is available it reads as many whole half-buffers as are queued.

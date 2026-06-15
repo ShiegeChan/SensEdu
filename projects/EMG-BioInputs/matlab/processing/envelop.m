@@ -1,5 +1,5 @@
 function enveloped_data = envelop(data, fs, cutoff)
-%ENVELOP  Envelope (rectified-signal low-pass) of EMG data.
+%ENVELOP  Envelope of the EMG data.
 %
 %   A 2nd-order Butterworth low-pass is applied causally (filter, not
 %   filtfilt) and the average group delay below the cutoff is trimmed from

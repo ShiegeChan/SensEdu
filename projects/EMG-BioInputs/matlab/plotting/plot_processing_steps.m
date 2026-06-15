@@ -1,33 +1,34 @@
 function plot_processing_steps(emg_buffers, dc, bp, rect, env, fs, ch_num)
-%PLOT_PROCESSING_STEPS  Snapshot of the DSP pipeline over the rolling buffer.
-%   Shows every stage of the EMG processing chain applied to the current ~1 s
-%   rolling buffer, one stage per row, all channels overlaid. Intended for
-%   documentation / understanding the pipeline rather than live tuning.
+%PLOT_PROCESSING_STEPS  Debug view of the DSP pipeline over the rolling buffer.
+%   Shows every stage of the EMG processing chain applied to the current
+%   rolling buffer, one stage per row. Intended for documentation and
+%   tuning.
 %
-%   Stages: raw -> DC removed -> band-pass -> rectified -> envelope. The later
-%   stages are shorter than the raw buffer (the first TAPS samples and the
-%   envelope group delay are dropped), so each stage is drawn on its own time
-%   axis aligned to the newest sample (now = 0, the past is negative).
-%
-%   The downstream decision smoothing (the asymmetric "gate input") is NOT
-%   shown here: it is a chunk-rate decision filter, visualised separately in
-%   plot_debug_window as the blue trace.
+%   Stages: raw -> DC removed -> band-pass -> rectified -> envelope. 
+%   
+%   The later stages are shorter than the raw buffer (the first TAPS samples 
+%   and the envelope group delay are dropped), so each stage is drawn aligned 
+%   to the newest sample.
 %
 %   Inputs:
-%     emg_buffers : raw rolling buffer (samples x ch_num), ADC counts.
-%     dc          : DC-removed buffer (before band-pass).
+%     emg_buffers : raw rolling buffer (samples x ch_num).
+%     dc          : DC-removed buffer.
 %     bp          : band-passed signal.
 %     rect        : rectified band-pass.
-%     env         : linear envelope.
+%     env         : envelope.
 %     fs          : sampling rate (Hz).
 %     ch_num      : number of channels.
+    
+    % Up to which channel plots are drawn.
+    % Helpful to debug specific channel.
+    MAX_DISP_CH = ch_num;
 
-    % Each stage: data, title, y-axis label.
-    stages = {emg_buffers, 'Raw rolling buffer',     'ADC counts'; ...
-              dc,          'DC removed',             'Counts'; ...
-              bp,          'Band-pass (30-450 Hz)',  'Counts'; ...
-              rect,        'Rectified',              'Counts'; ...
-              env,         'Envelope (10 Hz LP)',    'Counts'};
+    disp_channels = 1:MAX_DISP_CH;
+    stages = {emg_buffers(:, disp_channels), 'Raw rolling buffer',     'ADC Value'; ...
+              dc(:, disp_channels),          'DC removed',             ''; ...
+              bp(:, disp_channels),          'Band-pass (30-450 Hz)',  ''; ...
+              rect(:, disp_channels),        'Rectified',              ''; ...
+              env(:, disp_channels),         'Envelope (10 Hz LP)',    ''};
     n_stages = size(stages, 1);
 
     % Channel legend labels.
@@ -49,14 +50,14 @@ function plot_processing_steps(emg_buffers, dc, bp, rect, env, fs, ch_num)
         title(stages{s, 2});
         ylabel(stages{s, 3});
 
-        % Time label only on the bottom row to keep the stack compact.
+        % Time label only on the bottom row.
         if s == n_stages
-            xlabel('Time (s)');
+            xlabel('Time [s]');
         end
 
         % Channel legend only on the first row.
         if s == 1
-            legend(ch_labels, 'Location', 'northeast');
+            legend(ch_labels, 'Location', 'northwest');
         end
     end
     sgtitle('Processing steps over the rolling buffer');

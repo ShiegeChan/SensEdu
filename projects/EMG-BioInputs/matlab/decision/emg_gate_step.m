@@ -2,8 +2,8 @@ function [gate, keys_down, done, onset, off] = emg_gate_step(emg_level, k, gate,
 %EMG_GATE_STEP  One step of the per-channel press/release gate.
 %   Each channel drives one button: a contraction crossing th_high turns the
 %   gate ON (key pressed). To turn it OFF, the envelope must drop
-%   below th_low AND stay there for a full "hangover" window - only then is
-%   the key released.
+%   below th_low AND stay there for a full "hangover" window - only then
+%   the key is released.
 %
 %   Inputs:
 %     emg_level : smoothed envelope sample for this chunk.
@@ -20,9 +20,9 @@ function [gate, keys_down, done, onset, off] = emg_gate_step(emg_level, k, gate,
 %     hangover  : release debounce, in chunks.
 %
 %   Outputs:
-%     gate      : updated state struct (pass back in on the next call).
+%     gate      : updated state struct.
 %     keys_down : true while the key is pressed right now.
-%     done      : true on the one chunk an activation ends.
+%     done      : true on the chunk where activation ends.
 %     onset/off : chunk indices of that activation's start and end.
 %                 Used only by the offline processor; ignored by the live script.
     ch_num = numel(emg_level);

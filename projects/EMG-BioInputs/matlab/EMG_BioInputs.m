@@ -19,14 +19,14 @@ LATENCY_METER_ITERATIONS = 1000;
 % DEBUG_PLOT_SEC seconds of the processed envelope on a real time axis, with
 % the adaptive thresholds and the gate's key-down decisions overlaid, so the
 % decision making can be reviewed after the fact.
-DEBUG_PLOT_ENABLED = true;
+DEBUG_PLOT_ENABLED = false;
 DEBUG_PLOT_SEC = 10;
 
 % Processing-steps snapshot: if enabled, also redraw the DSP pipeline stages
 % (raw -> DC removed -> band-pass -> rectified -> envelope) over the current
 % rolling buffer, on the same cadence. For documentation / understanding the
 % pipeline; leave off during normal play.
-PROC_PLOT_ENABLED = false;
+PROC_PLOT_ENABLED = true;
 
 % Sampling Rates
 Fs = 5000;
@@ -226,6 +226,8 @@ end
 if PROC_PLOT_ENABLED
     f5 = figure('WindowState', 'maximized', 'NumberTitle', 'off', ...
         'Name', 'Debug - Processing steps over the rolling buffer');
+    f6 = figure('WindowState', 'maximized', 'NumberTitle', 'off', ...
+        'Name', 'Debug - Processing steps combined (per channel)');
     proc_timer = tic;
 end
 
@@ -446,6 +448,9 @@ while (true)
         figure(f5);
         plot_processing_steps(emg_buffers, filt_dc, filt_bp, filt_rect, ...
             filt_emg_buffers_env, Fs, CH_NUM);
+        figure(f6);
+        plot_processing_combined(filt_dc, filt_bp, filt_rect, ...
+            filt_emg_buffers_env, Fs, CH_NUM);
         drawnow limitrate;
         proc_timer = tic;
     end
@@ -469,4 +474,4 @@ end
 % All helpers are shared on the path: 
 % - ./acquisition/  (read_data, split_by_channel)
 % - ./decision/     (pctl, dec_thresholds)
-% - ./plotting/     (plot_debug_window, plot_processing_steps)
+% - ./plotting/     (plot_debug_window, plot_processing_steps, plot_processing_combined)

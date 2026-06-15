@@ -41,7 +41,8 @@ function plot_debug_window(t, env, env_dec, th_high, th_low, keys, ch_num, ch_bu
             lo = min(vals); 
             hi = max(vals);
             if ~(isfinite(lo) && isfinite(hi)) || hi <= lo
-                lo = 0; hi = 1;
+                lo = 0;
+                hi = 1;
             end
             pad = 0.05 * (hi - lo);
             yl = [lo - pad, hi + pad];
@@ -55,7 +56,8 @@ function plot_debug_window(t, env, env_dec, th_high, th_low, keys, ch_num, ch_bu
 
         % Shade each key-down span.
         for j = 1:numel(starts)
-            xs = t(starts(j)); xe = t(stops(j));
+            xs = t(starts(j));
+            xe = t(stops(j));
             patch([xs xe xe xs], [yl(1) yl(1) yl(2) yl(2)], [0.2 0.7 0.2], ...
                 'FaceAlpha', 0.18, 'EdgeColor', 'none');
         end
@@ -91,7 +93,8 @@ function plot_debug_window(t, env, env_dec, th_high, th_low, keys, ch_num, ch_bu
         ylim(yl);
         xlim([t(1) t(end)]);
         title(sprintf('Channel %d [%s] - %d press(es)', ch, ch_button{ch}, numel(starts)));
-        xlabel('Time (s)'); ylabel('Envelope');
+        xlabel('Time (s)');
+        ylabel('Envelope');
         if ch == 1
             % Use only existing handles this frame.
             lh = [h_env h_dec h_hi h_lo h_key];
@@ -107,5 +110,5 @@ function plot_debug_window(t, env, env_dec, th_high, th_low, keys, ch_num, ch_bu
             legend(lh, ll, 'Location', 'northwest');
         end
     end
-    sgtitle(sprintf('Last %g s EMG Data', win_s));
+    sgtitle(sprintf('Last %g s of EMG Data', win_s));
 end

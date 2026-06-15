@@ -15,11 +15,9 @@ function [g, th_high, th_low] = dec_thresholds(floor_est, press_est, min_gap, fr
 %
 %   frac_high and frac_low are fractions of g (0..1). frac_high > frac_low
 %   creates hysteresis: the release sits lower than the onset so the gate does
-%   not flicker when the envelope sits near a single 
+%   not flicker.
 %
-%   g is the effective press height - the larger of the learned press_est and
-%   the cold-start fallback (min_gap / frac_high).
-%
+%   g is the effective press height. It has a cold-start fallback (min_gap / frac_high).
     g = max(press_est, min_gap / frac_high);
     th_high = floor_est + frac_high * g;
     th_low  = floor_est + frac_low  * g;
