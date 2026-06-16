@@ -6,8 +6,8 @@
 % a contraction presses a key / mouse button DOWN, relaxing releases it UP. 
 %
 % Main loop:
-%   1-3.   read queued EMG chunk(s) -> split by channel -> push to rolling buffer
-%   4-6.   DSP: DC-remove -> band-pass FIR -> rectify -> envelope
+%   1-3.   read queued EMG chunk(s) → split by channel → push to rolling buffer
+%   4-6.   DSP: DC-remove → band-pass FIR → rectify → envelope
 %   7.     decision gate with adaptive thresholds, stepped once per chunk
 %   8.     inject key / mouse press / release on the gate edges
 %   9.     periodic calibration of the rest floor and press height
@@ -40,7 +40,7 @@ USB_BUF_MAX_BYTES = USB_BUF_MAX_MS * CH_NUM / 1e3 * Fs * 2;
 %% EMG Processing Settings
 EMG_BUFFER_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE); % rolling buffer (~1 s)
 
-% Band-pass FIR (30-450 Hz) -> rectify -> envelope low-pass.
+% Band-pass FIR → rectify → envelope low-pass.
 F0 = 30;
 F1 = 450;
 TAPS = 150; % must be even
@@ -115,7 +115,7 @@ LATENCY_METER_ITERATIONS = 1000;
 
 % Retrospective decision-chain plot.
 DEBUG_PLOT_ENABLED = false;
-DEBUG_PLOT_SEC = 10;
+DEBUG_PLOT_S = 10;
 
 % DSP-pipeline snapshot plot.
 PROC_PLOT_ENABLED = false;
@@ -197,16 +197,16 @@ end
 
 if DEBUG_PLOT_ENABLED
     % Retrospective decision-history ring buffers.
-    DBG_WINDOW  = max(1, round(DEBUG_PLOT_SEC * chunks_per_sec));
+    DBG_WINDOW  = max(1, round(DEBUG_PLOT_S * chunks_per_sec));
     dbg_env     = zeros(DBG_WINDOW, CH_NUM);
     dbg_env_dec = zeros(DBG_WINDOW, CH_NUM);
     dbg_keys    = false(DBG_WINDOW, CH_NUM);
     dbg_th_high = nan(DBG_WINDOW, CH_NUM);
     dbg_th_low  = nan(DBG_WINDOW, CH_NUM);
-    dbg_time    = linspace(-DEBUG_PLOT_SEC, 0, DBG_WINDOW);
+    dbg_time    = linspace(-DEBUG_PLOT_S, 0, DBG_WINDOW);
 
     f4 = figure('WindowState', 'maximized', 'NumberTitle', 'off', 'Name', ...
-        sprintf('Debug - Last %gs (decisions)', DEBUG_PLOT_SEC));
+        sprintf('Debug - Last %gs (decisions)', DEBUG_PLOT_S));
     pause(3);
     dbg_timer = tic;
 end
@@ -233,14 +233,14 @@ while (true)
         flush(arduino);
     end
 
-    % 1. Record EMG chunk(s). A slow iteration (e.g. a debug redraw) makes
+    % 1. Record EMG chunk(s). A slow iteration (e.g., a debug plot) makes
     % the next read return several queued chunks at once; ALL are processed.
     [is_recorded, emg_chunks] = read_data(arduino, half_buf_size);
     if ~is_recorded
         continue;
     end
 
-    % 2. Rearrange chunk by channel
+    % 2. Rearrange chunk(s) by channel.
     emg_chunks_per_channel = split_by_channel(emg_chunks, CH_NUM);
     new_rows = size(emg_chunks_per_channel, 1);
     if new_rows > EMG_BUFFER_SIZE   % extreme stall: keep only the newest data
@@ -252,20 +252,20 @@ while (true)
     emg_buffers(1:end-new_rows, :) = emg_buffers(new_rows+1:end, :);
     emg_buffers(end-new_rows+1:end, :) = emg_chunks_per_channel;
 
-    % 4-6. DSP: DC-remove -> band-pass -> rectify -> envelope (shared with the
-    % offline processor). The dc/bp/rect stages feed only the step-11 plot.
+    % 4-6. DSP: DC-remove → band-pass → rectify → envelope.
+    % The dc/bp/rect stages feed only the debug plot.
     [filt_emg_buffers_env, filt_bp, filt_rect, filt_dc] = ...
         process_emg_buffer(emg_buffers, FIR_COEFFS, TAPS, Fs, ENVELOP_LP_FREQ);
 
-    % 7. Decision block: step the gate once per chunk for EVERY chunk in this
+    % 7. Decision block: step the gate once per chunk for every chunk in this
     % read (oldest first), so catch-up reads drop no decision samples and the
     % calibration history / debug time axis stay continuous.
     env_len = size(filt_emg_buffers_env, 1);
     n_new = new_rows / CHUNK_SIZE;
     n_proc = min(n_new, floor((env_len - 1) / CHUNK_SIZE) + 1);
-    for ci = (n_proc - 1):-1:0
-        % Decision input: the envelope sample at this chunk's end.
-        env_now = filt_emg_buffers_env(env_len - ci*CHUNK_SIZE, :);
+    for chunk_idx = (n_proc - 1):-1:0
+        % Extract chunk's envelope.
+        env_now = filt_emg_buffers_env(env_len - chunk_idx * CHUNK_SIZE, :);
         loop_k = loop_k + 1;
 
         % Asymmetric causal smoothing: fast attack keeps the key-down latency
@@ -274,8 +274,8 @@ while (true)
         env_dec(rise)  = env_dec(rise)  + A_ATK * (env_now(rise)  - env_dec(rise));
         env_dec(~rise) = env_dec(~rise) + A_REL * (env_now(~rise) - env_dec(~rise));
 
-        % Rest history for the floor estimate: ONLY idle, sub-release samples,
-        % so contractions never contaminate the floor.
+        % Rest history for the floor estimate: only idle, 
+        % contractions should never contaminate the floor.
         if loop_k > DEC_CAL_SKIP_CH
             resting = gate.mode == 0 & ~(env_dec > dec_th_low);
             for ch = find(resting)
@@ -299,26 +299,26 @@ while (true)
         since_press = since_press + 1;
         for ch = find(done)
             since_press(ch) = 0;
-            if (off_k(ch) - onset_k(ch)) < DEC_LEARN_MIN_CH || ...
-                    hold_chunks(ch) > DEC_STUCK_CH
+            if (off_k(ch) - onset_k(ch)) < DEC_LEARN_MIN_CH || hold_chunks(ch) > DEC_STUCK_CH
                 continue;
             end
-            h = press_peak(ch) - floor_est(ch);
+            press_height = press_peak(ch) - floor_est(ch);
             if isnan(press_est(ch))
-                if h >= DEC_MIN_GAP
-                    press_est(ch) = h;
+                if press_height >= DEC_MIN_GAP
+                    press_est(ch) = press_height;
                     fprintf('Channel %d [%s]: press level learned (%.0f above rest).\n', ...
-                        ch, CH_BUTTON{ch}, h);
+                        ch, CH_BUTTON{ch}, press_height);
                 end
             else
-                h = min(max(h, DEC_PEAK_CLAMP(1) * press_est(ch)), ...
+                press_height = min(max(press_height, DEC_PEAK_CLAMP(1) * press_est(ch)), ...
                         DEC_PEAK_CLAMP(2) * press_est(ch));
-                press_est(ch) = press_est(ch) + DEC_PEAK_ALPHA * (h - press_est(ch));
+                press_est(ch) = press_est(ch) + DEC_PEAK_ALPHA * (press_height - press_est(ch));
             end
         end
 
         hold_chunks(keys_down)  = hold_chunks(keys_down) + 1;
         hold_chunks(~keys_down) = 0;
+
         % A gate just declared stuck starts a fresh rest history: the old
         % floor samples no longer describe the new baseline.
         for ch = find(hold_chunks == DEC_STUCK_CH + 1)
@@ -326,6 +326,7 @@ while (true)
             rest_idx(ch) = 0;
         end
 
+        % Recalculate thresholds based on new press estimate.
         [g_est, dec_th_high, dec_th_low] = dec_thresholds(floor_est, ...
             press_est, DEC_MIN_GAP, DEC_FRAC_HIGH, DEC_FRAC_LOW);
 
@@ -333,10 +334,14 @@ while (true)
         %    Empty (unbound) channels are skipped.
         if ENABLE_KEYS
             for i = find(keys_down & ~keys_state)
-                if ~isempty(key_press{i}); key_press{i}(); end
+                if ~isempty(key_press{i})
+                    key_press{i}(); 
+                end
             end
             for i = find(~keys_down & keys_state)
-                if ~isempty(key_release{i}); key_release{i}(); end
+                if ~isempty(key_release{i})
+                    key_release{i}();
+                end
             end
         end
         keys_state = keys_down;
@@ -361,16 +366,17 @@ while (true)
         for ch = 1:CH_NUM
             r = rest_hist(~isnan(rest_hist(:, ch)), ch);
             if numel(r) < DEC_CAL_BOOT
-                continue;   % not enough rest data (yet / after a stuck reset)
+                % not enough rest data (yet / after a stuck reset)
+                continue;
             end
             floor_now = pctl(r, DEC_FLOOR_PCTL);
             if ~floor_ready(ch)
-                floor_est(ch) = floor_now;     % seed directly (no easing yet)
+                floor_est(ch) = floor_now; % seed directly (no easing yet)
                 floor_ready(ch) = true;
             else
                 tau = DEC_ADAPT_S;
                 if abs(floor_now - floor_est(ch)) > DEC_FAST_DEV * g_est(ch)
-                    tau = DEC_ADAPT_FAST_S;    % step change: re-acquire fast
+                    tau = DEC_ADAPT_FAST_S; % step change: re-acquire fast
                 end
                 a = 1 - exp(-dt / tau);
                 floor_est(ch) = floor_est(ch) + a * (floor_now - floor_est(ch));
@@ -389,7 +395,7 @@ while (true)
         end
 
         % press_est recovery: presses stopped but clear sub-onset efforts keep
-        % appearing (electrode moved / gain dropped) -> sag press_est toward
+        % appearing (electrode moved / gain dropped) → sag press_est toward
         % them until presses fire again and normal learning resumes.
         secmax_hist = [secmax_hist(2:end, :); interval_max];
         interval_max = -inf(1, CH_NUM);
@@ -408,29 +414,27 @@ while (true)
             press_est, DEC_MIN_GAP, DEC_FRAC_HIGH, DEC_FRAC_LOW);
     end
 
-    % 10. Retrospective debug view: every DEBUG_PLOT_SEC, redraw the last
-    % DEBUG_PLOT_SEC s of envelope / thresholds / decisions against the signal.
-    if DEBUG_PLOT_ENABLED && toc(dbg_timer) > DEBUG_PLOT_SEC
-        % Acquisition sanity check: a channel pinned at the ADC rail
-        % (~0 or ~65535) carries no EMG -> check electrode/bias/wiring.
+    % 10. Retrospective debug view (every DEBUG_PLOT_S): redraw the last
+    % DEBUG_PLOT_S s of envelope / thresholds / decisions for tuning.
+    if DEBUG_PLOT_ENABLED && toc(dbg_timer) > DEBUG_PLOT_S
+        % Pinned channel check.
         railed = find(max(emg_buffers, [], 1) >= 65500 | ...
                       min(emg_buffers, [], 1) <= 35);
         if ~isempty(railed)
-            fprintf('WARNING: channel(s) [%s] railed/saturated.\n', ...
-                num2str(railed));
+            fprintf('WARNING: channel(s) [%s] railed/saturated.\n', num2str(railed));
         end
 
         figure(f4);
         plot_debug_window(dbg_time, dbg_env, dbg_env_dec, dbg_th_high, ...
-            dbg_th_low, dbg_keys, CH_NUM, CH_BUTTON, DEBUG_PLOT_SEC, ...
+            dbg_th_low, dbg_keys, CH_NUM, CH_BUTTON, DEBUG_PLOT_S, ...
             floor_est, g_est);
         drawnow limitrate;
         dbg_timer = tic;
     end
 
-    % 11. Processing-steps snapshot (optional, for documentation): redraw the
-    % DSP pipeline over the current rolling buffer on the same cadence.
-    if PROC_PLOT_ENABLED && toc(proc_timer) > DEBUG_PLOT_SEC
+    % 11. Processing-steps snapshot: redraw the DSP pipeline 
+    % over the current rolling buffer.
+    if PROC_PLOT_ENABLED && toc(proc_timer) > DEBUG_PLOT_S
         figure(f5);
         plot_processing_steps(emg_buffers, filt_dc, filt_bp, filt_rect, ...
             filt_emg_buffers_env, Fs, CH_NUM);
@@ -441,7 +445,7 @@ while (true)
         proc_timer = tic;
     end
 
-    % 12. Latency measurements
+    % 12. Latency measurements.
     if LATENCY_METER_ENABLED && latency_idx <= LATENCY_METER_ITERATIONS
         if DEBUG_PLOT_ENABLED || PROC_PLOT_ENABLED
             fprintf("You cannot use latency meter and plots at the same time.\n" + ...
