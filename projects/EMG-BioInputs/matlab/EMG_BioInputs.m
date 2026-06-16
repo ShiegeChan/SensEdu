@@ -22,62 +22,33 @@ addpath(genpath('./processing/'));
 addpath(genpath('./decision/'));
 addpath(genpath('./plotting/'));
 
-%% Debug Settings
-
-% false = detect only; true = inject real inputs.
-ENABLE_KEYS = false;
-
-% Measure EMG latency.
-LATENCY_METER_ENABLED = true;
-LATENCY_METER_ITERATIONS = 1000;
-
-% Debug decision chain.
-DEBUG_PLOT_ENABLED = false;
-DEBUG_PLOT_SEC = 10;
-
-% Debug EMG DSP chain.
-PROC_PLOT_ENABLED = false;
-
-% Key names for plots.
-CH_BUTTON = {'LMB (R1 attack)', 'Space (roll/sprint)', 'CH3 (unbound)', 'CH4 (unbound)'};
-
 %% Firmware Settings (must match the Arduino sketch)
-
-% Sampling rate.
-Fs = 5000;
-
-% EMG chunk size in 16-bit samples.
-CHUNK_SIZE = 75;
-
-% ADC+DMA Settings.
+Fs = 5000;                          % per-channel sampling rate (Hz)
+CHUNK_SIZE = 75;                    % samples/channel in one EMG chunk
 CH_NUM = 4;
-BUF_SIZE = CHUNK_SIZE * 2 * CH_NUM;
+BUF_SIZE = CHUNK_SIZE * 2 * CH_NUM; % full double DMA buffer (uint16)
+half_buf_size = BUF_SIZE / 2;       % one half-transfer = CH_NUM interleaved chunks
 
 %% Connection Settings
 ARDUINO_PORT = 'COM4';
 ARDUINO_BAUDRATE = 2000000; % cosmetic for USB CDC
 
+% Flush the input buffer once it exceeds this, to stay near real time.
 USB_BUF_MAX_MS = 500;
 USB_BUF_MAX_BYTES = USB_BUF_MAX_MS * CH_NUM / 1e3 * Fs * 2;
 
-%% EMG Settings
+%% EMG Processing Settings
+EMG_BUFFER_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE); % rolling buffer (~1 s)
 
-% EMG rolling buffer size (~1 second of data chunks).
-EMG_BUFFER_SIZE = CHUNK_SIZE * round(Fs/CHUNK_SIZE);
-
-% FIR bandpass frequencies.
+% Band-pass FIR (30-450 Hz) -> rectify -> envelope low-pass.
 F0 = 30;
 F1 = 450;
-
-% FIR taps (must be even).
-TAPS = 150;
+TAPS = 150; % must be even
 FIR_DELAY = TAPS/2;
 FIR_COEFFS = fir1(TAPS, [F0 F1]/(Fs/2), 'bandpass');
+ENVELOP_LP_FREQ = 10; % envelope low-pass cutoff (Hz)
 
-% Envelope low-pass cutoff (Hz).
-ENVELOP_LP_FREQ = 10;
-
-%% Decision Settings (per-channel adaptive gate -> one game button each)
+%% Decision Settings (per-channel adaptive gate → one game button each)
 
 % Onset / release thresholds.
 % g = max(press_est, DEC_MIN_GAP / DEC_FRAC_HIGH) → effective press height above the floor
@@ -105,11 +76,8 @@ DEC_ADAPT_FAST_S = 1.5;   % faster easing when the floor clearly jumped
 DEC_FAST_DEV     = 0.35;  % "clearly jumped" = moved by > this fraction of g
 
 % Press recalibration.
-DEC_PEAK_ALPHA   = 0.25;       % per-press EMA step for press_est
-                               % with 0.25, it takes roughly 4 presses to fully adapt 
-                               % to a new effort level
-DEC_PEAK_CLAMP   = [0.5 2.0];  % one press counts as at most this x press_est
-                               % prevents outliers like accidental slams or cable artifacts
+DEC_PEAK_ALPHA   = 0.25;       % per-press EMA step for press_est (~4 presses to adapt)
+DEC_PEAK_CLAMP   = [0.5 2.0];  % clamp one press to this x press_est (reject outliers)
 DEC_LEARN_MIN_S  = 0.15;       % don't learn from activations shorter than this
 
 % Recovery from drifting press level.
@@ -136,105 +104,119 @@ DEC_RECOVER_WIN   = max(1, round(DEC_RECOVER_WIN_S / DEC_CAL_UPDATE_S));
 A_ATK = 1 - exp(-(CHUNK_SIZE / Fs) / DEC_ATTACK_S);
 A_REL = 1 - exp(-(CHUNK_SIZE / Fs) / DEC_RELEASE_S);
 
+%% Debug Settings
+
+% false = detect only; true = inject real OS input.
+ENABLE_KEYS = false;
+
+% Estimate and report loop / button-press latency.
+LATENCY_METER_ENABLED = true;
+LATENCY_METER_ITERATIONS = 1000;
+
+% Retrospective decision-chain plot.
+DEBUG_PLOT_ENABLED = false;
+DEBUG_PLOT_SEC = 10;
+
+% DSP-pipeline snapshot plot.
+PROC_PLOT_ENABLED = false;
+
+% Per-channel action labels (status prints + plots).
+CH_BUTTON = {'LMB (R1 attack)', 'Space (roll/sprint)', 'CH3 (unbound)', 'CH4 (unbound)'};
+
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
 
-%% Init
-half_buf_size = BUF_SIZE / 2;
-emg_chunks = zeros(1, half_buf_size);
+%% State Init
+
+% Acquisition buffers.
+emg_chunks  = zeros(1, half_buf_size);
 emg_buffers = zeros(EMG_BUFFER_SIZE, CH_NUM);
 
-% --- Decision / calibration state ---
-floor_est   = nan(1, CH_NUM);   % eased rest floor (NaN = not yet measured)
-press_est   = nan(1, CH_NUM);   % press height above floor (NaN = not learned)
+% Per-channel calibration estimates and thresholds.
+% A NaN floor yields NaN thresholds, so the gate stays off until calibrated.
+floor_est   = nan(1, CH_NUM);
+press_est   = nan(1, CH_NUM);
 floor_ready = false(1, CH_NUM);
-calibrated  = false;            % all floors measured (status message only)
-
-% Thresholds (NaN until the floor is measured -> channel cannot fire).
-[g_est, DEC_TH_HIGH, DEC_TH_LOW] = dec_thresholds(floor_est, press_est, ...
+calibrated  = false;
+[g_est, dec_th_high, dec_th_low] = dec_thresholds(floor_est, press_est, ...
     DEC_MIN_GAP, DEC_FRAC_HIGH, DEC_FRAC_LOW);
 
-env_dec      = zeros(1, CH_NUM);  % asymmetric-smoothed decision signal
-rest_hist    = nan(DEC_CAL_WINDOW, CH_NUM);  % idle-only envelope history
-rest_idx     = zeros(1, CH_NUM);             % per-channel ring write index
-press_peak   = -inf(1, CH_NUM);  % running peak of the activation in progress
-hold_chunks  = zeros(1, CH_NUM); % how long the gate has been active (chunks)
-since_press  = zeros(1, CH_NUM); % chunks since the last finalized press
-interval_max = -inf(1, CH_NUM);  % env max since the last calibration tick
-secmax_hist  = -inf(DEC_RECOVER_WIN, CH_NUM);  % per-tick maxima (recovery)
-loop_k       = 0;                % global chunk counter
-cal_timer    = tic;
-gate         = struct('mode', zeros(1, CH_NUM), 'onset', zeros(1, CH_NUM), ...
-                      'off',  zeros(1, CH_NUM), 'gap',   zeros(1, CH_NUM));
-keys_down    = false(1, CH_NUM);
-keys_state   = false(1, CH_NUM);
+% Decision signal and calibration history.
+env_dec      = zeros(1, CH_NUM);               % asymmetric-smoothed decision signal
+rest_hist    = nan(DEC_CAL_WINDOW, CH_NUM);    % idle-only envelope history
+rest_idx     = zeros(1, CH_NUM);               % per-channel ring write index
+interval_max = -inf(1, CH_NUM);                % env max since the last calibration
+secmax_hist  = -inf(DEC_RECOVER_WIN, CH_NUM);  % per-tick maxima (press_est recovery)
 
-% --- Retrospective debug history (last DEBUG_PLOT_SEC seconds) ---
-% Per-chunk ring buffers, appended once per processed chunk, so the debug view
-% can redraw the recent envelope / thresholds / decisions on a real time axis.
-DBG_WINDOW  = max(1, round(DEBUG_PLOT_SEC * chunks_per_sec));
-dbg_env     = zeros(DBG_WINDOW, CH_NUM);   % per-chunk envelope (decision input)
-dbg_env_dec = zeros(DBG_WINDOW, CH_NUM);   % smoothed value the gate uses
-dbg_keys    = false(DBG_WINDOW, CH_NUM);   % gate key-down decision per chunk
-dbg_th_high = nan(DBG_WINDOW, CH_NUM);     % onset   threshold in effect per chunk
-dbg_th_low  = nan(DBG_WINDOW, CH_NUM);     % release threshold in effect per chunk
-dbg_time    = linspace(-DEBUG_PLOT_SEC, 0, DBG_WINDOW);  % x-axis (s; now = 0)
-dbg_timer   = tic;
+% Per-press tracking.
+press_peak  = -inf(1, CH_NUM);   % running peak of the activation in progress
+hold_chunks = zeros(1, CH_NUM);  % chunks the gate has been active
+since_press = zeros(1, CH_NUM);  % chunks since the last finalized press
 
-% Keyboard / mouse emulation (java.awt.Robot). Each channel drives one input,
-% which may be a keyboard key OR a mouse button, so the press/release actions
-% are stored per channel as function handles. An EMPTY entry ([]) means the
-% channel is unbound: it is still detected and plotted but injects nothing.
-% IMPORTANT: every BOUND channel must map to a DISTINCT key/button: java.awt.Robot
-% does no reference counting, so two channels sharing one key would release it
-% from under each other. Keep CH_BUTTON (settings above) in sync with these.
-% Currently CH1 -> left mouse button (R1 attack), CH2 -> Space (roll/sprint);
-% CH3/CH4 are left unbound for now.
+% Gate and key state.
+gate = struct('mode', zeros(1, CH_NUM), 'onset', zeros(1, CH_NUM), ...
+              'off',  zeros(1, CH_NUM), 'gap',   zeros(1, CH_NUM));
+keys_down  = false(1, CH_NUM);
+keys_state = false(1, CH_NUM);
+
+loop_k = 0;        % global chunk counter
+cal_timer = tic;   % calibration-tick clock
+
+%% Keys Emulation Init
 if ENABLE_KEYS
     robot = java.awt.Robot();
-    LMB = java.awt.event.InputEvent.BUTTON1_DOWN_MASK;   % left mouse button mask
-    key_press = { @() robot.mousePress(LMB), ...                           % ch1 -> left mouse button (R1)
-                  @() robot.keyPress(java.awt.event.KeyEvent.VK_SPACE), ... % ch2 -> Space (roll/sprint)
-                  [], ...                                                  % ch3 -> unbound
-                  [] };                                                    % ch4 -> unbound
-    key_release = { @() robot.mouseRelease(LMB), ...                           % ch1
+    LMB = java.awt.event.InputEvent.BUTTON1_DOWN_MASK; % left mouse button mask
+    key_press = { @() robot.mousePress(LMB), ...                            % ch1 → left mouse button (R1)
+                  @() robot.keyPress(java.awt.event.KeyEvent.VK_SPACE), ... % ch2 → Space (roll/sprint)
+                  [], ...                                                   % ch3 → unbound
+                  [] };                                                     % ch4 → unbound
+    key_release = { @() robot.mouseRelease(LMB), ...                            % ch1
                     @() robot.keyRelease(java.awt.event.KeyEvent.VK_SPACE), ... % ch2
-                    [], ...                                                    % ch3
-                    [] };                                                      % ch4
+                    [], ...                                                     % ch3
+                    [] };                                                       % ch4
 else
     robot = [];
     key_press = {};
     key_release = {};
 end
 
+%% Debug Init
 if LATENCY_METER_ENABLED
     latency_meter = zeros(1, LATENCY_METER_ITERATIONS);
     latency_idx = 1;
 
-    % Estimated onset latency from the settings (only the parts we can compute
-    % here). The USB CDC transfer, the OS input injection and the game's own
-    % input poll / render are ON TOP of this and are not knowable from MATLAB.
-    % This is the press-onset estimate; release adds the hangover on top.
+    % Theoretical key-down latency: half-chunk + FIR + envelope + smoothing.
     [eb, ea]   = butter(2, ENVELOP_LP_FREQ / (Fs / 2), 'low');
     [egd, ew]  = grpdelay(eb, ea, 512, Fs);
-    lat_chunk  = 0.5 * CHUNK_SIZE / Fs;                  % onset lands mid-chunk on average
-    lat_fir    = FIR_DELAY / Fs;                         % band-pass FIR group delay
-    lat_env    = mean(egd(ew <= ENVELOP_LP_FREQ)) / Fs;  % envelope low-pass group delay
-    lat_smooth = DEC_ATTACK_S;                           % decision smoothing attack (1 tau)
+    lat_chunk  = 0.5 * CHUNK_SIZE / Fs; % onset lands mid-chunk on average
+    lat_fir    = FIR_DELAY / Fs;
+    lat_env    = mean(egd(ew <= ENVELOP_LP_FREQ)) / Fs;
+    lat_smooth = DEC_ATTACK_S;
     lat_est_ms = (lat_chunk + lat_fir + lat_env + lat_smooth) * 1000;
 end
 
 if DEBUG_PLOT_ENABLED
+    % Retrospective decision-history ring buffers.
+    DBG_WINDOW  = max(1, round(DEBUG_PLOT_SEC * chunks_per_sec));
+    dbg_env     = zeros(DBG_WINDOW, CH_NUM);
+    dbg_env_dec = zeros(DBG_WINDOW, CH_NUM);
+    dbg_keys    = false(DBG_WINDOW, CH_NUM);
+    dbg_th_high = nan(DBG_WINDOW, CH_NUM);
+    dbg_th_low  = nan(DBG_WINDOW, CH_NUM);
+    dbg_time    = linspace(-DEBUG_PLOT_SEC, 0, DBG_WINDOW);
+
     f4 = figure('WindowState', 'maximized', 'NumberTitle', 'off', 'Name', ...
-        sprintf('Debug - Last %gs (envelope / thresholds / decisions)', DEBUG_PLOT_SEC));
+        sprintf('Debug - Last %gs (decisions)', DEBUG_PLOT_SEC));
     pause(3);
+    dbg_timer = tic;
 end
 
 if PROC_PLOT_ENABLED
     f5 = figure('WindowState', 'maximized', 'NumberTitle', 'off', ...
         'Name', 'Debug - Processing steps over the rolling buffer');
     f6 = figure('WindowState', 'maximized', 'NumberTitle', 'off', ...
-        'Name', 'Debug - Processing steps combined (per channel)');
+        'Name', 'Debug - Processing steps over the rolling buffer (combined)');
+    pause(3);
     proc_timer = tic;
 end
 
@@ -270,10 +252,8 @@ while (true)
     emg_buffers(1:end-new_rows, :) = emg_buffers(new_rows+1:end, :);
     emg_buffers(end-new_rows+1:end, :) = emg_chunks_per_channel;
 
-    % 4-6. Filter -> rectify -> envelope (shared with the offline processor).
-    % The intermediate stages (dc/bp/rect) are only used by the optional
-    % processing-steps plot; they are computed regardless, so capturing them
-    % here is free.
+    % 4-6. DSP: DC-remove -> band-pass -> rectify -> envelope (shared with the
+    % offline processor). The dc/bp/rect stages feed only the step-11 plot.
     [filt_emg_buffers_env, filt_bp, filt_rect, filt_dc] = ...
         process_emg_buffer(emg_buffers, FIR_COEFFS, TAPS, Fs, ENVELOP_LP_FREQ);
 
@@ -297,7 +277,7 @@ while (true)
         % Rest history for the floor estimate: ONLY idle, sub-release samples,
         % so contractions never contaminate the floor.
         if loop_k > DEC_CAL_SKIP_CH
-            resting = gate.mode == 0 & ~(env_dec > DEC_TH_LOW);
+            resting = gate.mode == 0 & ~(env_dec > dec_th_low);
             for ch = find(resting)
                 rest_idx(ch) = mod(rest_idx(ch), DEC_CAL_WINDOW) + 1;
                 rest_hist(rest_idx(ch), ch) = env_dec(ch);
@@ -308,7 +288,7 @@ while (true)
         % Step the gate (hysteresis + hangover).
         prev_down = keys_down;
         [gate, keys_down, done, onset_k, off_k] = emg_gate_step(env_dec, ...
-            loop_k, gate, DEC_TH_HIGH, DEC_TH_LOW, DEC_HANGOVER);
+            loop_k, gate, dec_th_high, dec_th_low, DEC_HANGOVER);
 
         % Track the peak of the activation in progress.
         press_peak(keys_down & ~prev_down) = -inf;
@@ -346,7 +326,7 @@ while (true)
             rest_idx(ch) = 0;
         end
 
-        [g_est, DEC_TH_HIGH, DEC_TH_LOW] = dec_thresholds(floor_est, ...
+        [g_est, dec_th_high, dec_th_low] = dec_thresholds(floor_est, ...
             press_est, DEC_MIN_GAP, DEC_FRAC_HIGH, DEC_FRAC_LOW);
 
         % 8. Key trigger: edge-detect press / release and inject input.
@@ -366,8 +346,8 @@ while (true)
             dbg_env     = [dbg_env(2:end, :);     env_now];
             dbg_env_dec = [dbg_env_dec(2:end, :); env_dec];
             dbg_keys    = [dbg_keys(2:end, :);    keys_down];
-            dbg_th_high = [dbg_th_high(2:end, :); DEC_TH_HIGH];
-            dbg_th_low  = [dbg_th_low(2:end, :);  DEC_TH_LOW];
+            dbg_th_high = [dbg_th_high(2:end, :); dec_th_high];
+            dbg_th_low  = [dbg_th_low(2:end, :);  dec_th_low];
         end
     end
 
@@ -377,6 +357,7 @@ while (true)
         dt = toc(cal_timer);
         cal_timer = tic;
 
+        % Re-measure each rest floor from its idle history and ease toward it.
         for ch = 1:CH_NUM
             r = rest_hist(~isnan(rest_hist(:, ch)), ch);
             if numel(r) < DEC_CAL_BOOT
@@ -407,10 +388,9 @@ while (true)
             floor_est(ch) = floor_est(ch) + a * (env_dec(ch) - floor_est(ch));
         end
 
-        % press_est recovery: if presses stopped registering but clear efforts
-        % keep appearing below the onset (electrode moved, gain dropped), sag
-        % press_est toward those efforts until presses fire again and normal
-        % learning takes over.
+        % press_est recovery: presses stopped but clear sub-onset efforts keep
+        % appearing (electrode moved / gain dropped) -> sag press_est toward
+        % them until presses fire again and normal learning resumes.
         secmax_hist = [secmax_hist(2:end, :); interval_max];
         interval_max = -inf(1, CH_NUM);
         for ch = 1:CH_NUM
@@ -424,13 +404,12 @@ while (true)
             end
         end
 
-        [g_est, DEC_TH_HIGH, DEC_TH_LOW] = dec_thresholds(floor_est, ...
+        [g_est, dec_th_high, dec_th_low] = dec_thresholds(floor_est, ...
             press_est, DEC_MIN_GAP, DEC_FRAC_HIGH, DEC_FRAC_LOW);
     end
 
-    % 10. Retrospective debug view: once per DEBUG_PLOT_SEC, redraw the last
-    % DEBUG_PLOT_SEC seconds of envelope / thresholds / decisions on a time
-    % axis so the gate behaviour can be checked against the signal.
+    % 10. Retrospective debug view: every DEBUG_PLOT_SEC, redraw the last
+    % DEBUG_PLOT_SEC s of envelope / thresholds / decisions against the signal.
     if DEBUG_PLOT_ENABLED && toc(dbg_timer) > DEBUG_PLOT_SEC
         % Acquisition sanity check: a channel pinned at the ADC rail
         % (~0 or ~65535) carries no EMG -> check electrode/bias/wiring.
@@ -488,7 +467,8 @@ while (true)
 end
 
 %% Functions
-% All helpers are shared on the path: 
+% All helpers are shared on the path:
 % - ./acquisition/  (read_data, split_by_channel)
-% - ./decision/     (pctl, dec_thresholds)
+% - ./processing/   (process_emg_buffer, envelop)
+% - ./decision/     (pctl, dec_thresholds, emg_gate_step)
 % - ./plotting/     (plot_debug_window, plot_processing_steps, plot_processing_combined)
