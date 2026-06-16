@@ -391,6 +391,44 @@ The acquisition read returns **every** EMG chunk queued on the USB port, and the
 
 A retrospective figure redraws the last `DEBUG_PLOT_SEC` seconds once per window: per channel it overlays the raw envelope, the smoothed **gate input**, the live **onset / release** thresholds, and the resulting **key-down** decisions. A press is shown three ways so it is unmistakable — a shaded green span, an onset (▲) and release (▼) marker placed on the gate-input curve at the exact decision samples, and a solid green strip along the bottom of the axis. The vertical scale is anchored to the slow floor and gap rather than the per-frame data range, so a given press looks the same size from one window to the next.
 
+### Game input injection
+
+Once the gate decides a button is down or up, that decision has to reach the game. The naive approach — `java.awt.Robot` (or any `SendInput`-based tool) — synthesises operating-system input events. That is enough for the **desktop** and for games that read the keyboard through the Windows **message queue** (e.g. Dark Souls Remastered), but it fails in two common cases:
+
+* **DirectInput games** (e.g. Dark Souls 3) read the keyboard at the **scan-code** level. `Robot` injects **virtual-key** codes with no scan code, so DirectInput never sees them — the press works on the desktop yet does nothing in-game.
+* **Anti-cheat games** (e.g. Elden Ring with Easy Anti-Cheat) deliberately **filter out injected input** to block macros, so no software-injection method works at all.
+
+The robust fix is to stop injecting OS events and instead present a **virtual game controller**, which every Souls-like reads natively through **XInput** and which anti-cheat tolerates. The script does this with **ViGEmBus** (a signed virtual-pad driver) through its .NET client, so one backend covers DS1, DS3 and Elden Ring. The mapping is the native Souls layout:
+
+| Channel | EMG action | Controller button |
+|:--------|:-----------|:------------------|
+| CH1     | Roll / dodge / sprint | B    |
+| CH2     | R1 attack  | RB (right shoulder) |
+
+The `INPUT_BACKEND` setting selects the path: `'vigem'` for games (default), or `'robot'` for quick desktop / DS1 testing. The per-channel press/release handles and the edge-trigger loop are identical for both backends; only the handle bodies differ.
+
+#### ViGEmBus setup
+
+Two pieces are needed: the **kernel driver** (creates the virtual controller) and the **managed client DLL** (lets MATLAB talk to it). Both come from Nefarius.
+
+**1. Kernel driver — ViGEmBus**
+
+1. Download the latest setup from the [ViGEmBus releases](https://github.com/nefarius/ViGEmBus/releases) (`ViGEmBus_<version>_x64.exe`).
+2. Run the installer and accept the prompts; reboot if asked.
+3. Verify it is installed and running — either Device Manager → *System devices* → **Nefarius Virtual Gamepad Emulation Bus**, or confirm `C:\Windows\System32\drivers\ViGEmBus.sys` exists and the service is running.
+
+**2. Managed client DLL — `Nefarius.ViGEm.Client.dll`**
+
+This is shipped only as a NuGet package, so the DLL is extracted by hand:
+
+1. Download the package from the [NuGet page](https://www.nuget.org/packages/Nefarius.ViGEm.Client) — the **Download package** link gives `nefarius.vigem.client.<version>.nupkg` (latest is `1.21.256`). A direct link is `https://www.nuget.org/api/v2/package/Nefarius.ViGEm.Client/1.21.256`.
+2. A `.nupkg` is a ZIP archive — rename it to `.zip` and extract it (or open it directly with any archive tool).
+3. Take `lib\netstandard2.0\Nefarius.ViGEm.Client.dll`. This single file is self-contained (no extra dependencies) and the `netstandard2.0` target loads under MATLAB's .NET Framework runtime (4.6.1+); the .NET 5+ builds in the same package will **not** load via `NET.addAssembly`.
+4. If Windows flagged the file as downloaded, right-click → Properties → **Unblock**.
+5. Set `VIGEM_DLL_PATH` in `EMG_BioInputs.m` to the full path of that DLL and leave `INPUT_BACKEND = 'vigem'`.
+
+The virtual pad appears as an Xbox controller, so make sure controller input is enabled in the game (Souls titles auto-detect it). The pad disconnects automatically when the MATLAB workspace is cleared or MATLAB exits.
+
 
 
 
