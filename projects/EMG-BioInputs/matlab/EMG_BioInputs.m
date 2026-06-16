@@ -30,7 +30,7 @@ BUF_SIZE = CHUNK_SIZE * 2 * CH_NUM; % full double DMA buffer (uint16)
 half_buf_size = BUF_SIZE / 2;       % one half-transfer = CH_NUM interleaved chunks
 
 %% Connection Settings
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM7';
 ARDUINO_BAUDRATE = 2000000; % cosmetic for USB CDC
 
 % Flush the input buffer once it exceeds this, to stay near real time.
@@ -106,22 +106,30 @@ A_REL = 1 - exp(-(CHUNK_SIZE / Fs) / DEC_RELEASE_S);
 
 %% Debug Settings
 
-% false = detect only; true = inject real OS input.
-ENABLE_KEYS = false;
+% false = detect only; true = inject real game input.
+ENABLE_KEYS = true;
+
+% Input backend:
+% - 'vigem' (virtual Xbox pad)
+% - 'robot' (OS keyboard/mouse)
+INPUT_BACKEND = 'vigem';
+
+% Nefarius.ViGEm.Client.dll path (used when INPUT_BACKEND = 'vigem').
+VIGEM_DLL_PATH = fullfile(fileparts(mfilename('fullpath')), 'libs/Nefarius.ViGEm.Client.dll');
 
 % Estimate and report loop / button-press latency.
-LATENCY_METER_ENABLED = true;
+LATENCY_METER_ENABLED = false;
 LATENCY_METER_ITERATIONS = 1000;
 
 % Retrospective decision-chain plot.
-DEBUG_PLOT_ENABLED = false;
+DEBUG_PLOT_ENABLED = true;
 DEBUG_PLOT_S = 10;
 
 % DSP-pipeline snapshot plot.
 PROC_PLOT_ENABLED = false;
 
 % Per-channel action labels (status prints + plots).
-CH_BUTTON = {'LMB (R1 attack)', 'Space (roll/sprint)', 'CH3 (unbound)', 'CH4 (unbound)'};
+CH_BUTTON = {'Roll/sprint (B)', 'R1 attack (RB)', 'CH3 (unbound)', 'CH4 (unbound)'};
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
@@ -163,21 +171,44 @@ loop_k = 0;        % global chunk counter
 cal_timer = tic;   % calibration-tick clock
 
 %% Keys Emulation Init
-if ENABLE_KEYS
-    robot = java.awt.Robot();
-    LMB = java.awt.event.InputEvent.BUTTON1_DOWN_MASK; % left mouse button mask
-    key_press = { @() robot.mousePress(LMB), ...                            % ch1 → left mouse button (R1)
-                  @() robot.keyPress(java.awt.event.KeyEvent.VK_SPACE), ... % ch2 → Space (roll/sprint)
-                  [], ...                                                   % ch3 → unbound
-                  [] };                                                     % ch4 → unbound
-    key_release = { @() robot.mouseRelease(LMB), ...                            % ch1
-                    @() robot.keyRelease(java.awt.event.KeyEvent.VK_SPACE), ... % ch2
-                    [], ...                                                     % ch3
-                    [] };                                                       % ch4
-else
-    robot = [];
+robot = [];
+vigem_pad = [];
+if ~ENABLE_KEYS
     key_press = {};
     key_release = {};
+elseif strcmpi(INPUT_BACKEND, 'robot')
+    robot = java.awt.Robot();
+    LMB = java.awt.event.InputEvent.BUTTON1_DOWN_MASK; % left mouse button mask
+    key_press = { @() robot.keyPress(java.awt.event.KeyEvent.VK_SPACE), ... % ch1 → Space (roll/sprint)
+                  @() robot.mousePress(LMB), ...                            % ch2 → left mouse button (R1 attack)
+                  [], ...                                                   % ch3 → unbound
+                  [] };                                                     % ch4 → unbound
+    key_release = { @() robot.keyRelease(java.awt.event.KeyEvent.VK_SPACE), ... % ch1
+                    @() robot.mouseRelease(LMB), ...                            % ch2
+                    [], ...                                                     % ch3
+                    [] };                                                       % ch4
+elseif strcmpi(INPUT_BACKEND, 'vigem')
+    try
+        NET.addAssembly(VIGEM_DLL_PATH);
+        vigem_client = Nefarius.ViGEm.Client.ViGEmClient();
+        vigem_pad = vigem_client.CreateXbox360Controller();
+        vigem_pad.Connect();
+        vigem_pad.AutoSubmitReport = true; % SetButtonState submits immediately
+    catch err
+        error('ViGEm init failed: %s\nSee "Game Input Injection" setup.', err.message);
+    end
+    BTN_ROLL = Nefarius.ViGEm.Client.Targets.Xbox360.Xbox360Button.B;
+    BTN_R1   = Nefarius.ViGEm.Client.Targets.Xbox360.Xbox360Button.RightShoulder;
+    key_press = { @() vigem_pad.SetButtonState(BTN_ROLL, true), ...  % ch1 → B  (roll/sprint)
+                  @() vigem_pad.SetButtonState(BTN_R1,   true), ...  % ch2 → RB (R1 attack)
+                  [], ...                                            % ch3 → unbound
+                  [] };                                              % ch4 → unbound
+    key_release = { @() vigem_pad.SetButtonState(BTN_ROLL, false), ... % ch1
+                    @() vigem_pad.SetButtonState(BTN_R1,   false), ... % ch2
+                    [], ...                                            % ch3
+                    [] };                                              % ch4
+else
+    error('Unknown INPUT_BACKEND ''%s'' (use ''vigem'' or ''robot'').', INPUT_BACKEND);
 end
 
 %% Debug Init
