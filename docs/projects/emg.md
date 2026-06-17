@@ -19,7 +19,7 @@ nav_order: 7
 
 EMG is appealing due to its simplicity when detecting basic movements, such as a biceps contraction. For such projects, advanced hardware or complex signal processing is often unnecessary. This makes EMG an accessible tool for beginners as an introduction to biomedical engineering projects. Furthermore, the foundational concepts learned through EMG can be extended to related fields, including [Electrocardiography](https://en.wikipedia.org/wiki/Electrocardiography) (ECG), [Electrooculography](https://en.wikipedia.org/wiki/Electrooculography) (EOG), [Electroencephalography](https://en.wikipedia.org/wiki/Electroencephalography) (EEG), and others.
 
-In SensEdu, we demonstrate how basic biceps contraction can be used to simulate keyboard press logic, with latency of ~100–200ms. We use the most basic circuit design combined with signal processing in MATLAB.
+In SensEdu, we demonstrate how basic biceps contraction can be used to simulate keyboard press logic, with latency of ~100 ms. We use the most basic circuit design combined with signal processing in MATLAB.
 
 This page will guide you step-by-step through the setup and background knowledge to create a simple yet effective demonstration of a typical biomedical engineering project.
 
@@ -59,7 +59,7 @@ As more ACh molecules bind to their receptors, the membrane voltage continues to
 {: .text-center .mt-0 .fw-500}
 
 {: .NOTE}
-If you feel overwhelmed by the details, the main takeaway: a neural electrical signal is converted to a chemical signal and then back into electrical signal in the muscle. The sequence is: **Neural Action Potential** → **Acetylcholine Release** → **Muscle Action Potential**. The muscle action potential then propagates along the muscle cell membrane and ultimately triggers muscle contraction.<br><br>The most important point is that this **muscle action potential can be measured**, providing valuable information about muscle activity.
+If you feel overwhelmed by the details, the main takeaway: a neural electrical signal is converted to a chemical signal and then back into electrical signal in the muscle. The sequence is: **Neural Action Potential** → **Acetylcholine Release** → **Muscle Action Potential**. The muscle action potential then propagates along the muscle cell membrane and ultimately triggers muscle contraction. The most important point is that this **muscle action potential can be measured**, providing valuable information about muscle activity.
 
 ## Recording Action Potentials
 
@@ -94,8 +94,8 @@ A typical electrode consists of 3 connectors: **Reference**, **Positive Input**,
 
 | Electrode Connector | Signal | Header Pin |
 |:--------------------|:-------|:-----------|
-| Negative Input      |   –IN  | 2nd Pin    |
-| Positive Input      |   +IN  | 3rd Pin    |
+| Positive Input      |   +IN  | 2nd Pin    |
+| Negative Input      |   –IN  | 3rd Pin    |
 | Reference           |   GND  | 4th Pin    |
 
 {: .WARNING}
@@ -106,7 +106,7 @@ In our example, we used the following electrodes:
 | Manufacturer | Product Title | Product Code | Datasheet | Store |
 |:-------------|:--------------|:-------------|:----------|:------|
 | SparkFun Electronics | Electrode Pads | 12970 | [link](https://mm.digikey.com/Volume0/opasdata/d220001/medias/docus/2277/CAB-12970_Web.pdf) | [link](https://www.digikey.at/de/products/detail/sparkfun-electronics/12970/6833933?gclsrc=aw.ds&gad_source=1&gad_campaignid=20265439570&gclid=CjwKCAjwqKzEBhANEiwAeQaPVawVKSgXTIiVYtlIXGx7Bx94wvNKO64lkmGlu8jQ0lByNxnXmPGLFhoCgNcQAvD_BwE) |
-| MTG Imiella Medizintechnik | Liquid Gel Disposable Electrodes for ECG (Ø40mm) | S40LG | [link](https://static.mercateo.com/ec/2c36d66dd9904e92ad9e3075734affb2/pdf/106366.pdf?v=2297) | [link](https://www.mercateo.at/p/2768-028002/Einmal_Klebeelektroden_40_mm_Liquid_Gel_30_Stueck.html) |
+| MTG Imiella Medizintechnik | Liquid Gel Disposable Electrodes for ECG (Ø 40mm) | S40LG | [link](https://static.mercateo.com/ec/2c36d66dd9904e92ad9e3075734affb2/pdf/106366.pdf?v=2297) | [link](https://www.mercateo.at/p/2768-028002/Einmal_Klebeelektroden_40_mm_Liquid_Gel_30_Stueck.html) |
 
 These electrodes use a mini-jack connector. To simplify the connection, we designed a simple PCB adapter **MiniJack2Header**. This adapter is inserted vertically into the SensEdu header, providing a mini-jack socket and eliminating the need for soldering. All PCB source files, including Gerbers and BOM, are available in the directory: `/projects/EMG-BioInputs/pcbs/MiniJack2Header`. To replicate our setup, you can use the archive `MiniJack2Jumper/manufacturing/MiniJack2Header-Gerber.zip` to order the PCB. For this simple adapter you can use any cheap manufacturer, with the final cost typically ranging from $15–$30 depending on shipping.
 
@@ -142,18 +142,18 @@ Amplification Circuit
 
 Gain is set by the $$R_G$$ resistor, using the following formula:
 
-$$G = 1 + \frac{49.4kΩ}{R_G} = 1 + \frac{49.4kΩ}{1kΩ} = 50.4$$
+$$G = 1 + \frac{49.4\text{ kΩ}}{R_G} = 1 + \frac{49.4\text{ kΩ}}{1\text{ kΩ}} = 50.4$$
 
 To avoid high frequency rectification and thus signal distortions, additional filtering is applied at the input. The filter limits the input signal bandwidth according to the following relationships:
 
-$${f_c}_{DIFF} = \frac{1}{2\pi × R(2C_D + C_C)} = \frac{1}{2\pi × 3.9kΩ(2×470pF + 100pF)} = 37.7\mathrm{kHz}$$
+$${f_c}_{DIFF} = \frac{1}{2\pi × R(2C_D + C_C)} = \frac{1}{2\pi × 3.9\text{ kΩ}(2×470\text{ pF} + 100\text{ pF})} = 37.7\text{ kHz}$$
 
-$${f_c}_{CM} = \frac{1}{2\pi × R × C_C} = \frac{1}{2\pi × 3.9kΩ × 100pF} = 392.2\mathrm{kHz}$$
+$${f_c}_{CM} = \frac{1}{2\pi × R × C_C} = \frac{1}{2\pi × 3.9\text{ kΩ} × 100\text{ pF}} = 392.2\text{ kHz}$$
 
 {: .NOTE}
 Mismatch between $$R \times C_C$$ at the positive and negative inputs degrades the CMRR of the AD8426. By using a value for $$C_D$$ that is ~10× larger than $$C_C$$, the effect of the mismatch is reduced and performance is improved.
 
-We used the default $${f_c}_{DIFF}$$ and $${f_c}_{CM}$$ cutoff frequencies for all projects, which were originally selected to suit the ultrasonic use case. Additional optimization is possible by reducing these cutoff frequencies to align with the working range of EMG signals (up to ~$$500\mathrm{Hz}$$). It could result in improved signal quality and reduced post‐processing requirements.
+We used the default $${f_c}_{DIFF}$$ and $${f_c}_{CM}$$ cutoff frequencies for all projects, which were originally selected to suit the ultrasonic use case. Additional optimization is possible by reducing these cutoff frequencies to align with the working range of EMG signals (up to ~$$500\text{ Hz}$$). It could result in improved signal quality and reduced post‐processing requirements.
 
 To write Arduino scripts for EMG signal acquisition, it is crucial to understand how the amplifier I/O is wired. Specifically, the following details:
 * Which input header is connected to each amplifier channel
@@ -188,18 +188,18 @@ All these details are available in the [SensEdu schematics]({{site.baseurl}}/ass
 
 The next step is to develop the Arduino sketch responsible for data acquisition. This involves configuring ADC parameters, such as sampling rate, buffer size, memory mode, etc.
 
-For EMG, a sampling rate of $$1\mathrm{kHz}$$ is the minimum requirement. To improve the quality of signal acquisition, this project uses a higher value of $$f_s = 5\mathrm{kHz}$$. Each channel uses a buffer of $$N_s = 75 \ \mathrm{samples}$$. ADC is configured with circular DMA to minimize CPU load and maximize performance. The ideal theoretical duration of one measurement chunk is given as:
+For EMG, a sampling rate of $$1\text{ kHz}$$ is the minimum requirement. To improve the quality of signal acquisition, this project uses a higher value of $$f_s = 5\text{ kHz}$$. Each channel uses a buffer of $$N_s = 75 \ \text{samples}$$. ADC is configured with circular DMA to minimize CPU load and maximize performance. The ideal theoretical duration of one measurement chunk is given as:
 
-$$d_{chunk, \ ideal} = \frac{N_s}{f_s} = \frac{75 \ \mathrm{samples}}{5\mathrm{kHz}} = 15\mathrm{ms} $$
+$$d_{chunk, \ ideal} = \frac{N_s}{f_s} = \frac{75 \ \text{samples}}{5\text{ kHz}} = 15\text{ ms} $$
 
 {: .NOTE}
 The measurement duration is calculated for one channel. If you use multiple channels and intend to maintain the same measurement chunk, **do not change the sampling rate**, it is shared across all channels. You need only to increase the DMA buffer size.
 
-In practice, the actual $$d_{chunk}$$ is approximately $$50\mathrm{ms}$$ due to delays from data transmission, ADC conversion rate fluctuations, signal processing delay, and other factors. In the end, it results in a practical measurement rate of around $$20$$ measurements per second. If this performance is not satisfactory, revisit the adjustment of ADC parameters.
+In practice, the actual $$d_{chunk}$$ considering data transmission is approximately $$16\text{ ms}$$, it will be measured in the next [Data Transfer]({% link projects/emg.md %}#data-transfer) section.
 
-Keeping the selected parameters in mind, the ADC can be configured using the [SensEdu Library]({% link library/index.md %}). The configuration follows a similar structure to the [ADC_3CH_DMA_Circular]({% link library/adc.md %}#adc_3ch_dma_circular) example. Below is a minimal code example, focusing on the essential lines. Code snippets show the EMG config for all x4 channels.
+Keeping the selected parameters in mind, the ADC can be configured using the [SensEdu Library]({% link library/index.md %}). The configuration follows a similar structure to the [ADC_3CH_DMA_Circular]({% link library/adc.md %}#adc_3ch_dma_circular) example. Below is a minimal code example, focusing on the essentials. Code snippets show the EMG config for all x4 channels.
 
-Since DMA is set to the circular mode, the optimal DMA buffer size should be small. Since the EMG chunk is planned as $$N_s = 75 \ \mathrm{samples}$$, the size can simply be doubled so that a half-transfer holds exactly $$75$$ samples. Considering 4 channels, the final total DMA buffer size is: $$75 \times 2 \times 4 = 600$$ samples.
+Since DMA is set to the circular mode, the optimal DMA buffer size should be small. The EMG chunk is planned as $$N_s = 75 \ \mathrm{samples}$$, so the size can simply be doubled so that a half-transfer holds exactly $$75$$ samples. Considering 4 channels, the final total DMA buffer size is: $$75 \times 2 \times 4 = 600$$ samples.
 
 ```c
 // EMG Chunk Configuration
@@ -276,7 +276,7 @@ On the host (PC), the OS driver reads from the CDC using URBs (USB Request Block
 
 If the device continuously writes data in exact multiples of the USB max packet size (FS: 64 bytes), the driver may wait until an entire URB fills, increasing latency. To reduce latency, ensure each application-level chunk ends with a short packet.
 
-In our EMG case, the short packet needs to be created manually; `Serial` doesn't offer a proper API to flush the URB. Prefer chunk sizes whose total byte count is not a multiple of the 64-byte max packet size, which naturally creates a short packet at the end of the URB. Alternatively, you could add small padding so the final packet is short, and make the receiver ignore the pad. 
+In our EMG case, the short packet needs to be created manually; `Serial` doesn't offer a proper API to flush the URB. Prefer chunk sizes whose total byte count is not a multiple of the 64-byte max packet size, which naturally creates a short packet at the end of the URB. Alternatively, you could add small padding, so the final packet is short, and make the receiver ignore the pad. 
 
 ```c
 static void transfer_buf(volatile uint16_t* data, uint16_t data_length) {
@@ -287,7 +287,7 @@ static void transfer_buf(volatile uint16_t* data, uint16_t data_length) {
 
 Below is the table with measurements for different selected EMG chunks.
 
-| EMG Chunk Size (samples) | EMG Chunk Size (bytes) | Measured Latency |
+| EMG Chunk Size (samples) | EMG Chunk Size (bytes) | Measured Chunk Arrival Rate |
 |:------|:------|:--------|
 | 32    | 64    | 102 ms  |
 | 64    | 128   | 103 ms  |
@@ -466,41 +466,37 @@ mean value of zero).
 
 ![alt text]({{site.baseurl}}/projects/image-13.png)
 
-### Capacitive input
+## Preparation
 
-ignore some of the first samples for ADC stabilization
+Before the final testing, you should follow the general practical EMG guidelines for the signal to be as clean and stable as possible. These are derived mainly from the [ABC of EMG – A Practical Introduction to Kinesiological Electromyography]
 
-https://devzone.nordicsemi.com/f/nordic-q-a/80796/adc---first-read-is-always-wrong/336435
+### General Guidelines
 
-## Testing
+1. Apply electrodes in parallel to the muscle fiber direction.
+2. Use the smallest electrode type available at 2 cm electrode distance.
+3. Place the reference electrode on the electrically unaffected nearby area, such as joints and bony areas.
+4. Use the most dominant middle portion of the muscle belly for best selectivity.
+5. If possible, avoid the motor points – the place where the nerve connects to the muscle. Some researchers suggest this is the spot with higher EMG instability. In many cases it cannot be avoided though.
+6. Ensure that during muscle contraction the electrode does not leave the active area of the muscle. See the picture below.
+7. Properly mount SensEdu and the electrodes cables. This helps to avoid cable movement artifacts.
+8. Don't forget by preparing the skin with wiping it with alcohol and ideally removing the hair.
 
-Motor point regions 
-Due to increased signal instability some researchers recommend not to place electrodes over motor point regions (area with high density of motor endplates) of the muscle. When using electrode sizes as recommended above, in many cases it cannot be avoided that one electrode comes near a motor point region. Motor points can be detected by low frequency stimulus power generators producing right angled impulses.
+<img src="{{site.baseurl}}/assets/images/electrode-edge-placement.png"  width="500"/>
+{: .text-center .mb-1}
 
-Most of the important limb and trunk muscles can be measured by surface electrodes (right side muscles 
-in Fig. 26a/26b). Deeper, smaller or overlaid muscles need a fine wire application to be safely or selectively detected. The muscle maps show a selection of muscles that typically have been investigated in 
-kinesiological studies. The two yellow dots of the surface muscles indicate the orientation of the electrode 
-pair in ratio to the muscle fiber direction (proposals compiled from 1, 4, 10 and SENIAM).
+Electrodes being on the very edge of active muscle area during contraction (source: [ABC of EMG])
+{: .text-center .mt-0 .fw-500}
 
-![alt text]({{site.baseurl}}/projects/image.png)
+### Electrode Placement
 
-At least one neutral reference electrode per subject needs to be positioned. Typically an electrically unaffected but nearby area is selected, such as joints, bony area, frontal head, processus spinosus, christa iliaca, tibia bone etc
+On the picture below you could find the good spots for electrode placement. The left half indicates deep muscles and positions for fine wire electrodes; the right side for surface muscles and electrodes. If you also want to see the picture for dorsal review, check out the page 20 of the [source](https://hermanwallace.com/download/The_ABC_of_EMG_by_Peter_Konrad.pdf).
 
-Due to differential amplification against any reference, the latest amplifier technology 
-(NORAXON active systems) needs no special area but only a location nearby the first electrode site.
+<img src="{{site.baseurl}}/assets/images/electrode-placement.png"/>
 
-![alt text]({{site.baseurl}}/projects/image-1.png)
-
-![alt text]({{site.baseurl}}/projects/image-4.png)
-
-RULES:
-![alt text]({{site.baseurl}}/projects/image-5.png)
-
-![alt text]({{site.baseurl}}/projects/image-6.png)
+Frontal view of suggested electrode sites (source: [ABC of EMG]) 
+{: .text-center .mt-0 .fw-500}
 
 ## Showcase
-
-WASD Dark Souls for 4 channels?
 
 ## Possible improvements
 
@@ -512,18 +508,10 @@ should not be used for scientific studies.
 
 Implement filtering in hardware, you can extend SensEdu with another custom shield which will make half of current signal processing unnecessary greatly reducing latency and required computations. In addition, use right leg drive to decrease noise and offset.
 
-## Appendix: data recordings for improvements
-
-
-## Good study on perfect high pass value
-https://www.bu.edu/nmrc/files/2010/06/103.pdf
-
-## Good Resources:
+## Sources:
 * https://www.nature.com/articles/s41597-022-01484-2
 * https://abdominalkey.com/electromyography/
 * https://hermanwallace.com/download/The_ABC_of_EMG_by_Peter_Konrad.pdf
-
-## Sources:
 * https://youtu.be/_k6QINRcdV4?si=rnil7B-ZlqmRCGSN
 * https://youtu.be/ApaPlKPb4ek?si=rHncr0b2XipqN83i
 
@@ -533,5 +521,6 @@ https://www.bu.edu/nmrc/files/2010/06/103.pdf
 [AD8222]: https://www.analog.com/en/products/ad8222.html?doc=ad8222-KGD.pdf
 [datasheet]: https://www.analog.com/media/en/technical-documentation/data-sheets/AD8222.pdf
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
-
 [Arduino GIGA R1 Schematics]: https://docs.arduino.cc/resources/schematics/ABX00063-schematics.pdf
+[ABC of EMG – A Practical Introduction to Kinesiological Electromyography]: https://hermanwallace.com/download/The_ABC_of_EMG_by_Peter_Konrad.pdf
+[ABC of EMG]: https://hermanwallace.com/download/The_ABC_of_EMG_by_Peter_Konrad.pdf
