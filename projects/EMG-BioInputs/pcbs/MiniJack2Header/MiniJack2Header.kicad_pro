@@ -511,7 +511,7 @@
       "plot": "manufacturing/",
       "pos_files": "manufacturing/",
       "specctra_dsn": "",
-      "step": "",
+      "step": "MiniJack2Header.step",
       "svg": "",
       "vrml": ""
     },

@@ -905,56 +905,66 @@
 	)
 	(wire
 		(pts
-			(xy 152.4 88.9) (xy 157.48 88.9)
+			(xy 151.13 88.9) (xy 156.21 88.9)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "2da6fcc8-4b48-410b-8882-873cc1aa1615")
+		(uuid "0d41a854-2863-4b40-bec0-f7f2bfe4104b")
 	)
 	(wire
 		(pts
-			(xy 152.4 96.52) (xy 165.1 96.52)
+			(xy 160.02 93.98) (xy 165.1 93.98)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "446ee8fa-5109-4d80-9168-b5f78d630a9f")
+		(uuid "0e21e361-d29c-468d-87db-c1ef17acaa0c")
 	)
 	(wire
 		(pts
-			(xy 157.48 93.98) (xy 165.1 93.98)
+			(xy 151.13 99.06) (xy 156.21 99.06)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "85b0154e-b0f4-4f27-815e-5eb35e771ed3")
+		(uuid "3d1cf325-69aa-4fcc-9a80-e8c2d9aba177")
 	)
 	(wire
 		(pts
-			(xy 157.48 88.9) (xy 157.48 93.98)
+			(xy 160.02 99.06) (xy 165.1 99.06)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "af4b732e-af7e-49d8-93f0-4576347a3eda")
+		(uuid "96bbe3b3-202a-4ffd-b0e8-fa409d0bd9d7")
 	)
 	(wire
 		(pts
-			(xy 152.4 99.06) (xy 165.1 99.06)
+			(xy 151.13 96.52) (xy 156.21 96.52)
 		)
 		(stroke
 			(width 0)
 			(type default)
 		)
-		(uuid "e7bbdb9b-5f94-4381-9669-1c1319699205")
+		(uuid "d51d0e0a-edbb-48a1-9791-6db2ebc43be7")
+	)
+	(wire
+		(pts
+			(xy 160.02 96.52) (xy 165.1 96.52)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "ff7f5a2e-fa5d-4c1b-aeda-f9bd284e2564")
 	)
 	(label "-IN"
-		(at 158.75 93.98 0)
+		(at 152.4 88.9 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -963,8 +973,28 @@
 		)
 		(uuid "334d48ba-8d42-4437-8cdc-dadecbebc199")
 	)
+	(label "+IN"
+		(at 160.02 93.98 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3650a8e5-a8e6-434f-873c-688062995bea")
+	)
+	(label "-IN"
+		(at 160.02 96.52 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "3e664ea6-10d2-4e0b-a8fe-87b3e764529b")
+	)
 	(label "GND"
-		(at 158.75 99.06 0)
+		(at 152.4 99.06 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -973,8 +1003,18 @@
 		)
 		(uuid "463ebe6e-ce89-401c-a2a6-1e5aa52ba8db")
 	)
+	(label "GND"
+		(at 160.02 99.06 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left bottom)
+		)
+		(uuid "af4df79a-b926-4547-9e98-a03b40c2f6ff")
+	)
 	(label "+IN"
-		(at 158.75 96.52 0)
+		(at 152.4 96.52 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -985,7 +1025,7 @@
 	)
 	(symbol
 		(lib_id "MiniJack2Header:35RASMT2BHNTRX")
-		(at 144.78 93.98 0)
+		(at 143.51 93.98 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -993,7 +1033,7 @@
 		(dnp no)
 		(uuid "155c06f8-890b-4bbb-8edb-ab55b1aa9657")
 		(property "Reference" "J1"
-			(at 141.478 87.376 0)
+			(at 140.208 87.376 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1001,7 +1041,7 @@
 			)
 		)
 		(property "Value" "35RASMT2BHNTRX"
-			(at 141.478 100.838 0)
+			(at 140.208 100.838 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1009,7 +1049,7 @@
 			)
 		)
 		(property "Footprint" "MiniJack2Header:35RASMT2BHNTRX"
-			(at 144.78 93.98 0)
+			(at 143.51 93.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1019,7 +1059,7 @@
 			)
 		)
 		(property "Datasheet" "https://www.switchcraft.com/assets/1/24/35rasmt2bhntrx_cd.pdf?4698"
-			(at 144.78 93.98 0)
+			(at 143.51 93.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1028,7 +1068,7 @@
 			)
 		)
 		(property "Description" ""
-			(at 144.78 93.98 0)
+			(at 143.51 93.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1037,7 +1077,7 @@
 			)
 		)
 		(property "MANUFACTURER" "Switchcraft"
-			(at 144.78 93.98 0)
+			(at 143.51 93.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1047,7 +1087,7 @@
 			)
 		)
 		(property "DigiKey Part Number" "SC1489-1-ND"
-			(at 144.78 93.98 0)
+			(at 143.51 93.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1056,7 +1096,7 @@
 			)
 		)
 		(property "DigiKey Link" "https://www.digikey.at/en/products/detail/switchcraft-inc/35RASMT2BHNTRX/1291178"
-			(at 144.78 93.98 0)
+			(at 143.51 93.98 0)
 			(effects
 				(font
 					(size 1.27 1.27)

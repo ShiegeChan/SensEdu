@@ -30,7 +30,7 @@ BUF_SIZE = CHUNK_SIZE * 2 * CH_NUM; % full double DMA buffer (uint16)
 half_buf_size = BUF_SIZE / 2;       % one half-transfer = CH_NUM interleaved chunks
 
 %% Connection Settings
-ARDUINO_PORT = 'COM7';
+ARDUINO_PORT = 'COM16';
 ARDUINO_BAUDRATE = 2000000; % cosmetic for USB CDC
 
 % Flush the input buffer once it exceeds this, to stay near real time.
@@ -195,7 +195,7 @@ elseif strcmpi(INPUT_BACKEND, 'vigem')
         vigem_pad.Connect();
         vigem_pad.AutoSubmitReport = true; % SetButtonState submits immediately
     catch err
-        error('ViGEm init failed: %s\nSee "Game Input Injection" setup.', err.message);
+        error('ViGEm init failed: %s\nSee "Game Input Injection" setup guidelines.', err.message);
     end
     BTN_ROLL = Nefarius.ViGEm.Client.Targets.Xbox360.Xbox360Button.B;
     BTN_R1   = Nefarius.ViGEm.Client.Targets.Xbox360.Xbox360Button.RightShoulder;
