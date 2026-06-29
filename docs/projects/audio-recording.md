@@ -17,7 +17,7 @@ nav_order: 6
 
 The Audio Recording project turns SensEdu into a continuous PCM audio recorder. Microphone data is sampled at 44.1 kHz, buffered locally on the board, and streamed over USB to a MATLAB host that saves it as a WAV file and plots its time-domain waveform and spectrum.
 
-The project is built around a problem: **the USB transfer that is supposed to deliver the recording also injects noise into the analog input**. The architecture is shaped around isolating those two tasks in time, so the noise only appears between audio segments, not during them. This project covers DMA double-buffering, external SDRAM, framed serial protocols, and recoverable error handling – all common building blocks of more advanced acquisition systems.
+The project is built around a problem: **the USB transfer that is supposed to deliver the recording also injects noise into the analog input**. The architecture is designed to limit USB transfers to brief bursts, so the noise appears only at the segment boundaries instead of being spread across the whole recording. This project covers DMA double-buffering, external SDRAM, framed serial protocols, and recoverable error handling – all common building blocks of more advanced acquisition systems.
 
 ## Background
 
