@@ -15,7 +15,7 @@ nav_order: 6
 
 ## Introduction
 
-The Audio Recording project turns SensEdu into a continuous PCM audio recorder. Microphone data is sampled at 44.1 kHz, buffered locally on the board, and streamed over USB CDC to a MATLAB host that saves it as a WAV file and plots its time-domain waveform and spectrum.
+The Audio Recording project turns SensEdu into a continuous PCM audio recorder. Microphone data is sampled at 44.1 kHz, buffered locally on the board, and streamed over USB to a MATLAB host that saves it as a WAV file and plots its time-domain waveform and spectrum.
 
 The project is built around a problem: **the USB transfer that is supposed to deliver the recording also injects noise into the analog input**. The architecture is shaped around isolating those two tasks in time, so the noise only appears between audio segments, not during them. This project covers DMA double-buffering, external SDRAM, framed serial protocols, and recoverable error handling – all common building blocks of more advanced acquisition systems.
 
@@ -256,7 +256,7 @@ for (uint8_t i = 0; i < SEGMENT_NUM; i++) {
 }
 ```
 
-Header and trailer each have their own struct and magic word, so the host can verify framing and integrity immediately on arrival:
+Header and trailer each have their own struct and magic word (a fixed constant both sides agree on to confirm frame alignment), so the host can verify framing and integrity immediately on arrival:
 
 ```c
 typedef struct {
@@ -482,7 +482,7 @@ Recorded on the balcony on a summer day.
 
 ### USB Short Packet
 
-The Windows USB CDC driver delivers bulk data only when one of three things happens: 
+The Windows USB CDC (Communications Device Class) driver delivers bulk data only when one of three things happens: 
 - Driver's read buffer fills (typically 4096 B)
 - **Short packet** (< 64 B) arrives
 - Read timeout expires
@@ -495,7 +495,7 @@ If every `Serial.write` is an exact multiple of 64 B, no short packet is ever pr
 static const uint32_t USB_CHUNK_BYTES = 4080;   // 63 * 64 + 48
 ```
 
-The trailing 48-byte chunk is the short packet that flushes the buffer. 
+The trailing 48-byte chunk is the short packet that flushes the buffer.
 
 {: .WARNING}
 `Serial.flush()` does not help.
