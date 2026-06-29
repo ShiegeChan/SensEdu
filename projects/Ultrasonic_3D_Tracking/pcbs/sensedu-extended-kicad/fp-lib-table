@@ -1,0 +1,13 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "AD8426ACPZ-R7")(type "KiCad")(uri "${KIPRJMOD}/AD8426ACPZ-R7")(options "")(descr ""))
+  (lib (name "ADA4891-ARZ")(type "KiCad")(uri "${KIPRJMOD}/ADA4891-ARZ.pretty")(options "")(descr ""))
+  (lib (name "Arduino_MountingHole")(type "KiCad")(uri "${KIPRJMOD}/Arduino_MountingHole.pretty")(options "")(descr ""))
+  (lib (name "BLM31KN471SH1L")(type "KiCad")(uri "${KIPRJMOD}/BLM31KN471SH1L")(options "")(descr ""))
+  (lib (name "DPS310XTSA1")(type "KiCad")(uri "${KIPRJMOD}/DPS310XTSA1")(options "")(descr ""))
+  (lib (name "IM73A135V01XTSA1")(type "KiCad")(uri "${KIPRJMOD}/IM73A135V01XTSA1.pretty")(options "")(descr ""))
+  (lib (name "Infineon Logo")(type "KiCad")(uri "${KIPRJMOD}/Infineon Logo.pretty")(options "")(descr ""))
+  (lib (name "Speaker")(type "KiCad")(uri "${KIPRJMOD}/Speaker.pretty")(options "")(descr ""))
+  (lib (name "wave colour")(type "KiCad")(uri "${KIPRJMOD}/wave colour.pretty")(options "")(descr ""))
+  (lib (name "AD8426")(type "KiCad")(uri "${KIPRJMOD}/AD8426")(options "")(descr ""))
+)
