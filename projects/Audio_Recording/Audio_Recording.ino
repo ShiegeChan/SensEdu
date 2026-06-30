@@ -27,6 +27,10 @@ static const uint32_t SEGMENT_SECONDS = 30;
 // Developer notes in docs cover this in more detail.
 static const uint32_t USB_CHUNK_BYTES = 4080;
 
+static_assert(USB_CHUNK_BYTES % 64 != 0,
+              "USB_CHUNK_BYTES must not be a multiple of 64 B so each write ends in a short packet. "
+              "Refer to Developer Notes - USB Short Packet section in the documentation.");
+
 /* -------------------------------------------------------------------------- */
 /*                                   Structs                                  */
 /* -------------------------------------------------------------------------- */
