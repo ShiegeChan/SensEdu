@@ -3642,7 +3642,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "05fb3447-fb16-4744-8ec8-f777287dedd6")
-		(property "Reference" "J11"
+		(property "Reference" "J17"
 			(at 52.705 23.495 0)
 			(effects
 				(font
@@ -3697,6 +3697,14 @@
 		(pin "4"
 			(uuid "acfb91e6-06bf-4e07-9a5a-732a457d5670")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "J17")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -3707,7 +3715,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "0bd8cb75-6dbc-4a34-9c3e-2405c798ff90")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR063"
 			(at 163.83 78.74 0)
 			(effects
 				(font
@@ -3752,6 +3760,14 @@
 		(pin "1"
 			(uuid "eec1e055-733e-4127-88ab-74e09f50292c")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR063")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -3763,7 +3779,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "0ec06e20-273d-4e48-89ec-2876ad136755")
-		(property "Reference" "C1"
+		(property "Reference" "C71"
 			(at 67.31 102.87 0)
 			(effects
 				(font
@@ -3814,6 +3830,14 @@
 		(pin "2"
 			(uuid "51492008-c31e-49fc-9cc3-c5cbf70c8d13")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C71")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -3824,7 +3848,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "10e3d031-a28d-47a9-afc4-468796013c15")
-		(property "Reference" "C1"
+		(property "Reference" "C70"
 			(at 77.47 84.455 0)
 			(effects
 				(font
@@ -3875,6 +3899,14 @@
 		(pin "2"
 			(uuid "81c1670c-8cc0-4b56-8a1e-ee1d24d32dfd")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C70")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -3886,7 +3918,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "11a87076-c1bb-459c-8898-68ad148f01c7")
-		(property "Reference" "C1"
+		(property "Reference" "C69"
 			(at 85.09 69.85 0)
 			(effects
 				(font
@@ -3937,6 +3969,14 @@
 		(pin "2"
 			(uuid "75366b03-06c7-44d5-8cef-359b0f7127f3")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C69")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -3947,7 +3987,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "13605d4a-521d-4f74-b366-bef8caf40ca6")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR071"
 			(at 163.83 158.75 0)
 			(effects
 				(font
@@ -3992,6 +4032,14 @@
 		(pin "1"
 			(uuid "06ed9dc9-5d07-4ecf-b4dd-e30b123200d0")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR071")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -4002,7 +4050,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "1929bb85-93b0-4462-ab6e-79ee571f769e")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR061"
 			(at 81.28 51.435 0)
 			(effects
 				(font
@@ -4047,6 +4095,14 @@
 		(pin "1"
 			(uuid "991f8038-e717-4baf-9860-dcc795d92ff0")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR061")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "AD8222ACPZ-RL:AD8222ACPZ-RL")
@@ -4058,7 +4114,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1c8dfe52-bca1-4811-b268-9c52ab19994b")
-		(property "Reference" "U2"
+		(property "Reference" "U12"
 			(at 139.954 104.394 0)
 			(effects
 				(font
@@ -4224,7 +4280,7 @@
 		(instances
 			(project ""
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "U2")
+					(reference "U12")
 					(unit 1)
 				)
 			)
@@ -4240,7 +4296,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1dfb036f-a608-4f2d-ade6-62cc5f81a3c8")
-		(property "Reference" "C1"
+		(property "Reference" "C75"
 			(at 208.28 138.43 0)
 			(effects
 				(font
@@ -4291,6 +4347,14 @@
 		(pin "2"
 			(uuid "da462995-9cd1-47c9-a47c-fc70e387a048")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C75")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x04_Pin")
@@ -4302,7 +4366,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "1fc0bf1d-3e83-433a-8131-315a068020a2")
-		(property "Reference" "J11"
+		(property "Reference" "J20"
 			(at 52.705 145.415 0)
 			(effects
 				(font
@@ -4357,6 +4421,14 @@
 		(pin "4"
 			(uuid "11b9da81-bd2e-43ce-85ac-d95302dfe554")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "J20")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -4367,7 +4439,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "27bfdcfd-e13b-4b9f-8c7a-ffda2c7712b7")
-		(property "Reference" "R11"
+		(property "Reference" "R54"
 			(at 73.66 153.035 0)
 			(effects
 				(font
@@ -4418,6 +4490,14 @@
 		(pin "2"
 			(uuid "292ef8e7-48a1-41cf-b9c3-10aee8def4b3")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R54")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -4429,7 +4509,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "318fd6b4-a20e-4a12-9fcc-abbf9e647757")
-		(property "Reference" "C1"
+		(property "Reference" "C73"
 			(at 85.09 113.03 0)
 			(effects
 				(font
@@ -4480,6 +4560,14 @@
 		(pin "2"
 			(uuid "d553bc76-097b-4c93-a03a-0a2a7a6ecabb")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C73")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -4490,7 +4578,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3abc2406-2550-46ae-b25c-bd7f3c2d36b7")
-		(property "Reference" "R2"
+		(property "Reference" "R44"
 			(at 93.98 32.385 0)
 			(effects
 				(font
@@ -4541,6 +4629,14 @@
 		(pin "2"
 			(uuid "9da593aa-4638-4469-aa8c-c9e2c698f268")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R44")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -4552,7 +4648,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3c02dcbe-3fd8-4265-baeb-0585288eb0bc")
-		(property "Reference" "C1"
+		(property "Reference" "C64"
 			(at 85.09 33.02 0)
 			(effects
 				(font
@@ -4603,6 +4699,14 @@
 		(pin "2"
 			(uuid "45ba0d04-771c-4aaf-a0bb-993b11a09208")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C64")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -4614,7 +4718,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "3de84449-aa2e-4718-bd3f-b879a860966e")
-		(property "Reference" "C1"
+		(property "Reference" "C62"
 			(at 67.31 22.86 0)
 			(effects
 				(font
@@ -4665,6 +4769,14 @@
 		(pin "2"
 			(uuid "24e9152b-3e5e-4601-abeb-178129e19c75")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C62")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -4675,7 +4787,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "3efeee12-f37c-4482-9060-f84771a5e4c2")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR070"
 			(at 204.47 149.225 0)
 			(effects
 				(font
@@ -4720,6 +4832,14 @@
 		(pin "1"
 			(uuid "e16be280-79b1-44da-a020-8f04e60cdb34")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR070")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -4730,7 +4850,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "4008ddbc-80c4-4c88-a128-3e12eee95235")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR066"
 			(at 81.28 94.615 0)
 			(effects
 				(font
@@ -4775,6 +4895,14 @@
 		(pin "1"
 			(uuid "088a1ca2-e79d-40b8-a5c8-e53f70dcd0c5")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR066")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x04_Pin")
@@ -4786,7 +4914,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "448e3c6f-ef3b-4903-ae42-bc4ef28cb697")
-		(property "Reference" "J11"
+		(property "Reference" "J18"
 			(at 52.705 65.405 0)
 			(effects
 				(font
@@ -4841,6 +4969,14 @@
 		(pin "4"
 			(uuid "f13e493b-b40d-45d8-b9e8-c70caa7a9894")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "J18")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -4851,7 +4987,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "4cd672af-d0a9-4dbc-9415-75b13b744e13")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR073"
 			(at 81.28 169.545 0)
 			(effects
 				(font
@@ -4896,6 +5032,14 @@
 		(pin "1"
 			(uuid "f1a2d5aa-1f41-4226-ac60-3370b0654de7")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR073")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -4906,7 +5050,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "55f5c627-40f4-48e4-a564-9bb13e4a51d7")
-		(property "Reference" "C1"
+		(property "Reference" "C74"
 			(at 77.47 127.635 0)
 			(effects
 				(font
@@ -4957,6 +5101,14 @@
 		(pin "2"
 			(uuid "f12fba4a-ef67-4a82-b97c-4abf11087bad")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C74")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -4967,7 +5119,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "568d039a-fb48-49de-ab2e-6a50419fd2b3")
-		(property "Reference" "R8"
+		(property "Reference" "R49"
 			(at 73.66 106.045 0)
 			(effects
 				(font
@@ -5018,6 +5170,14 @@
 		(pin "2"
 			(uuid "22d1dc1a-9726-4c90-8e59-7c9f4c6f7b6c")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R49")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -5028,7 +5188,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "57730309-ce5c-4b0d-aeae-e7a5a1868bcd")
-		(property "Reference" "R10"
+		(property "Reference" "R52"
 			(at 73.66 142.875 0)
 			(effects
 				(font
@@ -5079,6 +5239,14 @@
 		(pin "2"
 			(uuid "e974cb58-f316-49ff-b72d-71df4f46cd43")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R52")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5089,7 +5257,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5b5c36e5-f12f-41bc-a18a-d9159574ca53")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR058"
 			(at 81.28 14.605 0)
 			(effects
 				(font
@@ -5134,6 +5302,14 @@
 		(pin "1"
 			(uuid "ca590a86-9b0b-44a0-824b-d4c372399887")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR058")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5144,7 +5320,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5d3e99b2-570e-4aeb-a921-774efc9a36ca")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR069"
 			(at 81.28 131.445 0)
 			(effects
 				(font
@@ -5189,6 +5365,14 @@
 		(pin "1"
 			(uuid "b8a093c1-908e-49ba-824a-ce48a48a771e")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR069")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -5200,7 +5384,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "5e9891e9-00fa-4cfc-aa2f-9877d78e5c4d")
-		(property "Reference" "C1"
+		(property "Reference" "C78"
 			(at 85.09 149.86 0)
 			(effects
 				(font
@@ -5251,6 +5435,14 @@
 		(pin "2"
 			(uuid "15d8daec-bff6-4f3b-a3cf-382d3a7267da")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C78")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -5261,7 +5453,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5ed077dc-87a5-494d-87ba-b6f6dda0f5a8")
-		(property "Reference" "C1"
+		(property "Reference" "C72"
 			(at 85.09 99.695 0)
 			(effects
 				(font
@@ -5312,6 +5504,14 @@
 		(pin "2"
 			(uuid "26801424-902f-45b1-aece-f6e9daf89481")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C72")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -5322,7 +5522,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5f0b302e-cc09-404d-bbce-567e5c03d8a1")
-		(property "Reference" "R5"
+		(property "Reference" "R45"
 			(at 73.66 36.195 0)
 			(effects
 				(font
@@ -5373,6 +5573,14 @@
 		(pin "2"
 			(uuid "872852ab-eef8-463a-aaa6-4be104262059")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R45")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -5383,7 +5591,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "5fd1fcfb-f389-4d7e-acb6-b5d0d087f54e")
-		(property "Reference" "C1"
+		(property "Reference" "C77"
 			(at 85.09 136.525 0)
 			(effects
 				(font
@@ -5434,6 +5642,14 @@
 		(pin "2"
 			(uuid "c1c4826d-a9d3-4039-97e6-efa0af906840")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C77")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5444,7 +5660,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "660b8be8-fa00-42c3-ba82-4374be14533f")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR059"
 			(at 59.69 50.165 0)
 			(effects
 				(font
@@ -5489,6 +5705,14 @@
 		(pin "1"
 			(uuid "a4efc45d-f543-41e6-81fc-d0777528e778")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR059")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5499,7 +5723,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "66d164fc-3a59-4133-8658-adf0adebfd90")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR064"
 			(at 59.69 86.995 0)
 			(effects
 				(font
@@ -5544,6 +5768,14 @@
 		(pin "1"
 			(uuid "41b6d7d0-ff56-4c00-bdc3-192af0ad49ad")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR064")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x04_Pin")
@@ -5555,7 +5787,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "7a714f19-670d-4b98-95a9-22bd0757981e")
-		(property "Reference" "J11"
+		(property "Reference" "J19"
 			(at 52.705 106.045 0)
 			(effects
 				(font
@@ -5610,6 +5842,14 @@
 		(pin "4"
 			(uuid "a678659b-fd07-4b3a-bff0-9654e8839560")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "J19")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -5620,7 +5860,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "82aff910-efb9-4103-bc8f-be5e4a22eaa0")
-		(property "Reference" "R12"
+		(property "Reference" "R50"
 			(at 93.98 112.395 0)
 			(effects
 				(font
@@ -5671,6 +5911,14 @@
 		(pin "2"
 			(uuid "42b9d626-b219-4f98-8043-0c624344aff2")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R50")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5681,7 +5929,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "86338eb7-c543-4057-b0d1-ce3efcb1ef28")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR072"
 			(at 59.69 167.005 0)
 			(effects
 				(font
@@ -5726,6 +5974,14 @@
 		(pin "1"
 			(uuid "be660011-efe1-44f8-bb66-a440b1a98ae4")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR072")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -5737,7 +5993,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "898bb3bf-22d1-40ee-aae9-ab954006f4dc")
-		(property "Reference" "C1"
+		(property "Reference" "C66"
 			(at 208.28 58.42 0)
 			(effects
 				(font
@@ -5788,6 +6044,14 @@
 		(pin "2"
 			(uuid "b9011252-afc0-4ec3-8e07-1ad7a68bb963")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C66")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5798,7 +6062,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "89c8db7f-c521-4d78-87b4-aee041163da9")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR065"
 			(at 81.28 89.535 0)
 			(effects
 				(font
@@ -5843,6 +6107,14 @@
 		(pin "1"
 			(uuid "eaa62e49-a611-4525-842c-ac0fc1b40f5b")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR065")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -5853,7 +6125,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "8cbb7346-be85-46cc-a389-9513bb021bf1")
-		(property "Reference" "C1"
+		(property "Reference" "C63"
 			(at 85.09 19.685 0)
 			(effects
 				(font
@@ -5904,6 +6176,14 @@
 		(pin "2"
 			(uuid "d8d6d828-f60a-414c-a0d8-74382a138e13")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C63")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -5914,7 +6194,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "8dcd42d9-de55-4fb9-9765-a66da94c33fa")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR068"
 			(at 81.28 132.715 0)
 			(effects
 				(font
@@ -5959,6 +6239,14 @@
 		(pin "1"
 			(uuid "59bf5054-e556-4549-81ba-9a5d1fd4c888")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR068")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -5969,7 +6257,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "8ed476a4-75e7-472c-bbc0-caeb0788591b")
-		(property "Reference" "R3"
+		(property "Reference" "R46"
 			(at 73.66 62.865 0)
 			(effects
 				(font
@@ -6020,6 +6308,14 @@
 		(pin "2"
 			(uuid "f50df1b7-2ca9-4155-b891-aeeb183ee393")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R46")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -6030,7 +6326,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "95cba2bc-d739-425e-be50-4cd739e48e3d")
-		(property "Reference" "R7"
+		(property "Reference" "R47"
 			(at 93.98 69.215 0)
 			(effects
 				(font
@@ -6081,6 +6377,14 @@
 		(pin "2"
 			(uuid "53ef3a50-1698-411b-94a9-870fb2c7d5dc")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R47")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -6092,7 +6396,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "a55e2517-1646-4f4a-a9a2-6d749563d92b")
-		(property "Reference" "C1"
+		(property "Reference" "C76"
 			(at 67.31 139.7 0)
 			(effects
 				(font
@@ -6143,6 +6447,14 @@
 		(pin "2"
 			(uuid "96866ea3-42f1-4073-acfa-ee9f90cacf11")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C76")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -6153,7 +6465,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a6ee4bc5-3550-44c5-bb7e-699057542f81")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR062"
 			(at 204.47 69.215 0)
 			(effects
 				(font
@@ -6198,6 +6510,14 @@
 		(pin "1"
 			(uuid "e0ea8af5-0df4-4263-98fd-90c8f9e7b930")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR062")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -6208,7 +6528,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "a709543e-842b-44d0-988a-d1d955180825")
-		(property "Reference" "R4"
+		(property "Reference" "R43"
 			(at 73.66 26.035 0)
 			(effects
 				(font
@@ -6259,6 +6579,14 @@
 		(pin "2"
 			(uuid "2f5a4fd5-5e99-458e-898f-18fbac091a7c")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R43")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -6269,7 +6597,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "ab0b2636-870e-4169-b7d7-e8c5f652ce55")
-		(property "Reference" "C1"
+		(property "Reference" "C79"
 			(at 77.47 164.465 0)
 			(effects
 				(font
@@ -6320,6 +6648,14 @@
 		(pin "2"
 			(uuid "16f2ca3f-9432-402a-8eca-087d52dc9fcd")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C79")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -6331,7 +6667,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "bbf8d21c-cde1-4085-b4c7-2897bd8250cd")
-		(property "Reference" "C1"
+		(property "Reference" "C67"
 			(at 67.31 59.69 0)
 			(effects
 				(font
@@ -6382,6 +6718,14 @@
 		(pin "2"
 			(uuid "7e207a28-a2d0-4e5d-b931-e3384633f6e8")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C67")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -6392,7 +6736,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "c5b80c93-346a-418e-9c34-33b0d775b02e")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR060"
 			(at 81.28 52.705 0)
 			(effects
 				(font
@@ -6437,6 +6781,14 @@
 		(pin "1"
 			(uuid "e4419b12-ba94-465b-b9d3-d3ffd1679dfa")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR060")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -6447,7 +6799,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "cbd5db9a-0864-4c1e-b891-4d0ad5120a45")
-		(property "Reference" "C1"
+		(property "Reference" "C65"
 			(at 77.47 47.625 0)
 			(effects
 				(font
@@ -6498,6 +6850,14 @@
 		(pin "2"
 			(uuid "c6f40f59-1689-48f8-85ed-dff7e68fec8e")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C65")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:C")
@@ -6508,7 +6868,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "d6342756-c547-41df-a8f4-7701c8720f68")
-		(property "Reference" "C1"
+		(property "Reference" "C68"
 			(at 85.09 56.515 0)
 			(effects
 				(font
@@ -6559,6 +6919,14 @@
 		(pin "2"
 			(uuid "7cc90546-f37a-4b96-b278-37e94283f2ae")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "C68")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -6569,7 +6937,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "e911ddb8-f2e9-4d28-90eb-405e2d63776f")
-		(property "Reference" "R6"
+		(property "Reference" "R48"
 			(at 73.66 73.025 0)
 			(effects
 				(font
@@ -6620,6 +6988,14 @@
 		(pin "2"
 			(uuid "3e77273a-3ebc-4f68-a0bb-029fc0fde2b8")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R48")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "Device:R")
@@ -6630,7 +7006,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f204bacc-84a5-4ff5-a8e5-23264bc62915")
-		(property "Reference" "R13"
+		(property "Reference" "R53"
 			(at 93.98 149.225 0)
 			(effects
 				(font
@@ -6681,6 +7057,14 @@
 		(pin "2"
 			(uuid "242c65b4-3cde-42fd-b675-a51f289b9acb")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R53")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_id "power:GND")
@@ -6691,7 +7075,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f23197f6-c69d-4810-9f56-0d80729503d6")
-		(property "Reference" "#PWR04"
+		(property "Reference" "#PWR067"
 			(at 59.69 130.175 0)
 			(effects
 				(font
@@ -6736,6 +7120,14 @@
 		(pin "1"
 			(uuid "bee99c06-5a80-4b8e-ad48-a0394deb9459")
 		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "#PWR067")
+					(unit 1)
+				)
+			)
+		)
 	)
 	(symbol
 		(lib_name "AD8222ACPZ-RL_1")
@@ -6748,7 +7140,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "f74a3c8a-dabc-45c8-aac3-961f2ac5479a")
-		(property "Reference" "U1"
+		(property "Reference" "U11"
 			(at 139.7 24.638 0)
 			(effects
 				(font
@@ -6914,7 +7306,7 @@
 		(instances
 			(project ""
 				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
-					(reference "U1")
+					(reference "U11")
 					(unit 1)
 				)
 			)
@@ -6929,7 +7321,7 @@
 		(on_board yes)
 		(dnp no)
 		(uuid "f7789a8e-34e6-4bf5-b67b-c37263e13f85")
-		(property "Reference" "R9"
+		(property "Reference" "R51"
 			(at 73.66 116.205 0)
 			(effects
 				(font
@@ -6979,6 +7371,14 @@
 		)
 		(pin "2"
 			(uuid "3e339638-e4cc-4827-ba9b-040703b2eab2")
+		)
+		(instances
+			(project "Ultrasound shield_8mic"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/7beaf5cb-8189-4035-8773-83f45c63e420/5e2ce67a-97f9-439d-a475-1867d59b3f74"
+					(reference "R51")
+					(unit 1)
+				)
+			)
 		)
 	)
 )

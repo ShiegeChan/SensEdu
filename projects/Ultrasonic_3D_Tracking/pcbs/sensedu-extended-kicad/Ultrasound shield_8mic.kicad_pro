@@ -765,10 +765,6 @@
       "Microphones"
     ],
     [
-      "5e2ce67a-97f9-439d-a475-1867d59b3f74",
-      "General pupose Amplifiers"
-    ],
-    [
       "fa0e88ef-9b8a-48c4-b796-b695901d01b1",
       "Microphones_stage_2"
     ],
@@ -779,6 +775,10 @@
     [
       "d6e506e4-1660-4f12-9b07-0782300f1012",
       "DPS310"
+    ],
+    [
+      "5e2ce67a-97f9-439d-a475-1867d59b3f74",
+      "General pupose Amplifiers"
     ]
   ],
   "text_variables": {}
