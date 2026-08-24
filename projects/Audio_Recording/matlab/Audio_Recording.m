@@ -6,7 +6,7 @@ clear;
 close all;
 
 %% User settings
-ARDUINO_PORT           = 'COM16';
+ARDUINO_PORT           = 'COM9';
 ARDUINO_BAUDRATE       = 2000000;   % Cosmetic for USB CDC
 RECORDING_DURATION_SEC = 40;
 ENABLE_PLAYBACK        = true;

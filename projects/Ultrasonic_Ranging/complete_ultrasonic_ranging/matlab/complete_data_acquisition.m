@@ -19,7 +19,7 @@ ENABLE_LIVE_PLOTS = false; % Match this value in the main code
 
 %% Arduino Setup + Config
 % Serial port configuration 
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM6';
 ARDUINO_BAUDRATE = 115200;
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate 
 
