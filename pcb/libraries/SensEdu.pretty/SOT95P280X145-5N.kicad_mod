@@ -235,7 +235,7 @@
 		(uuid "9e90674c-4efb-4151-92e2-39c26f07fc48")
 	)
 	(embedded_fonts no)
-	(model "C:\\Users\\ober\\Nextcloud\\Tech\\PCB Libraries\\SamacSys_Parts.3dshapes\\LDLN025M25R.stp"
+	(model "${KIPRJMOD}/libraries/3D/SOT23-5L_1P75X3P05X0P95_STM.step"
 		(offset
 			(xyz 0 0 0)
 		)
