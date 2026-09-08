@@ -46,7 +46,7 @@ SensEdu_ADC_Settings adc_settings = {
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-    // Stuck in the loop if Serial Monitor is not opened
+    // Waits here until the Serial Monitor is opened
     Serial.begin(115200);
     while (!Serial) {}
 
@@ -82,8 +82,8 @@ void loop() {
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Prints the error code in Serial Monitor
+// Checks if the library has raised any internal errors
+// Prints the error code to the Serial Monitor
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {

@@ -151,6 +151,6 @@ function cleanup_serial(arduino)
             delete(arduino);
         end
     catch
-        % Ignore cleanup errors during forced shutdown.
+        % Ignore cleanup errors during forced shutdown
     end
 end

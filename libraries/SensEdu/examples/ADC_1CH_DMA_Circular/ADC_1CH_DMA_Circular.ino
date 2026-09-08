@@ -84,13 +84,18 @@ void loop() {
     }
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                  Functions                                 */
+/* -------------------------------------------------------------------------- */
+
 // Transfers selected buffer in one write
 static void transfer_buf(volatile uint16_t* data, uint16_t data_length) {
     uint8_t* ptr = (uint8_t*)data;
     Serial.write(ptr, data_length * sizeof(uint16_t));
 }
 
-// Checks library error state
+// Checks if the library has raised any internal errors
+// Serial is busy streaming, so the error LED is used instead
 static void check_lib_errors(uint8_t error_led) {
     uint32_t lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -98,7 +103,7 @@ static void check_lib_errors(uint8_t error_led) {
     }
 }
 
-// Halts system on fatal error
+// Halts the system and blinks the error LED
 static void fatal_error(uint8_t error_led) {
     digitalWrite(error_led, !digitalRead(error_led));
     delay(200);

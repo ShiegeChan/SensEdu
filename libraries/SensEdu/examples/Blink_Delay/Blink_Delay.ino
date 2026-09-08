@@ -17,8 +17,8 @@ const uint8_t led = LED_BUILTIN;
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-    // Uncomment the loop to wait for you to start the Serial Monitor
-    // This way you can see void setup logs
+    // Uncomment the loop below to wait for the Serial Monitor
+    // This way you can see the setup logs
     Serial.begin(115200);
     //while (!Serial) {}
 
@@ -49,8 +49,8 @@ void loop() {
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Prints the error code in Serial Monitor
+// Checks if the library has raised any internal errors
+// Prints the error code to the Serial Monitor
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {

@@ -85,10 +85,10 @@ void setup() {
         Serial.print("Attempting to connect to SSID: ");
         Serial.println(WIFI_SSID);
 
-        // Connect to WPA/WPA2 network (change this if youre using open / WEP network)
+        // Connect to a WPA/WPA2 network (change this if you're using an open / WEP network)
         status = WiFi.begin(WIFI_SSID, WIFI_PASS);
 
-        // Wait 10 seconds for connection:
+        // Wait 10 seconds for connection
         delay(10000);
     }
     server.begin();
@@ -106,7 +106,7 @@ void loop() {
     }
     Serial.println("Client connected!");
 
-    // Measurement is initiated by the signal from computing device (matlab script)
+    // Measurement is initiated by the trigger character from the host (matlab script)
     static char buf = 0;
 
     while (client.connected()) {
@@ -119,7 +119,7 @@ void loop() {
             continue;
         }
             
-        // Start dac->adc sequence
+        // Start the DAC -> ADC sequence
         SensEdu_DAC_Enable(dac_ch);
         while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
         SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
@@ -138,8 +138,8 @@ void loop() {
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Prints the error code in Serial Monitor
+// Checks if the library has raised any internal errors
+// Prints the error code to the Serial Monitor
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -149,16 +149,18 @@ void check_lib_errors() {
     }
 }
 
+// Sends the buffer to the connected client
 void wifi_send_array(WiFiClient client, const uint8_t* data, size_t size) {
     client.write(data, size);
 }
 
+// Prints the connection details of the board
 void print_wifi_status(void) {
-    // Print the SSID of the network youre connected to
+    // Print the SSID of the network you're connected to
     Serial.print("SSID: ");
     Serial.println(WiFi.SSID());
 
-    // Print your boards local IP address
+    // Print the local IP address of your board
     IPAddress ip = WiFi.localIP();
     Serial.print("IP Address: ");
     Serial.println(ip);

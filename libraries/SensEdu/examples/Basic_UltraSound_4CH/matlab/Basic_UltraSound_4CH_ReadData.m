@@ -16,8 +16,8 @@ ITERATIONS = 10000;
 
 ACTIVATE_PLOTS = true;
 
-DATA_LENGTH = 2048*2; % Make sure to match this number with firmware
-CHUNK_SIZE = 32; % Make sure to match this number with firmware 
+DATA_LENGTH = 2048*2; % Must match the firmware
+CHUNK_SIZE = 32; % Must match the firmware
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % Select port and baudrate
 

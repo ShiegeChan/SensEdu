@@ -78,7 +78,7 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 
 void loop() {
-    // Wait for trigger character 't' from computing device
+    // Wait for the trigger character 't' from the host
     char c;
     while (true) {
         if (Serial.available() > 0) {
@@ -90,7 +90,7 @@ void loop() {
         delay(1);
     }
 
-    // Start dac->adc sequence
+    // Start the DAC -> ADC sequence
     SensEdu_DAC_Enable(dac_ch);
     while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
     SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
@@ -108,9 +108,8 @@ void loop() {
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Doesn't print the error code, since Serial is occupied
-// Turns on the red LED on Arduino board instead
+// Checks if the library has raised any internal errors
+// Serial is busy sending measurements, so the error LED is used instead
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -118,6 +117,7 @@ void check_lib_errors() {
     }
 }
 
+// Sends the buffer over serial in fixed-size chunks
 void serial_send_array(uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
     for (size_t i = 0; i < (data_length << 1); i += chunk_size_byte) {
         size_t transfer_size = ((data_length << 1) - i < chunk_size_byte) ? ((data_length << 1) - i) : chunk_size_byte;
