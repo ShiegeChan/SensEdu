@@ -1,8 +1,7 @@
-% take from deepseek
+% Generated with the help of an LLM.
 function beautify_plot(figHandle, box)
-    % Apply consistent beautification settings to all axes in a figure
-    % Input:
-    %   figHandle: Handle to the figure
+    % Applies consistent styling to every axes in a figure
+    % box: 0 hides the axes box, 1 shows it
 
     % Get all axes in the figure
     axHandles = findobj(figHandle, 'Type', 'axes');

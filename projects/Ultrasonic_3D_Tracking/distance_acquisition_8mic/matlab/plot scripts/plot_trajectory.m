@@ -1,4 +1,6 @@
 function plot_trajectory(state_history, microphones, REAL_MEASUREMENTS, pos_true)
+% Plots the EKF trajectory in 3D together with the microphone positions.
+% With REAL_MEASUREMENTS false, pos_true is overlaid as the reference track.
     figure;
     plot3(state_history(1, :), state_history(2, :), state_history(3, :), "b-o", "LineWidth", 1.5, 'MarkerFaceColor','red', "MarkerEdgeColor",'none');
     hold on;

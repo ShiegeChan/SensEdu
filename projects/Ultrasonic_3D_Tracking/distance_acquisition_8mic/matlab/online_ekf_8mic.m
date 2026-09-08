@@ -10,6 +10,8 @@
 clear all
 clc
 close all
+
+% Holds helpers meant for post-verification
 addpath("plot scripts\", "kf algorithm\");
 
 %% Arduino Measurements
@@ -20,10 +22,10 @@ arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
 
 ITERATIONS = 350;
 MIC_NUM = 8;
-PEAKS_NUM = 2;
+PEAKS_NUM = 3; % Must match MAX_PEAKS in Peaks.h
 DETECTION_NUM = MIC_NUM*PEAKS_NUM;
 mic_name = {"MIC 1", "MIC 2","MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
-DATA_LENGTH = 2048;
+DATA_LENGTH = 4096; % Must match STORE_BUF_SIZE in the firmware
 distances = zeros(DETECTION_NUM,ITERATIONS); 
 time_axis = zeros(1, ITERATIONS); 
 

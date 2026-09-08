@@ -1,4 +1,7 @@
 function H = jacobianMeasurement(x, microphones)
+% Jacobian of measurementFunction with respect to the state.
+%
+% Velocity does not appear in the measurement, so the velocity block stays zero.
     pos = x(1:3);
     % distance from the speaker to the object
     dist_speaker_object = norm(pos); % r

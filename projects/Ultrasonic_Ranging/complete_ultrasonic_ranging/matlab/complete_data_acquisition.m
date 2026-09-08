@@ -13,9 +13,9 @@ clear;
 addpath("plot scripts\");
 
 %% Parameters
-ITERATIONS = 750; 
+ITERATIONS = 300; 
 MIC_NUM = 4; 
-MAX_PEAKS = 2; % Must match Peaks.h
+MAX_PEAKS = 1; % Must match Peaks.h
 MIC_NAMES = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
 DATA_LENGTH = 2048; % Must match STORE_BUF_SIZE in the firmware
 PROCESSING_STEPS = 3; % raw, filtered, xcorr
@@ -24,7 +24,7 @@ ENABLE_LIVE_PLOTS = false;
 
 %% Arduino Setup + Config
 % Serial port configuration 
-ARDUINO_PORT = 'COM4';
+ARDUINO_PORT = 'COM15';
 ARDUINO_BAUDRATE = 115200;
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate 
 
@@ -33,7 +33,7 @@ dist_matrix = zeros(MIC_NUM*MAX_PEAKS, ITERATIONS); % distance matrix
 processing_matrix = zeros(ITERATIONS, MIC_NUM, PROCESSING_STEPS, DATA_LENGTH); % all processing steps data
 processing_matrix_size = size(processing_matrix);
 time_axis = zeros(1, ITERATIONS); %  time array
-y_vec = zeros(4,ITERATIONS);
+y_vec = zeros(MIC_NUM, ITERATIONS); % measurements actually fed to the tracker
 %% Prepare Figure
 if ENABLE_LIVE_PLOTS == true
     figure("Position",[250, 250, 1500, 1000]);
@@ -65,7 +65,7 @@ legend(dist_legend, 'Location', 'best');
 grid on;
 
 %% Readings Loop
-pause(3);
+pause(5);
 tic;
 for it = 1:ITERATIONS
     write(arduino, 't', "char"); % trigger arduino measurement
@@ -123,19 +123,22 @@ for it = 1:ITERATIONS
 end
 acquisition_time = toc;
 
-% save measurements
-if ~exist("Measurements", 'dir')
-    mkdir("Measurements");
+%% Save workspace
+save_dir = 'Measurements';
+if ~exist(save_dir, 'dir')
+    mkdir(save_dir);
 end
-file_name = sprintf('%s_%s.mat', "Measurements/dataset", datetime("now"));
-file_name = strrep(file_name, ' ', '_');
-file_name = strrep(file_name, ':', '-');
-save(file_name, "dist_matrix", "time_axis");
+t_save = datetime('now');
+filename = fullfile(save_dir, sprintf('tracking_%dpeaks_%dsize_%02d%02d_%02d%02d%02d.mat', ...
+    MAX_PEAKS, DATA_LENGTH, t_save.Month, t_save.Day, t_save.Hour, t_save.Minute, floor(t_save.Second)));
+
+% Close the serial connection before saving
+arduino = [];
+
+save(filename);
+fprintf('Workspace saved to %s\n', filename);
 
 fprintf("Data acquisition completed in: %fsec\n", acquisition_time);
-
-% close serial connection
-arduino = [];
 
 % %% Plotting distances 1
 % mpt_plot_measurements(dist_matrix, MAX_PEAKS);

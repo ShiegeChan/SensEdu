@@ -1,4 +1,5 @@
 function x_next = stateTransitionFunction(x, dt)
+% Constant-velocity propagation of the state [x y z vx vy vz].
     x_next = [x(1) + x(4) * dt; 
               x(2) + x(5) * dt;
               x(3) + x(6) * dt;
