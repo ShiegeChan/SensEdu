@@ -159,31 +159,37 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
         }
     }
     uint32_t threshold = (max_val * 7) / 10;
+
+    // No peak for a slot -> report 0 so the host can discard it
+    for (uint8_t p = 0; p < MAX_PEAKS; p++) {
+        dist_um[p] = 0;
+    }
+
     static Peak temp_peaks[(STORE_BUF_SIZE / 2)];
+    int peak_count = 0;
 
-    if (temp_peaks != NULL && max_val > 0) {
-        int peakCount = 0;
-
+    if (max_val > 0) {
         for (size_t i = 1; i < echo_length - 1; i++) {
             uint32_t current = enveloped_signal[i];
 
             if (current >= threshold) {
                 if (current > enveloped_signal[i - 1] && current >= enveloped_signal[i + 1]) {
-                    temp_peaks[peakCount].value = current;
-                    temp_peaks[peakCount].location = i;
-                    peakCount++;
+                    temp_peaks[peak_count].value = current;
+                    temp_peaks[peak_count].location = i;
+                    peak_count++;
                 }
             }
         }
 
-        if (peakCount > 0) {
-            qsort(temp_peaks, peakCount, sizeof(Peak), compare_peaks);
+        if (peak_count > 0) {
+            qsort(temp_peaks, peak_count, sizeof(Peak), compare_peaks);
         }
 
     }
 
-    for (int p = 0; p < MAX_PEAKS; p++) {
-        dist_um[p] = (float)temp_peaks[p].location * HALF_AIR_SPEED_UM_S / sampling_rate;
+    uint8_t report_num = (peak_count < MAX_PEAKS) ? peak_count : MAX_PEAKS;
+    for (uint8_t p = 0; p < report_num; p++) {
+        dist_um[p] = (uint32_t)((float)temp_peaks[p].location * HALF_AIR_SPEED_UM_S / sampling_rate);
     }
 
 }
