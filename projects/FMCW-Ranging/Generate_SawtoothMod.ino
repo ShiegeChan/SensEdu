@@ -1,7 +1,16 @@
-const uint32_t x = 5; // Sine LUT resolution
-const float Pi = 3.14159; // Pi
+/*
+ * Sawtooth chirp generator.
+ *
+ * Fills the DAC buffer with one linear up-sweep from START_FREQUENCY to
+ * END_FREQUENCY, evaluated from a quarter-wave sine LUT.
+ *
+ * The end frequency is nudged so the sweep holds a whole number of cycles,
+ * which keeps the waveform phase-continuous when the LUT repeats.
+ */
 
-// Generate chirp signal with a sawtooth modulation
+const uint32_t x = 5; // Quarter-wave LUT resolution (points per degree)
+const float Pi = 3.14159;
+
 void generateSawtoothChirp(uint16_t* array) {
 
     float lut_sine[90 * x]; // Quarter-wave LUT for sine values
@@ -12,7 +21,7 @@ void generateSawtoothChirp(uint16_t* array) {
     int N = round((START_FREQUENCY + END_FREQUENCY) / 2.0 * CHIRP_DURATION); // Closest integer number of cycles
     int END_FREQUENCY_ADJUSTED = 2*N/CHIRP_DURATION - START_FREQUENCY; // Adjusted end frequency for int number of cycles
     float sK = (END_FREQUENCY_ADJUSTED - START_FREQUENCY) / CHIRP_DURATION; // Adjusted chirp rate
-    
+
     // Generate the quarter-wave sine LUT
     for (int i = 0; i < 90 * x; i++) {
         phase_deg = (float)i/x;
@@ -26,6 +35,7 @@ void generateSawtoothChirp(uint16_t* array) {
         phase_deg = phase_rad * 180.0 / Pi; // Phase angle to degrees
         phase_deg_wrapped = fmod(phase_deg, 360.0); // Wrap phase angle to 0-360 degrees
 
+        // Mirror the quarter wave into the matching quadrant, then scale to 12-bit
         if (phase_deg_wrapped <= 90) {
             vChirp = lut_sine[(int)(phase_deg_wrapped)* x+1] * 2048 + 2048;
         } else if (phase_deg_wrapped <= 180) {

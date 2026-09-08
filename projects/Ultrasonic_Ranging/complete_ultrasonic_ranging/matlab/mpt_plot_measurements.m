@@ -1,4 +1,5 @@
 function mpt_plot_measurements(dist_matrix, max_peaks)
+% Scatter-plots every microphone peak track over the whole measurement run
 mic_name = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
 figure
 for i = 1:4

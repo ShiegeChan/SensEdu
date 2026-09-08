@@ -1,3 +1,15 @@
+/*
+ * ADC_3CH_DMA_Normal
+ *
+ * Fills a 90-sample buffer from three ADC channels at 10 kS/s via DMA,
+ * prints it channel by channel and restarts the transfer.
+ *
+ * The scan sequence is interleaved in the buffer: CH0, CH1, CH2, CH0, ...
+ *
+ * Normal DMA mode stops once the buffer is full, so the CPU stays free during
+ * acquisition - shown by the counter running in the main loop.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container
@@ -37,7 +49,7 @@ SensEdu_ADC_Settings adc_settings = {
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-    // Stuck in the loop if Serial Monitor is not opened
+    // Waits here until the Serial Monitor is opened
     Serial.begin(115200);
     while (!Serial) {}
 
@@ -85,8 +97,8 @@ void loop() {
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Prints the error code in Serial Monitor
+// Checks if the library has raised any internal errors
+// Prints the error code to the Serial Monitor
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {

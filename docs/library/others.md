@@ -11,13 +11,12 @@ nav_order: 5
 
 These examples illustrate more complex, yet fundamental, applications of multiple peripherals.
 
-{: .fw-500}
 - TOC
 {:toc}
 
 
 {: .IMPORTANT}
-To run these examples, you need to install [MATLAB]. Some examples offer also an alternative in [Python].
+To run some of these examples, you need to install [MATLAB]. Ultrasonic examples offer an alternative in [Python].
 
 ## Recording Audio 
 
@@ -712,7 +711,127 @@ Notice that with WiFi, your Serial is freed up, allowing to use it for convenien
 
 ![]({{site.baseurl}}/assets/images/WiFiConnection.png)
 
+## Sensor Reading Examples
+
+These examples show how to read data from the onboard I2C sensors (SHT40 and DPS368). More complex example is available as [Weather Station]({% link projects/weather-station.md %}) in [Projects]({% link projects/index.md %}) section.
+
+<img src="{{site.baseurl}}/assets/images/weather-hardware.png"/>
+
+If you want to identify the on-board sensors, you can refer to the scanner script linked [here]({% link projects/weather-station.md %}#i2c-scanner).
+
+### Read_Temp_SHT
+
+Reads temperature from the Sensirion [SHT40-AD1F] sensor and prints it to the Serial Monitor every second.
+
+```c
+#include <SensirionI2cSht4x.h>
+
+SensirionI2cSht4x sht;
+
+void setup() {
+    Serial.begin(9600);
+    while (!Serial);
+    Wire.begin();
+    sht.begin(Wire, SHT40_I2C_ADDR_44);
+    sht.softReset();
+    delay(10);
+}
+
+void loop() {
+    float temperature = 0.0f;
+    float humidity = 0.0f;
+    sht.measureHighPrecision(temperature, humidity);
+    Serial.print("Temperature: ");
+    Serial.print(temperature, 2);
+    Serial.println(" °C");
+    delay(1000);
+}
+```
+
+### Read_RH_SHT
+
+Reads relative humidity (RH) from the Sensirion [SHT40-AD1F] sensor and prints it to the Serial Monitor every second.
+
+```c
+#include <SensirionI2cSht4x.h>
+
+SensirionI2cSht4x sht;
+
+void setup() {
+    Serial.begin(9600);
+    while (!Serial);
+    Wire.begin();
+    sht.begin(Wire, SHT40_I2C_ADDR_44);
+    sht.softReset();
+    delay(10);
+}
+
+void loop() {
+    float temperature = 0.0f;
+    float humidity = 0.0f;
+    sht.measureHighPrecision(temperature, humidity);
+    Serial.print("Relative Humidity: ");
+    Serial.print(humidity, 2);
+    Serial.println(" %RH");
+    delay(1000);
+}
+```
+
+### Read_Temp_DPS
+
+Reads temperature from the Infineon [DPS368] pressure sensor and prints it to the Serial Monitor every second.
+
+```c
+#include <Dps3xx.h>
+
+Dps3xx dps368;
+
+void setup() {
+    Serial.begin(9600);
+    while (!Serial);
+    Wire.begin();
+    dps368.begin(Wire);
+}
+
+void loop() {
+    float temperature = 0.0f;
+    dps368.measureTempOnce(temperature, 5);
+    Serial.print("Temperature: ");
+    Serial.print(temperature, 2);
+    Serial.println(" °C");
+    delay(1000);
+}
+```
+
+### Read_Pressure_DPS
+
+Reads barometric air pressure from the Infineon [DPS368] sensor and prints it to the Serial Monitor every second.
+
+```c
+#include <Dps3xx.h>
+
+Dps3xx dps368;
+
+void setup() {
+    Serial.begin(9600);
+    while (!Serial);
+    Wire.begin();
+    dps368.begin(Wire);
+}
+
+void loop() {
+    float pressure = 0.0f;
+    dps368.measurePressureOnce(pressure, 5);
+    Serial.print("Pressure: ");
+    Serial.print(pressure, 2);
+    Serial.println(" Pa");
+    delay(1000);
+}
+```
+
 [STM32H747 Reference Manual]: https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
 
 [MATLAB]: https://www.mathworks.com/products/matlab.html
 [Python]: https://www.python.org/ 
+[SHT40-AD1F]: https://sensirion.com/de/produkte/katalog/SHT40-AD1F
+[DPS368]: https://www.infineon.com/part/DPS368

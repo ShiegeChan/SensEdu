@@ -1,3 +1,7 @@
+/*
+ * 32 kHz sine burst played out of the DAC.
+ */
+
 // How many LUT repeats for one DAC transfer
 // For ultrasound sine wave more than 10 -> worse
 const uint16_t dac_cycle_num = 10;

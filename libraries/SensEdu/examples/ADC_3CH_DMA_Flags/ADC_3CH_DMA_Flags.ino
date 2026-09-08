@@ -1,3 +1,16 @@
+/*
+ * ADC_3CH_DMA_Flags
+ *
+ * Demonstrates the DMA half-transfer and transfer-complete flags: the first
+ * half of the buffer is copied out while DMA keeps filling the second half.
+ *
+ * The copied half is then printed to the Serial Monitor, showing that firmware
+ * can process it on the fly.
+ *
+ * Both buffers are pre-filled with 0x0101 and the D-cache is cleaned, so slots
+ * that were never written by DMA show up as 257 in the printout.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container
@@ -35,7 +48,7 @@ SensEdu_ADC_Settings adc_settings = {
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-    // Stuck in the loop if Serial Monitor is not opened
+    // Waits here until the Serial Monitor is opened
     Serial.begin(115200);
     while (!Serial) {}
 
@@ -45,11 +58,11 @@ void setup() {
     SensEdu_ADC_Enable(adc);
     check_lib_errors();
 
-    // 0x0101: 257 in decimal
+    // Mark every slot with 257 (0x0101) to make untouched samples visible
     memset(buf_ct, 0x01, sizeof(buf_ct));
     memset(buf_ht, 0x01, sizeof(buf_ht));
 
-    // Clean the cache to apply 257 value properly
+    // Clean the cache to apply the marker value properly
     SCB_CleanDCache_by_Addr(buf_ct, sizeof(buf_ct));
     SCB_CleanDCache_by_Addr(buf_ht, sizeof(buf_ht));
 
@@ -105,8 +118,8 @@ void loop() {
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Prints the error code in Serial Monitor
+// Checks if the library has raised any internal errors
+// Prints the error code to the Serial Monitor
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {

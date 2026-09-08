@@ -1,8 +1,13 @@
 %% complete_data_acquisition.m
-% triggers ultrasonic recording
-% receives the data
-% plots distances along with processing steps
-% handles multi-peak tracking and detailed/non-detailed data
+%
+% Host script for complete_ultrasonic_ranging.ino. Triggers a measurement with
+% 't', reads the per-microphone distances and plots them over time. With
+% detailed data enabled it also receives and plots the raw, filtered and
+% cross-correlated waveforms.
+%
+% The flags and sizes below must match the firmware, otherwise the serial reads
+% desynchronise.
+
 clear;
 % close all;
 addpath("plot scripts\");
@@ -10,12 +15,12 @@ addpath("plot scripts\");
 %% Parameters
 ITERATIONS = 300; 
 MIC_NUM = 4; 
-MAX_PEAKS = 1; % Match this value in Peaks.h
+MAX_PEAKS = 1; % Must match Peaks.h
 MIC_NAMES = {"MIC 1", "MIC 2","MIC 3", "MIC 4"};
-DATA_LENGTH = 2048; % Match this value in main code8
-PROCESSING_STEPS = 3; % raw, fitlered, xcorr
-ENABLE_DETAILED_DATA = false; % Match this value in the main code
-ENABLE_LIVE_PLOTS = false; % Match this value in the main code
+DATA_LENGTH = 2048; % Must match STORE_BUF_SIZE in the firmware
+PROCESSING_STEPS = 3; % raw, filtered, xcorr
+ENABLE_DETAILED_DATA = false; % Must match IS_TRANSMIT_DETAILED_DATA in the firmware
+ENABLE_LIVE_PLOTS = false;
 
 %% Arduino Setup + Config
 % Serial port configuration 

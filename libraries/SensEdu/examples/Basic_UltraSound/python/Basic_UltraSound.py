@@ -1,7 +1,10 @@
 """
-Basic_UltraSound_ReadData.py
+Basic_UltraSound.py
 
-Reads config data and then ADC mics measurements from Arduino
+Triggers an ultrasonic measurement with 't', reads the microphone buffer from
+the Arduino, plots it and saves all iterations into Measurements/.
+
+DATA_LENGTH must match the firmware.
 """
 
 import os
@@ -15,13 +18,13 @@ import serial
 # =======================
 # Settings
 # =======================
-ARDUINO_PORT = "COM22"  # replace "COM17" with your serial port
+ARDUINO_PORT = "COM22"  # Replace with your serial port
 ARDUINO_BAUDRATE = 115200
 ITERATIONS = 100
 
 ACTIVATE_PLOTS = True
-CHUNK_SIZE = 32  # bytes per serial read
-DATA_LENGTH = 5142  # number of uint16 samples
+CHUNK_SIZE = 32  # Bytes per serial read
+DATA_LENGTH = 5142  # Number of uint16 samples (must match the firmware)
 BYTES_PER_SAMPLE = 2
 
 # =======================
@@ -80,7 +83,7 @@ for iteration in range(ITERATIONS):
     # Trigger Arduino measurement
     arduino.write(b"t")
 
-    # Timestamp 
+    # Timestamp
     current_time = time.perf_counter() - start_time
     time_axis.append(current_time)
 
@@ -99,8 +102,9 @@ for iteration in range(ITERATIONS):
 arduino.close()
 
 # =======================
-# Save measurements into a single file Measurements in uncompressed .npz format
+# Save Measurements
 # =======================
+# Stored as a single uncompressed .npz file inside Measurements/
 os.makedirs("Measurements", exist_ok=True)
 
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

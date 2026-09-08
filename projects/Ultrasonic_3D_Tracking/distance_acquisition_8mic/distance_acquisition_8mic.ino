@@ -1,3 +1,19 @@
+/*
+ * distance_acquisition_8mic
+ *
+ * Range acquisition front-end for 3D tracking. Emits a 32 kHz sine burst, then
+ * records eight microphones across ADC1/ADC2/ADC3 and cross-correlates each
+ * channel against the transmitted wave to find the echo delays.
+ *
+ * Only the resulting distances are sent to MATLAB, which trilaterates them into
+ * a 3D position with an extended Kalman filter (matlab/online_ekf_8mic.m).
+ *
+ * The speaker couples directly into the microphones, so the first
+ * BAN_DISTANCE cm worth of samples is blanked before peak search.
+ *
+ * A measurement is triggered by the character 't' on serial.
+ */
+
 #include "SensEdu.h"
 #include "CMSIS_DSP.h"
 #include "SineLUT.h"
@@ -174,7 +190,7 @@ void setup() {
 
 void loop() {
 	SenseduBoard* main_obj_ptr = &SenseduBoardObj;
-    // Wait for trigger character 't' from computing device
+    // Wait for the trigger character 't' from the host
     char c;
     while (true) {
         if (Serial.available() > 0) {
@@ -186,7 +202,7 @@ void loop() {
         delay(1);
     }
     
-    // Start dac->adc sequence
+    // Start the DAC -> ADC sequence
     SensEdu_DAC_Enable(dac_channel);
     while (!SensEdu_DAC_GetBurstCompleteFlag(dac_channel)); // Wait for dac to finish sending the burst
     SensEdu_DAC_ClearBurstCompleteFlag(dac_channel); 

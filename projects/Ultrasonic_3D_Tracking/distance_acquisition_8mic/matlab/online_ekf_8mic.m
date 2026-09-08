@@ -1,4 +1,12 @@
-% ONLINE EXTENDED KALMAN FILTER IMPLEMENTATION 
+%% online_ekf_8mic.m
+%
+% Host script for distance_acquisition_8mic.ino. Triggers a measurement, reads
+% the per-microphone distances and tracks the object in 3D with an extended
+% Kalman filter.
+%
+% The microphone coordinates below describe the physical array layout and must
+% match the board; mic_name maps serial order to physical microphone number.
+
 clear all
 clc
 close all

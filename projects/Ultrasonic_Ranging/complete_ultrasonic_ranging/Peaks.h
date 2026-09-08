@@ -1,3 +1,7 @@
+/*
+ * Cross-correlation peak type shared by the ranging files.
+ */
+
 #ifndef PEAKS_H
 #define PEAKS_H
 

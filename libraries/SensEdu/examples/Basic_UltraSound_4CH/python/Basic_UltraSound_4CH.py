@@ -1,7 +1,10 @@
 """
-Basic_UltraSound_4CH_ReadData.py
+Basic_UltraSound_4CH.py
 
-Reads 4-channel ADC microphone measurements from Arduino via serial
+Triggers an ultrasonic measurement with 't' and reads four microphone channels
+from the Arduino as two interleaved buffers, plots and saves them.
+
+DATA_LENGTH and CHUNK_SIZE must match the firmware.
 """
 
 import os
@@ -15,14 +18,14 @@ import serial
 # =======================
 # Settings
 # =======================
-ARDUINO_PORT = "COM22"  # replace "COM17" with your serial port
+ARDUINO_PORT = "COM22"  # Replace with your serial port
 ARDUINO_BAUDRATE = 115200
 ITERATIONS = 1000
 
 ACTIVATE_PLOTS = True
 
-DATA_LENGTH = 2048 * 2  # samples per 2 microphones (must match firmware)
-CHUNK_SIZE = 32  # bytes per serial read
+DATA_LENGTH = 2048 * 2  # Samples per 2 microphones (must match the firmware)
+CHUNK_SIZE = 32  # Bytes per serial read
 BYTES_PER_SAMPLE = 2
 
 # =======================
@@ -57,7 +60,7 @@ def read_2mic_data(serial_port, data_length, chunk_size):
 
     data = np.frombuffer(rx_buffer, dtype=np.uint16)
 
-    mic1 = data[0::2].astype(np.float64)      # interleaving logic to retrieve data from two channels
+    mic1 = data[0::2].astype(np.float64)      # Samples of both mics are interleaved
     mic2 = data[1::2].astype(np.float64)
 
     return mic1, mic2
@@ -112,13 +115,13 @@ time_axis = []
 start_time = time.perf_counter()
 
 for iteration in range(ITERATIONS):
-    # Trigger Arduino
+    # Trigger Arduino measurement
     arduino.write(b"t")
 
     # Timestamp
     time_axis.append(time.perf_counter() - start_time)
 
-    # Read 4 channels 
+    # Read 4 channels
     mic1, mic2 = read_2mic_data(arduino, DATA_LENGTH, CHUNK_SIZE)
     mic3, mic4 = read_2mic_data(arduino, DATA_LENGTH, CHUNK_SIZE)
 
@@ -129,12 +132,13 @@ for iteration in range(ITERATIONS):
 
     print(f"Iteration {iteration + 1}/{ITERATIONS}")
 
-# Close serial
+# Close serial port
 arduino.close()
 
 # =======================
-# Save measurements into a single file Measurements in uncompressed .npz format
+# Save Measurements
 # =======================
+# Stored as a single uncompressed .npz file inside Measurements/
 os.makedirs("Measurements", exist_ok=True)
 
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

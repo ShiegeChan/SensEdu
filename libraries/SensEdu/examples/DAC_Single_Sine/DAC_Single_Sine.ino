@@ -1,3 +1,11 @@
+/*
+ * DAC_Single_Sine
+ *
+ * Outputs a single 32 kHz sine period every 100 ms.
+ *
+ * In single wave mode the lookup table is played once per SensEdu_DAC_Enable() call.
+ */
+
 #include <SensEdu.h>
 
 uint32_t lib_error = 0; // Internal library error container
@@ -58,8 +66,8 @@ void loop() {
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Prints the error code in Serial Monitor
+// Checks if the library has raised any internal errors
+// Prints the error code to the Serial Monitor
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {

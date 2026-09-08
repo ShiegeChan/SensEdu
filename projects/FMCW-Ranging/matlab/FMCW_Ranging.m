@@ -1,29 +1,36 @@
-%% FMCW_Ranging.m 
-% adc3 = DAC (to ADC) data
-% adc1 = MIC DATA
+%% FMCW_Ranging.m
+%
+% Host script for FMCW-Ranging.ino. Triggers a measurement with 't', reads the
+% Tx reference (ADC3) and the microphone echo (ADC1), then mixes them and reads
+% the target distance off the beat frequency. Updates a live plot per iteration.
+%
+% The chirp parameters below must match the firmware, otherwise the distance
+% comes out scaled.
+
 clear;
 close all;
 clc;
 
 %% FMCW system parameters
-% Need to be the same as chirp parameters for correct distance computation!
 f_start = 30500;         % Start frequency of transmitted chirp (Hz)
 f_end = 35500;           % End frequency of transmitted chirp (Hz)
 t_chirp = 0.040;         % Duration of one chirp (s)
 c = 343;                 % Speed of sound in air for T=300K (m/s)
+
 %% High-Pass FIR filter for coupling signal between Tx and Rx
 Fstop = 50;              % Stopband Frequency
 Fpass = 300;             % Passband Frequency
 Dstop = 0.01;            % Stopband Attenuation
 Dpass = 0.057501127785;  % Passband Ripple
 dens  = 20;              % Density Factor
+
 %% Settings
 ARDUINO_PORT = 'COM41';
 ARDUINO_BAUDRATE = 115200;
 ITERATIONS = 100;           % Number of real-time ADC measurements
 Fs = 250000;                % ADC Sampling rate
 ACTIVATE_PLOTS = true;      % Toggle plotting on/off
-CHUNK_SIZE = 32;            % Matches the memory chunk size in firmware
+CHUNK_SIZE = 32;            % Must match the firmware
 
 % Connect to Arduino
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE);
@@ -43,26 +50,26 @@ for it = 1:ITERATIONS
     write(arduino, 't', "char");
 
     % Retrieve size header for ADC data
-    adc_byte_length = read_total_length(arduino);     
-    ADC_DATA_LENGTH = adc_byte_length / 2;   
+    adc_byte_length = read_total_length(arduino);
+    ADC_DATA_LENGTH = adc_byte_length / 2;
 
-    % Retrieve DAC to ADC data
+    % Retrieve DAC to ADC data (Tx reference)
     adc3_data = read_data(arduino, ADC_DATA_LENGTH, CHUNK_SIZE);
 
-    % Retrieve Mic ADC data
-    adc1_data = read_data(arduino, ADC_DATA_LENGTH, CHUNK_SIZE); 
-    
+    % Retrieve Mic ADC data (Rx echo)
+    adc1_data = read_data(arduino, ADC_DATA_LENGTH, CHUNK_SIZE);
+
     % High-Pass Filter on adc1 and adc3 Data
     adc3_data_filt = highpass(adc3_data, 30000, Fs);
     adc1_data_filt = highpass(adc1_data, 30000, Fs);
 
     % Frequency mixing (multiply Tx and Rx signals)
     mixed_signal = adc3_data_filt .* adc1_data_filt;
-    
+
     % Low-pass filter to remove high frequency component
     mixed_signal_filt = lowpass(mixed_signal, 5000, Fs);
 
-    % High-Pass FIR filter for coupling signal between Tx and Rx
+    % Attenuate the direct Tx-to-Rx coupling, which is not a real reflection
     [N, Fo, Ao, W] = firpmord([Fstop, Fpass]/(Fs/2), [0 1], [Dstop, Dpass]);
     b  = firpm(N, Fo, Ao, W, {dens});
     HP = dfilt.dffir(b);
@@ -80,10 +87,10 @@ for it = 1:ITERATIONS
     disp(d);
 
     if ACTIVATE_PLOTS == true
-        % Update the distance & beat frequency 
+        % Update the distance & beat frequency
         set(distanceText, 'String', sprintf('Distance = %.0f cm', d*100));
         set(fbeatText, 'String', sprintf('Beat Frequency = %.0f Hz', fbeat));
-        
+
         % Update Mixed Signal plot
         set(mixed_signal_plot, 'YData', mixed_signal);
 
@@ -108,7 +115,7 @@ end
 clear arduino;
 fprintf("ADC acquisition and plotting completed.\n");
 
-%% Supporting Functions
+%% Functions
 
 function data = read_data(arduino, data_length, chunk_size)
     total_byte_length = data_length * 2; % 2 bytes per sample
