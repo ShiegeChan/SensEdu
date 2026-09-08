@@ -10,6 +10,8 @@
 clear all
 clc
 close all
+
+% Holds helpers meant for post-verification
 addpath("plot scripts\", "kf algorithm\");
 
 %% Arduino Measurements
