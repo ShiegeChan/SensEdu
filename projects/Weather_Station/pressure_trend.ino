@@ -58,7 +58,7 @@ bool try_save_pressure_sample(float pressure_hpa) {
     return true;
 }
 
-// Computes the pressure trend in hPa/hour using a least-squares linear regression 
+// Computes the pressure trend in hPa/hour using a least-squares linear regression
 // over all samples whose age is within PRESSURE_TREND_WINDOW_MS.
 //
 // Note #1: slope = (n * Sum(t*p) - Sum(t)*Sum(p)) / (n * Sum(t*t) - Sum(t)^2)

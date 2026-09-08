@@ -1,3 +1,20 @@
+/*
+ * complete_ultrasonic_ranging
+ *
+ * Pulse-echo ultrasonic ranging. Emits a 32 kHz sine burst on the speaker,
+ * records four microphones at 250 kS/s, and cross-correlates each channel
+ * against the transmitted wave to find the echo delay.
+ *
+ * All signal processing runs on the board, so only the resulting distances are
+ * sent to MATLAB. Set IS_TRANSMIT_DETAILED_DATA to also stream the raw,
+ * filtered and cross-correlated waveforms for debugging.
+ *
+ * The speaker couples directly into the microphones, so the first
+ * BAN_DISTANCE cm worth of samples is blanked before peak search.
+ *
+ * A measurement is triggered by the character 't' on serial.
+ */
+
 #include "SensEdu.h"
 #include "CMSIS_DSP.h"
 #include "SineLUT.h"
@@ -147,19 +164,18 @@ void setup() {
 
 void loop() {
 	SenseduBoard* main_obj_ptr = &SenseduBoardObj;
-    // Measurement is initiated by the signal from computing device (matlab script)
     static char serial_buf = 0;
-    
-    // Measurement is initiated by signal from computing device
+
+    // Wait for the trigger character 't' from the host
     while (1) {
-        while (Serial.available() == 0); // Wait for a signal
+        while (Serial.available() == 0);
         serial_buf = Serial.read();
         if (serial_buf == 't') {
             break; 
         }
     }
     
-    // Start dac->adc sequence
+    // Start the DAC -> ADC sequence
     SensEdu_DAC_Enable(dac_channel);
     while (!SensEdu_DAC_GetBurstCompleteFlag(dac_channel)); // wait for dac to finish sending the burst
     SensEdu_DAC_ClearBurstCompleteFlag(dac_channel); 

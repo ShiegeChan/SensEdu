@@ -47,7 +47,7 @@ float calculate_sea_lvl_pressure_hpa(float pressure_pa, float temp, float altitu
 
 // Calculates dew point based on Magnus formula.
 //
-// Pass raw sensor readings. This calculation expects measurements that describe 
+// Pass raw sensor readings. This calculation expects measurements that describe
 // the same physical state of the air.
 //
 // Suggested to use SHT temperature here, not the DPS one since

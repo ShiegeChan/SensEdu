@@ -1,4 +1,10 @@
-// Buffer needs to be initialized because it crashes if you access an array element w/o initialization
+/*
+ * Buffer clearing helpers.
+ *
+ * Processing buffers are reused between channels, so they must be zeroed before
+ * each pass rather than left holding the previous channel's data.
+ */
+
 void clear_float_buf(float array[], uint32_t size_array){
     for (uint32_t i = 0; i < size_array; i++){
         array[i] = 0.0f;

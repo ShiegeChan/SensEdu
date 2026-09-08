@@ -1,3 +1,11 @@
+/*
+ * Signal processing chain for one microphone channel.
+ *
+ * Covers de-interleaving the ADC scan, rescaling to [-1, 1], the 32 kHz
+ * bandpass, cross-correlation against the transmitted wave, and peak-to-distance
+ * conversion.
+ */
+
 /* -------------------------------------------------------------------------- */
 /*                           ADC DATA REARRANGEMENT                           */
 /* -------------------------------------------------------------------------- */

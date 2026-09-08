@@ -1,3 +1,17 @@
+/*
+ * FMCW-Ranging
+ *
+ * Ultrasonic FMCW ranging front-end. Emits a sawtooth chirp on DAC channel 2 and
+ * captures both the transmitted reference (ADC3) and the microphone echo (ADC1)
+ * at 250 kS/s via DMA, then sends both buffers to MATLAB behind a size header.
+ *
+ * Wiring: the DAC output must be jumpered to A8, otherwise ADC3 has no Tx
+ * reference to mix against.
+ *
+ * A measurement is triggered by the character 't' on serial. Mixing, filtering
+ * and the beat-frequency-to-distance math all happen in matlab/FMCW_Ranging.m.
+ */
+
 #include <SensEdu.h>
 
 /* -------------------------------------------------------------------------- */
@@ -52,7 +66,6 @@ SensEdu_ADC_Settings rx_adc_settings = {
 };
 
 // DAC settings
-static uint8_t increment_flag = 1;             // Run time modification flag
 const float fs = 10 * END_FREQUENCY;           // Sampling frequency
 const float samples = fs * CHIRP_DURATION;     // Number of samples
 const uint32_t samples_int = (uint32_t)samples;
@@ -71,7 +84,6 @@ SensEdu_DAC_Settings dac_settings = {
 // Error Handling
 uint8_t error_led = D86;    // Error indicator LED pin
 uint32_t lib_error = 0;     // Tracks library errors
-bool dac_data_sent = false; // To track whether DAC LUT was sent to MATLAB
 
 /* -------------------------------------------------------------------------- */
 /*                                   Setup                                    */
@@ -110,22 +122,21 @@ void setup() {
 void loop() {
     static char serial_buf = 0;
 
-    // Wait for trigger command ('t') from MATLAB
+    // Wait for the trigger character 't' from the host
     while (1) {
         while (Serial.available() == 0);
         serial_buf = Serial.read();
 
-        if (serial_buf == 't') { 
-            // First trigger detected
+        if (serial_buf == 't') {
             break;
         }
     }
-    
+
     // Start ADC Data Acquisition
     SensEdu_ADC_Start(tx_adc);
     SensEdu_ADC_Start(rx_adc);
 
-    // wait for the data and send it
+    // Wait for the data and send it
     while(!SensEdu_ADC_IsDmaTransferComplete(tx_adc));
     SensEdu_ADC_ClearDmaTransferComplete(tx_adc);
 
@@ -143,12 +154,11 @@ void loop() {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                              Functions                                     */
+/*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Doesn't print the error code, since Serial is occupied
-// Turns on the red LED on Arduino board instead
+// Checks if the library has raised any internal errors
+// Serial is busy sending measurements, so the error LED is used instead
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -156,6 +166,7 @@ void check_lib_errors() {
     }
 }
 
+// Sends the buffer over serial in fixed-size chunks
 void serial_send_array(uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
     for (size_t i = 0; i < (data_length << 1); i += chunk_size_byte) {
         size_t transfer_size = ((data_length << 1) - i < chunk_size_byte) ? ((data_length << 1) - i) : chunk_size_byte;

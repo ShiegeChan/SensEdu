@@ -1,3 +1,19 @@
+/*
+ * FSK_TX
+ *
+ * Binary FSK transmitter. Takes a message typed into the Serial Monitor, encodes
+ * it as ultrasonic tone bursts (FREQ0 = '0', FREQ1 = '1') and plays the whole
+ * frame out of DAC channel 1 as a single DMA burst.
+ *
+ * Frame layout: preamble 0xFF00FF00, ASCII payload (MSB first), then a run of
+ * '0' bits that tells the receiver the message has ended.
+ *
+ * Phase carries across bit boundaries, so the waveform stays continuous through
+ * every frequency shift.
+ *
+ * The D86 LED blinks if the board runs into an error.
+ */
+
 #include "SensEdu.h"
 
 /* -------------------------------------------------------------------------- */
@@ -6,6 +22,8 @@
 
 #define TWO_PI  (6.28318530718f)
 
+// Tones sit near the transducer's ~33 kHz resonance and on exact Goertzel bin
+// centers (SAMPLE_RATE / SAMPLES_PER_BIT = 2.4 kHz spacing)
 #define FREQ0   (31200.0f)
 #define FREQ1   (36000.0f)
 
@@ -23,9 +41,7 @@ const uint16_t MAX_MESSAGE_LENGTH = 30;
 // ASCII standard 1 byte per letter
 const uint16_t BIT_PER_CHARACTER = 8;
 
-// Arbitrary chosen number to send ~10-12 cycles per bit
-// 35kHz ~15 samples per cycle
-// 31kHz ~17 samples per cycle
+// Long enough for the transducer to settle on each new tone (~10-12 cycles)
 const uint16_t SAMPLES_PER_BIT = 200;
 const uint16_t SAMPLES_PER_CHARACTER = SAMPLES_PER_BIT * BIT_PER_CHARACTER;
 
@@ -99,6 +115,10 @@ void loop () {
     }
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                  Functions                                 */
+/* -------------------------------------------------------------------------- */
+
 // Transmits the entire constructed message
 void send_message(uint8_t* data, uint8_t num_bytes) {
     construct_buffer(data, num_bytes);
@@ -161,7 +181,7 @@ void construct_bit(bool bit, float* phase, uint16_t* buf_pos) {
     }
 }
 
-// Check library error state
+// Checks if the library has raised any internal errors
 static void check_lib_errors(uint8_t error_led) {
     uint32_t lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -169,7 +189,7 @@ static void check_lib_errors(uint8_t error_led) {
     }
 }
 
-// Halt system on fatal error
+// Halts the system and blinks the error LED
 static void fatal_error(uint8_t error_led) {
     digitalWrite(error_led, !digitalRead(error_led));
     delay(200);

@@ -1,4 +1,7 @@
-// Initialize main structure
+/*
+ * Board state initialization.
+ */
+
 void main_obj_init(SenseduBoard* obj_ptr) {
 	obj_ptr->ban_flag = 1;
 	obj_ptr->serial_read_buf = '0';

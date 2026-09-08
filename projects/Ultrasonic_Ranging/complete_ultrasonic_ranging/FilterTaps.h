@@ -1,6 +1,11 @@
-// bandpass filter taps around 32kHz frequency in order to clean up the signal and 
-// remove audible sound disturbances
-// Bandpass Filter Coefficients (Fs = 244.0 kHz, 30.0-34.0 kHz)
+/*
+ * FIR bandpass taps centred on the 32 kHz transducer frequency.
+ *
+ * Rejects the DC offset, audible-band disturbances and high-frequency noise
+ * before cross-correlation.
+ *
+ * Designed for Fs = 244.0 kHz, passband 30.0-34.0 kHz.
+ */
 
 #define FILTER_TAP_NUM 64
 

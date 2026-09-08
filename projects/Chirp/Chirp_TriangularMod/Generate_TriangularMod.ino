@@ -1,7 +1,17 @@
-const uint32_t x = 5; // sin LUT resolution
-const float Pi = 3.14159; // pi
+/*
+ * Triangular chirp generator.
+ *
+ * Fills the first half of the DAC buffer with a linear up-sweep from
+ * START_FREQUENCY to END_FREQUENCY, then mirrors it into the second half to
+ * form the down-sweep.
+ *
+ * The sweep is evaluated from a quarter-wave sine LUT. Because the up-sweep
+ * only gets half the period, the chirp rate is doubled.
+ */
 
-// Generate the chirp signal
+const uint32_t x = 5; // Quarter-wave LUT resolution (points per degree)
+const float Pi = 3.14159;
+
 void generateTriangularChirp(uint16_t* array) {
 
     float lut_sin[90 * x]; // Quarter-wave LUT for sine values
@@ -19,12 +29,13 @@ void generateTriangularChirp(uint16_t* array) {
         lut_sin[i] = sin(phase_rad-Pi/2); // Store sine value in the LUT
     }
 
-    // Generate the chirp signal
+    // Generate the up-sweep
     for (int i = 0; i < n; i++) {
         phase_rad = 2.0 * Pi * (0.5 * sK * (i - 1) / fs + START_FREQUENCY) * (i - 1) / fs; // Phase angle in radians
         phase_deg = phase_rad * 180.0 / Pi; // Phase angle to degrees
         phase_deg_wrapped = fmod(phase_deg, 360.0); // Wrap phase angle to 0-360 degrees
 
+        // Mirror the quarter wave into the matching quadrant, then scale to 12-bit
         if (phase_deg_wrapped <= 90) {
             vChirp = lut_sin[(int)(phase_deg_wrapped)* x+1] * 2048 + 2048;
         } else if (phase_deg_wrapped <= 180) {
@@ -38,6 +49,7 @@ void generateTriangularChirp(uint16_t* array) {
         array[i] = (uint16_t)vChirp;
     }
 
+    // Mirror the up-sweep to form the down-sweep
     for (int i = n; i < samples_int; i++) {
         array[i] = array[samples_int - i-1];
     }

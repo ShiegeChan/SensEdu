@@ -1,4 +1,7 @@
 function msg = decode_fsk_message(wave, preamble, f, fs, hop, samples_per_bit, enable_plot)
+% Decodes one captured FSK recording into an ASCII message.
+% Returns "" when no preamble is found in the recording.
+
     % Convolution Threshold
     % Chosen experimentally and may be required to change based on your
     % specific test conditions.
@@ -25,18 +28,20 @@ function msg = decode_fsk_message(wave, preamble, f, fs, hop, samples_per_bit, e
     end
     
     if enable_plot == true
-        % 3. Plot best convolution with preamble
+        % 4. Plot best convolution with preamble
         plot_conv(best_energy_diff, preamble, preamble_pos);
-        
-        % 4. Visualize Goertzel decisions with frame markers
+
+        % 5. Visualize Goertzel decisions with frame markers
         plot_goertzel(wave, best_energy_diff, energy_x_labels(best_hop, :), samples_per_bit);
     end
 
-    % 5. Decode bitstream to ASCII message
+    % 6. Decode bitstream to ASCII message
     bits = energy2bits(best_energy_diff);
     msg = decode_bitstream(bits, preamble, preamble_pos);
 end
 
+% Slides a bit-sized Goertzel window over the recording at several start offsets.
+% Positive energy difference means the F1 tone won, negative means F0.
 function [energy_diff, x_labels] = run_goertzel(data, hop, N, k)
     bit_num = floor((length(data) - N)/N);
     hop_num = N/hop;
@@ -59,6 +64,7 @@ function [energy_diff, x_labels] = run_goertzel(data, hop, N, k)
     end
 end
 
+% Correlates the known preamble against every start offset and keeps the best fit
 function [best_hop, best_preamble_pos, best_conv] = analyze_preamble(energy_diff, preamble)
     hop_num = size(energy_diff, 1);
     correlations = zeros(1, hop_num);
@@ -79,6 +85,7 @@ function bitstream = energy2bits(energy)
     bitstream = energy > 0;
 end
 
+% Reads the payload 8 bits at a time until the endline null byte
 function msg = decode_bitstream(bits, preamble, preamble_pos)
 
     % i is the first sample of the payload
