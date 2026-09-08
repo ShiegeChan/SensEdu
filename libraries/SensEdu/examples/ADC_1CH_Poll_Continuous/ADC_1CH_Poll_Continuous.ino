@@ -1,3 +1,13 @@
+/*
+ * ADC_1CH_Poll_Continuous
+ *
+ * Continuously samples a single ADC channel at a fixed 1 kS/s and prints
+ * each conversion together with the number of missed samples.
+ *
+ * Polling is done in software, so slow loop code (e.g. Serial prints) can miss
+ * conversions - these overrun events are counted through the OVR interrupt.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container
@@ -35,7 +45,7 @@ SensEdu_ADC_Settings adc_settings = {
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-    // Stuck in the loop if Serial Monitor is not opened
+    // Waits here until the Serial Monitor is opened
     Serial.begin(115200);
     while (!Serial) {}
 
@@ -55,7 +65,7 @@ void setup() {
 /*                                    Loop                                    */
 /* -------------------------------------------------------------------------- */
 
-// Serial prints take very long time to execute
+// Serial prints take a very long time to execute
 // It makes overrun events much more likely to happen
 // In actual applications avoid prints in your main loop
 void loop() {
@@ -71,8 +81,8 @@ void loop() {
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Prints the error code in Serial Monitor
+// Checks if the library has raised any internal errors
+// Prints the error code to the Serial Monitor
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {

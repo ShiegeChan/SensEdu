@@ -1,5 +1,10 @@
 %% Basic_UltraSound_ReadData.m
-% reads config data and then ADC mics meassurements from Arduino
+%
+% Triggers an ultrasonic measurement with 't', reads the microphone buffer from
+% the Arduino, plots it and saves all iterations into Measurements/.
+%
+% DATA_LENGTH must match the firmware.
+
 clear;
 close all;
 clc;
@@ -10,11 +15,11 @@ ARDUINO_BAUDRATE = 115200;
 ITERATIONS = 100;
 
 ACTIVATE_PLOTS = true;
-CHUNK_SIZE = 32; % number of bytes that are read at once from serial -> 32 is optimal
-DATA_LENGTH = 5142; % make sure to match this number with firmware
+CHUNK_SIZE = 32; % Bytes read at once from serial -> 32 is optimal
+DATA_LENGTH = 5142; % Must match the firmware
 
 %% Arduino Setup
-arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % select port and baudrate
+arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % Select port and baudrate
 
 %% Readings Loop
 data = zeros(1,ITERATIONS);
@@ -22,7 +27,7 @@ time_axis = zeros(1,ITERATIONS);
 
 for it = 1:ITERATIONS
     % Data readings
-    write(arduino, 't', "char"); % trigger arduino measurement
+    write(arduino, 't', "char"); % Trigger arduino measurement
     time_axis(it) = toc;
     tic
     data = read_data(arduino, DATA_LENGTH, CHUNK_SIZE);
@@ -30,10 +35,10 @@ for it = 1:ITERATIONS
     plot_data(data);
 end
 
-% set COM port back free
+% Set COM port back free
 arduino = [];
 
-% save measurements
+% Save measurements
 if ~exist("Measurements", 'dir')
     mkdir("Measurements");
 end
@@ -42,7 +47,7 @@ file_name = strrep(file_name, ' ', '_');
 file_name = strrep(file_name, ':', '-');
 save(file_name, "data", "time_axis");
 
-% calculate average time between measurements
+% Calculate average time between measurements
 buf = time_axis(2) - time_axis(1);
 for i = 2:(length(time_axis) - 1)
     buf = abs(mean([buf, (time_axis(i+1) - time_axis(i))]));
@@ -50,7 +55,7 @@ end
 fprintf("Plots are activated: %s\n", mat2str(ACTIVATE_PLOTS));
 fprintf("average time between measurements: %fsec\n", buf);
 
-%% functions
+%% Functions
 function data = read_data(arduino, data_length, chunk_size)
     total_byte_length = data_length * 2; % 2 bytes per sample
     serial_rx_data = zeros(1, total_byte_length, 'uint8');

@@ -1,4 +1,11 @@
-%% FSK_RX_MATLAB.m
+%% FSK_RX.m
+%
+% Host script for FSK_RX.ino. Arms a recording with 't', reads one full capture
+% window over serial, then decodes the ultrasonic FSK message and prints it.
+% Loops forever, so one run can receive many messages.
+%
+% Every setting below must match both the TX sketch and the RX firmware.
+
 clear;
 close all;
 clc;
@@ -17,8 +24,8 @@ N_tx = 200;
 N = round(N_tx * (Fs/Fs_tx));
 
 % FSK Encoding frequencies
-% Must be the multiples of fs/N!
-% Ensure these frequncies are exactly the same as in FSK_TX sketch
+% Must be multiples of Fs/N so they land on exact Goertzel bin centers
+% Ensure these frequencies are exactly the same as in FSK_TX sketch
 F0 = 13 * Fs / N; % 31200 Hz
 F1 = 15 * Fs / N; % 36000 Hz
 F = [F0, F1];

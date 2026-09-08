@@ -1,3 +1,16 @@
+/*
+ * FSK_RX
+ *
+ * Binary FSK receiver front-end. Records the microphone into a ping-pong DMA
+ * buffer and streams each finished half to MATLAB as raw 16-bit binary.
+ *
+ * Recording is armed by the character 't' on serial and runs for one
+ * MSG_RECORD_WINDOW_SEC window. Demodulation (Goertzel + preamble correlation)
+ * happens on the host, see MATLAB/FSK_RX.m.
+ *
+ * The D86 LED blinks if the board runs into an error.
+ */
+
 #include "SensEdu.h"
 
 /* -------------------------------------------------------------------------- */
@@ -100,13 +113,17 @@ void loop() {
     }
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                  Functions                                 */
+/* -------------------------------------------------------------------------- */
+
 // Ensures buffer size is valid for ping-pong DMA
 static bool is_even(uint16_t size) {
     if (size % 2) return false;
     return true;
 }
 
-// Check library error state
+// Checks if the library has raised any internal errors
 static void check_lib_errors(uint8_t error_led) {
     uint32_t lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -114,7 +131,7 @@ static void check_lib_errors(uint8_t error_led) {
     }
 }
 
-// Halt system on fatal error
+// Halts the system and blinks the error LED
 static void fatal_error(uint8_t error_led) {
     digitalWrite(error_led, !digitalRead(error_led));
     delay(200);

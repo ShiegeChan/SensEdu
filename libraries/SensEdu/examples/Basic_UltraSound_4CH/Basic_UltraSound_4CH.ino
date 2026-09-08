@@ -1,3 +1,13 @@
+/*
+ * Basic_UltraSound_4CH
+ *
+ * Emits a 32 kHz sine burst on the DAC speaker and records four microphones
+ * using ADC1 and ADC2 with DMA.
+ *
+ * Each ADC scans a microphone pair, so its buffer holds interleaved samples.
+ * Triggered by 't' on serial - see the matlab/ and python/ host scripts.
+ */
+
 #include "SensEdu.h"
 #include "SineLUT.h"
 
@@ -31,8 +41,8 @@ SENSEDU_ADC_BUFFER(mic34_data, mic_data_size);
 ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
 const uint8_t mic_num = 2;
-uint8_t mic12_pins[mic_num] = {A5, A4};
-uint8_t mic34_pins[mic_num] = {A1, A6};
+uint8_t mic12_pins[mic_num] = {A0, A1};
+uint8_t mic34_pins[mic_num] = {A2, A3};
 
 SensEdu_ADC_Settings adc1_settings = {
     .adc = adc1,
@@ -88,7 +98,7 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 
 void loop() {
-    // Wait for trigger character 't' from computing device
+    // Wait for the trigger character 't' from the host
     char c;
     while (true) {
         if (Serial.available() > 0) {
@@ -100,7 +110,7 @@ void loop() {
         delay(1);
     }
 
-    // Start dac->adc sequence
+    // Start the DAC -> ADC sequence
     SensEdu_DAC_Enable(dac_ch);
     while (!SensEdu_DAC_GetBurstCompleteFlag(dac_ch));
     SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
@@ -124,9 +134,8 @@ void loop() {
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Doesn't print the error code, since Serial is occupied
-// Turns on the red LED on Arduino board instead
+// Checks if the library has raised any internal errors
+// Serial is busy sending measurements, so the error LED is used instead
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -134,6 +143,7 @@ void check_lib_errors() {
     }
 }
 
+// Sends the buffer over serial in fixed-size chunks
 void serial_send_array(uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
     for (size_t i = 0; i < (data_length << 1); i += chunk_size_byte) {
         size_t transfer_size = ((data_length << 1) - i < chunk_size_byte) ? ((data_length << 1) - i) : chunk_size_byte;

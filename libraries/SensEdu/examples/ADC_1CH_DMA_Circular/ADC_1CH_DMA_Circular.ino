@@ -1,3 +1,15 @@
+/*
+ * ADC_1CH_DMA_Circular
+ *
+ * Streams one ADC channel at 44.1 kS/s over USB serial without gaps,
+ * using circular DMA with a double-buffered half/full transfer.
+ *
+ * Data is sent as raw 16-bit binary - use the MATLAB script in matlab/
+ * to receive and plot it.
+ *
+ * The D86 LED blinks if the board runs into an error.
+ */
+
 #include "SensEdu.h"
 
 /* -------------------------------------------------------------------------- */
@@ -72,13 +84,18 @@ void loop() {
     }
 }
 
+/* -------------------------------------------------------------------------- */
+/*                                  Functions                                 */
+/* -------------------------------------------------------------------------- */
+
 // Transfers selected buffer in one write
 static void transfer_buf(volatile uint16_t* data, uint16_t data_length) {
     uint8_t* ptr = (uint8_t*)data;
     Serial.write(ptr, data_length * sizeof(uint16_t));
 }
 
-// Checks library error state
+// Checks if the library has raised any internal errors
+// Serial is busy streaming, so the error LED is used instead
 static void check_lib_errors(uint8_t error_led) {
     uint32_t lib_error = SensEdu_GetError();
     while (lib_error != 0) {
@@ -86,7 +103,7 @@ static void check_lib_errors(uint8_t error_led) {
     }
 }
 
-// Halts system on fatal error
+// Halts the system and blinks the error LED
 static void fatal_error(uint8_t error_led) {
     digitalWrite(error_led, !digitalRead(error_led));
     delay(200);

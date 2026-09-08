@@ -1,4 +1,10 @@
-% Reads config data and ADC measurements from Arduino
+%% ADCx3_Different_SR.m
+%
+% Triggers the Arduino with 't' and reads one buffer from each of the three
+% ADCs, then plots them to compare samples per cycle at different sampling rates.
+%
+% DATA_LENGTH and the sampling rates must match the firmware.
+
 clear;
 close all;
 clc;
@@ -10,7 +16,7 @@ ITERATIONS = 10000;
 
 ACTIVATE_PLOTS = true;
 
-DATA_LENGTH = 16 * 128; % Ensure this matches with firmware
+DATA_LENGTH = 16 * 128; % Must match the firmware
 SINE_WAVE_FREQ = 1000; % Frequency of the input sine wave in Hz
 
 % Sampling rates for ADCs
@@ -43,10 +49,8 @@ end
 % Release the serial port
 arduino = [];
 
-%% Function to Read ADC Data
+%% Functions
 function data_adc = read_data(arduino, data_length, adc_name)
-    % Function to read `data_length` samples for a specific ADC from Arduino
-
     fprintf("Waiting for %s data...\n", adc_name);
 
     % Total data size in bytes (assuming uint16 = 2 bytes)
@@ -73,7 +77,7 @@ function data_adc = read_data(arduino, data_length, adc_name)
     end
 end
 
-%% Function to Plot ADC Data with Samples per Cycle
+% Plots each ADC on its own time axis and reports samples per sine cycle
 function plot_adc_with_samples_per_cycle(data_adc1, data_adc2, data_adc3, ...
         sr_adc1, sr_adc2, sr_adc3, sine_wave_freq)
     % Calculate the number of samples per cycle for each ADC

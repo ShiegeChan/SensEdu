@@ -1,3 +1,15 @@
+/*
+ * Chirp_SawtoothMod
+ *
+ * Generates a sawtooth-modulated FMCW chirp and plays it continuously
+ * on DAC channel 2.
+ *
+ * The waveform is built into a LUT at boot by generateSawtoothChirp() and then
+ * dumped to the Serial Monitor.
+ *
+ * Note: fs must stay above 2 * END_FREQUENCY (Nyquist) for a valid sweep.
+ */
+
 #include <SensEdu.h>
 
 /* -------------------------------------------------------------------------- */
@@ -11,8 +23,8 @@
 /* -------------------------------------------------------------------------- */
 /*                              Global Variables                              */
 /* -------------------------------------------------------------------------- */
+
 static uint32_t lib_error = 0;
-static uint8_t increment_flag = 1; // Run time modification flag
 const float fs =  20 * END_FREQUENCY; // Sampling frequency
 const float samples = fs * CHIRP_DURATION; // Number of samples
 const uint32_t samples_int = (uint32_t)samples;
@@ -50,7 +62,7 @@ void setup() {
 
     // Print the chirp signal LUT
     Serial.println("start of the Chirp LUT");
-    for (int i = 0 ; i < samples_int; i++) { // loop for the LUT size
+    for (int i = 0 ; i < samples_int; i++) {
         Serial.print("value ");
         Serial.print(i+1);
         Serial.print(" of the Chirp LUT: ");

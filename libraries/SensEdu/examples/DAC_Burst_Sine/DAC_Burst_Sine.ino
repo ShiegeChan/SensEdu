@@ -1,3 +1,11 @@
+/*
+ * DAC_Burst_Sine
+ *
+ * Outputs a burst of 10 sine periods (32 kHz) every 100 ms.
+ *
+ * In burst mode the lookup table is repeated burst_num times per SensEdu_DAC_Enable() call.
+ */
+
 #include <SensEdu.h>
 
 uint32_t lib_error = 0;
@@ -61,8 +69,8 @@ void loop() {
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
 
-// Checks if the library has risen any internal errors
-// Prints the error code in Serial Monitor
+// Checks if the library has raised any internal errors
+// Prints the error code to the Serial Monitor
 void check_lib_errors() {
     lib_error = SensEdu_GetError();
     while (lib_error != 0) {
