@@ -46,7 +46,6 @@ uint8_t error_led = D86;
 /* --------------------------------- Filter --------------------------------- */
 
 #define FILTER_BLOCK_LENGTH     32      // Samples processed per call to the FIR process function
-//#define FILTER_TAP_NUM          32      // Tap number for the bandpass filter
 
 static float32_t firStateBuffer[FILTER_BLOCK_LENGTH + FILTER_TAP_NUM - 1]; // Current filter state buffer
 arm_fir_instance_f32 Fir_filt;

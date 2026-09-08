@@ -123,32 +123,30 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
     // Then, we add a moving average to smooth the envelope and especially to remove flat parts:
     static uint32_t smoothed_buf[STORE_BUF_SIZE];
 
-    if (smoothed_buf != NULL) {
-        window_size = 50;
-        half_window = window_size / 2;
-        double runningSum = 0.0;
-        int count = 0;
+    window_size = 50;
+    half_window = window_size / 2;
+    double runningSum = 0.0;
+    int count = 0;
 
-        for (size_t j = 0; j <= half_window && j < echo_length; j++) {
-            runningSum += enveloped_signal[j];
+    for (size_t j = 0; j <= half_window && j < echo_length; j++) {
+        runningSum += enveloped_signal[j];
+        count++;
+    }
+    for (size_t i = 0; i < echo_length; i++) {
+        smoothed_buf[i] = (uint32_t)(runningSum / count);
+
+        int nextToEnter = i + half_window + 1;
+        if (nextToEnter < echo_length) {
+            runningSum += enveloped_signal[nextToEnter];
             count++;
         }
-        for (size_t i = 0; i < echo_length; i++) {
-            smoothed_buf[i] = (uint32_t)(runningSum / count);
-
-            int nextToEnter = i + half_window + 1;
-            if (nextToEnter < echo_length) {
-                runningSum += enveloped_signal[nextToEnter];
-                count++;
-            }
-            int nextToLeave = i - half_window;
-            if (nextToLeave >= 0) {
-                runningSum -= enveloped_signal[nextToLeave];
-                count--;
-            }
+        int nextToLeave = i - half_window;
+        if (nextToLeave >= 0) {
+            runningSum -= enveloped_signal[nextToLeave];
+            count--;
         }
-        memcpy(enveloped_signal, smoothed_buf, echo_length * sizeof(uint32_t));
     }
+    memcpy(enveloped_signal, smoothed_buf, echo_length * sizeof(uint32_t));
 
     // For the peak search on the envelope, we also consider a threshold relative to the max peak height.
     // We'll only consider peaks which are X% of the maximum, e.g., 70%
@@ -159,31 +157,37 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
         }
     }
     uint32_t threshold = (max_val * 7) / 10;
+
+    // No peak for a slot -> report 0 so the host can discard it
+    for (uint8_t p = 0; p < MAX_PEAKS; p++) {
+        dist_um[p] = 0;
+    }
+
     static Peak temp_peaks[(STORE_BUF_SIZE / 2)];
+    int peak_count = 0;
 
-    if (temp_peaks != NULL && max_val > 0) {
-        int peakCount = 0;
-
+    if (max_val > 0) {
         for (size_t i = 1; i < echo_length - 1; i++) {
             uint32_t current = enveloped_signal[i];
 
             if (current >= threshold) {
                 if (current > enveloped_signal[i - 1] && current >= enveloped_signal[i + 1]) {
-                    temp_peaks[peakCount].value = current;
-                    temp_peaks[peakCount].location = i;
-                    peakCount++;
+                    temp_peaks[peak_count].value = current;
+                    temp_peaks[peak_count].location = i;
+                    peak_count++;
                 }
             }
         }
 
-        if (peakCount > 0) {
-            qsort(temp_peaks, peakCount, sizeof(Peak), compare_peaks);
+        if (peak_count > 0) {
+            qsort(temp_peaks, peak_count, sizeof(Peak), compare_peaks);
         }
 
     }
 
-    for (int p = 0; p < MAX_PEAKS; p++) {
-        dist_um[p] = (float)temp_peaks[p].location * HALF_AIR_SPEED_UM_S / sampling_rate;
+    uint8_t report_num = (peak_count < MAX_PEAKS) ? peak_count : MAX_PEAKS;
+    for (uint8_t p = 0; p < report_num; p++) {
+        dist_um[p] = (uint32_t)((float)temp_peaks[p].location * HALF_AIR_SPEED_UM_S / sampling_rate);
     }
 
 }

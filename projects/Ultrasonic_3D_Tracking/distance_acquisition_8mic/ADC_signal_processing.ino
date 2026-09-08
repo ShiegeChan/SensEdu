@@ -123,32 +123,30 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
     // Then, we add a moving average to smooth the envelope and especially to remove flat parts:
     static uint32_t smoothed_buf[STORE_BUF_SIZE];
 
-    if (smoothed_buf != NULL) {
-        window_size = 50;
-        half_window = window_size / 2;
-        double runningSum = 0.0;
-        int count = 0;
+    window_size = 50;
+    half_window = window_size / 2;
+    double runningSum = 0.0;
+    int count = 0;
 
-        for (size_t j = 0; j <= half_window && j < echo_length; j++) {
-            runningSum += enveloped_signal[j];
+    for (size_t j = 0; j <= half_window && j < echo_length; j++) {
+        runningSum += enveloped_signal[j];
+        count++;
+    }
+    for (size_t i = 0; i < echo_length; i++) {
+        smoothed_buf[i] = (uint32_t)(runningSum / count);
+
+        int nextToEnter = i + half_window + 1;
+        if (nextToEnter < echo_length) {
+            runningSum += enveloped_signal[nextToEnter];
             count++;
         }
-        for (size_t i = 0; i < echo_length; i++) {
-            smoothed_buf[i] = (uint32_t)(runningSum / count);
-
-            int nextToEnter = i + half_window + 1;
-            if (nextToEnter < echo_length) {
-                runningSum += enveloped_signal[nextToEnter];
-                count++;
-            }
-            int nextToLeave = i - half_window;
-            if (nextToLeave >= 0) {
-                runningSum -= enveloped_signal[nextToLeave];
-                count--;
-            }
+        int nextToLeave = i - half_window;
+        if (nextToLeave >= 0) {
+            runningSum -= enveloped_signal[nextToLeave];
+            count--;
         }
-        memcpy(enveloped_signal, smoothed_buf, echo_length * sizeof(uint32_t));
     }
+    memcpy(enveloped_signal, smoothed_buf, echo_length * sizeof(uint32_t));
 
     // For the peak search on the envelope, we also consider a threshold relative to the max peak height.
     // We'll only consider peaks which are X% of the maximum, e.g., 70%

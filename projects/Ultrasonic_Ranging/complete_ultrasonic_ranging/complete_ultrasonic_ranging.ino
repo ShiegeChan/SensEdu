@@ -46,13 +46,11 @@ uint8_t error_led = D86;
 
 /* --------------------------------- Filter --------------------------------- */
 #define FILTER_BLOCK_LENGTH     32      // Samples processed per call to the FIR process function
-//#define FILTER_TAP_NUM          32      // Tap number for the bandpass filter
 
 static float32_t firStateBuffer[FILTER_BLOCK_LENGTH + FILTER_TAP_NUM - 1]; // Current filter state buffer
 arm_fir_instance_f32 Fir_filt;
 
 /* ----------------------------------- ADC ---------------------------------- */
-
 const uint16_t mic_data_size = STORE_BUF_SIZE * 2;
 SENSEDU_ADC_BUFFER(mic12_data, mic_data_size);
 SENSEDU_ADC_BUFFER(mic34_data, mic_data_size);
