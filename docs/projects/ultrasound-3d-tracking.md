@@ -1,9 +1,9 @@
 ---
-title: Ultrasound 3D Tracking
+title: Ultrasonic 3D Tracking
 layout: default
 parent: Projects
 math: mathjax
-nav_order: 10
+nav_order: 2
 ---
 
 
@@ -15,7 +15,7 @@ nav_order: 10
 {:toc}
 
 ## Introduction
-In the [Ultrasonic Ranging]({% link projects/pulse-echo-ranging.md %}#pulse-echo-ranging) project, we showed how to obtain range, i.e., distance estimates from ultrasound measurements. In many applications, though, it is desirable to track the 3D coordinates of the measured target, either cartesian or spherical, which poses several challenges. Other sensing technologies, such as Radars and GPS, use antenna arrays, beamforming, trilateration and time-synchronization for this purpose. However, because of the limitations due to the ultrasound wavelength and the mounting of speakers and microphones, many algorithms cannot be applied to the measurements obtained with the SensEdu platform, as they lead to large tracking errors. In order to overcome these issues, an extended version of the SensEdu PCB as been developed, featuring 8 microphones placed further apart with respect to the standard PCB version. In this project, we show the implementation of a live 3D tracking framework using this board, different signal processing techniques and an [Extended Kalman Filter (EKF)](https://en.wikipedia.org/wiki/Extended_Kalman_filter)
+In the [Ultrasonic Ranging]({% link projects/pulse-echo-ranging.md %}) project, we showed how to obtain range, i.e., distance estimates from ultrasound measurements. In many applications, though, it is desirable to track the 3D coordinates of the measured target, either cartesian or spherical, which poses several challenges. Other sensing technologies, such as Radars and GPS, use antenna arrays, beamforming, trilateration and time-synchronization for this purpose. However, because of the limitations due to the ultrasound wavelength and the mounting of speakers and microphones, many algorithms cannot be applied to the measurements obtained with the SensEdu platform, as they lead to large tracking errors. In order to overcome these issues, an extended version of the SensEdu PCB has been developed, featuring 8 microphones placed further apart with respect to the standard PCB version. In this project, we show the implementation of a live 3D tracking framework using this board, different signal processing techniques and an [Extended Kalman Filter (EKF)](https://en.wikipedia.org/wiki/Extended_Kalman_filter)
 
 
 ## The Extended SensEdu 
@@ -31,7 +31,7 @@ This PCB has been designed extending a **previous** version of the main SensEdu 
  
 
 ## Signal Processing and EKF
-The data acquisition process shares the initial parts with the [Ultrasonic Ranging]({% link projects/pulse-echo-ranging.md %}#pulse-echo-ranging) project, namely the transmission of a sine-burst wave through the DAC, the reception, rescaling and filtering of the 16-bit audio signals from the ADCs, the cross-correlation and the robust peak search algorithm to obtain the distance of the target with each microphone. We will use these distances later in the measurement update step of the EKF.
+The data acquisition process shares the initial parts with the [Ultrasonic Ranging]({% link projects/pulse-echo-ranging.md %}) project, namely the transmission of a sine-burst wave through the DAC, the reception, rescaling and filtering of the 16-bit audio signals from the ADCs, the cross-correlation and the robust peak search algorithm to obtain the distance of the target with each microphone. We will use these distances later in the measurement update step of the EKF.
 The filter is needed to process the computation of cartesian coordinates from distance estimates. The cartesian coordinates represent the **position** of the object in the 3D space and, together with its **velocity**, form the target's **state**. When talking about target tracking, we want to estimate its state live at each time step, so that we can predict where it will move next, and correct our prediction based on the new measurements we receive.
 
 ### State Propagation (Prediction)
@@ -119,7 +119,7 @@ where $$\boldsymbol{\hat{S}}$$ is the six-elements state vector with position an
 
 
 ## Showcase
-This section shows two example results obtained with the 3D tracking algorithm for a "squared" and a "spiral" trajectory. Actual performances depend on the selected number of samples, sampling frequency, number of MAX_PEAKS, as well as on the particular shape/material of the target and its motion. 
+This section shows two example results obtained with the 3D tracking algorithm for a "squared" and a "spiral" trajectory. Actual performances depend on the selected number of samples, sampling frequency, number of peaks per microphone (`MAX_PEAKS`), as well as on the particular shape/material of the target and its motion. 
 <img src="{{site.baseurl}}/assets/images/square_traj.png" alt="drawing" width="357"/> 
 <img src="{{site.baseurl}}/assets/images/spiral_traj.png" alt="drawing" width="357"/> 
 

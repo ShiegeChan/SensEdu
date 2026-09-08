@@ -1,4 +1,7 @@
 function plot_measurements(dist_matrix)
+% Scatter-plots the distance track of each of the 8 microphones.
+%
+% mic_name maps serial order to physical microphone number, they differ.
 mic_name = {"MIC 1", "MIC 2","MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
 figure
 for i = 1:8

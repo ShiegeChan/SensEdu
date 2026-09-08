@@ -74,7 +74,7 @@ void remove_coupling(float* adc_wave, const uint16_t banned_sample_num) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*                             PEAK PROCESSING                            */
+/*                               PEAK PROCESSING                              */
 /* -------------------------------------------------------------------------- */
 
 // Comparison function for sorting peaks in descending order
@@ -151,7 +151,7 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
     }
 
     // For the peak search on the envelope, we also consider a threshold relative to the max peak height.
-    // We ll olny consider peaks which are X% of the maximum, e.g., 70% 
+    // We'll only consider peaks which are X% of the maximum, e.g., 70%
     uint32_t max_val = 0;
     for (size_t i = 0; i < echo_length; i++) {
         if (enveloped_signal[i] > max_val) {

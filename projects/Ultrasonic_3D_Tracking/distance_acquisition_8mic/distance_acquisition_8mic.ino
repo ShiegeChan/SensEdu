@@ -45,11 +45,11 @@ uint8_t error_led = D86;
 
 /* --------------------------------- Filter --------------------------------- */
 
-#define FILTER_BLOCK_LENGTH     32      // How many samples we want to process every time we call the fir process function AT
+#define FILTER_BLOCK_LENGTH     32      // Samples processed per call to the FIR process function
 #define FILTER_TAP_NUM          32      // Tap number for the bandpass filter
 
 static float32_t firStateBuffer[FILTER_BLOCK_LENGTH + FILTER_TAP_NUM - 1]; // Current filter state buffer
-arm_fir_instance_f32 Fir_filt; // Creating an object instance
+arm_fir_instance_f32 Fir_filt;
 
 /* ----------------------------------- ADC ---------------------------------- */
 
@@ -132,7 +132,7 @@ SensEdu_DAC_Settings dac_settings = {
 /*                                  Constants                                 */
 /* -------------------------------------------------------------------------- */
 
-const uint16_t air_speed = 343; // m/s
+const uint16_t air_speed = AIR_SPEED; // m/s
 
 // e.g. 25cm ban means 0.25*2/343 time ban, then multiply by sample rate
 const uint32_t c_banned_sample_num = ((BAN_DISTANCE*2*SAMPLING_RATE)/air_speed)/100; 
@@ -221,45 +221,43 @@ void loop() {
     while (!SensEdu_ADC_IsDmaTransferComplete(adc3));
     SensEdu_ADC_ClearDmaTransferComplete(adc3);
 
-    // Calculating distance for each microphone
-    static uint32_t distance[adc1_mic_num + adc2_mic_num];
-    uint32_t test_3_dist[3];
-    static std::vector<uint32_t> test_dist;
-    test_dist.reserve((adc1_mic_num + adc2_mic_num + adc3_mic_num)*MAX_PEAKS);
+    // Calculating distances for each microphone
+    uint32_t peaks[MAX_PEAKS]; // Strongest MAX_PEAKS reflections per channel
+    static std::vector<uint32_t> distances;
+    distances.reserve((adc1_mic_num + adc2_mic_num + adc3_mic_num)*MAX_PEAKS);
 
     for (uint8_t i = 0; i < adc1_mic_num; i++) {
         get_channel_data(mic123_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc1_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
-        // distance[i] = calculate_distance(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE);
-        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, peaks);
         for (uint8_t k = 0; k < MAX_PEAKS; k++) {
-            test_dist.push_back(test_3_dist[k]);
+            distances.push_back(peaks[k]);
         }
     }
     for (uint8_t i = 0; i < adc2_mic_num; i++) {
         get_channel_data(mic48_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc2_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
-        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, peaks);
         for (uint8_t k = 0; k < MAX_PEAKS; k++) {
-            test_dist.push_back(test_3_dist[k]);
+            distances.push_back(peaks[k]);
         }
     }
     for (uint8_t i = 0; i < adc3_mic_num; i++) {
         get_channel_data(mic567_data, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, adc3_mic_num, i);
         process_data(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, main_obj_ptr->channel_buffer, STORE_BUF_SIZE, main_obj_ptr->ban_flag);
-        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, test_3_dist);
+        calculate_distances(main_obj_ptr->processing_buffer, STORE_BUF_SIZE, SAMPLING_RATE, peaks);
         for (uint8_t k = 0; k < MAX_PEAKS; k++) {
-            test_dist.push_back(test_3_dist[k]);
+            distances.push_back(peaks[k]);
         }
     }
 
     // Sending the distance measurements
     for (uint8_t i = 0; i < (adc1_mic_num + adc2_mic_num + adc3_mic_num)*MAX_PEAKS; i++) {
-        Serial.write((const uint8_t *) &test_dist[i], 4);
+        Serial.write((const uint8_t *) &distances[i], 4);
     }
 
     check_lib_errors();
-    test_dist.clear();
+    distances.clear();
 }
 
 void process_data(float* buf, const uint16_t buf_size, uint16_t* ch_array, const uint16_t ch_array_size, uint8_t ban_flag) {

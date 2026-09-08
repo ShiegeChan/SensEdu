@@ -45,11 +45,11 @@ uint8_t error_led = D86;
 #define STORE_BUF_SIZE              2048    // 2400 for 1 measurement per second. 
 
 /* --------------------------------- Filter --------------------------------- */
-#define FILTER_BLOCK_LENGTH     32      // How many samples we want to process every time we call the fir process function AT
+#define FILTER_BLOCK_LENGTH     32      // Samples processed per call to the FIR process function
 #define FILTER_TAP_NUM          32      // Tap number for the bandpass filter
 
 static float32_t firStateBuffer[FILTER_BLOCK_LENGTH + FILTER_TAP_NUM - 1]; // Current filter state buffer
-arm_fir_instance_f32 Fir_filt; // Creating an object instance
+arm_fir_instance_f32 Fir_filt;
 
 /* ----------------------------------- ADC ---------------------------------- */
 
@@ -57,7 +57,7 @@ const uint16_t mic_data_size = STORE_BUF_SIZE * 2;
 SENSEDU_ADC_BUFFER(mic12_data, mic_data_size);
 SENSEDU_ADC_BUFFER(mic34_data, mic_data_size);
 
-// SMALL BOARD
+// Standard 4-microphone SensEdu board
 ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
 const uint8_t adc1_mic_num = 2;
@@ -110,7 +110,7 @@ SensEdu_DAC_Settings dac_settings = {
 /*                                  Constants                                 */
 /* -------------------------------------------------------------------------- */
 
-const uint16_t air_speed = 343; // m/s
+const uint16_t air_speed = AIR_SPEED; // m/s
 
 // e.g. 25cm ban means 0.25*2/343 time ban, then multiply by sample rate
 const uint32_t c_banned_sample_num = ((BAN_DISTANCE*2*SAMPLING_RATE)/air_speed)/100; 
@@ -177,7 +177,7 @@ void loop() {
     
     // Start the DAC -> ADC sequence
     SensEdu_DAC_Enable(dac_channel);
-    while (!SensEdu_DAC_GetBurstCompleteFlag(dac_channel)); // wait for dac to finish sending the burst
+    while (!SensEdu_DAC_GetBurstCompleteFlag(dac_channel)); // Wait for dac to finish sending the burst
     SensEdu_DAC_ClearBurstCompleteFlag(dac_channel); 
     
     // Start ADCs
@@ -193,7 +193,7 @@ void loop() {
     SensEdu_ADC_ClearDmaTransferComplete(adc2);
 
     // Calculating distances for each microphone
-    uint32_t peaks[MAX_PEAKS]; // we now keep a selected amount of peaks
+    uint32_t peaks[MAX_PEAKS]; // Strongest MAX_PEAKS reflections per channel
     static std::vector<uint32_t> distances;
     distances.reserve((adc1_mic_num + adc2_mic_num)*MAX_PEAKS);
 

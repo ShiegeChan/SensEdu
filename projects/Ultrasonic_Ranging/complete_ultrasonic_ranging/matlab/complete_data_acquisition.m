@@ -33,7 +33,7 @@ dist_matrix = zeros(MIC_NUM*MAX_PEAKS, ITERATIONS); % distance matrix
 processing_matrix = zeros(ITERATIONS, MIC_NUM, PROCESSING_STEPS, DATA_LENGTH); % all processing steps data
 processing_matrix_size = size(processing_matrix);
 time_axis = zeros(1, ITERATIONS); %  time array
-y_vec = zeros(4,ITERATIONS);
+y_vec = zeros(MIC_NUM, ITERATIONS); % measurements actually fed to the tracker
 %% Prepare Figure
 if ENABLE_LIVE_PLOTS == true
     figure("Position",[250, 250, 1500, 1000]);
@@ -131,15 +131,14 @@ end
 t_save = datetime('now');
 filename = fullfile(save_dir, sprintf('tracking_%dpeaks_%dsize_%02d%02d_%02d%02d%02d.mat', ...
     MAX_PEAKS, DATA_LENGTH, t_save.Month, t_save.Day, t_save.Hour, t_save.Minute, floor(t_save.Second)));
+
+% Close the serial connection before saving
+arduino = [];
+
 save(filename);
 fprintf('Workspace saved to %s\n', filename);
 
-%%
-
 fprintf("Data acquisition completed in: %fsec\n", acquisition_time);
-
-% close serial connection
-arduino = [];
 
 % %% Plotting distances 1
 % mpt_plot_measurements(dist_matrix, MAX_PEAKS);

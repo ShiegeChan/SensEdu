@@ -1,5 +1,5 @@
 function plot_error_matrix(err_vec, n)
-
+% Plots the EKF residual (measured minus predicted distance) for n microphones.
 
 mic_name = {"MIC 1", "MIC 2","MIC 3", "MIC 4", "MIC 8", "MIC 6", "MIC 5", "MIC 7"};
 figure

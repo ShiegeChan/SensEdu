@@ -1,6 +1,6 @@
-% taken from deepseek
-% Save all open figures
-
+% Exports every open figure to a vector PDF named after plot_name.
+%
+% Generated with the help of an LLM.
 function save_plot(plot_name)
 figHandles = findobj('Type', 'figure'); % Get handles to all open figures
 for i = 1:length(figHandles)

@@ -1,11 +1,9 @@
 function dataArray = csv_redout(filePath)
-    %read_csv_data Convert exported Audio Precision CSV data to convenient for plotting format
-    %inputs:
-    %   file_path - csv file location
-    %outputs:
-    %   sets(measurement_set, sample, axis) - numerical data
-    %   titles(measurement_set) - name of the measurement set
-    %   labels(measurement_set, axis) - units of X and Y in this measurement set
+    % Reads an exported OptiTrack CSV into a numeric array for plotting
+    % inputs:
+    %   filePath - csv file location
+    % outputs:
+    %   dataArray(sample, column) - numerical data
     
     % T = readcell(file_path);
     % 

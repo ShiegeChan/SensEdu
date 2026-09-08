@@ -1,3 +1,11 @@
+%% FMCW_Simulation.m
+%
+% Offline sanity check of the FMCW processing chain with no hardware attached.
+% Synthesises a chirp, delays it by the round-trip time of a known distance,
+% then mixes and reads the distance back off the beat frequency.
+%
+% Useful for validating the chain before trusting a real measurement.
+
 % Parameters for the transmitted chirp (Tx)
 f1_start = 30000;         % Start frequency of transmitted chirp (Hz)
 f1_end = 35000;           % End frequency of transmitted chirp (Hz)
