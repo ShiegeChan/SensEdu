@@ -302,7 +302,7 @@
 		(uuid "959a3b6b-6f0a-4181-8aae-1e49b290cd49")
 	)
 	(embedded_fonts no)
-	(model "C:\\Users\\ober\\Nextcloud\\Tech\\PCB Libraries\\SamacSys_Parts.3dshapes\\SHT40-AD1F-R2.stp"
+	(model "${KIPRJMOD}/libraries/3D/SHT40-AD1F-R2.STEP"
 		(offset
 			(xyz 0 0 0)
 		)
@@ -310,7 +310,7 @@
 			(xyz 1 1 1)
 		)
 		(rotate
-			(xyz 0 0 0)
+			(xyz -90 -0 -0)
 		)
 	)
 )

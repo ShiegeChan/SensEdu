@@ -145,16 +145,6 @@
 	)
 	(attr smd)
 	(fp_line
-		(start -1.4 -0.5)
-		(end -1.4 -0.5)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.SilkS")
-		(uuid "bcf59007-5778-47e0-b71c-304bd4f7bf6a")
-	)
-	(fp_line
 		(start -1.5 -0.5)
 		(end -1.5 -0.5)
 		(stroke
@@ -164,16 +154,15 @@
 		(layer "F.SilkS")
 		(uuid "d54ba4bf-ecd4-40af-be96-30803958d0f6")
 	)
-	(fp_arc
+	(fp_line
 		(start -1.4 -0.5)
-		(mid -1.45 -0.45)
-		(end -1.5 -0.5)
+		(end -1.4 -0.5)
 		(stroke
 			(width 0.1)
 			(type solid)
 		)
 		(layer "F.SilkS")
-		(uuid "8464427c-3e7c-46c2-b331-1b4db7bdd4b6")
+		(uuid "bcf59007-5778-47e0-b71c-304bd4f7bf6a")
 	)
 	(fp_arc
 		(start -1.5 -0.5)
@@ -186,35 +175,16 @@
 		(layer "F.SilkS")
 		(uuid "5bcad8db-5222-47de-a754-352b7258edf2")
 	)
-	(fp_line
-		(start 2 2)
-		(end -2 2)
+	(fp_arc
+		(start -1.4 -0.5)
+		(mid -1.45 -0.45)
+		(end -1.5 -0.5)
 		(stroke
 			(width 0.1)
 			(type solid)
 		)
-		(layer "F.CrtYd")
-		(uuid "63cf6be4-f6ee-4425-a49f-32dd699aecad")
-	)
-	(fp_line
-		(start 2 -2)
-		(end 2 2)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.CrtYd")
-		(uuid "c30fb82f-f022-4b37-88e0-bcf7baf7c0d5")
-	)
-	(fp_line
-		(start -2 2)
-		(end -2 -2)
-		(stroke
-			(width 0.1)
-			(type solid)
-		)
-		(layer "F.CrtYd")
-		(uuid "924ea447-cb95-419a-bf72-4e8319dee01d")
+		(layer "F.SilkS")
+		(uuid "8464427c-3e7c-46c2-b331-1b4db7bdd4b6")
 	)
 	(fp_line
 		(start -2 -2)
@@ -227,24 +197,44 @@
 		(uuid "6af86c54-ec3c-4cd2-82f2-e555a0e24216")
 	)
 	(fp_line
-		(start 0.75 0.75)
-		(end -0.75 0.75)
+		(start -2 2)
+		(end -2 -2)
 		(stroke
 			(width 0.1)
 			(type solid)
 		)
-		(layer "F.Fab")
-		(uuid "9e517b01-e5fa-4f06-b4f2-4431cacb3ee0")
+		(layer "F.CrtYd")
+		(uuid "924ea447-cb95-419a-bf72-4e8319dee01d")
 	)
 	(fp_line
-		(start 0.75 -0.75)
-		(end 0.75 0.75)
+		(start 2 -2)
+		(end 2 2)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "c30fb82f-f022-4b37-88e0-bcf7baf7c0d5")
+	)
+	(fp_line
+		(start 2 2)
+		(end -2 2)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.CrtYd")
+		(uuid "63cf6be4-f6ee-4425-a49f-32dd699aecad")
+	)
+	(fp_line
+		(start -0.75 -0.75)
+		(end 0.75 -0.75)
 		(stroke
 			(width 0.1)
 			(type solid)
 		)
 		(layer "F.Fab")
-		(uuid "34eaa09c-abe0-488c-817f-c49ec2826209")
+		(uuid "7ede104d-3b6e-44e1-a910-e319379730f7")
 	)
 	(fp_line
 		(start -0.75 0.75)
@@ -257,14 +247,24 @@
 		(uuid "c03a3d2a-eaf2-47c5-a90a-3414784c7cbb")
 	)
 	(fp_line
-		(start -0.75 -0.75)
-		(end 0.75 -0.75)
+		(start 0.75 -0.75)
+		(end 0.75 0.75)
 		(stroke
 			(width 0.1)
 			(type solid)
 		)
 		(layer "F.Fab")
-		(uuid "7ede104d-3b6e-44e1-a910-e319379730f7")
+		(uuid "34eaa09c-abe0-488c-817f-c49ec2826209")
+	)
+	(fp_line
+		(start 0.75 0.75)
+		(end -0.75 0.75)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(layer "F.Fab")
+		(uuid "9e517b01-e5fa-4f06-b4f2-4431cacb3ee0")
 	)
 	(fp_text user "${REFERENCE}"
 		(at 0 0 0)
@@ -326,7 +326,7 @@
 		(uuid "b4006464-545b-4214-9c54-4355d6cdf228")
 	)
 	(embedded_fonts no)
-	(model "C:\\Users\\ober\\Nextcloud\\Tech\\PCB Libraries\\SamacSys_Parts.3dshapes\\TS3312AQPR.stp"
+	(model "${KIPRJMOD}/libraries/3D/TS3312AQPR.stp"
 		(offset
 			(xyz 0 0 0)
 		)
