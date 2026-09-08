@@ -1,3 +1,13 @@
+/*
+ * ADC_1CH_Poll_Continuous
+ *
+ * Continuously samples a single ADC channel at a fixed 1 kS/s and prints
+ * each conversion together with the number of missed samples.
+ *
+ * Polling is done in software, so slow loop code (e.g. Serial prints) can miss
+ * conversions - these overrun events are counted through the OVR interrupt.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container

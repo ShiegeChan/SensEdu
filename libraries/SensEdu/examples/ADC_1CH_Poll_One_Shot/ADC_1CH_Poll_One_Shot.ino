@@ -1,3 +1,13 @@
+/*
+ * ADC_1CH_Poll_One_Shot
+ *
+ * Samples a single ADC channel on demand and prints every conversion
+ * to the Serial Monitor.
+ *
+ * Each SensEdu_ADC_Start() produces exactly one conversion, so the effective
+ * sampling rate is defined by the main loop speed.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container

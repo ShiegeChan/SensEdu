@@ -1,3 +1,16 @@
+/*
+ * ADC_3CH_DMA_Flags
+ *
+ * Demonstrates the DMA half-transfer and transfer-complete flags: the first
+ * half of the buffer is copied out while DMA keeps filling the second half.
+ *
+ * The copied half is then printed to the Serial Monitor, showing that firmware
+ * can process it on the fly.
+ *
+ * Both buffers are pre-filled with 0x0101 and the D-cache is cleaned, so slots
+ * that were never written by DMA show up as 257 in the printout.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container

@@ -1,3 +1,12 @@
+/*
+ * DAC_Variable_Wave
+ *
+ * Outputs a continuous wave whose lookup table is modified at run time: the
+ * main loop ramps the DAC output up and down between 0x000 and 0xFFF.
+ *
+ * Shows that a continuous-mode buffer can be rewritten while DMA streams it.
+ */
+
 #include <SensEdu.h>
 
 static uint32_t lib_error = 0;

@@ -1,11 +1,16 @@
 %% Basic_UltraSound_4CH_ReadData.m
-% Reads config data and then ADC mics measurements from Arduino
+%
+% Triggers an ultrasonic measurement with 't' and reads four microphone channels
+% from the Arduino as two interleaved buffers, plots and saves them.
+%
+% DATA_LENGTH and CHUNK_SIZE must match the firmware.
+
 clear;
 close all;
 clc;
 
 %% Settings
-ARDUINO_PORT = 'COM18';
+ARDUINO_PORT = 'COM9';
 ARDUINO_BAUDRATE = 115200;
 ITERATIONS = 10000;
 

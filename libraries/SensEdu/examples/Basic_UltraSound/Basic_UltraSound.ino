@@ -1,3 +1,13 @@
+/*
+ * Basic_UltraSound
+ *
+ * Minimal ultrasonic measurement: emits a 32 kHz sine burst on the DAC speaker,
+ * records one microphone via DMA and sends the data to the host.
+ *
+ * A measurement is triggered by the character 't' on serial - use the MATLAB or
+ * Python script in matlab/ and python/ to trigger and plot the echo.
+ */
+
 #include "SensEdu.h"
 #include "SineLUT.h"
 

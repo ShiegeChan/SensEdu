@@ -1,4 +1,10 @@
 %% ADC_1CH_DMA_Circular.m
+%
+% Receives the continuous single-channel ADC stream from the Arduino and plots
+% it from a rolling buffer.
+%
+% Fs and CHUNK_SIZE must match the firmware.
+
 clear;
 close all;
 clc;

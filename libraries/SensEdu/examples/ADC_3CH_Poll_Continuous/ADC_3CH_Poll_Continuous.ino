@@ -1,3 +1,13 @@
+/*
+ * ADC_3CH_Poll_Continuous
+ *
+ * Continuously scans three ADC channels at a fixed 1 kS/s and prints
+ * every sequence to the Serial Monitor.
+ *
+ * Demonstration only: continuous multi-channel polling can lose channel alignment.
+ * Use DMA for real multi-channel acquisition.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container

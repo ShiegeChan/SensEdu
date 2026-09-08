@@ -1,3 +1,15 @@
+/*
+ * ADC_1CH_DMA_Circular
+ *
+ * Streams one ADC channel at 44.1 kS/s over USB serial without gaps,
+ * using circular DMA with a double-buffered half/full transfer.
+ *
+ * Data is sent as raw 16-bit binary - use the MATLAB script in matlab/
+ * to receive and plot it.
+ *
+ * The D86 LED blinks if the board runs into an error.
+ */
+
 #include "SensEdu.h"
 
 /* -------------------------------------------------------------------------- */

@@ -1,3 +1,12 @@
+/*
+ * Generate_PWM
+ *
+ * Generates four 100 kHz PWM signals on D4, D37, D48 and D71 with 25%, 50%,
+ * 75% and 100% duty cycles.
+ *
+ * All channels are started together by a single SensEdu_PWM_Start() call.
+ */
+
 #include "SensEdu.h"
 
 uint32_t lib_error = 0;

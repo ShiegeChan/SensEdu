@@ -1,3 +1,11 @@
+/*
+ * DAC_Const_Sine
+ *
+ * Outputs a continuous 32 kHz sine wave from a 64-point lookup table.
+ *
+ * The wave is driven by timer + DMA, so it keeps playing without any CPU load.
+ */
+
 #include <SensEdu.h>
 
 uint32_t lib_error = 0;

@@ -1,3 +1,13 @@
+/*
+ * Basic_UltraSound_WiFi
+ *
+ * Same measurement as Basic_UltraSound, but triggered and transferred over WiFi
+ * instead of serial.
+ *
+ * Set WIFI_SSID / WIFI_PASS below. The board runs a TCP server on port 80 and
+ * prints its IP to the Serial Monitor - see matlab/ for the host script.
+ */
+
 #include "SensEdu.h"
 #include "SineLUT.h"
 #include <WiFi.h>

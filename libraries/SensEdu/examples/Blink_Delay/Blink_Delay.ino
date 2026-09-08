@@ -1,3 +1,9 @@
+/*
+ * Blink_Delay
+ *
+ * Blinks the built-in LED every 500 ms using the SensEdu hardware timer delay.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container

@@ -1,5 +1,11 @@
 %% Basic_UltraSound_WiFi_ReadData.m
-% reads config data and then ADC mics meassurements from Arduino using WiFi
+%
+% Same as Basic_UltraSound_ReadData, but connects to the Arduino TCP server over
+% WiFi instead of the serial port.
+%
+% Set ARDUINO_IP to the address printed by the board; DATA_LENGTH must match
+% the firmware.
+
 clear;
 close all;
 clc;

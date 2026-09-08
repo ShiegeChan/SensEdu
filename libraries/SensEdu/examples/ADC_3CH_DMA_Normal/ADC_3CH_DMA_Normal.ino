@@ -1,3 +1,15 @@
+/*
+ * ADC_3CH_DMA_Normal
+ *
+ * Fills a 90-sample buffer from three ADC channels at 10 kS/s via DMA,
+ * prints it channel by channel and restarts the transfer.
+ *
+ * The scan sequence is interleaved in the buffer: CH0, CH1, CH2, CH0, ...
+ *
+ * Normal DMA mode stops once the buffer is full, so the CPU stays free during
+ * acquisition - shown by the counter running in the main loop.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container

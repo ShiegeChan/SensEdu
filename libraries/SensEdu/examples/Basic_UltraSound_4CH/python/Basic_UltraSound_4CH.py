@@ -1,7 +1,10 @@
 """
-Basic_UltraSound_4CH_ReadData.py
+Basic_UltraSound_4CH.py
 
-Reads 4-channel ADC microphone measurements from Arduino via serial
+Triggers an ultrasonic measurement with 't' and reads four microphone channels
+from the Arduino as two interleaved buffers, plots and saves them.
+
+DATA_LENGTH and CHUNK_SIZE must match the firmware.
 """
 
 import os

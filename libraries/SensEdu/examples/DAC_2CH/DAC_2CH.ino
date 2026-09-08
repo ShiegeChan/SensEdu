@@ -1,3 +1,13 @@
+/*
+ * DAC_2CH
+ *
+ * Plays two different waveforms at once: a sine on DAC channel 1 and a square
+ * wave on DAC channel 2, as 10-cycle bursts every 100 ms.
+ *
+ * When working with two channels simultaneously, the sampling rate for both
+ * channels is forced to be the same by the DAC driver.
+ */
+
 #include <SensEdu.h>
 
 uint32_t lib_error = 0;

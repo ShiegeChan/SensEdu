@@ -1,7 +1,10 @@
 """
-Basic_UltraSound_ReadData.py
+Basic_UltraSound.py
 
-Reads config data and then ADC mics measurements from Arduino
+Triggers an ultrasonic measurement with 't', reads the microphone buffer from
+the Arduino, plots it and saves all iterations into Measurements/.
+
+DATA_LENGTH must match the firmware.
 """
 
 import os

@@ -1,5 +1,10 @@
 %% Basic_UltraSound_ReadData.m
-% reads config data and then ADC mics meassurements from Arduino
+%
+% Triggers an ultrasonic measurement with 't', reads the microphone buffer from
+% the Arduino, plots it and saves all iterations into Measurements/.
+%
+% DATA_LENGTH must match the firmware.
+
 clear;
 close all;
 clc;

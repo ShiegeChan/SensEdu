@@ -1,4 +1,10 @@
 %% ADC_3CH_DMA_Circular.m
+%
+% Receives the continuous 3-channel ADC stream from the Arduino and plots each
+% channel from a rolling buffer. Sends 'S' / 'P' to start and pause the stream.
+%
+% Fs, CHUNK_SIZE and CH_NUM must match the firmware.
+%
 % NOTE: This file must be a function,
 % so that onCleanup fires immediately on script interuption.
 function ADC_3CH_DMA_Circular()

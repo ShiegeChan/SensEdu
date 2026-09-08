@@ -1,4 +1,10 @@
-% Reads config data and ADC measurements from Arduino
+%% ADCx3_Different_SR.m
+%
+% Triggers the Arduino with 't' and reads one buffer from each of the three
+% ADCs, then plots them to compare samples per cycle at different sampling rates.
+%
+% DATA_LENGTH and the sampling rates must match the firmware.
+
 clear;
 close all;
 clc;

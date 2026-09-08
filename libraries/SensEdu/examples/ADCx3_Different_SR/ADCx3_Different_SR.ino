@@ -1,3 +1,13 @@
+/*
+ * ADCx3_Different_SR
+ *
+ * Runs ADC1, ADC2 and ADC3 in parallel at different sampling rates,
+ * each with its own DMA buffer, and sends all three buffers to the host.
+ *
+ * A measurement is triggered by the character 't' on serial - use the MATLAB
+ * script in matlab/ to trigger and plot the data.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container

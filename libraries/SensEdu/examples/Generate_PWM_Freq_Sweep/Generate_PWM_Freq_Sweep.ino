@@ -1,3 +1,12 @@
+/*
+ * Generate_PWM_Freq_Sweep
+ *
+ * Generates a stepped PWM frequency sweep on D71 from parameters typed into
+ * the Serial Monitor.
+ *
+ * Expected input: [fstart, fend, steps, step_dur_ms]
+ */
+
 #include "SensEdu.h"
 
 #define MAX_INPUT_LEN 256

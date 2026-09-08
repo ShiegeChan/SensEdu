@@ -1,3 +1,13 @@
+/*
+ * ADC_1CH_DMA_Normal
+ *
+ * Fills a 128-sample buffer from one ADC channel at 10 kS/s via DMA,
+ * prints the whole buffer and restarts the transfer.
+ *
+ * Normal DMA mode stops once the buffer is full, so the CPU stays free during
+ * acquisition - shown by the counter running in the main loop.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container

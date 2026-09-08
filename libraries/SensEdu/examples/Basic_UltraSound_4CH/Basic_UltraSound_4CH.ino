@@ -1,3 +1,13 @@
+/*
+ * Basic_UltraSound_4CH
+ *
+ * Emits a 32 kHz sine burst on the DAC speaker and records four microphones
+ * using ADC1 and ADC2 with DMA.
+ *
+ * Each ADC scans a microphone pair, so its buffer holds interleaved samples.
+ * Triggered by 't' on serial - see the matlab/ and python/ host scripts.
+ */
+
 #include "SensEdu.h"
 #include "SineLUT.h"
 
@@ -31,8 +41,8 @@ SENSEDU_ADC_BUFFER(mic34_data, mic_data_size);
 ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
 const uint8_t mic_num = 2;
-uint8_t mic12_pins[mic_num] = {A5, A4};
-uint8_t mic34_pins[mic_num] = {A1, A6};
+uint8_t mic12_pins[mic_num] = {A0, A1};
+uint8_t mic34_pins[mic_num] = {A2, A3};
 
 SensEdu_ADC_Settings adc1_settings = {
     .adc = adc1,

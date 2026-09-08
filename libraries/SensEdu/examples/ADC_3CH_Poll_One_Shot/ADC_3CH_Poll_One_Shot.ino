@@ -1,3 +1,10 @@
+/*
+ * ADC_3CH_Poll_One_Shot
+ *
+ * Samples three ADC channels as a single scan sequence on demand and prints
+ * all three results to the Serial Monitor.
+ */
+
 #include "SensEdu.h"
 
 // Internal library error container
