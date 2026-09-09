@@ -4,7 +4,7 @@
  * Generates a sawtooth-modulated FMCW chirp and plays it continuously
  * on DAC channel 2.
  *
- * The waveform is built into a LUT at boot by generateSawtoothChirp() and then
+ * The waveform is built into a LUT at boot by generate_sawtooth_chirp() and then
  * dumped to the Serial Monitor.
  *
  * Note: fs must stay above 2 * END_FREQUENCY (Nyquist) for a valid sweep.
@@ -45,7 +45,7 @@ void setup() {
     while(!Serial);
 
     // Generate the chirp signal
-    generateSawtoothChirp(lut);
+    generate_sawtooth_chirp(lut);
 
     SensEdu_DAC_Init(&dac1_settings);
     SensEdu_DAC_Enable(DAC_CH2);

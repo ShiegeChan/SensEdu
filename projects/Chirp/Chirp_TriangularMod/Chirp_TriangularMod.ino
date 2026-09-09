@@ -4,7 +4,7 @@
  * Generates a triangular-modulated FMCW chirp and plays it continuously
  * on DAC channel 2.
  *
- * The waveform is built into a LUT at boot by generateTriangularChirp() and
+ * The waveform is built into a LUT at boot by generate_triangular_chirp() and
  * then dumped to the Serial Monitor. One period sweeps up and back down, so
  * the frequency stays continuous when the LUT repeats.
  *
@@ -46,7 +46,7 @@ void setup() {
     while(!Serial);
 
     // Generate the chirp signal
-    generateTriangularChirp(lut);
+    generate_triangular_chirp(lut);
 
     SensEdu_DAC_Init(&dac1_settings);
     SensEdu_DAC_Enable(DAC_CH2);
