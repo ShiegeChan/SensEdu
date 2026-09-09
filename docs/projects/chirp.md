@@ -38,11 +38,11 @@ _Spectrogram of a chirp sweeping from 100Hz to 10kHz_
 {: .text-yellow-300}
 Arduino does not provide any built-in chirp signal function. There are workarounds using MATLAB's built-in chirp function but our idea was to create this signal directly in Arduino with the SensEdu library.
 
-The `generateSawtoothChirp` and `generateTriangularChirp` functions both calculate the values to generate a sawtooth chirp and triangular chirp respectively and copy these values to the DAC's buffer.
+The `generate_sawtooth_chirp` and `generate_triangular_chirp` functions both calculate the values to generate a sawtooth chirp and triangular chirp respectively and copy these values to the DAC's buffer.
 
 ```c
-void generateSawtoothChirp(uint16_t* array)
-void generateTriangularChirp(uint16_t* array)
+void generate_sawtooth_chirp(uint16_t* array)
+void generate_triangular_chirp(uint16_t* array)
 ```
 
 ### Parameters
@@ -53,10 +53,10 @@ void generateTriangularChirp(uint16_t* array)
 
 ### Description
 {: .text-yellow-100}
-The chirp generating functions use two arrays `lut_sine` and `vChirp` to calculate the chirp values:
+A full sine period is four mirrored copies of the same quarter wave, so only 0-90 degrees has to be stored. The chirp generating functions build the waveform from a lookup table:
 
-* `lut_sine` is a LUT containing the values of a quarter sine wave. The `x` variable defines the resolution of `lut_sine`. A larger `x` will result in a more detailed LUT with more values which in turn increases the precision of the chirp values which will be calculated.
-* `vChirp` is the array in which the chirp values are calculated.
+* `lut_sine` is a LUT containing the values of a quarter sine wave. It holds `90 * LUT_RESOLUTION` entries, so `LUT_RESOLUTION` is the number of points stored per degree. A larger value results in a more detailed LUT, which in turn increases the precision of the chirp values which will be calculated.
+* `chirp_value` holds the sample currently being computed, which is written straight into the DAC buffer.
 
 
 The following steps describe how the function was implemented:
@@ -65,55 +65,50 @@ The following steps describe how the function was implemented:
 
 ```c
 // Generate the quarter-wave sine LUT
-    for (int i = 0; i < 90 * x; i++) {
-        float phase_deg = (float)i * 90.0 / (90 * x); // Phase angle in degrees
-        float phase_rad = phase_deg * Pi / 180.0; // Phase angle to radians
-        lut_sine[i] = sin(phase_rad-Pi/2); // Store sine value in the LUT
+    for (int i = 0; i < 90 * LUT_RESOLUTION; i++) {
+        phase_deg = (float)i * 90.0 / (90 * LUT_RESOLUTION); // Phase angle in degrees
+        phase_rad = phase_deg * PI_F / 180.0; // Phase angle to radians
+        lut_sine[i] = sin(phase_rad-PI_F/2); // Store sine value in the LUT
     }
 ```
 
 **Step 2**{: .text-blue-000}: Calculate the instantaneous phase of the chirp signal and wrap between 0-360 degrees:
 
 ```c
-for (int i = 1; i < samples_int + 1; i++) {
-        float phase_rad = 2.0 * Pi * (0.5 * sK * (i - 1) / fs + START_FREQUENCY) * (i - 1) / fs; // Phase angle in radians
-        float phase_deg = phase_rad * 180.0 / Pi; // Phase angle to degrees
-        float phase_deg_wrapped = fmod(phase_deg, 360.0); // Wrap phase angle to 0-360 degrees
+for (int i = 0; i < samples_int; i++) {
+        phase_rad = 2.0 * PI_F * (0.5 * chirp_rate * i / fs + START_FREQUENCY) * i / fs; // Phase angle in radians
+        phase_deg = phase_rad * 180.0 / PI_F; // Phase angle to degrees
+        phase_deg_wrapped = fmod(phase_deg, 360.0); // Wrap phase angle to 0-360 degrees
 ```
 
-**Step 3**{: .text-blue-000}: Calculate the value of the chirp using a quadrant-based approach. Scale and offset values to get 12 bit values:
+**Step 3**{: .text-blue-000}: Calculate the value of the chirp using a quadrant-based approach, then scale and offset to 12-bit and write it into the DAC buffer:
 
 ```c
-if (phase_deg_wrapped <= 90) {
-            vChirp[i - 1] = lut_sine[(int)(phase_deg_wrapped / 90.0 * (90 * x - 1))] * 2047.5 + 2047.5;
+        if (phase_deg_wrapped <= 90) {
+            chirp_value = lut_sine[(int)(phase_deg_wrapped)* LUT_RESOLUTION+1] * 2048 + 2048;
         } else if (phase_deg_wrapped <= 180) {
-            vChirp[i - 1] = -lut_sine[(int)((180.0 - phase_deg_wrapped) / 90.0 * (90 * x - 1))] * 2047.5 + 2047.5;
+            chirp_value = -lut_sine[(int)(180.0 - phase_deg_wrapped) * LUT_RESOLUTION+1] * 2048 + 2048;
         } else if (phase_deg_wrapped <= 270) {
-            vChirp[i - 1] = -lut_sine[(int)((phase_deg_wrapped - 180.0) / 90.0 * (90 * x - 1))] * 2047.5 + 2047.5;
+            chirp_value = -lut_sine[(int)(phase_deg_wrapped - 180.0) * LUT_RESOLUTION+1] * 2048 + 2048;
         } else {
-            vChirp[i - 1] = lut_sine[(int)((360.0 - phase_deg_wrapped) / 90.0 * (90 * x - 1))] * 2047.5 + 2047.5;
+            chirp_value = lut_sine[(int)(360.0 - phase_deg_wrapped)* LUT_RESOLUTION+1] * 2048 + 2048;
         }
+
+        array[i] = (uint16_t)chirp_value;
+    }
 ```
 
-For the triangular modulation, the array values are mirrored on the other half.
+For the triangular modulation, only the first half of the buffer is swept; the second half mirrors it to form the down-sweep.
 
 ```c
-for (int i = samples_int; i < samples_int * 2; i++) {
-        vChirp[i] = vChirp[samples_int * 2 - i - 1];    // Mirror the chirp signal
+    // Mirror the up-sweep to form the down-sweep
+    for (int i = half_samples; i < samples_int; i++) {
+        array[i] = array[samples_int - i-1];
     }
 ```
 
 {: .NOTE }
-In this configuration, the first value of the chirp signal array is 0 (or 0 V in amplitude at DAC output). This initial value can be changed by modifying `sine_lut`.
-
-**Step 4**{: .text-blue-000}: Copy the chirp signal's values to the DAC buffer:
-
-```c
-// Copy the chirp signal to the DAC buffer
-    for (int i = 0; i < samples_int; i++) {
-        array[i] = (uint16_t)vChirp[i];
-    }
-```
+In this configuration, the first value of the chirp signal array is 0 (or 0 V in amplitude at DAC output). This initial value can be changed by modifying `lut_sine`.
 
 ---
 

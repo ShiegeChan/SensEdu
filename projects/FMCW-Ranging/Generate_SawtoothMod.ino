@@ -8,44 +8,44 @@
  * which keeps the waveform phase-continuous when the LUT repeats.
  */
 
-const uint32_t x = 5; // Quarter-wave LUT resolution (points per degree)
-const float Pi = 3.14159;
+const uint32_t LUT_RESOLUTION = 5; // Quarter-wave LUT points per degree
+const float PI_F = 3.14159;
 
-void generateSawtoothChirp(uint16_t* array) {
+void generate_sawtooth_chirp(uint16_t* array) {
 
-    float lut_sine[90 * x]; // Quarter-wave LUT for sine values
-    float vChirp; // Chirp signal value
+    float lut_sine[90 * LUT_RESOLUTION]; // Quarter-wave LUT for sine values
+    float chirp_value;
     float phase_deg; // Phase angle in degrees
     float phase_rad; // Phase angle in radians
     float phase_deg_wrapped; // Wrapped phase angle
-    int N = round((START_FREQUENCY + END_FREQUENCY) / 2.0 * CHIRP_DURATION); // Closest integer number of cycles
-    int END_FREQUENCY_ADJUSTED = 2*N/CHIRP_DURATION - START_FREQUENCY; // Adjusted end frequency for int number of cycles
-    float sK = (END_FREQUENCY_ADJUSTED - START_FREQUENCY) / CHIRP_DURATION; // Adjusted chirp rate
+    int cycle_num = round((START_FREQUENCY + END_FREQUENCY) / 2.0 * CHIRP_DURATION); // Closest integer number of cycles
+    int end_frequency_adjusted = 2*cycle_num/CHIRP_DURATION - START_FREQUENCY; // Adjusted end frequency for int number of cycles
+    float chirp_rate = (end_frequency_adjusted - START_FREQUENCY) / CHIRP_DURATION;
 
     // Generate the quarter-wave sine LUT
-    for (int i = 0; i < 90 * x; i++) {
-        phase_deg = (float)i/x;
-        phase_rad = phase_deg * Pi / 180.0;
-        lut_sine[i] = sin(phase_rad-Pi/2); // Store sine value in the LUT
+    for (int i = 0; i < 90 * LUT_RESOLUTION; i++) {
+        phase_deg = (float)i/LUT_RESOLUTION;
+        phase_rad = phase_deg * PI_F / 180.0;
+        lut_sine[i] = sin(phase_rad-PI_F/2); // Store sine value in the LUT
     }
 
     // Generate the chirp signal
     for (int i = 0; i < samples_int; i++) {
-        phase_rad = 2.0 * Pi * (0.5 * sK * i / fs + START_FREQUENCY) * i / fs; // Phase angle in radians
-        phase_deg = phase_rad * 180.0 / Pi; // Phase angle to degrees
+        phase_rad = 2.0 * PI_F * (0.5 * chirp_rate * i / fs + START_FREQUENCY) * i / fs; // Phase angle in radians
+        phase_deg = phase_rad * 180.0 / PI_F; // Phase angle to degrees
         phase_deg_wrapped = fmod(phase_deg, 360.0); // Wrap phase angle to 0-360 degrees
 
         // Mirror the quarter wave into the matching quadrant, then scale to 12-bit
         if (phase_deg_wrapped <= 90) {
-            vChirp = lut_sine[(int)(phase_deg_wrapped)* x+1] * 2048 + 2048;
+            chirp_value = lut_sine[(int)(phase_deg_wrapped)* LUT_RESOLUTION+1] * 2048 + 2048;
         } else if (phase_deg_wrapped <= 180) {
-            vChirp = -lut_sine[(int)(180.0 - phase_deg_wrapped) * x+1] * 2048 + 2048;
+            chirp_value = -lut_sine[(int)(180.0 - phase_deg_wrapped) * LUT_RESOLUTION+1] * 2048 + 2048;
         } else if (phase_deg_wrapped <= 270) {
-            vChirp = -lut_sine[(int)(phase_deg_wrapped - 180.0) * x+1] * 2048 + 2048;
+            chirp_value = -lut_sine[(int)(phase_deg_wrapped - 180.0) * LUT_RESOLUTION+1] * 2048 + 2048;
         } else {
-            vChirp = lut_sine[(int)(360.0 - phase_deg_wrapped)* x+1] * 2048 + 2048;
+            chirp_value = lut_sine[(int)(360.0 - phase_deg_wrapped)* LUT_RESOLUTION+1] * 2048 + 2048;
         }
 
-        array[i] = (uint16_t)vChirp;
+        array[i] = (uint16_t)chirp_value;
     }
 }
