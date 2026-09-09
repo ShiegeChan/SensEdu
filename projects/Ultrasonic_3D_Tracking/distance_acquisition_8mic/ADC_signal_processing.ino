@@ -47,7 +47,7 @@ void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
         // Take care of the last block
         uint32_t block_size = min(FILTER_BLOCK_LENGTH, adc_data_length - i);
         // Perform the filter operation for the current block
-        arm_fir_f32(&Fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
+        arm_fir_f32(&fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
     }
 
     // Copy the filtered signal to the rescaled_adc_wave
@@ -125,24 +125,24 @@ void calculate_distances(float* echo, uint16_t echo_length, uint32_t sampling_ra
 
     window_size = 50;
     half_window = window_size / 2;
-    double runningSum = 0.0;
+    double running_sum = 0.0;
     int count = 0;
 
     for (size_t j = 0; j <= half_window && j < echo_length; j++) {
-        runningSum += enveloped_signal[j];
+        running_sum += enveloped_signal[j];
         count++;
     }
     for (size_t i = 0; i < echo_length; i++) {
-        smoothed_buf[i] = (uint32_t)(runningSum / count);
+        smoothed_buf[i] = (uint32_t)(running_sum / count);
 
-        int nextToEnter = i + half_window + 1;
-        if (nextToEnter < echo_length) {
-            runningSum += enveloped_signal[nextToEnter];
+        int next_to_enter = i + half_window + 1;
+        if (next_to_enter < echo_length) {
+            running_sum += enveloped_signal[next_to_enter];
             count++;
         }
-        int nextToLeave = i - half_window;
-        if (nextToLeave >= 0) {
-            runningSum -= enveloped_signal[nextToLeave];
+        int next_to_leave = i - half_window;
+        if (next_to_leave >= 0) {
+            running_sum -= enveloped_signal[next_to_leave];
             count--;
         }
     }

@@ -47,8 +47,8 @@ uint8_t error_led = D86;
 /* --------------------------------- Filter --------------------------------- */
 #define FILTER_BLOCK_LENGTH     32      // Samples processed per call to the FIR process function
 
-static float32_t firStateBuffer[FILTER_BLOCK_LENGTH + FILTER_TAP_NUM - 1]; // Current filter state buffer
-arm_fir_instance_f32 Fir_filt;
+static float32_t fir_state_buffer[FILTER_BLOCK_LENGTH + FILTER_TAP_NUM - 1]; // Current filter state buffer
+arm_fir_instance_f32 fir_filt;
 
 /* ----------------------------------- ADC ---------------------------------- */
 const uint16_t mic_data_size = STORE_BUF_SIZE * 2;
@@ -124,18 +124,18 @@ typedef struct {
     uint16_t channel_buffer[STORE_BUF_SIZE]; // Data rearrangement
 } SenseduBoard;
 
-static SenseduBoard SenseduBoardObj;
+static SenseduBoard sensedu_board;
 
 /* -------------------------------------------------------------------------- */
 /*                                    Setup                                   */
 /* -------------------------------------------------------------------------- */
 
 void setup() {
-	SenseduBoard* main_obj_ptr = &SenseduBoardObj;
+	SenseduBoard* main_obj_ptr = &sensedu_board;
 	main_obj_init(main_obj_ptr);
 
     // Initializing the filter
-    arm_fir_init_f32(&Fir_filt, FILTER_TAP_NUM, filter_taps, firStateBuffer, FILTER_BLOCK_LENGTH); 
+    arm_fir_init_f32(&fir_filt, FILTER_TAP_NUM, filter_taps, fir_state_buffer, FILTER_BLOCK_LENGTH); 
 
     Serial.begin(115200);
 
@@ -161,7 +161,7 @@ void setup() {
 /* -------------------------------------------------------------------------- */
 
 void loop() {
-	SenseduBoard* main_obj_ptr = &SenseduBoardObj;
+	SenseduBoard* main_obj_ptr = &sensedu_board;
     static char serial_buf = 0;
 
     // Wait for the trigger character 't' from the host
