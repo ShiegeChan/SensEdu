@@ -9,7 +9,7 @@
  */
 
 const uint32_t LUT_RESOLUTION = 5; // Quarter-wave LUT points per degree
-const float PI_F = 3.14159; // Arduino already defines PI as a double
+const float PI_F = 3.14159;
 
 void generate_sawtooth_chirp(uint16_t* array) {
 
