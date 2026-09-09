@@ -410,8 +410,8 @@ __attribute__((aligned(__SCB_DCACHE_LINE_SIZE))) uint16_t mic34_data[mic_data_si
 ADC_TypeDef* adc1 = ADC1;
 ADC_TypeDef* adc2 = ADC2;
 const uint8_t mic_num = 2;
-uint8_t mic12_pins[mic_num] = {A5, A4};
-uint8_t mic34_pins[mic_num] = {A1, A6};
+uint8_t mic12_pins[mic_num] = {A0, A1};
+uint8_t mic34_pins[mic_num] = {A2, A3};
 
 SensEdu_ADC_Settings adc1_settings = {
     .adc = adc1,
@@ -440,7 +440,7 @@ SensEdu_ADC_Settings adc2_settings = {
 };
 ```
 
-For each ADC interaction, call both ADC1 and ADC2 (see example below). If you use the A9 pin for older board revisions, don't forget to call `SensEdu_ADC_ShortA4toA9`, which is explained [here]({% link library/adc.md %}#sensedu_adc_shorta4toa9).
+For each ADC interaction, call both ADC1 and ADC2 (see example below).
 
 ```c
 SensEdu_ADC_Init(&adc1_settings);

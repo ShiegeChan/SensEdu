@@ -1080,8 +1080,8 @@ Timer triggered mode (sampling rate generation) specific:
 Continuous mode specific:
 
 |:------|:-----|:----|:-----------------------|
-| CFGR  | CONT | 0b0 | 26.4.14 <br> Page: 973 | Single conversion mode (`SENSEDU_ADC_MODE_ONE_SHOT`)
-| CFGR  | CONT | 0b1 | 26.4.15 <br> Page: 973 | Continuous conversion mode (`SENSEDU_ADC_MODE_CONT`)
+| CFGR  | CONT | 0b0 | 26.4.14 <br> Page: 973 | Single conversion mode (`SENSEDU_ADC_MODE_POLLING_ONE_SHOT`)
+| CFGR  | CONT | 0b1 | 26.4.15 <br> Page: 973 | Continuous conversion mode (`SENSEDU_ADC_MODE_POLLING_CONT`)
 
 
 ### Clock Configuration

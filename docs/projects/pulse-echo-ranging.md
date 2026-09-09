@@ -94,7 +94,7 @@ void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
         // take care of the last block
         size_t block_size = min(FILTER_BLOCK_LENGTH, adc_data_length - i);
         // perform the filter operation for the current block
-        arm_fir_f32(&Fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
+        arm_fir_f32(&fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
     }
     memcpy(rescaled_adc_wave, output_signal, adc_data_length * sizeof(float));
 }
@@ -109,11 +109,11 @@ d = \frac{(lag\_samples \cdot sample\_time)}{sampling\_rate \cdot 2}
 \end{equation}
 $$ 
 
-There are two modes available for sending the data to the PC by setting a value of a macro. Setting the macro value to *true* sends the complete raw-, rescaled-, and filtered data with distance measurements to the PC. Otherwise, only the distance measurements will be sent to the PC.  
+There are two modes available for sending the data to the PC by setting a value of a macro. Setting `IS_TRANSMIT_DETAILED_DATA` to *true* sends the complete raw-, rescaled-, and filtered data with distance measurements to the PC. Otherwise, only the distance measurements will be sent to the PC.  
 
 {: .NOTE}
-For faster measurements, cross-correlation is performed directly on the microcontroller. However, if the time-efficiency is not
-a requirement, setting a macro *"LOCAL_XCORR"* to *false* will directly send raw ADC data to the PC. 
+For faster measurements, cross-correlation is performed directly on the microcontroller. Sending the intermediate
+processing steps to the PC costs a lot of transfer time, so keep `IS_TRANSMIT_DETAILED_DATA` off unless you need them.
 
 
 ```c
@@ -145,7 +145,7 @@ Since we are using serial communication, the data is received one bit at a time.
 This diagram depicts one iteration of PC receiving the data. This continues for number of iterations that are specified in the MATLAB script. Then, the data is plotted for visualization.
 
 {: .IMPORTANT}
-Make sure that *PLOT_DETAILED_DATA* in MATLAB matches the value of *XCORR_DETAILS*, as well as to set *DATA_LENGTH* in MATLAB to be the same as *STORE_BUF_SIZE* macro. Make sure to choose the correct *ARDUINO_PORT* to match the real one. 
+Make sure that `ENABLE_DETAILED_DATA` in MATLAB matches the value of `IS_TRANSMIT_DETAILED_DATA` in the firmware, that `MAX_PEAKS` in MATLAB matches `Peaks.h`, and that `DATA_LENGTH` in MATLAB matches the `STORE_BUF_SIZE` macro. Make sure to choose the correct `ARDUINO_PORT` to match the real one. 
 
 
 
