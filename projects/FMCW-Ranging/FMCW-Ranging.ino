@@ -101,7 +101,7 @@ void setup() {
     SensEdu_ADC_Enable(rx_adc);
 
     // Generate the chirp signal
-    generateSawtoothChirp(lut);
+    generate_sawtooth_chirp(lut);
     
     // Initialize DAC
     SensEdu_DAC_Init(&dac_settings);
