@@ -9,42 +9,70 @@ permalink: /help/
 {: .fs-8 .fw-500 .no_toc}
 ---
 
+Stuck? This page helps you solve the problem yourself or reach us if you can't.
+{: .fw-500}
+
+- TOC
+{:toc}
+
+## Before You Ask
+
 Please start by trying to resolve the issue on your own:
 * Read the [Getting Started]({% link getting started/index.md %}) section
-* Use the Search bar on this wiki to find information related to your problem
-* Browse the [Frequently Asked Questions (FAQs)]({% link help/index.md%}#faqs) below
-* ~~ChatGPT~~ Google your issue
+* Use the search bar on this wiki (at the top of the page) to find related information by keywords
+* Browse the [Frequently Asked Questions (FAQs)](#faqs) below
+* Search online; your exact issue may already be answered
 
 If you have tried the above and are still stuck, it is a good time to ask for help.
 
-## Contact us
+## Contact Us
 
-The best way to contact us is via [Discussion]. If you want to keep things private, you can contact [me] or other contributors from the SensEdu team.
+The best way to reach us is on GitHub:
+* [Issues] — confirmed bugs and planned work
+* [Discussions] — everything else, including questions and ideas
+
+If you want to keep things private, you can contact the SensEdu team directly via <a href="mailto:contact@sensedu-shield.com">contact@sensedu-shield.com</a>.
 
 When asking for help:
 * Avoid vague questions like "it doesn't work"
-* Try to give as much details as possible. Tell us what you have tried, required steps to recreate your issue
-* Provide details about your hardware setup
-* Add screenshots
+* Provide info on your OS, Arduino IDE version, SensEdu shield revision, and SensEdu library version
+* Describe your hardware setup (wiring, sensors, power source)
+* Tell us what you have already tried
+* List the steps required to reproduce your issue
+* Paste error messages as text and add screenshots if helpful
 
-Your details will help us greatly to answer your question!
+Your details will help us to answer your question!
 
-![]({{site.baseurl}}/assets/images/discussions.png)
+Opening a new discussion on GitHub looks like this:
+
+<img src="{{site.baseurl}}/assets/images/discussions.png" alt="Discussions page of the SensEdu repository on GitHub"/>
 
 ## FAQs
 
-#### How to get the shield?
+Here you can find the most frequently asked questions.
+
+### How do I order the shield?
 {: .no_toc}
-Please send us an e-mail: <a href="mailto:Vladyslav.Sorokin@infineon.com">Vladyslav.Sorokin@infineon.com</a>.
+Email us at <a href="mailto:contact@sensedu-shield.com">contact@sensedu-shield.com</a>.
 
-#### How to participate in the project?
+### Why does my board not show up in the port list?
 {: .no_toc}
-Start with the [Contributing Guide]({%link contributing/index.md %}) and create a [Discussion] on GitHub, we would discuss your ideas and help you get started!
+Make sure you are using a USB cable that supports data transfer, and that the *Arduino Mbed OS Giga Boards* package is installed (see [Getting Started]({% link getting started/index.md %})). If the port is still missing, double-tap the reset button on the GIGA R1 to enter bootloader mode and select the port again. If it still fails, most likely your USB driver is installed incorrectly. Usually it ships together with Arduino IDE, so try to reinstall it. Ensure you have administrator rights during your installation.
 
-#### No signal in ultrasonic ranging examples
+### Why do I get `SensEdu.h: No such file or directory`?
 {: .no_toc}
-You probably forgot to enable the speaker with 2-pin jumper on SensEdu, follow Step #1 from [Getting Started]({% link getting started/index.md %}) section.
+The library is not installed in the right place. Move the contents of the library folder from the [latest release][SensEdu release] to your Arduino libraries folder, as described in [Getting Started]({% link getting started/index.md %}):
+* Windows: `C:\Users\{username}\Documents\Arduino\libraries\`
+* Linux: `/home/{username}/Arduino/libraries/`
+* macOS: `/Users/{username}/Documents/Arduino/libraries`
+
+Restart the Arduino IDE afterwards.
+
+### How can I contribute?
+{: .no_toc}
+Start with the [Contributing Guide]({% link contributing/index.md %}) and create a [discussion][Discussions] on GitHub for your contribution, where we will discuss your ideas and help you get started!
 
 
-[Discussion]: https://github.com/ShiegeChan/SensEdu/discussions
-[me]: https://github.com/vladysor
+[Discussions]: https://github.com/ShiegeChan/SensEdu/discussions
+[Issues]: https://github.com/ShiegeChan/SensEdu/issues
+[SensEdu release]: https://github.com/ShiegeChan/SensEdu/releases/
