@@ -64,7 +64,7 @@ Make sure you are using a USB cable that supports data transfer, and that the *A
 The library is not installed in the right place. Move the contents of the library folder from the [latest release][SensEdu release] to your Arduino libraries folder, as described in [Getting Started]({% link getting started/index.md %}):
 * Windows: `C:\Users\{username}\Documents\Arduino\libraries\`
 * Linux: `/home/{username}/Arduino/libraries/`
-* macOS: `/Users/{username}/Documents/Arduino/libraries`
+* macOS: `/Users/{username}/Documents/Arduino/libraries/`
 
 Restart the Arduino IDE afterwards.
 
