@@ -2,7 +2,7 @@
 title: Projects
 layout: default
 parent: Contributing
-nav_order: 3
+nav_order: 2
 ---
 
 # Project Contributions
@@ -158,7 +158,7 @@ void loop() {
 * **Variables**: `snake_case`
 * **Functions**: `snake_case`
 * **Structs and enum types**: `PascalCase`, with `SCREAMING_SNAKE_CASE` members
-  
+
 ```c
 #define AIR_SPEED 343
 static const uint16_t ADC_MIC_NUM = 4;
@@ -288,7 +288,7 @@ v = w * ( x + z ); // no internal padding for parentheses
 ```
 
 ### Supplementary Resources
-* If a topic isn’t covered here, refer to the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html). Local rules in this document take precedence (e.g., 4-space indentation).
+* If a topic isn't covered here, refer to the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html). Local rules in this document take precedence (e.g., 4-space indentation).
 
 [repository]: https://github.com/ShiegeChan/SensEdu
 [SensEdu repository]: https://github.com/ShiegeChan/SensEdu

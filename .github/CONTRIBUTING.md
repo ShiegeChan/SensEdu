@@ -1,6 +1,6 @@
 # Contributing to SensEdu
 
-Pick up an existing [issue](https://github.com/ShiegeChan/SensEdu/issues) or create a new one. Then create a new branch from `dev` following the naming style below. After your feature is finished, submit a PR and request a review from the team.
+Pick up an existing [issue](https://github.com/ShiegeChan/SensEdu/issues) or create a new one. Then create a new branch from `dev` following the naming style below. After your feature is finished, submit a PR and request a review from the team. The pull request template carries the review checklist.
 
 This file covers the git conventions only. The full contribution guide lives on the website:
 
@@ -58,7 +58,8 @@ Follow the format:
 * **fix**: Bug fixes and other broken behaviour
 * **refactor**: Code or project restructuring
 * **docs**: Website or README documentation
-* **deploy**: Website deployment
+
+Commit types describe the kind of change. Branch types such as `pcb`, `proj`, `lib` and `deploy` are reserved for branch names and do not appear in commit subjects (`docs` is the only type valid in both).
 
 ### Good Examples
 
@@ -90,12 +91,3 @@ refactor: Rename lib example (#90)
 
 Rename `adc_Record` to `ADC_Record`
 ```
-
-## Pull Requests
-
-Keep PRs small, focusing on one feature or fix per PR. The PR title follows the same `<type>: <Descriptive Name>` format as a commit subject. Before requesting a review, make sure that:
-
-* The code follows the [style guidelines](https://sensedu-shield.com/contributing/#styling-guidelines)
-* The code compiles and new additions are tested on hardware
-* Library changes do not break any of the existing examples in `libraries/SensEdu/examples/`
-* New functionality is documented on the [website](https://sensedu-shield.com), see the [documentation guide](https://sensedu-shield.com/contributing/docs/)

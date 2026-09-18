@@ -2,7 +2,7 @@
 title: Documentation
 layout: default
 parent: Contributing
-nav_order: 1
+nav_order: 3
 ---
 
 # Documentation Contributions
@@ -145,7 +145,7 @@ This way you can define a tip alert!
 
 If you need custom alerts, you can define new styles by modifying the Sass files. Go to the folder `~\docs\_sass\color_schemes\`. Here you can find files `custom.scss` and `custom_dark.scss`, which contain colors for light and dark modes respectively.
 
-In each of this file define a new variable and assign a color with RGBA or HEX coding: `$new_alert_color:rgb(202, 52, 190);`. 
+In each of this file define a new variable and assign a color with RGBA or HEX coding: `$new_alert_color:rgb(202, 52, 190);`.
 
 Create a new alert `@include alert()` with the following arguments:
 * **Alert Code**: CUSTOM_ALERT is accessed by `.CUSTOM_ALERT` code
@@ -176,7 +176,7 @@ Unexpected Sampling Frequency
 
 ### Others
 
-Other syntax is standard for Markdown with modifiers added by Just the Docs. Follow these pages to explore the syntax further: 
+Other syntax is standard for Markdown with modifiers added by Just the Docs. Follow these pages to explore the syntax further:
 * <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" target="_blank">Basic writing and formatting syntax</a>
 * <a href="https://just-the-docs.com/" target="_blank">Just the Docs page</a>
 
@@ -186,7 +186,7 @@ When you edit the wiki, it is advised to observe your changes on the finished re
 
 0. Administrator rights may be required to install Ruby and its gems.
 1. Visit the <a href="https://rubyinstaller.org/downloads/" target="_blank">Ruby installation page</a>. Download the **x64 version with devkit**.
-During installtion you will be asked which components to install, press `Enter` for default.
+During installation you will be asked which components to install, press `Enter` for default.
 2. Open the terminal with admin rights in `/docs` folder.
 3. Install gems with `bundle install` command.
 4. Boot the website with `bundle exec jekyll serve --livereload`. Parameter

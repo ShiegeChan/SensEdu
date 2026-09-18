@@ -20,7 +20,7 @@ Before diving in, familiarize yourself with SensEdu:
 1. Read through this wiki
 2. Run basic examples and finished projects
 3. Explore existing [issues]
-4. Review [styling guidelines]({% link contributing/index.md %}#styling-guidelines)
+4. Review [styling guidelines](#styling-guidelines)
 
 If you are still not sure what to do, feel free to open a [discussion](https://github.com/ShiegeChan/SensEdu/discussions), and we'll find a task for you!
 
@@ -91,7 +91,9 @@ Follow the format:
 * **fix**: Bug fixes and other broken behaviour
 * **refactor**: Code or project restructuring
 * **docs**: Website or README documentation
-* **deploy**: Website deployment
+
+{: .NOTE}
+Commit types describe the kind of change. Branch types such as `pcb`, `proj`, `lib` and `deploy` are reserved for branch names and do not appear in commit subjects (`docs` is the only type valid in both).
 
 #### Good Examples
 {: .no_toc}
@@ -122,7 +124,7 @@ Fix improper ADC initialization in CFGR1 register
 # PR review:
 refactor: Rename lib example (#90)
 
-Rename `adc_Record` to `ADC_Record` 
+Rename `adc_Record` to `ADC_Record`
 ```
 
 ### Pull Requests
@@ -145,7 +147,7 @@ Found a bug or unexpected behaviour?  Help us fix it:
    3. Screenshots, logs, oscilloscope waveforms or any additional data
 
 ### Suggest Features
-Have an idea for a new sensor driver, project or optimization? 
+Have an idea for a new sensor driver, project or optimization?
 
 1. Create an [issue] with the `enhancement` label:
    1. Describe your idea in detail
@@ -172,7 +174,7 @@ If you are an experienced embedded systems developer, feel free to optimize libr
 4. Submit a [Pull Request] (PR) and ask for a review
 
 {: .TIP}
-Check the [Pull Requests]({% link contributing/index.md %}#pull-requests) checklist before asking for a review.
+Check the [Pull Requests](#pull-requests) checklist before asking for a review.
 
 ### Submit Project
 Created something amazing using SensEdu? Share it with us! Check [Project Contributions]({% link contributing/projects.md %}) for detailed instructions.

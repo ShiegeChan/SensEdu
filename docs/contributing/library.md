@@ -2,7 +2,7 @@
 title: Library
 layout: default
 parent: Contributing
-nav_order: 2
+nav_order: 1
 ---
 
 # Library Contributions
@@ -26,6 +26,7 @@ libraries/SensEdu/
 ├── examples/               one folder per example sketch
 └── src/
     ├── SensEdu.h           user-facing header, error ranges
+    ├── SensEdu.c           constructs driver's error for SensEdu_GetError()
     ├── libs.h              shared includes
     ├── adc.c   adc.h
     ├── dac.c   dac.h
@@ -157,7 +158,7 @@ static bool pll_configured = false;
 * **Macros**: `SCREAMING_SNAKE_CASE`
 * **Constants**: `SCREAMING_SNAKE_CASE`
 * **Variables**: `snake_case`
-  
+
 ```c
 #define SAMPLE_FREQUENCY 1000
 const uint16_t SOUND_SPEED = 343;
