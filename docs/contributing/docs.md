@@ -2,7 +2,7 @@
 title: Documentation
 layout: default
 parent: Contributing
-nav_order: 1
+nav_order: 3
 ---
 
 # Documentation Contributions
@@ -15,14 +15,15 @@ We highly appreciate any suggestions for improvements to enhance the clarity of 
 - TOC
 {:toc}
 
-### Add New Pages
+## Add New Pages
 
-Each respective tab on the website has its corresponding folder (e.g., `~\docs\Library\` for the library section). In this folder, there is always an `index.md` file that corresponds to the main page for this tab. Each subpage can be named arbitrarily (e.g., `page.md`) and must reference the parent page in the file header using the `parent` field.
+Each respective tab on the website has its corresponding folder (e.g., `~\docs\library\` for the library section). In this folder, there is always an `index.md` file that corresponds to the main page for this tab. Each subpage can be named arbitrarily (e.g., `page.md`) and must reference the parent page in the file header using the `parent` field.
 
 ```md
 ---
-title: new page
+title: New Page
 layout: default
+math: mathjax
 parent: Library
 nav_order: 10
 ---
@@ -30,25 +31,97 @@ nav_order: 10
 
 * `title`: Page title
 * `layout`: Keep this at `default`
+* `math`: Optional, add `mathjax` to enable [MathJax] syntax on this page
 * `parent`: Reference the parent page by name for subpages
 * `nav_order`: Defines the subpage order. 2 appears higher than 3 in navigation
 
-You can add an optional `math: mathjax` line to enable [MathJax] syntax on this page.
+Directly after the header, every page repeats its title, applies the heading styles, and opens a table of contents:
 
-### Syntax
+```md
+# New Page
+{: .fs-8 .fw-500 .no_toc}
+---
 
-#### Images
-{: .no_toc}
+One or two sentences summarising what this page is about.
+{: .fw-500}
 
-If you have any images, place them into the `~\docs\assets\images\` folder and reference them with `{{site.baseurl}}`. Below is an example with centering and width adjustment.
+- TOC
+{:toc}
+```
 
+* `.fs-8 .fw-500` is the large page title style, `.no_toc` keeps the title itself out of the table of contents
+* The lead paragraph marked `.fw-500` is rendered in a slightly heavier font and acts as the page summary
+* `- TOC` with `{:toc}` generates the table of contents from the `##` and `###` headings
+
+{: .TIP}
+Add `{: .no_toc}` under any heading that should not appear in the table of contents. Repetitive subheadings such as `#### Parameters`, `#### Returns` and `#### Notes` always use it.
+
+## Page Templates
+
+Pages in the same section share a layout, so a reader can move between them without re-learning the structure. Before writing a new page, open an existing one in the same section and mirror its headings.
+
+* **Library pages** document one peripheral each: *Errors*, *Structs*, *Functions*, *Examples*, *Developer Notes*. The exact layout is described in [Library Contributions]({% link contributing/library.md %}#writing-the-wiki-page). Reference page: [ADC]({% link library/adc.md %})
+* **Project pages** describe one project each: *Introduction*, *Background*, *Code Layout*, *Configuration*, *Implementation*, *Showcase*, *Developer Notes*. The exact layout is described in [Project Contributions]({% link contributing/projects.md %}#writing-the-project-page). Reference page: [Audio Recording]({% link projects/audio-recording.md %})
+
+## Syntax
+
+### Math
+
+Add `math: mathjax` to the page header and wrap formulas in `$$`:
+```md
+The transmitted signal sweeps a bandwidth $$B$$ over the chirp period $$T_c$$.
+
+$$t_0 = \frac{2d}{c}$$
+
+* $$c$$ is the speed of sound in air
+* $$d$$ is the distance to the object
+```
+
+### Images
+
+If you have any images, place them into the `~\docs\assets\images\` folder and reference them with {% raw %}`{{site.baseurl}}`{% endraw %}. Below is an example with centering and width adjustment.
+
+{% raw %}
 ```md
 <img src="{{site.baseurl}}/assets/images/my_picture.png" alt="drawing" width="500"/>
 {: .text-center}
 ```
+{% endraw %}
 
-#### Callouts/Alerts
-{: .no_toc}
+### Links
+
+Link to other wiki pages with the Jekyll `link` tag:
+
+{% raw %}
+```md
+Follow [Documentation Contributions]({% link contributing/docs.md %}) for details.
+See the [pin mapping]({% link library/adc.md %}#adc_mapping) for the available ADCs.
+```
+{% endraw %}
+
+For repeated external links, use reference-style definitions at the bottom of the page:
+
+```md
+Rendered with [Jekyll] and its template [Just the Docs].
+
+[Jekyll]: https://jekyllrb.com/
+[Just the Docs]: https://just-the-docs.com/
+```
+
+### Tables
+
+```md
+| Constant | Default | Meaning |
+|:---------|:--------|:--------|
+| `SAMPLING_RATE` | 44100 | ADC sampling rate in Hz. |
+| `CHUNK_SIZE` | 256 | DMA half-buffer size in samples. |
+```
+
+### Code Blocks
+
+Always tag the fence with a language (`c`, `matlab`, `python`, `json`, `md`). Show short snippets, instead of pasting whole files.
+
+### Callouts/Alerts
 
 SensEdu documentation utilizes a custom callout system suggested by [Peter Mosses] in the just-the-docs [PR #1602]. These callouts, referred to as Alerts, enhance customization options and allow distinct styling for light and dark themes.
 
@@ -72,7 +145,7 @@ This way you can define a tip alert!
 
 If you need custom alerts, you can define new styles by modifying the Sass files. Go to the folder `~\docs\_sass\color_schemes\`. Here you can find files `custom.scss` and `custom_dark.scss`, which contain colors for light and dark modes respectively.
 
-In each of this file define a new variable and assign a color with RGBA or HEX coding: `$new_alert_color:rgb(202, 52, 190);`. 
+In each of this file define a new variable and assign a color with RGBA or HEX coding: `$new_alert_color:rgb(202, 52, 190);`.
 
 Create a new alert `@include alert()` with the following arguments:
 * **Alert Code**: CUSTOM_ALERT is accessed by `.CUSTOM_ALERT` code
@@ -101,27 +174,26 @@ Unexpected Sampling Frequency
 {: .ERROR}
 ```
 
-#### Others
-{: .no_toc}
+### Others
 
-Other syntax is standard for Markdown with modifiers added by Just the Docs. Follow these pages to explore the syntax further: 
+Other syntax is standard for Markdown with modifiers added by Just the Docs. Follow these pages to explore the syntax further:
 * <a href="https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax" target="_blank">Basic writing and formatting syntax</a>
 * <a href="https://just-the-docs.com/" target="_blank">Just the Docs page</a>
 
-### Wiki Hosting
+## Wiki Hosting
 
 When you edit the wiki, it is advised to observe your changes on the finished rendered webpage. You can host it locally by following these steps:
 
 0. Administrator rights may be required to install Ruby and its gems.
 1. Visit the <a href="https://rubyinstaller.org/downloads/" target="_blank">Ruby installation page</a>. Download the **x64 version with devkit**.
-During installtion you will be asked which components to install, press `Enter` for default.
+During installation you will be asked which components to install, press `Enter` for default.
 2. Open the terminal with admin rights in `/docs` folder.
 3. Install gems with `bundle install` command.
 4. Boot the website with `bundle exec jekyll serve --livereload`. Parameter
 `--livereload` is optional, it enables automatic website reloading if you make any changes to styles/text etc.
 5. Go to the page `localhost:4000` in your browser to see the website.
 
-#### Notes:
+### Notes:
 {: .no_toc}
 * Stop the running website with `Ctrl+C` in the terminal.
 * If you modify `_config.yml`, restart the page (even if `--livereload` enabled).
