@@ -28,6 +28,18 @@ If you are still not sure what to do, feel free to open a [discussion](https://g
 
 Please familiarize yourself with the following conventions to ensure styling consistency. It keeps the project manageable, easy to navigate for other developers, and make releases easier to create.
 
+### Code Style
+
+The code style is documented per area, because the library, the sketches and the host scripts each have their own conventions:
+
+* [Library Contributions]({% link contributing/library.md %}): C sources, file and section layout, naming, namespaces, error handling, reference headers, register access, interrupts
+* [Project Contributions]({% link contributing/projects.md %}): Arduino sketches, sketch skeleton, settings blocks, error handling, MATLAB and Python host scripts
+* [Documentation Contributions]({% link contributing/docs.md %}): page headers, alerts, math, tables and page templates
+
+
+{: .WARNING}
+**4-space indentation** is used everywhere, including `.ino` sketches, where the Arduino default is 2
+
 ### Branch Naming
 
 Follow the format:
@@ -68,7 +80,7 @@ Follow the format:
 <optional body>
 ```
 
-* Subject line: maximum 50 characters, use imperative mood ("Add" not "Added")
+* Subject line: maximum 50 characters, use imperative ("Add" not "Added")
 * No period at the end of subject line
 * During PR review, reference the PR number in subject line
 
@@ -113,6 +125,15 @@ refactor: Rename lib example (#90)
 Rename `adc_Record` to `ADC_Record` 
 ```
 
+### Pull Requests
+
+Keep PRs small, focusing on one feature or fix per PR. The PR title follows the same `<type>: <Descriptive Name>` format as a commit subject. Before requesting a review, make sure that:
+
+* The code follows the style guidelines above
+* The code compiles and new additions are tested on hardware
+* Library changes do not break any of the existing examples in `libraries/SensEdu/examples/`
+* New functionality is documented on this website, see [Documentation Contributions]({% link contributing/docs.md %})
+
 ## How to Contribute
 
 ### Report Bugs
@@ -151,7 +172,7 @@ If you are an experienced embedded systems developer, feel free to optimize libr
 4. Submit a [Pull Request] (PR) and ask for a review
 
 {: .TIP}
-Try to keep PRs small, focusing on one feature/fix per PR.
+Check the [Pull Requests]({% link contributing/index.md %}#pull-requests) checklist before asking for a review.
 
 ### Submit Project
 Created something amazing using SensEdu? Share it with us! Check [Project Contributions]({% link contributing/projects.md %}) for detailed instructions.
