@@ -27,7 +27,7 @@ ARDUINO_BAUDRATE = 115200
 ITERATIONS = 100
 
 CHUNK_SIZE = 32  # Bytes per serial read
-DATA_LENGTH = 5142  # Number of samples per buffer (must match the firmware)
+DATA_LENGTH = 2048  # Number of samples per buffer (must match the firmware)
 
 # =======================
 # Serial Setup: select port and baudrate
