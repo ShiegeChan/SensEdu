@@ -15,12 +15,12 @@ close all;
 clc;
 
 %% Settings
-ARDUINO_PORT = 'COM22';
+ARDUINO_PORT = 'COM6';
 ARDUINO_BAUDRATE = 115200;
-ITERATIONS = 100;
+ITERATIONS = 1000;
 
 CHUNK_SIZE = 32; % Bytes read at once from serial -> 32 is optimal
-DATA_LENGTH = 5142; % Must match the firmware
+DATA_LENGTH = 2048; % Must match the firmware
 
 %% Arduino Setup
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % Select port and baudrate
@@ -76,5 +76,6 @@ function plot_data(rescaled, filtered)
     xlabel("Sample #");
     ylabel("Amplitude");
     legend('Location', 'northeast');
+    ylim([-0.5, 0.5]);
     grid on;
 end

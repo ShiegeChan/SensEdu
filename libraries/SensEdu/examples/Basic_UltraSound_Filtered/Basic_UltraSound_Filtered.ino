@@ -44,7 +44,7 @@ SensEdu_DAC_Settings dac_settings = {
 };
 
 /* ADC */
-const uint16_t mic_data_size = 5142;
+const uint16_t mic_data_size = 2048;
 SENSEDU_ADC_BUFFER(mic_data, mic_data_size);
 
 ADC_TypeDef* adc = ADC1;
