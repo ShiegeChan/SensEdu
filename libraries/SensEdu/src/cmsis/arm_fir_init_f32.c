@@ -26,7 +26,14 @@
  * limitations under the License.
  */
 
-#include "dsp/filtering_functions.h"
+/*
+ * NOTICE: This file was modified by the SensEdu project.
+ * Change: include path changed from "dsp/filtering_functions.h" to
+ * "filtering_functions.h" for the flat bundled layout. No functional changes.
+ * See NOTICE.txt in this directory.
+ */
+
+#include "filtering_functions.h"
 
 /**
   @ingroup groupFilters
