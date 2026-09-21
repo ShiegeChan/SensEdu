@@ -40,8 +40,9 @@ void custom_xcorr(float* xcorr_buf, const uint16_t* dac_wave, uint32_t adc_data_
 /* -------------------------------------------------------------------------- */
 void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
     static float output_signal[STORE_BUF_SIZE];
-    // Initialize this temporal buffer
-    clear_float_buf(output_signal, STORE_BUF_SIZE);
+
+    // One filter instance is shared by all channels, so clear the history of the previous one
+    SensEdu_DSP_FIR_Init(&fir_filt, &fir_settings);
 
     // Input and output must not overlap, so the result is copied back afterwards
     SensEdu_DSP_FIR_Apply(&fir_filt, rescaled_adc_wave, output_signal, adc_data_length);

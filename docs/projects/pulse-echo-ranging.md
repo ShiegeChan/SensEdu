@@ -82,12 +82,12 @@ Because of the way multi-channel ADC signals are stored in memory using SensEdu 
 
 ### Filtering the rescaled signal
 
-The microphones have a large bandwidth of 100kHz and the signal is easily distorted by the audible sound. That is why the filtering around the central frequency of 32kHz is needed. Therefore, a Finite Impulse Response (FIR) bandpass filter is applied to the previously resacaled ADC signal. The filter also removes the unwanted DC component, as well as high-frequency noise that is also naturally present. 
+The microphones have a large bandwidth of 100kHz and the signal is easily distorted by the audible sound. That is why the filtering around the central frequency of 32kHz is needed. Therefore, a Finite Impulse Response (FIR) bandpass filter is applied to the previously rescaled ADC signal. The filter also removes the unwanted DC component, as well as high-frequency noise that is also naturally present. 
 
 ```c
 void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
     static float output_signal[STORE_BUF_SIZE];
-    clear_float_buf(output_signal, STORE_BUF_SIZE);
+    SensEdu_DSP_FIR_Init(&fir_filt, &fir_settings);
     SensEdu_DSP_FIR_Apply(&fir_filt, rescaled_adc_wave, output_signal, adc_data_length);
     memcpy(rescaled_adc_wave, output_signal, adc_data_length * sizeof(float));
 }

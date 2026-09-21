@@ -1,5 +1,6 @@
 /*
- * FIR bandpass taps centred on the 32 kHz transducer frequency.
+ * FIR bandpass taps for the ultrasonic band, covering the 32 kHz transmit tone
+ * and the ~32.8 kHz transducer resonance.
  *
  * Rejects the DC offset, audible-band disturbances and high-frequency noise
  * before cross-correlation.

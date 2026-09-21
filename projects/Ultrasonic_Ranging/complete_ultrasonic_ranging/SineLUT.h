@@ -1,9 +1,15 @@
 /*
- * 32 kHz sine burst played out of the DAC.
+ * Sine lookup table for the DAC.
+ *
+ * One period of a sine is precomputed here as 12-bit samples and replayed by DMA
+ * to drive the speaker.
+ *
+ * The table defines the shape only. The tone frequency comes from the DAC
+ * sampling rate set in the sketch, and dac_cycle_num sets the burst length.
  */
 
-// how many LUT repeats for one DAC transfer
-// for ultrasound sine wave more than 10 -> worse
+// How many LUT repeats for one DAC transfer for ultrasound sine wave.
+// More than 10 is typically worse (empirical observation).
 const uint16_t dac_cycle_num = 10;
 
 // DAC transfered symbols

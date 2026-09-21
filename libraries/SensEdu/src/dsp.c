@@ -80,11 +80,11 @@ static void assign_error(DSP_ERROR new_error) {
 }
 
 static DSP_ERROR check_fir_settings(SensEdu_DSP_FIR* filter, SensEdu_DSP_FIR_Settings* settings) {
-    if (filter == 0) {
-        return DSP_ERROR_FIR_NULL_FILTER;
-    }
     if (settings == 0) {
         return DSP_ERROR_NULL_INPUT_SETTINGS;
+    }
+    if (filter == 0) {
+        return DSP_ERROR_FIR_NULL_FILTER;
     }
     if (settings->taps == 0) {
         return DSP_ERROR_FIR_NULL_TAPS;
