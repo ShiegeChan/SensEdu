@@ -206,7 +206,7 @@ This is [Basic_UltraSound]({% link library/others.md %}#basic_ultrasound) with a
 #define FILTER_TAP_NUM 64
 
 static float filter_taps[FILTER_TAP_NUM] = {
-    -0.01207375f, -0.23739562f, -0.03413152f, 0.00433452f,
+    -0.00091879f, -0.01806528f, -0.00259733f, 0.00032985f,
     ...
 };
 ```
@@ -256,7 +256,7 @@ void filter_32kHz_wave(float* input, float* output, const uint16_t data_length) 
 ```
 
 {: .NOTE}
-The taps shipped with the example were designed for $$F_s = 244~\text{kHz}$$ with a $$30-34~\text{kHz}$$ passband, while the example samples at $$250~\text{kHz}$$. This shifts the passband to roughly $$30.7-34.8~\text{kHz}$$, which still covers the $$\approx32.8~\text{kHz}$$ transducer. Redesign the taps if you change the sampling rate significantly.
+The taps shipped with the example peak at $$\approx32.8~\text{kHz}$$ at the $$250~\text{kHz}$$ sampling rate used here, right on the transducer resonance, with a $$-3~\text{dB}$$ band of $$28.7-36.9~\text{kHz}$$. They are scaled for unity gain at the peak, so the filtered signal keeps the same amplitude scale as the input. Redesign them if you change the sampling rate significantly.
 
 The figure below shows both traces on the same plot. The raw signal carries out-of-band noise, while the filtered one keeps only the transducer band, which makes the echo easier to locate and process further.
 
