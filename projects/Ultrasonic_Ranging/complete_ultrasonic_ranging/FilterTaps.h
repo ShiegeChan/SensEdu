@@ -9,7 +9,7 @@
 
 #define FILTER_TAP_NUM 64
 
-static float32_t filter_taps[FILTER_TAP_NUM] = {
+static float filter_taps[FILTER_TAP_NUM] = {
     -0.01207375f, -0.23739562f, -0.03413152f, 0.00433452f,
     0.04550176f, 0.04848888f, 0.01996812f, -0.00398824f,
     0.00521910f, 0.03281364f, 0.02892323f, -0.04054260f,

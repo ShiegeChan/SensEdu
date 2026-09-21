@@ -39,16 +39,12 @@ void custom_xcorr(float* xcorr_buf, const uint16_t* dac_wave, uint32_t adc_data_
 /*                         BANDPASS FILTERING FUNCTION                        */
 /* -------------------------------------------------------------------------- */
 void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
-    static float32_t output_signal[STORE_BUF_SIZE];
+    static float output_signal[STORE_BUF_SIZE];
     // Initialize this temporal buffer
     clear_float_buf(output_signal, STORE_BUF_SIZE);
-    // Need to take block chunks of the input signal
-    for (uint16_t i = 0; i < adc_data_length; i += FILTER_BLOCK_LENGTH) {
-        // Take care of the last block
-        uint32_t block_size = min(FILTER_BLOCK_LENGTH, adc_data_length - i);
-        // Perform the filter operation for the current block
-        arm_fir_f32(&fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
-    }
+
+    // Input and output must not overlap, so the result is copied back afterwards
+    SensEdu_DSP_FIR_Apply(&fir_filt, rescaled_adc_wave, output_signal, adc_data_length);
 
     // Copy the filtered signal to the rescaled_adc_wave
     memcpy(rescaled_adc_wave, output_signal, adc_data_length * sizeof(float));

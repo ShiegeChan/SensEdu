@@ -86,16 +86,9 @@ The microphones have a large bandwidth of 100kHz and the signal is easily distor
 
 ```c
 void filter_32kHz_wave(float* rescaled_adc_wave, uint16_t adc_data_length) {
-    static float32_t output_signal[STORE_BUF_SIZE];
-    // initialize this temporal buffer
+    static float output_signal[STORE_BUF_SIZE];
     clear_float_buf(output_signal, STORE_BUF_SIZE);
-    // need to take block chunks of the input signal
-    for(uint16_t i = 0; i < adc_data_length; i += FILTER_BLOCK_LENGTH) {
-        // take care of the last block
-        size_t block_size = min(FILTER_BLOCK_LENGTH, adc_data_length - i);
-        // perform the filter operation for the current block
-        arm_fir_f32(&fir_filt, &rescaled_adc_wave[i], &output_signal[i], block_size);
-    }
+    SensEdu_DSP_FIR_Apply(&fir_filt, rescaled_adc_wave, output_signal, adc_data_length);
     memcpy(rescaled_adc_wave, output_signal, adc_data_length * sizeof(float));
 }
 ```
