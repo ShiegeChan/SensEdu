@@ -5,9 +5,9 @@ Triggers an ultrasonic measurement with 't', reads the raw and the filtered
 microphone buffer from the Arduino, plots both on one figure and saves all
 iterations into Measurements/.
 
-The raw buffer is sent unscaled to halve its transfer size, so this script has
-to apply exactly the same rescaling the firmware uses before filtering.
-Any other scaling would make the comparison between the two traces unfair.
+The raw buffer is sent unscaled to halve its transfer size. Filtering happens
+on the board; this script only repeats the rescaling the board applies before
+its filter, so both traces share one amplitude scale.
 
 DATA_LENGTH must match the firmware.
 """

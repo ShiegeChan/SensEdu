@@ -9,9 +9,9 @@
  * The FIR filter removes the ADC DC offset, audible-band disturbances and
  * high-frequency noise, leaving the 32 kHz echo.
  *
- * The raw buffer is sent unscaled to halve its transfer size, so the host has
- * to apply exactly the same rescaling used here before filtering, otherwise
- * the comparison between the two traces is not fair.
+ * The raw buffer is sent unscaled to halve its transfer size. Filtering happens
+ * on the board; the host only repeats the rescaling applied here before the
+ * filter, so both traces share one amplitude scale.
  *
  * A measurement is triggered by the character 't' on serial - use the MATLAB or 
  * Python script in matlab/ and python/ to trigger and plot the echo.
