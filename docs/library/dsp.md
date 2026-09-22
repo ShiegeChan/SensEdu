@@ -159,8 +159,8 @@ void SensEdu_DSP_FIR_Init(SensEdu_DSP_FIR* filter, SensEdu_DSP_FIR_Settings* set
 {: .no_toc}
 * Validates the settings and reports any problem through the [error codes]({% link library/dsp.md %}#errors).
 * Clears the state buffer, so the filter history starts at zero.
-* Call it once in `setup()` before any call to `SensEdu_DSP_FIR_Apply()`.
-* Calling it again on a running filter resets its history, which is a valid way to restart a measurement.
+* Must be called before any call to `SensEdu_DSP_FIR_Apply()`.
+* Call it again before every independent signal, such as a new capture or a different channel. Otherwise, the previous signal's tail leaks into the first `tap_num - 1` output samples. Keep a single initialization only when feeding one continuous stream in pieces.
 
 ### SensEdu_DSP_FIR_Apply
 
@@ -269,10 +269,10 @@ The figure below shows both traces on the same plot. The raw signal carries out-
 SensEdu ships a subset of [Arm CMSIS-DSP] in `\src\cmsis\`, limited to the floating point FIR implementation and the headers it depends on:
 
 ```
-arm_fir_f32.c            arm_math_types.h             none.h
-arm_fir_init_f32.c       basic_math_functions.h       support_functions.h
-arm_math_memory.h        fast_math_functions.h        utils.h
-                         filtering_functions.h
+arm_compiler_specific.h       arm_math_types.h             none.h
+arm_fir_f32.c                 basic_math_functions.h       support_functions.h
+arm_fir_init_f32.c            fast_math_functions.h        utils.h
+arm_math_memory.h             filtering_functions.h
 ```
 
 The `arm_*` functions and types are an internal implementation. Use the `SensEdu_DSP_*` API instead.
@@ -284,7 +284,7 @@ The bundled files are Copyright (c) 2010-2021 Arm Limited and licensed under the
 
 State buffer has to hold the $$\text{tap_num} - 1$$ history samples followed by exactly `block_size` new samples in contiguous memory. This is why the buffer length is derived from both values.
 
-`SensEdu_DSP_FIR_Apply()` walks the input in `block_size` chunks and shortens the last one if `length` is not a multiple of `block_size`. 
+`SensEdu_DSP_FIR_Apply()` walks the input in `block_size` chunks and shortens the last one if `length` is not a multiple of `block_size`.
 
 This is why user code never needs its own chunking loop, and why `block_size` is only a tuning parameter rather than a limit on how much data can be filtered.
 
