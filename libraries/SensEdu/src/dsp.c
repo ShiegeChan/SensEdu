@@ -28,8 +28,13 @@ static DSP_ERROR check_fir_settings(SensEdu_DSP_FIR* filter, SensEdu_DSP_FIR_Set
 /* -------------------------------------------------------------------------- */
 
 void SensEdu_DSP_FIR_Init(SensEdu_DSP_FIR* filter, SensEdu_DSP_FIR_Settings* settings) {
-    assign_error(check_fir_settings(filter, settings));
-    if (error != DSP_ERROR_NO_ERRORS) {
+    DSP_ERROR check = check_fir_settings(filter, settings);
+    assign_error(check);
+    if (check != DSP_ERROR_NO_ERRORS) {
+        // A failed init must never leave a previously configured filter usable
+        if (filter != 0) {
+            filter->is_init = 0;
+        }
         return;
     }
 

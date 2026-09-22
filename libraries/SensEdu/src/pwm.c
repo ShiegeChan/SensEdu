@@ -45,10 +45,15 @@ static void update_duty_cycles(void);
 /*                              Public Functions                              */
 /* -------------------------------------------------------------------------- */
 void SensEdu_PWM_Init(uint8_t arduino_pin_idx, uint32_t freq, uint8_t duty_cycle) {
-    assign_error(check_freq(freq));
-    assign_error(check_duty_cycle(duty_cycle));
+    PWM_ERROR freq_check = check_freq(freq);
+    PWM_ERROR duty_check = check_duty_cycle(duty_cycle);
+    assign_error(freq_check);
+    assign_error(duty_check);
+
     pin* pwm_pin = identify_pin(arduino_pin_idx);
-    if (error != PWM_ERROR_NO_ERRORS) {
+
+    if (freq_check != PWM_ERROR_NO_ERRORS || duty_check != PWM_ERROR_NO_ERRORS
+        || pwm_pin == NULL) {
         return;
     }
 
