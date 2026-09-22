@@ -165,6 +165,7 @@ void setup() {
 	SenseduBoard* main_obj_ptr = &sensedu_board;
 	main_obj_init(main_obj_ptr);
 
+    // Filter is re-initialized later, this call is here only for early error checking.
     SensEdu_DSP_FIR_Init(&fir_filt, &fir_settings);
 
     Serial.begin(115200);
