@@ -95,6 +95,7 @@ void setup() {
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
 
+    // Filter is re-initialized later, this call is here only for early error checking.
     SensEdu_DSP_FIR_Init(&fir_filt, &fir_settings);
 
     pinMode(error_led, OUTPUT);
