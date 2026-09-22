@@ -122,7 +122,7 @@ SensEdu_ADC_Settings adc3_settings = {
 /* ----------------------------------- DAC ---------------------------------- */
 
 #define DAC_SINE_FREQ     	32000                           // 32kHz
-#define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
+#define DAC_SAMPLE_RATE     (DAC_SINE_FREQ * sine_lut_size) // 64 samples per one sine cycle
 
 DAC_Channel* dac_channel = DAC_CH1;
 SensEdu_DAC_Settings dac_settings = {
