@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+﻿/* ----------------------------------------------------------------------
  * Project:      CMSIS DSP Library
  * Title:        arm_fir_init_f32.c
  * Description:  Floating-point FIR filter initialization function
@@ -8,6 +8,7 @@
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */
+
 /*
  * Copyright (C) 2010-2021 ARM Limited or its affiliates. All rights reserved.
  *
@@ -32,6 +33,9 @@
  * "filtering_functions.h" for the flat bundled layout. No functional changes.
  * See NOTICE.txt in this directory.
  */
+
+#include "arm_compiler_specific.h"
+
 
 #include "filtering_functions.h"
 

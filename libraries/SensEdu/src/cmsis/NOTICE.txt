@@ -7,12 +7,15 @@ without requiring a separately installed CMSIS-DSP library.
 
   Component : CMSIS-DSP (Digital Signal Processing library)
   Upstream  : https://github.com/ARM-software/CMSIS-DSP
-  Version   : Taken from the CMSIS-DSP V1.10.1 package release. Upstream keeps
-              a per-file revision tag that is only bumped when that file
-              changes, so the bundled files span V1.9.0 to V1.10.1. See the
-              header of each file for its own tag.
+  Version   : Taken from the CMSIS-DSP v1.18.0 package release, identified by
+              the release the files were downloaded from, not from the
+              per-file tags. Upstream only bumps a file's own revision tag
+              when that file changes, so the bundled files carry tags
+              spanning V1.9.0 to V1.10.1 and one file carries none at all.
+              Do not infer the package release from those tags.
   Copyright : Copyright (c) 2010-2021 Arm Limited or its affiliates.
               All rights reserved.
+              (Individual files state either 2010-2020 or 2010-2021.)
   License   : Apache License, Version 2.0 (SPDX: Apache-2.0)
               Full text in LICENSE.txt in this directory, and at
               http://www.apache.org/licenses/LICENSE-2.0
@@ -24,14 +27,19 @@ Apache License imposes no additional attribution text beyond this notice.
 Bundled files
 -------------
 
-  arm_fir_f32.c            arm_math_types.h        none.h
-  arm_fir_init_f32.c       basic_math_functions.h  support_functions.h
-  arm_math_memory.h        fast_math_functions.h   utils.h
-                           filtering_functions.h
+  arm_compiler_specific.h  arm_math_types.h        none.h
+  arm_fir_f32.c            basic_math_functions.h  support_functions.h
+  arm_fir_init_f32.c       fast_math_functions.h   utils.h
+  arm_math_memory.h        filtering_functions.h
 
 Only the floating-point FIR filter implementation and its transitive
 headers are included. All other CMSIS-DSP sources were omitted, not
 altered.
+
+arm_compiler_specific.h comes from the upstream PrivateInclude directory
+rather than Include. The FIR sources include it unconditionally, so it is
+required for the bundle to compile. Upstream ships it without a copyright
+or licence header; it is covered by the CMSIS-DSP licence above.
 
 
 Modifications made by the SensEdu project
@@ -50,8 +58,8 @@ the files listed above. Each modified file also carries an in-file notice.
 
   * No algorithmic, numerical, or API changes were made.
 
-  * arm_math_memory.h, arm_math_types.h, none.h and utils.h are byte-for-byte
-    identical to upstream.
+  * arm_compiler_specific.h, arm_math_memory.h, arm_math_types.h, none.h and
+    utils.h are byte-for-byte identical to upstream.
 
 
 Licensing of the combined work
