@@ -7,7 +7,10 @@ without requiring a separately installed CMSIS-DSP library.
 
   Component : CMSIS-DSP (Digital Signal Processing library)
   Upstream  : https://github.com/ARM-software/CMSIS-DSP
-  Version   : V1.10.0 (see the @version tag in each file header)
+  Version   : Taken from the CMSIS-DSP V1.10.1 package release. Upstream keeps
+              a per-file revision tag that is only bumped when that file
+              changes, so the bundled files span V1.9.0 to V1.10.1. See the
+              header of each file for its own tag.
   Copyright : Copyright (c) 2010-2021 Arm Limited or its affiliates.
               All rights reserved.
   License   : Apache License, Version 2.0 (SPDX: Apache-2.0)
