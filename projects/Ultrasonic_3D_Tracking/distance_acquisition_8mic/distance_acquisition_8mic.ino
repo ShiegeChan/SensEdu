@@ -169,18 +169,14 @@ void setup() {
 
     Serial.begin(115200);
 
-    // DAC
     SensEdu_DAC_Init(&dac_settings);
     
-    // ADC1
     SensEdu_ADC_Init(&adc1_settings);
     SensEdu_ADC_Enable(adc1);
 
-    // ADC2
     SensEdu_ADC_Init(&adc2_settings);
     SensEdu_ADC_Enable(adc2);
 
-    // ADC3
     SensEdu_ADC_Init(&adc3_settings);
     SensEdu_ADC_Enable(adc3);
     

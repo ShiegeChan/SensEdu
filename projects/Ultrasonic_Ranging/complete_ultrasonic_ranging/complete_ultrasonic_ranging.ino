@@ -141,19 +141,15 @@ void setup() {
 	SenseduBoard* main_obj_ptr = &sensedu_board;
 	main_obj_init(main_obj_ptr);
 
-    // Initializing the filter
     SensEdu_DSP_FIR_Init(&fir_filt, &fir_settings);
 
     Serial.begin(115200);
 
-    // DAC
     SensEdu_DAC_Init(&dac_settings);
     
-    // ADC1
     SensEdu_ADC_Init(&adc1_settings);
     SensEdu_ADC_Enable(adc1);
 
-    // ADC2
     SensEdu_ADC_Init(&adc2_settings);
     SensEdu_ADC_Enable(adc2);
     
