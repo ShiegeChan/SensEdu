@@ -19,7 +19,7 @@ The SensEdu library provides a user-friendly interface for project development o
 All public functions accessible in Arduino sketches follow the naming pattern:
 `SensEdu_{Peripheral}_{Action}`
 
-* **Peripheral**: Hardware module (e.g., `TIMER`, `ADC`, `DAC`)
+* **Peripheral**: Hardware module (e.g., `TIMER`, `ADC`, `DAC`) or software module (e.g., `DSP`)
 * **Action**: Operation (e.g., `Init`, `Enable`, `Start`)
 
 Example:
@@ -27,7 +27,7 @@ Example:
 SensEdu_ADC_Enable(ADC1); // Enable ADC1 peripheral
 ```
 
-### Supported Peripherals
+### Supported Peripherals and Modules
 * [Timers]({% link library/timers.md %})
   * Prefix: `SensEdu_TIMER_`
   * Source: `\src\timer.c`
@@ -40,6 +40,9 @@ SensEdu_ADC_Enable(ADC1); // Enable ADC1 peripheral
 * [PWM]({% link library/pwm.md %})
   * Prefix: `SensEdu_PWM_`
   * Source: `\src\pwm.c`
+* [DSP]({% link library/dsp.md %})
+  * Prefix: `SensEdu_DSP_`
+  * Source: `\src\dsp.c` and `\src\cmsis\`
 
 You can explore all available functions in the respective wiki sections or by looking into the header files (e.g., `\src\adc.h`):
 
@@ -74,7 +77,8 @@ typedef enum {
     SENSEDU_ERROR_ADC = 0x2000,
     SENSEDU_ERROR_DMA = 0x3000,
     SENSEDU_ERROR_DAC = 0x4000,
-    SENSEDU_ERROR_PWM = 0x5000
+    SENSEDU_ERROR_PWM = 0x5000,
+    SENSEDU_ERROR_DSP = 0x6000
 } SENSEDU_ERROR;
 ```
 
