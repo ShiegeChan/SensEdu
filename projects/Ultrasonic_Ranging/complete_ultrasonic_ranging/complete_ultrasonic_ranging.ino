@@ -16,7 +16,6 @@
  */
 
 #include "SensEdu.h"
-#include "CMSIS_DSP.h"
 #include "SineLUT.h"
 #include "FilterTaps.h"
 #include "DACWave.h" // Contains wave and its size
@@ -47,8 +46,16 @@ uint8_t error_led = D86;
 /* --------------------------------- Filter --------------------------------- */
 #define FILTER_BLOCK_LENGTH     32      // Samples processed per call to the FIR process function
 
-static float32_t fir_state_buffer[FILTER_BLOCK_LENGTH + FILTER_TAP_NUM - 1]; // Current filter state buffer
-arm_fir_instance_f32 fir_filt;
+static SENSEDU_DSP_FIR_STATE_BUFFER(fir_state_buffer, FILTER_TAP_NUM, FILTER_BLOCK_LENGTH);
+SensEdu_DSP_FIR fir_filt;
+
+SensEdu_DSP_FIR_Settings fir_settings = {
+    .taps = filter_taps,
+    .tap_num = FILTER_TAP_NUM,
+    .state_buf = fir_state_buffer,
+    .state_buf_size = SENSEDU_DSP_FIR_STATE_SIZE(FILTER_TAP_NUM, FILTER_BLOCK_LENGTH),
+    .block_size = FILTER_BLOCK_LENGTH
+};
 
 /* ----------------------------------- ADC ---------------------------------- */
 const uint16_t mic_data_size = STORE_BUF_SIZE * 2;
@@ -134,19 +141,16 @@ void setup() {
 	SenseduBoard* main_obj_ptr = &sensedu_board;
 	main_obj_init(main_obj_ptr);
 
-    // Initializing the filter
-    arm_fir_init_f32(&fir_filt, FILTER_TAP_NUM, filter_taps, fir_state_buffer, FILTER_BLOCK_LENGTH); 
+    // Filter is re-initialized later, this call is here only for early error checking.
+    SensEdu_DSP_FIR_Init(&fir_filt, &fir_settings);
 
     Serial.begin(115200);
 
-    // DAC
     SensEdu_DAC_Init(&dac_settings);
     
-    // ADC1
     SensEdu_ADC_Init(&adc1_settings);
     SensEdu_ADC_Enable(adc1);
 
-    // ADC2
     SensEdu_ADC_Init(&adc2_settings);
     SensEdu_ADC_Enable(adc2);
     

@@ -90,6 +90,7 @@ SensEdu was made possible thanks to these freely available tools:
 
 * [Arduino] and [Arduino IDE 2.x]
 * [XENSIV™ Digital Pressure Sensor Arduino Library]
+* [Arm CMSIS-DSP]
 * [STM32H747 Documentation] and [STM32CubeMX]
 * [Jekyll] and [Just the Docs] template
 * [KiCAD]
@@ -99,8 +100,14 @@ SensEdu was made possible thanks to these freely available tools:
 
 * [**GPL-3.0 license**](https://github.com/ShiegeChan/SensEdu/blob/main/LICENSE)
 
+### Third-party components
+
+The SensEdu library bundles a subset of [Arm CMSIS-DSP] (floating-point FIR filtering) in `libraries/SensEdu/src/cmsis/`, so that filtering examples build without an extra dependency. Those files are Copyright (c) 2010-2021 Arm Limited and licensed under the [Apache License 2.0](libraries/SensEdu/src/cmsis/LICENSE.txt), which is compatible with GPL-3.0. Attribution and the list of modifications are in [NOTICE.txt](libraries/SensEdu/src/cmsis/NOTICE.txt).
+
+
 [Arduino IDE 2.x]: https://github.com/arduino/arduino-ide
 [Arduino]: https://www.arduino.cc/
+[Arm CMSIS-DSP]: https://github.com/ARM-software/CMSIS-DSP
 [XENSIV™ Digital Pressure Sensor Arduino Library]: https://github.com/Infineon/arduino-xensiv-dps3xx
 [STM32H747 Documentation]: https://www.st.com/en/microcontrollers-microprocessors/stm32h747-757/documentation.html
 [STM32CubeMX]: https://www.st.com/en/development-tools/stm32cubemx.html
