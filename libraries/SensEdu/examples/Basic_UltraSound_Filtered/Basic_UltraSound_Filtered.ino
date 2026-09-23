@@ -1,15 +1,25 @@
 /*
- * Basic_UltraSound
+ * Basic_UltraSound_Filtered
  *
- * Minimal ultrasonic measurement: emits a 32 kHz sine burst on the DAC speaker,
- * records one microphone via DMA and sends the data to the host.
+ * Same measurement as Basic_UltraSound, with on-board filtering added: emits a
+ * 32 kHz sine burst on the DAC speaker, records one microphone via DMA, then
+ * rescales and bandpass filters the echo. Every measurement sends both raw and 
+ * filtered buffers for comparison.
  *
- * A measurement is triggered by the character 't' on serial - use the MATLAB or
+ * The FIR filter removes the ADC DC offset, audible-band disturbances and
+ * high-frequency noise, leaving the 32 kHz echo.
+ *
+ * The raw buffer is sent unscaled to halve its transfer size. Filtering happens
+ * on the board; the host only repeats the rescaling applied here before the
+ * filter, so both traces share one amplitude scale.
+ *
+ * A measurement is triggered by the character 't' on serial - use the MATLAB or 
  * Python script in matlab/ and python/ to trigger and plot the echo.
  */
 
 #include "SensEdu.h"
 #include "SineLUT.h"
+#include "FilterTaps.h"
 
 // Internal library error container
 uint32_t lib_error = 0;
@@ -34,7 +44,7 @@ SensEdu_DAC_Settings dac_settings = {
 };
 
 /* ADC */
-const uint16_t mic_data_size = 5142;
+const uint16_t mic_data_size = 2048;
 SENSEDU_ADC_BUFFER(mic_data, mic_data_size);
 
 ADC_TypeDef* adc = ADC1;
@@ -53,6 +63,24 @@ SensEdu_ADC_Settings adc_settings = {
     .mem_size = mic_data_size
 };
 
+/* DSP */
+// Filter coefficients are in FilterTaps.h
+#define FILTER_BLOCK_LENGTH 32      // Samples processed per internal filter call
+
+static SENSEDU_DSP_FIR_STATE_BUFFER(fir_state_buffer, FILTER_TAP_NUM, FILTER_BLOCK_LENGTH);
+SensEdu_DSP_FIR fir_filt;
+
+SensEdu_DSP_FIR_Settings fir_settings = {
+    .taps = filter_taps,
+    .tap_num = FILTER_TAP_NUM,
+    .state_buf = fir_state_buffer,
+    .state_buf_size = SENSEDU_DSP_FIR_STATE_SIZE(FILTER_TAP_NUM, FILTER_BLOCK_LENGTH),
+    .block_size = FILTER_BLOCK_LENGTH
+};
+
+static float rescaled_data[mic_data_size];
+static float filtered_data[mic_data_size];
+
 const uint8_t error_led = D86;
 
 /* -------------------------------------------------------------------------- */
@@ -66,6 +94,9 @@ void setup() {
 
     SensEdu_ADC_Init(&adc_settings);
     SensEdu_ADC_Enable(adc);
+
+    // Filter is re-initialized later, this call is here only for early error checking.
+    SensEdu_DSP_FIR_Init(&fir_filt, &fir_settings);
 
     pinMode(error_led, OUTPUT);
     digitalWrite(error_led, HIGH);
@@ -96,10 +127,15 @@ void loop() {
     SensEdu_DAC_ClearBurstCompleteFlag(dac_ch);
     SensEdu_ADC_Start(adc);
     
-    // Wait for the data and send it
+    // Wait for the data
     while (!SensEdu_ADC_IsDmaTransferComplete(adc));
     SensEdu_ADC_ClearDmaTransferComplete(adc);
+
+    // Send the raw capture first, then the filtered result
     serial_send_array(&(mic_data[0]), mic_data_size, 32);
+    rescale_adc_wave(rescaled_data, &(mic_data[0]), mic_data_size);
+    filter_32kHz_wave(rescaled_data, filtered_data, mic_data_size);
+    serial_send_float_array(filtered_data, mic_data_size, 32);
 
     check_lib_errors();
 }
@@ -107,6 +143,20 @@ void loop() {
 /* -------------------------------------------------------------------------- */
 /*                                  Functions                                 */
 /* -------------------------------------------------------------------------- */
+
+// Normalizes raw ADC counts from 0:65535 to -1:1, which also removes the DC offset
+void rescale_adc_wave(float* rescaled_wave, uint16_t* adc_wave, const uint16_t data_length) {
+    for (uint16_t i = 0; i < data_length; i++) {
+        rescaled_wave[i] = (2.0f * adc_wave[i]) / 65535.0f - 1.0f;
+    }
+}
+
+// Applies the 32 kHz bandpass. Each call starts from a clean history, since every
+// measurement is an independent capture rather than a continuation of the previous one
+void filter_32kHz_wave(float* input, float* output, const uint16_t data_length) {
+    SensEdu_DSP_FIR_Init(&fir_filt, &fir_settings);
+    SensEdu_DSP_FIR_Apply(&fir_filt, input, output, data_length);
+}
 
 // Checks if the library has raised any internal errors
 // Serial is busy sending measurements, so the error LED is used instead
@@ -119,8 +169,18 @@ void check_lib_errors() {
 
 // Sends the buffer over serial in fixed-size chunks
 void serial_send_array(uint16_t* data, const size_t data_length, const size_t chunk_size_byte) {
-    for (size_t i = 0; i < (data_length << 1); i += chunk_size_byte) {
-        size_t transfer_size = ((data_length << 1) - i < chunk_size_byte) ? ((data_length << 1) - i) : chunk_size_byte;
+    const size_t total_byte_length = data_length * sizeof(uint16_t);
+    for (size_t i = 0; i < total_byte_length; i += chunk_size_byte) {
+        size_t transfer_size = (total_byte_length - i < chunk_size_byte) ? (total_byte_length - i) : chunk_size_byte;
+        Serial.write((const uint8_t *)data + i, transfer_size);
+    }
+}
+
+// Sends the buffer over serial in fixed-size chunks
+void serial_send_float_array(float* data, const size_t data_length, const size_t chunk_size_byte) {
+    const size_t total_byte_length = data_length * sizeof(float);
+    for (size_t i = 0; i < total_byte_length; i += chunk_size_byte) {
+        size_t transfer_size = (total_byte_length - i < chunk_size_byte) ? (total_byte_length - i) : chunk_size_byte;
         Serial.write((const uint8_t *)data + i, transfer_size);
     }
 }
