@@ -11,6 +11,7 @@
 #include "timer.h"
 #include "dma.h"
 #include "pwm.h"
+#include "dsp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,7 +23,8 @@ typedef enum {
     SENSEDU_ERROR_ADC = 0x2000,
     SENSEDU_ERROR_DMA = 0x3000,
     SENSEDU_ERROR_DAC = 0x4000,
-    SENSEDU_ERROR_PWM = 0x5000
+    SENSEDU_ERROR_PWM = 0x5000,
+    SENSEDU_ERROR_DSP = 0x6000
 } SENSEDU_ERROR;
 
 SENSEDU_ERROR SensEdu_GetError(void);

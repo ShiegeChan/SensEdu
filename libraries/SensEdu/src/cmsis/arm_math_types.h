@@ -40,8 +40,19 @@
 #endif
 
 #ifdef   __cplusplus
+#include <cstdint>
+#include <cstring>
+#include <cmath>
+#include <cfloat>
+#include <climits>
 extern "C"
 {
+#else
+#include <stdint.h>
+#include <string.h>
+#include <math.h>
+#include <float.h>
+#include <limits.h>
 #endif
 
 /* Compiler specific diagnostic adjustment */
@@ -81,39 +92,60 @@ extern "C"
 #endif
 
 
-/* Included for instrinsics definitions */
+/* Included for intrinsics definitions */
 #if defined (_MSC_VER ) 
-#include <stdint.h>
 #define __STATIC_FORCEINLINE static __forceinline
 #define __STATIC_INLINE static __inline
 #define __ALIGNED(x) __declspec(align(x))
 #define __WEAK
+#define SECTION_NOINIT
+#define NO_INLINE __declspec(noinline)
+
+
 #elif defined ( __APPLE_CC__ )
-#include <stdint.h>
 #define  __ALIGNED(x) __attribute__((aligned(x)))
 #define __STATIC_FORCEINLINE static inline __attribute__((always_inline)) 
 #define __STATIC_INLINE static inline
 #define __WEAK
+#define SECTION_NOINIT
+#define NO_INLINE __attribute__ ((noinline))
 #elif defined (__GNUC_PYTHON__)
-#include <stdint.h>
 #define  __ALIGNED(x) __attribute__((aligned(x)))
 #define __STATIC_FORCEINLINE static inline __attribute__((always_inline)) 
 #define __STATIC_INLINE static inline
 #define __WEAK
+#define SECTION_NOINIT __attribute__((section(".noinit")))
+#define NO_INLINE __attribute__ ((noinline))
+
 #else
+#define SECTION_NOINIT
+#define NO_INLINE __attribute__ ((noinline))
+
+/* Compiler intrinsics are supplied by CMSIS-Core, outside the DSP documentation. */
+#ifndef DOXYGEN
 #include "cmsis_compiler.h"
+#endif
 #endif
 
 
 
-#include <string.h>
-#include <math.h>
-#include <float.h>
-#include <limits.h>
+
 
 /* evaluate ARM DSP feature */
+/* __GNUC_PYTHON__ is disabling dependency to CMSIS Core.
+ * As consequence, DSP intrinsics (defined in CMSIS Core)
+ * cannot be used anymore even if __ARM_FEATURE_DSP is defined.
+ * It is the only way to build on a target not supported
+ * by CMSIS Core.
+ * 
+ * ARM_MATH_NEON is used to enable the Neon variants. 
+ * When Neon variants are enabled, the DSP extension are disabled
+ * 
+ */
+#if (!defined(__GNUC_PYTHON__) && !defined(ARM_MATH_NEON) && !defined(ARM_MATH_NEON_EXPERIMENTAL)) 
 #if (defined (__ARM_FEATURE_DSP) && (__ARM_FEATURE_DSP == 1))
   #define ARM_MATH_DSP                   1
+#endif
 #endif
 
 #if defined(ARM_MATH_NEON)
@@ -330,7 +362,7 @@ extern "C"
   /**
    * @brief 32-bit floating-point type definition.
    */
-#if !defined(__ICCARM__) || !(__ARM_FEATURE_MVE & 2)
+#if !defined(__ICCARM__) || !defined(__ARM_FEATURE_MVE) || !(__ARM_FEATURE_MVE & 2)
   typedef float float32_t;
 #endif
 
@@ -427,7 +459,7 @@ extern "C"
 
 #endif
 
-#if defined(ARM_MATH_NEON) || (defined(ARM_MATH_MVEF)  && !defined(ARM_MATH_AUTOVECTORIZE)) /* floating point vector*/
+#if defined(ARM_MATH_NEON) || (defined(ARM_MATH_MVEF) && !defined(ARM_MATH_AUTOVECTORIZE)) /* floating point vector*/
 
   /**
    * @brief 32-bit floating-point 128-bit vector type
@@ -455,7 +487,7 @@ extern "C"
 
 #endif
 
-#if defined(ARM_MATH_NEON)
+#if defined(ARM_MATH_NEON) 
   /**
    * @brief 32-bit fractional 64-bit vector data type in 1.31 format.
    */
@@ -583,6 +615,10 @@ extern "C"
 #endif
 
   /**
+   * @ingroup genericTypes
+   */
+
+  /**
    * @brief Error status returned by some functions in the library.
    */
   typedef enum
@@ -637,6 +673,57 @@ extern "C"
 
   /* Dimension C vector space */
   #define CMPLX_DIM 2
+
+  /**
+   * @ingroup genericTypes
+   */
+  /**
+ * @defgroup bufferSizeTypes Enumerations for transform buffer size functions
+ * @{
+*/
+
+/**
+  * @brief Datatype identifier
+  */
+typedef enum {
+  ARM_MATH_F16 = 16, /**< f16 datatype identifier */
+  ARM_MATH_F32 = 32, /**< f32 datatype identifier */
+  ARM_MATH_F64 = 64, /**< f64 datatype identifier */
+  ARM_MATH_Q7 = 7, /**< Q7 datatype identifier */
+  ARM_MATH_Q15 = 15, /**< Q15 datatype identifier */
+  ARM_MATH_Q31 = 31 /**< Q31 datatype identifier */
+} arm_math_datatype;
+
+/**
+  * @brief Architecture target identifier
+  * 
+  * @note In case the target supports both DSP extensions and Neon extensions, only Neon extensions
+  *       should be used as identification in the corresponding buffer functions.
+  */
+ typedef enum {
+  ARM_MATH_SCALAR_ARCH = 1, /**< Identifier for Scalar build mode */
+  ARM_MATH_DSP_EXTENSIONS_ARCH = 2, /**< Identifier for build mode with dsp extensions */
+  ARM_MATH_HELIUM_ARCH = 3, /**< Identifier for build mode with Helium extensions */
+  ARM_MATH_NEON_ARCH = 4 /**< Identifier for build mode with Neon extensions */
+} arm_math_target_arch;
+
+#if !defined(ARM_MATH_AUTOVECTORIZE)
+  #if defined(ARM_MATH_MVEI) || defined(ARM_MATH_MVEF)
+    #define ARM_MATH_DEFAULT_TARGET_ARCH ARM_MATH_HELIUM_ARCH
+  #elif defined(ARM_MATH_NEON) || defined(ARM_MATH_NEON_EXPERIMENTAL)
+    #define ARM_MATH_DEFAULT_TARGET_ARCH ARM_MATH_NEON_ARCH
+  #elif defined(ARM_MATH_DSP)
+    #define ARM_MATH_DEFAULT_TARGET_ARCH ARM_MATH_DSP_EXTENSIONS_ARCH
+  #else
+    #define ARM_MATH_DEFAULT_TARGET_ARCH ARM_MATH_SCALAR_ARCH 
+  #endif
+#else
+  #define ARM_MATH_DEFAULT_TARGET_ARCH ARM_MATH_SCALAR_ARCH 
+#endif
+
+/**
+ * @} // endgroup bufferSizeTypes
+*/
 
 #ifdef   __cplusplus
 }

@@ -1,0 +1,77 @@
+THIRD-PARTY SOFTWARE NOTICE
+===========================
+
+This directory (SensEdu/src/cmsis) contains a subset of the Arm CMSIS-DSP
+library, bundled with SensEdu so that the signal-processing examples build
+without requiring a separately installed CMSIS-DSP library.
+
+  Component : CMSIS-DSP (Digital Signal Processing library)
+  Upstream  : https://github.com/ARM-software/CMSIS-DSP
+  Version   : Taken from the CMSIS-DSP v1.18.0 package release, identified by
+              the release the files were downloaded from, not from the
+              per-file tags. Upstream only bumps a file's own revision tag
+              when that file changes, so the bundled files carry tags
+              spanning V1.9.0 to V1.10.1 and one file carries none at all.
+              Do not infer the package release from those tags.
+  Copyright : Copyright (c) 2010-2021 Arm Limited or its affiliates.
+              All rights reserved.
+              (Individual files state either 2010-2020 or 2010-2021.)
+  License   : Apache License, Version 2.0 (SPDX: Apache-2.0)
+              Full text in LICENSE.txt in this directory, and at
+              http://www.apache.org/licenses/LICENSE-2.0
+
+Upstream CMSIS-DSP does not ship a NOTICE file, so clause 4(d) of the
+Apache License imposes no additional attribution text beyond this notice.
+
+
+Bundled files
+-------------
+
+  arm_compiler_specific.h  arm_math_types.h        none.h
+  arm_fir_f32.c            basic_math_functions.h  support_functions.h
+  arm_fir_init_f32.c       fast_math_functions.h   utils.h
+  arm_math_memory.h        filtering_functions.h
+
+Only the floating-point FIR filter implementation and its transitive
+headers are included. All other CMSIS-DSP sources were omitted, not
+altered.
+
+arm_compiler_specific.h comes from the upstream PrivateInclude directory
+rather than Include. The FIR sources include it unconditionally, so it is
+required for the bundle to compile. Upstream ships it without a copyright
+or licence header; it is covered by the CMSIS-DSP licence above.
+
+
+Modifications made by the SensEdu project
+-----------------------------------------
+
+Per clause 4(b) of the Apache License, the following changes were made to
+the files listed above. Each modified file also carries an in-file notice.
+
+  * Include paths were flattened: `#include "dsp/<name>.h"` was changed to
+    `#include "<name>.h"`, because the bundled subset is kept in a single
+    flat directory rather than the upstream `dsp/` layout.
+
+    Affected files: arm_fir_f32.c, arm_fir_init_f32.c,
+    basic_math_functions.h, fast_math_functions.h, filtering_functions.h,
+    support_functions.h
+
+  * No algorithmic, numerical, or API changes were made.
+
+  * arm_compiler_specific.h, arm_math_memory.h, arm_math_types.h, none.h and
+    utils.h are byte-for-byte identical to upstream.
+
+
+Licensing of the combined work
+------------------------------
+
+SensEdu as a whole is distributed under the GNU General Public License v3
+(see the LICENSE file at the root of this repository). The Apache License
+2.0 is compatible with GPLv3 in this direction, so the Apache-2.0 licensed
+files above may be combined into and redistributed as part of the GPLv3
+work. The files in this directory individually remain available under the
+Apache License 2.0 under their original terms.
+
+Arm and CMSIS are trademarks of Arm Limited. Their use here is only to
+identify the origin of the code, as permitted by clause 6 of the Apache
+License; this project is not affiliated with or endorsed by Arm Limited.

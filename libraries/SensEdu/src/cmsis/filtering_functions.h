@@ -23,6 +23,12 @@
  * limitations under the License.
  */
 
+/*
+ * NOTICE: This file was modified by the SensEdu project.
+ * Change: "dsp/" include path prefixes removed for the flat bundled layout.
+ * No functional changes. See NOTICE.txt in this directory.
+ */
+
  
 #ifndef FILTERING_FUNCTIONS_H_
 #define FILTERING_FUNCTIONS_H_
@@ -30,11 +36,11 @@
 #include "arm_math_types.h"
 #include "arm_math_memory.h"
 
-#include "dsp/none.h"
-#include "dsp/utils.h"
+#include "none.h"
+#include "utils.h"
 
-#include "dsp/support_functions.h"
-#include "dsp/fast_math_functions.h"
+#include "support_functions.h"
+#include "fast_math_functions.h"
 
 #ifdef   __cplusplus
 extern "C"
@@ -1255,7 +1261,7 @@ arm_status arm_fir_decimate_init_f32(
         uint32_t blockSize);
 
 
-#if defined(ARM_MATH_NEON) 
+#if (defined(ARM_MATH_NEON) || defined(DOXYGEN))
 /**
   @brief         Compute new coefficient arrays for use in vectorized filter (Neon only).
   @param[in]     numStages         number of 2nd order stages in the filter.

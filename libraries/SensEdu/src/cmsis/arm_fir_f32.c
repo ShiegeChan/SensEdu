@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+﻿/* ----------------------------------------------------------------------
  * Project:      CMSIS DSP Library
  * Title:        arm_fir_f32.c
  * Description:  Floating-point FIR filter processing function
@@ -8,6 +8,7 @@
  *
  * Target Processor: Cortex-M and Cortex-A cores
  * -------------------------------------------------------------------- */
+
 /*
  * Copyright (C) 2010-2021 ARM Limited or its affiliates. All rights reserved.
  *
@@ -26,7 +27,17 @@
  * limitations under the License.
  */
 
-#include "dsp/filtering_functions.h"
+/*
+ * NOTICE: This file was modified by the SensEdu project.
+ * Change: include path changed from "dsp/filtering_functions.h" to
+ * "filtering_functions.h" for the flat bundled layout. No functional changes.
+ * See NOTICE.txt in this directory.
+ */
+
+#include "arm_compiler_specific.h"
+
+
+#include "filtering_functions.h"
 
 /**
   @ingroup groupFilters
@@ -89,9 +100,11 @@
                    However, if the initialization function is used, then the instance structure cannot be placed into a const data section.
                    To place an instance structure into a const data section, the instance structure must be manually initialized.
                    Set the values in the state buffer to zeros before static initialization.
-                   The code below statically initializes each of the 4 different data type filter instance structures
+                   The code below statically initializes each of the 6 different data type filter instance structures
   <pre>
+      arm_fir_instance_f64 S = {numTaps, pState, pCoeffs};
       arm_fir_instance_f32 S = {numTaps, pState, pCoeffs};
+      arm_fir_instance_f16 S = {numTaps, pState, pCoeffs};
       arm_fir_instance_q31 S = {numTaps, pState, pCoeffs};
       arm_fir_instance_q15 S = {numTaps, pState, pCoeffs};
       arm_fir_instance_q7 S =  {numTaps, pState, pCoeffs};
@@ -128,7 +141,6 @@
                  - A is 8*ceil(blockSize/8) for f16
                  - A is 8*ceil(blockSize/4) for q31
                  - A is 0 for other datatypes (q15 and q7)
-
 
   @par           Fixed-Point Behavior
                    Care must be taken when using the fixed-point versions of the FIR filter functions.
@@ -348,7 +360,7 @@ __STATIC_INLINE void arm_fir_f32_5_8_mve(const arm_fir_instance_f32 * S,
     pTempSrc = &pState[blockSize];
     pTempDest = pState;
     blkCnt = numTaps;
-    while (blkCnt > 0)
+    while (blkCnt > 1)
     {
         *pTempDest++ = *pTempSrc++;
         blkCnt--;
@@ -670,6 +682,7 @@ uint32_t blockSize)
     pTempSrc = &pRefStatePtr[blockSize];
     pTempDest = pRefStatePtr;
 
+    numTaps--;
     blkCnt = numTaps >> 2;
     while (blkCnt > 0)
     {
@@ -687,7 +700,7 @@ uint32_t blockSize)
 }
 
 #else
-#if defined(ARM_MATH_NEON)
+#if defined(ARM_MATH_NEON) 
 
 ARM_DSP_ATTRIBUTE void arm_fir_f32(
 const arm_fir_instance_f32 * S,

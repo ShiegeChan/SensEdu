@@ -27,12 +27,15 @@
 #define ARM_MATH_UTILS_H_
 
 #include "arm_math_types.h"
-#include <limits.h>
 
 #ifdef   __cplusplus
+#include <climits>
 extern "C"
 {
+#else
+#include <limits.h>
 #endif
+
 
   /**
    * @brief Macros required for reciprocal calculation in Normalized LMS
@@ -60,6 +63,10 @@ extern "C"
   /**
    * @brief Function to Calculates 1/in (reciprocal) value of Q31 Data type.
      It should not be used with negative values.
+   * @param[in] in Input value in 1.31 format.
+   * @param[out] dst Reciprocal mantissa in 1.31 format.
+   * @param[in] pRecipTable Table of 64 initial reciprocal approximations.
+   * @return Exponent e such that the reciprocal is approximately *dst times 2^e.
    */
   __STATIC_FORCEINLINE uint32_t arm_recip_q31(
         q31_t in,
@@ -112,6 +119,10 @@ extern "C"
   /**
    * @brief Function to Calculates 1/in (reciprocal) value of Q15 Data type.
      It should not be used with negative values.
+   * @param[in] in Input value in 1.15 format.
+   * @param[out] dst Reciprocal mantissa in 1.15 format.
+   * @param[in] pRecipTable Table of 64 initial reciprocal approximations.
+   * @return Exponent e such that the reciprocal is approximately *dst times 2^e.
    */
   __STATIC_FORCEINLINE uint32_t arm_recip_q15(
         q15_t in,
@@ -163,6 +174,9 @@ extern "C"
 
 /**
  * @brief  64-bit to 32-bit unsigned normalization
+ * @note   The input is the absolute magnitude of a signed 64-bit value and
+ *         must therefore be in the range 0 to INT64_MAX. Bit 63 must not be
+ *         set.
  * @param[in]  in           is input unsigned long long value
  * @param[out] normalized   is the 32-bit normalized value
  * @param[out] norm         is norm scale
@@ -212,6 +226,11 @@ __STATIC_INLINE  void arm_norm_64_to_32u(uint64_t in, int32_t * normalized, int3
          */
         n1 = 1 - n1;
         *norm = -n1;
+        if (n1 == 32)
+        {
+            *normalized = hi;
+            return;
+        }
         /*
          * 64 bit normalization
          */
@@ -219,6 +238,13 @@ __STATIC_INLINE  void arm_norm_64_to_32u(uint64_t in, int32_t * normalized, int3
     }
 }
 
+/**
+ * arm_div_int64_to_int32 function performs division of a 64-bit integer by a 32-bit integer
+ * and returns a 32-bit integer result. The function saturates the result to fit within the 32-bit integer range.
+ * @param num The 64-bit integer numerator.
+ * @param den The 32-bit integer denominator.
+ * @return The saturated 32-bit integer result of the division.
+ */
 __STATIC_INLINE int32_t arm_div_int64_to_int32(int64_t num, int32_t den)
 {
     int32_t   result;
@@ -226,13 +252,17 @@ __STATIC_INLINE int32_t arm_div_int64_to_int32(int64_t num, int32_t den)
     int32_t   normalized;
     int32_t   norm;
 
+    if ((num == INT64_MIN) && (den == -1))
+    {
+        return INT32_MAX;
+    }
     /*
      * if sum fits in 32bits
      * avoid costly 64-bit division
      */
-    if (num == (int64_t)LONG_MIN)
+    if (num == LLONG_MIN)
     {
-        absNum = LONG_MAX;
+        absNum = LLONG_MAX;
     }
     else
     {
@@ -248,7 +278,7 @@ __STATIC_INLINE int32_t arm_div_int64_to_int32(int64_t num, int32_t den)
         /*
          * 64-bit division
          */
-        result = (int32_t) (num / den);
+        result = clip_q63_to_q31(num / den);
 
     return result;
 }

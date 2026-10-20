@@ -62,6 +62,7 @@ SensEdu was made possible thanks to these freely available tools:
 {: .mb-1}
 * [Arduino] and [Arduino IDE 2.x]
 * [XENSIV™ Digital Pressure Sensor Arduino Library]
+* [Arm CMSIS-DSP]
 * [STM32H747 Documentation] and [STM32CubeMX]
 * [Jekyll] and [Just the Docs] template
 * [KiCAD]
@@ -79,6 +80,7 @@ Thank You to All Contributors!
 
 [Arduino IDE 2.x]: https://github.com/arduino/arduino-ide
 [Arduino]: https://www.arduino.cc/
+[Arm CMSIS-DSP]: https://github.com/ARM-software/CMSIS-DSP
 [XENSIV™ Digital Pressure Sensor Arduino Library]: https://github.com/Infineon/arduino-xensiv-dps3xx
 [STM32H747 Documentation]: https://www.st.com/en/microcontrollers-microprocessors/stm32h747-757/documentation.html
 [STM32CubeMX]: https://www.st.com/en/development-tools/stm32cubemx.html
