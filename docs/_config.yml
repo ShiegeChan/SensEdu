@@ -6,6 +6,16 @@ baseurl: ""
 url: "https://sensedu-shield.com"
 repository: ShiegeChan/SensEdu
 
+defaults:
+  - scope:
+      path: ""
+    values:
+      image:
+        path: /assets/images/social-preview.png
+        width: 1200
+        height: 630
+        alt: SensEdu Shield
+
 # remove .html from links
 permalink: pretty
 
