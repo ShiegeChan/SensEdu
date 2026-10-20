@@ -21,7 +21,7 @@ uint32_t lib_error = 0;
 /* DAC */
 // LUT settings are in SineLUT.h
 #define DAC_SINE_FREQ     	32000                           // 32kHz
-#define DAC_SAMPLE_RATE     DAC_SINE_FREQ * sine_lut_size   // 64 samples per one sine cycle
+#define DAC_SAMPLE_RATE     (DAC_SINE_FREQ * sine_lut_size) // 64 samples per one sine cycle
 
 DAC_Channel* dac_ch = DAC_CH1;
 SensEdu_DAC_Settings dac_settings = {

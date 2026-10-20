@@ -22,7 +22,7 @@ DATA_LENGTH = 5142; % Must match the firmware
 arduino = serialport(ARDUINO_PORT, ARDUINO_BAUDRATE); % Select port and baudrate
 
 %% Readings Loop
-data = zeros(1,ITERATIONS);
+data = zeros(ITERATIONS, DATA_LENGTH);
 time_axis = zeros(1,ITERATIONS);
 
 for it = 1:ITERATIONS
@@ -30,9 +30,9 @@ for it = 1:ITERATIONS
     write(arduino, 't', "char"); % Trigger arduino measurement
     time_axis(it) = toc;
     tic
-    data = read_data(arduino, DATA_LENGTH, CHUNK_SIZE);
+    data(it, :) = read_data(arduino, DATA_LENGTH, CHUNK_SIZE);
     toc
-    plot_data(data);
+    plot_data(data(it, :));
 end
 
 % Set COM port back free
