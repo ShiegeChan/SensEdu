@@ -50,19 +50,11 @@ Designed for education - easy entry into ultrasonic sensing and research</p>
 
 ## Installation
 
-1. Download the latest release version from the <a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">Download page</a>.
-2. Extract the downloaded files and place the **libraries** folder into: `C:\Users\your_username\Documents\Arduino\`.
-3. The **projects** folder can be placed anywhere in your system.
-4. Open the <a href="https://www.arduino.cc/en/software" target="_blank">Arduino IDE</a> and install **Arduino Giga R1 board package** via the Boards Manager.
+1. Open the <a href="https://www.arduino.cc/en/software" target="_blank">Arduino IDE</a> and install the **Arduino Mbed OS Giga Boards** package via the Boards Manager.
+2. Install the **SensEdu** library via the Library Manager.
+3. To run the example projects, download the <a href="https://github.com/ShiegeChan/SensEdu/releases" target="_blank">latest release</a> and extract the **projects** folder anywhere on your system.
 
 > A more complete walkthrough is available in the <a href="https://sensedu-shield.com/getting-started/" target="_blank">Getting Started</a> guide on the documentation website.
-
-<p align="left" style="margin:0">
-  <img src="https://ik.imagekit.io/vladysor/SensEdu/installation_guide.gif?updatedAt=1737991664227">
-</p>
-<p align="left" style="margin:0">
-  <img src="https://ik.imagekit.io/vladysor/SensEdu/boards_manager.png?updatedAt=1737991662410" width="50%">
-</p>
 
 
 ## Starting a Project

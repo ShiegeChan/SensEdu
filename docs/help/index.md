@@ -61,7 +61,9 @@ Make sure you are using a USB cable that supports data transfer, and that the *A
 
 ### Why do I get `SensEdu.h: No such file or directory`?
 {: .no_toc}
-The library is not installed in the right place. Move the contents of the library folder from the [latest release][SensEdu release] to your Arduino libraries folder, as described in [Getting Started]({% link getting started/index.md %}):
+The library is not installed, or not where the Arduino IDE expects it. If you are not developing the library itself, install it through the *Library Manager* as described in [Getting Started]({% link getting started/index.md %}).
+
+If you install the library manually, place the contents of the library folder from the [latest release][SensEdu release] into your Arduino libraries folder:
 * Windows: `C:\Users\{username}\Documents\Arduino\libraries\`
 * Linux: `/home/{username}/Arduino/libraries/`
 * macOS: `/Users/{username}/Documents/Arduino/libraries/`
