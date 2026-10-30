@@ -12,13 +12,7 @@ permalink: /getting-started/
 Follow these steps to begin developing your projects with SensEdu.
 {: .fw-500}
 
-{: .NOTE}
-*If you prefer video tutorials, we have an [installation guide] on YouTube (not yet).*
-
-**Step 1**{: .text-green-200} : Connect SensEdu Shield to the Arduino GIGA R1. **By default, the power and speakers are disabled.** To enable them, place a small [2-pin jumper](https://mou.sr/41uQmLm) onto headers **J18**, **J17**, and **J8**, according to the desired settings. The standard configuration is shown in the figure below (more details in [PCB section]({% link pcb/index.md%}#key-headersjumpers))
-
-<img src="{{site.baseurl}}/assets/images/GettingStartedJumpers.png" alt="drawing"/>
-{: .text-center}
+**Step 1**{: .text-green-200} : Connect SensEdu Shield to the Arduino GIGA R1.
 
 **Step 2**{: .text-green-200} : Download and Install [Arduino IDE]
 
@@ -70,4 +64,3 @@ If you are interested in contributing to SensEdu, visit the [Contributing]({% li
 
 [Arduino IDE]: https://support.arduino.cc/hc/en-us/articles/360019833020-Download-and-install-Arduino-IDE
 [SensEdu release]: https://github.com/ShiegeChan/SensEdu/releases/
-[installation guide]: https://www.youtube.com/

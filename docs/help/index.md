@@ -68,6 +68,18 @@ The library is not installed in the right place. Move the contents of the librar
 
 Restart the Arduino IDE afterwards.
 
+### Why does the SensEdu library fail to compile?
+{: .no_toc}
+Usually it means that an older version of the library is still left over on your system, typically reported as an unknown type or macro:
+
+```text
+Compilation error: ISO C++ forbids declaration of 'SENSEDU_DSP_FIR_STATE_BUFFER' with no type [-fpermissive]
+```
+
+The Arduino IDE only looks for libraries in the `libraries\` folder of the sketchbook location set in *File → Preferences → Sketchbook location*, which defaults to `Documents\Arduino\`. Libraries installed through the IDE are downloaded there as well, so a repository clone kept anywhere else is ignored and the older installed copy is compiled instead.
+
+To build against a development version, either point *Sketchbook location* at your SensEdu repository folder, or copy the development version of the library into the default `libraries\` folder, replacing the installed one.
+
 ### How can I contribute?
 {: .no_toc}
 Start with the [Contributing Guide]({% link contributing/index.md %}) and create a [discussion][Discussions] on GitHub for your contribution, where we will discuss your ideas and help you get started!

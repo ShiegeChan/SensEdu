@@ -2,7 +2,7 @@
   <img src="https://ik.imagekit.io/vladysor/SensEdu/SensEdu.png?updatedAt=1737991670936">
 </p>
 
-<p align="center"><b>Ultrasonic Ranging & Detection Development Shield for Arduino GIGA R1</b><br>
+<p align="center"><b>Ultrasonic Development Shield for Arduino GIGA R1</b><br>
 Designed for education - easy entry into ultrasonic sensing and research</p>
 
 <p align="center">
@@ -29,11 +29,12 @@ Designed for education - easy entry into ultrasonic sensing and research</p>
 * **Custom Shield Design** for <a href="https://docs.arduino.cc/hardware/giga-r1-wifi/?queryID=undefined" target="_blank">Arduino GIGA R1 WiFi</a> and mechanically compatible boards (e.g., <a href="https://www.infineon.com/evaluation-board/KIT-A2G-TC375-ARD-SB" target="_blank">AURIX™ TC375 Shieldbuddy</a>). It extends the board with sensors:
   * **4x Infineon MEMS microphones**: capable of operating in ultrasonic range at approx. 20-80 kHz (<a href="https://www.infineon.com/assets/row/public/documents/24/49/infineon-im73a135-datasheet-en.pdf" target="_blank">datasheet</a>).
   * **2x Ultrasonic Transducers**: transmit ultrasonic waves with a center frequency of ~33kHz (<a href="https://www.farnell.com/datasheets/4413630.pdf?_gl=1*1fltz5c*_gcl_au*MTQwMTY3ODgxOC4xNzI2NDc2MDYw" target="_blank">datasheet</a>).
-  * **2x Instrumentation Amplifiers**: providing 4x channels total, routed to external pin headers for connecting additional sensors such as surface EMG electrodes (<a href="https://www.analog.com/media/en/technical-documentation/data-sheets/ad8222.pdf" target= "_blank">datasheet</a>).
-  * **1x Infineon Barometric Air Pressure Sensor**: provides pressure and temperature measurements; ideal for indoor and outdoor navigation, weather stations, drones, and more (<a href="https://www.infineon.com/dgdl/Infineon-DPS310-DataSheet-v01_02-EN.pdf?fileId=5546d462576f34750157750826c42242" target="_blank">datasheet</a>).
+  * **4x Instrumentation Amplifiers**: dual-channel parts providing 8x channels total, four wired to the on-board MEMS microphones and four routed to external pin headers for connecting additional sensors such as surface EMG electrodes (<a href="https://www.analog.com/media/en/technical-documentation/data-sheets/ad8426.pdf" target= "_blank">datasheet</a>).
+  * **1x Infineon Barometric Air Pressure Sensor**: provides pressure and temperature measurements; ideal for indoor and outdoor navigation, weather stations, drones, and more (<a href="https://www.infineon.com/assets/row/public/documents/24/49/infineon-dps368-datasheet-en.pdf" target="_blank">datasheet</a>).
+  * **1x Sensirion Humidity & Temperature Sensor**: provides relative humidity and temperature readings for environmental compensation and weather monitoring (<a href="https://sensirion.com/media/documents/33FD6951/67EB9032/HT_DS_Datasheet_SHT4x_5.pdf" target="_blank">datasheet</a>).
 * **Low-Level SensEdu Library** for Arduino GIGA R1 that serves as a basic abstraction layer for the STM32H747 peripherals and provides default configurations for all sensors. It is implemented at the register level based on <a href="https://www.st.com/resource/en/reference_manual/rm0399-stm32h745755-and-stm32h747757-advanced-armbased-32bit-mcus-stmicroelectronics.pdf" target="_blank">STM32H747 Reference Manual</a> and <a href="https://developer.arm.com/documentation/ddi0403/latest/" target="_blank"> Armv7-M Architecture Reference Manual</a>, ensuring simplicity and expandability. Extensive examples are included to demonstrate library's functionality.
 * **Example projects** show how to use SensEdu to achieve your learning goals. See the full implementation for pulsed time-of-flight distance measurements, FMCW ranging, FSK-modulated communication, a weather station, and other projects.
-* **MATLAB scripts** enable visualization and post-processing of recorded data transferred via USB or Wi-Fi.
+* **MATLAB and Python scripts** enable visualization and post-processing of recorded data transferred via USB or Wi-Fi.
 
 
 ## Preview
@@ -54,6 +55,8 @@ Designed for education - easy entry into ultrasonic sensing and research</p>
 3. The **projects** folder can be placed anywhere in your system.
 4. Open the <a href="https://www.arduino.cc/en/software" target="_blank">Arduino IDE</a> and install **Arduino Giga R1 board package** via the Boards Manager.
 
+> A more complete walkthrough is available in the <a href="https://sensedu-shield.com/getting-started/" target="_blank">Getting Started</a> guide on the documentation website.
+
 <p align="left" style="margin:0">
   <img src="https://ik.imagekit.io/vladysor/SensEdu/installation_guide.gif?updatedAt=1737991664227">
 </p>
@@ -68,13 +71,13 @@ To get started, you can explore the hardware interface by following the examples
 
 In the `projects/` directory, you will find several complete projects designed for this board, including:
 * **Ultrasonic Pulse-Echo Ranging**
-* **Ultrasonic Pulse-Echo Ranging with Wi-Fi + GUI** - *in progress (25%)*
+* **Ultrasonic 3D Tracking**
 * **Ultrasonic Chirp Generation**
 * **Ultrasonic FMCW Ranging**
-* **Ultrasonic Doppler Velocimeter** - *coming soon*
-* **Ultrasonic FSK Communication Link** - *coming soon*
-* **EMG BioInputs** - *in progress (75%)*
-* **Weather Station** - *in progress (50%)*
+* **Ultrasonic FSK Communication Link**
+* **Audio Recorder**
+* **EMG BioInputs** - *coming soon*
+* **Weather Station**
 
 Detailed overview for each project is available in the "Projects" section of the <a href="https://sensedu-shield.com/projects/" target="_blank">Documentation</a>.
 
@@ -86,13 +89,16 @@ Suggest improvements or check out already opened <a href="https://github.com/Shi
 
 ## Acknowledgments
 
-SensEdu was made possible thanks to these freely available tools:
+SensEdu was made possible thanks to these tools and libraries:
 
-* [Arduino] and [Arduino IDE 2.x]
-* [XENSIV™ Digital Pressure Sensor Arduino Library]
+* [Arduino], [Arduino IDE 2.x] and the [Arduino Mbed OS Giga Core]
 * [STM32H747 Documentation] and [STM32CubeMX]
+* [CMSIS-DSP]
+* [XENSIV™ Digital Pressure Sensor Arduino Library] and [Sensirion SHT4x Arduino Library]
+* [KiCad]
+* [MATLAB] and [Python]
+* [Manim Community]
 * [Jekyll] and [Just the Docs] template
-* [KiCAD]
 
 
 ## License
@@ -101,11 +107,15 @@ SensEdu was made possible thanks to these freely available tools:
 
 [Arduino IDE 2.x]: https://github.com/arduino/arduino-ide
 [Arduino]: https://www.arduino.cc/
+[Arduino Mbed OS Giga Core]: https://github.com/arduino/ArduinoCore-mbed
 [XENSIV™ Digital Pressure Sensor Arduino Library]: https://github.com/Infineon/arduino-xensiv-dps3xx
+[Sensirion SHT4x Arduino Library]: https://github.com/Sensirion/arduino-i2c-sht4x
 [STM32H747 Documentation]: https://www.st.com/en/microcontrollers-microprocessors/stm32h747-757/documentation.html
 [STM32CubeMX]: https://www.st.com/en/development-tools/stm32cubemx.html
+[CMSIS-DSP]: https://github.com/ARM-software/CMSIS-DSP
+[MATLAB]: https://www.mathworks.com/products/matlab.html
+[Python]: https://www.python.org/
+[Manim Community]: https://docs.manim.community/en/stable/index.html
 [Jekyll]: https://jekyllrb.com/
-[Just the Docs]: https://github.com/just-the-docs/just-the-docs/tree/main
-[STM32H747]: https://www.st.com/en/microcontrollers-microprocessors/stm32h747-757.html
-[Arduino GIGA R1 WiFi]: https://docs.arduino.cc/hardware/giga-r1-wifi/
+[Just the Docs]: https://just-the-docs.com/
 [KiCad]: https://www.kicad.org/

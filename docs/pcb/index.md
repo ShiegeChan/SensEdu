@@ -156,7 +156,7 @@ The Infineon IM73A135V01XTSA1 is a high-performance analog MEMS microphone desig
 ## Amplifier
 - **Instrumentation Amplifier ([AD8426ACPZ](https://www.analog.com/media/en/technical-documentation/data-sheets/ad8426.pdf))**:
   
-The AD8426ACPZ is a high-performance instrumentation amplifier from Analog Devices. It is designed for accurate, low-noise amplification of small differential signals, making it ideal for amplifying the weak signals from the MEMS microphones in ultrasound applications.
+The AD8426ACPZ is a high-performance dual-channel instrumentation amplifier from Analog Devices. It is designed for accurate, low-noise amplification of small differential signals, making it ideal for amplifying the weak signals from the MEMS microphones in ultrasound applications.
 
 - **Key Features**:
   - **Low Noise**: 1&#8239;nV/√Hz noise density, ensuring minimal introduction of noise into the signal
@@ -165,7 +165,7 @@ The AD8426ACPZ is a high-performance instrumentation amplifier from Analog Devic
   - **Configurable Gain**: Gain can be set using external resistors, with a typical configuration providing a gain of 50 (using a 1&#8239;kΩ resistor)
 - **Usage in Design**:
   - **Microphone Signal Amplification**: The AD8426 amplifiers are used to boost the small amplitude signals from the MEMS microphones (IM73A135V01XTSA1) to levels that fully utilise the range of the internal ADCs
-  - **Configuration**: 4x AD8426 amplifiers provide four channels of amplification, each with a gain of 50. Two of them are for the Infineon IM73A135V01XTSA1 microphones and two for external sources
+  - **Configuration**: 4x dual-channel AD8426 amplifiers provide eight channels of amplification in total, each with a gain of 50. Two of them (U4, U5) serve the four Infineon IM73A135V01XTSA1 microphones, the other two (U6, U7) serve the four external inputs
   - **Amplifier for external signals**:  ***J8/J9/J10/J11***: 4-pin headers for connecting external microphones or other signal sources
     - Pin 1: 2.5&#8239;V (mic supply)
     - Pin 2: Amplifier input +
