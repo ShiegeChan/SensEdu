@@ -61,12 +61,26 @@ Make sure you are using a USB cable that supports data transfer, and that the *A
 
 ### Why do I get `SensEdu.h: No such file or directory`?
 {: .no_toc}
-The library is not installed in the right place. Move the contents of the library folder from the [latest release][SensEdu release] to your Arduino libraries folder, as described in [Getting Started]({% link getting started/index.md %}):
+The library is not installed, or not where the Arduino IDE expects it. If you are not developing the library itself, install it through the *Library Manager* as described in [Getting Started]({% link getting started/index.md %}).
+
+If you install the library manually, place the contents of the library folder from the [latest release][SensEdu release] into your Arduino libraries folder:
 * Windows: `C:\Users\{username}\Documents\Arduino\libraries\`
 * Linux: `/home/{username}/Arduino/libraries/`
 * macOS: `/Users/{username}/Documents/Arduino/libraries/`
 
 Restart the Arduino IDE afterwards.
+
+### Why does the SensEdu library fail to compile?
+{: .no_toc}
+Usually it means that an older version of the library is still left over on your system, typically reported as an unknown type or macro:
+
+```text
+Compilation error: ISO C++ forbids declaration of 'SENSEDU_DSP_FIR_STATE_BUFFER' with no type [-fpermissive]
+```
+
+The Arduino IDE only looks for libraries in the `libraries\` folder of the sketchbook location set in *File → Preferences → Sketchbook location*, which defaults to `Documents\Arduino\`. Libraries installed through the IDE are downloaded there as well, so a repository clone kept anywhere else is ignored and the older installed copy is compiled instead.
+
+To build against a development version, either point *Sketchbook location* at your SensEdu repository folder, or copy the development version of the library into the default `libraries\` folder, replacing the installed one.
 
 ### How can I contribute?
 {: .no_toc}

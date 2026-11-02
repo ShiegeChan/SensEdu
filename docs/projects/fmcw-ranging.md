@@ -10,9 +10,6 @@ nav_order: 4
 {: .no_toc .fs-8 .fw-500}
 ---
 
-{: .NOTE}
-This project is currently in its initial development phase and is subject to significant changes, updates, and improvements. The project enables a rudimentary implementation of an FMCW ranging technique (commonly used in radar applications) using ultrasound waves, and requires an Arduino GIGA board with SensEdu shield. 
-
 The **FMCW Ranging Project**{: .text-green-000} utilizes the **SensEdu Shield**{: .text-green-000} to perform **distance measurements**{: .text-green-000} using FMCW radar techniques. Although we use ultrasound and not radio waves in this project, the technique is explained using the radar example since it is more common to use radio waves for this type of application.
 
 {:.fs-5}
